@@ -1,7 +1,7 @@
 # ~/j/j.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/j.bash
 
-[ "$DBG" == "1" ] && echo $BASH_SOURCE && dbg 
+[ "$DBG" == "1" ] && echo [ $BASH_SOURCE DBG $DBG && dbg 
 
 j-usage(){ cat << EOU
 Common source for JUNO high level bash functions
@@ -657,4 +657,5 @@ tds4(){ BP="$(tds4-)" tds ; }
 
 
 
+[ "$DBG" == "1" ] && echo ] $BASH_SOURCE DBG $DBG && dbg 
 
