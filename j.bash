@@ -19,8 +19,9 @@ EOU
 }
 
 j-env(){  echo -n ; }
-j-(){ . $HOME/j/j.bash && j-env $* ; }
-j(){  cd ~/j && pwd && git status ; }
+j-dir(){ echo $(dirname $BASH_SOURCE) ; }
+j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
+j(){ j-cd ; }
 
 jvi(){ vi $BASH_SOURCE && jfu ; }
 jfu(){ source $BASH_SOURCE ; }
