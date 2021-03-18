@@ -1,6 +1,5 @@
 # ~/j/j.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/j.bash
-
 [ "$DBG" == "1" ] && echo [ $BASH_SOURCE DBG $DBG && dbg 
 
 j-usage(){ cat << EOU
@@ -9,9 +8,130 @@ Common source for JUNO high level bash functions
 
 ::
 
-   cd 
-   git clone git@github.com:simoncblyth/j.git
-   # Add "source $HOME/j/j.bash" to .bash_profile 
+   cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
+
+Install Link
+---------------
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#install_offline_data
+
+Offline Trac Links
+---------------------
+
+* https://juno.ihep.ac.cn/trac/changeset/4353/offline
+
+
+* https://juno.ihep.ac.cn/trac/search?q=r4090
+* https://juno.ihep.ac.cn/trac/browser/offline/trunk/Simulation/DetSimV2/PMTSim#src
+
+* https://juno.ihep.ac.cn/trac/changeset/31/cmtlibs
+* https://juno.ihep.ac.cn/trac/browser/cmtlibs#trunk
+
+* https://juno.ihep.ac.cn/trac/timeline
+
+slack kanban
+--------------
+
+* https://juno-analysis.slack.com 
+* https://juno.ihep.ac.cn/kanboard/
+
+Index
+------
+
+* https://bitbucket.org/simoncblyth/jnu/commits/
+* http://juno.ihep.ac.cn/trac/timeline
+* http://juno.ihep.ac.cn/mediawiki/index.php/InternalWeb
+* http://juno.ihep.ac.cn/mediawiki/index.php/Offline_Software
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Detsimuserguide
+* https://juno.ihep.ac.cn/~offline/Doc/detsim/quickstart.html
+
+*  http://juno.ihep.ac.cn/~offline/Doxygen/offline/html/files
+
+
+OPTICKS_TOP envvar : a trick for Opticks developers working in peer-to-peer fashion 
+---------------------------------------------------------------------------------------------
+
+When OPTICKS_TOP is defined it overrides the opticks installation used by junoenv.
+This makes it possible to use a separately installed Opticks installation.
+ 
+
+/home/blyth/junotop/junoenv/junoenv-external-libs.sh::
+
+    819 function junoenv-external-libs-list {
+    820     local mode=$1
+    821 
+    822     [ -n "$OPTICKS_TOP" ] && echo opticks
+    823 
+    ### Ahem : should be checking CMTEXTRATAGS for opticks, not checking OPTICKS_TOP ?
+    ### switched to :  [ "${CMTEXTRATAGS/opticks}" != "$CMTEXTRATAGS" ] && echo opticks
+
+::
+
+    096 function juno-ext-libs-opticks-generate-sh {
+     97     local msg="====== $FUNCNAME :"
+     98     local prefix=$(juno-ext-libs-opticks-install-dir)
+     99     echo $msg replacing bashrc 
+    100 
+    101     # When OPTICKS_TOP is defined it overrides the opticks installation used by junoenv.
+    102     # This makes it possible to use a separately installed Opticks installation.
+    103 
+    104 cat <<EOF > bashrc
+    105 if [ -n "\${OPTICKS_TOP}" ]; then 
+    106    source \${OPTICKS_TOP}/bin/opticks-setup.sh
+    107 else
+    108    source $prefix/bin/opticks-setup.sh
+    109 fi
+    110 EOF
+    111 }
+    112 function juno-ext-libs-opticks-generate-csh {
+    113     local msg="SCB $FUNCNAME :"
+    114     local prefix=$(juno-ext-libs-opticks-install-dir)
+    115     echo $msg replacing tcshrc 
+    116 
+    117 cat <<EOF > tcshrc
+    118 if [ -n "\${OPTICKS_TOP}" ]; then 
+    119    source \${OPTICKS_TOP}/bin/opticks-setup.csh 
+    120 else
+    121    source $prefix/bin/opticks-setup.sh
+    122 fi
+    123 EOF
+    124 }
+
+
+Opticks JunoENV Links
+----------------------
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#Install_Opticks_using_JunoENV
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#building_the_offline_-DWITH_G4OPTICKS
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Detsimuserguide/UsingOpticks
+
+
+CMT Refs
+----------
+
+* https://svn.lal.in2p3.fr/projects/CMT/CMT/v1r10p20011126/doc/CMTDoc.html#Defining%20the%20user%20tags
+
+
+Simulation
+---------------
+
+* http://juno.ihep.ac.cn/~offline/Doc/detsim/
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Generator
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Detsimuserguide
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Detsimuserguide/UsefulCommands
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=236
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?sessionid=381
+
+cmt introspection
+------------------
+
+::
+
+    cd ~/juno-tutorial
+    source bashrc 
+    cmt show packages 
+
 
 
 
@@ -79,66 +199,237 @@ jokc(){
     find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
 }
 
-################### BUILDING  ###################################
+################### INSTALLATION ###################################
 
+j-install(){
+    :   https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+    j-install-junotop
+    [ $? -ne 0 ] && return 1 
+    j-install-junoenv
+    [ $? -ne 0 ] && return 2
+    j-install-preq 
+    [ $? -ne 0 ] && return 3
+    j-install-libs 
+    [ $? -ne 0 ] && return 4
+    j-install-runtime
+    [ $? -ne 0 ] && return 5
+    j-install-cmtlibs
+    [ $? -ne 0 ] && return 6
+    j-install-sniper
+    [ $? -ne 0 ] && return 7
+    j-install-offline
+    [ $? -ne 0 ] && return 8
+    j-install-offline-data
+    [ $? -ne 0 ] && return 9
 
-jeb(){ cd $JUNOTOP/junoenv ; bash junoenv ${1:-dummy} ; }
-jsniper(){ jeb sniper ; }
-joffline(){ jeb offline ; }
+    return 0 
+}
 
-
-jlibs(){
+j-install-junotop(){ 
+    local msg="=== $FUNCNAME :"
+    echo $msg JUNOTOP $JUNOTOP 
+    [ -z "$JUNOTOP" ] && echo $msg JUNOTOP is not defined && return 1 
+    mkdir -p $JUNOTOP ; 
+    [ ! -d "$JUNOTOP" ] && echo $msg failed to create JUNOTOP dir && return 2
+    return 0 
+}
+j-install-junoenv(){
+    local msg="=== $FUNCNAME :"
+    echo $msg 
+    cd $JUNOTOP
+    if [ -d junoenv ]; then 
+        echo junoenv directory already exists 
+    else 
+        svn co https://juno.ihep.ac.cn/svn/offline/trunk/installation/junoenv
+    fi 
+    [ ! -d junoenv ] && echo $msg failed to checkout junoenv && return 1 
+    return 0
+}
+j-install-preq(){
+    local msg="=== $FUNCNAME :"
+    echo $msg 
     cd $JUNOTOP/junoenv
-    local libs=$(bash junoenv libs list | perl -ne 'm, (\S*)@, && print "$1\n"' -)
+    case $(uname -n) in
+     lxslc*) echo $msg assuming preq are satisfied on $(uname -n)  ;;
+          *) bash junoenv preq  ;;
+    esac
+}
+
+j-install-libs-list(){          cd $JUNOTOP/junoenv ; bash junoenv libs list ; }
+j-install-libs-all(){           j-install-libs-list | perl -ne 'm, (\S*)@, && print "$1\n"' - ; }
+j-install-libs-installed(){     j-install-libs-list | perl -ne 'm, \[x\]\s*(\S*)@, && print "$1\n"' - ; }
+j-install-libs-uninstalled(){   j-install-libs-list | perl -ne 'm, \[ \]\s*(\S*)@, && print "$1\n"' - ; }
+j-install-lib-deps(){           j-install-libs-list | grep ${1}@ | perl -ne 'm,-\> (.*)$, && print "$1\n"' - ; }
+
+j-install-item-in-list(){
+    local item=$1 ; shift 
+    local list=$*
+    local x 
+    for x in $list ; do  [ "$item" == "$x" ] && return 0  ; done
+    return 1 
+}
+
+j-install-lib-canbuild(){
+    : hmm need to accomodate the plus meaning optional perhaps ?
+    local lib=$1
+    local installed=$(j-install-libs-installed)
+    local deps=$(j-install-lib-deps $lib)
+    local dep
+    for dep in $deps ; do 
+        if [ "${dep:0:1}" != "+" ]; then     # skippin the + : is that appropriate 
+            j-install-item-in-list $dep $installed 
+            [ $? -eq 1 ] && echo $msg missing dependency $dep to build lib $lib && return 1 
+        fi 
+    done
+    return 0 
+}
+
+j-install-lib(){
+    local msg="=== $FUNCNAME :"
+    local lib=$1
+
+
+    local mkr=$JUNOTOP/junoenv/.j-libs/$lib
+    mkdir -p $(dirname $mkr)
+    if [ -f "$mkr" ]; then 
+        printf "$msg skipping %-20s as mkr exists : $mkr \n" $lib 
+    else
+        j-install-lib-canbuild $lib
+        [ $? -ne 0 ] && echo $msg cannot build lib $lib due to missing dependency && return 1
+
+        bash junoenv libs all $lib 
+        [ $? -ne 0 ] && echo $msg ERROR with lib $lib && return 1
+        touch $mkr
+    fi
+}
+
+j-install-libs(){
+    local msg="=== $FUNCNAME :"
+    echo $msg 
+    cd $JUNOTOP/junoenv
+    local libs=$(j-install-libs-all)
     for lib in $libs ; do 
-        echo $lib 
-        bash junoenv libs all $lib || return 1 
+        j-install-lib $lib
     done  
+    return 0
 }    
 
-
-
-jck(){
-   [ -z "$JUNOTOP" ] && echo ERROR no JUNOTOP && return 1
-   [ ! -d "$JUNOTOP" ] && echo ERROR no JUNOTOP $JUNOTOP dir && return 2
-   cd $JUNOTOP 
-   [ ! -d "junoenv" ] && svn co http://juno.ihep.ac.cn/svn/offline/trunk/installation/junoenv
-
-   cd $JUNOTOP/junoenv
+j-install-runtime-()
+{
+    local runtime=$JUNOTOP/bashrc.sh
+    cd $JUNOTOP/junoenv
+    bash junoenv env
+    [ ! -s "$runtime" ] && echo $msg failed to create runtime env file $runtime && return 1
+    return 0  
+}
+j-install-runtime()
+{
+    : setup the runtime environment
+    local runtime=$JUNOTOP/bashrc.sh
+    if [ ! -s "$runtime" ]; then 
+        j-install-runtime-
+        [ $? -ne 0 ] && return 1 
+    fi 
+    source $runtime
+    return 0 
 }
 
-jpq(){
-   jck
-   [ $? -ne 0 ] && echo $msg FAIL at jck && return 1
+j-install-cmtlibs()
+{
+    : building the interface between cmt and external libraries
+    : checks out https://juno.ihep.ac.cn/svn/cmtlibs/trunk into $JUNOTOP/ExternalInterface
 
-   bash junoenv preq
-   [ $? -ne 0 ] && echo $msg FAIL at preq && return 1
+    local msg="=== $FUNCNAME :"
+    cd $JUNOTOP/junoenv
+    bash junoenv cmtlibs
+    [ $? -ne 0 ] && echo $msg failed cmtlibs && return 1 
+
+    cd $JUNOTOP/ExternalInterface/EIRelease/cmt/ && source setup.sh
+    [ $? -ne 0 ] && echo $msg failed EIRelease setup && return 2 
+
+    cd $JUNOTOP/junoenv
+
+    return 0 
 }
 
-jex-all(){ 
-   cd $JUNOTOP/junoenv
-   bash junoenv libs list | perl -ne 'm, (\S*)@, && print "$1\n"' 
-}
-jex-uninstalled(){
-   cd $JUNOTOP/junoenv
-   bash junoenv libs list | perl -ne 'm, \[ \] (\S*)@, && print "$1\n"'
+j-install-sniper()
+{
+    : building the sniper
+
+    local msg="=== $FUNCNAME :"
+    cd $JUNOTOP/junoenv
+    bash junoenv sniper
+    [ $? -ne 0 ] && echo $msg failed && return 1 
+
+    cd $JUNOTOP/sniper/SniperRelease/cmt/ && source setup.sh
+    [ $? -ne 0 ] && echo $msg failed && return 2
+
+    return 0 
 }
 
-jex()
-{ 
-   : install externals  
-   local msg="=== $FUNCNAME :"
+j-install-offline()
+{
+    : building the offline
+    local msg="=== $FUNCNAME :"
+    cd $JUNOTOP/junoenv
 
-   local libs=$(jex-uninstalled)
-   local lib
-   for lib in $libs ; do
-       bash junoenv libs all $lib
-       [ $? -ne 0 ] && echo $msg FAIL at $lib && return 1
-   done
+    bash junoenv offline
+    [ $? -ne 0 ] && echo $msg failed && return 1 
+
+    return 0 
 }
+
+j-install-offline-data()
+{
+    : install offline data
+    local msg="=== $FUNCNAME :"
+    cd $JUNOTOP/junoenv
+
+    bash junoenv offline-data
+    [ $? -ne 0 ] && echo $msg failed && return 1 
+
+    return 0 
+}
+
+
+
+
+
+
+
+
+j-install-issues(){ cat << EOI
+
+# Now trying [cmt make] in /hpcfs/juno/junogpu/blyth/junotop/offline/Calibration/PMTCalibSvc/cmt (46/130)
+
+...
+
+#CMT---> (constituents.make) PMTCalibSvccompile done
+#CMT---> (constituents.make) Starting PMTCalibSvcinstall
+#CMT---> building static library ../amd64_linux26/libPMTCalibSvc.a
+#CMT---> building shared library ../amd64_linux26/libPMTCalibSvc.so
+/usr/bin/ld: cannot find -lRootWriter
+/usr/bin/ld: cannot find -lRootWriter
+/usr/bin/ld: cannot find -lPyROOT
+collect2: error: ld returned 1 exit status
+gmake[2]: *** [../amd64_linux26/libPMTCalibSvc.so] Error 1
+gmake[1]: *** [PMTCalibSvcinstall] Error 2
+gmake: *** [all] Error 2
+#CMT---> Error: execution failed : make
+#CMT---> Error: execution error : cmt make
+
+
+
+EOI
+}
+
+
+#####################
+
+jeb(){ cd $JUNOTOP/junoenv ; bash junoenv ${1:-dummy} ; }
 
 jen(){
-   : create JUNOTOP/bashrc.sh script that sets up the runtime environment for usage of the externals
+   : create JUNOTOP/bashrc.sh script that sets up the runtime environment usage of the externals
    local msg="=== $FUNCNAME :"
    jck
    [ $? -ne 0 ] && echo $msg FAIL at jck && return 1
