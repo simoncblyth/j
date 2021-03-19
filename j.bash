@@ -1,6 +1,6 @@
 # ~/j/j.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/j.bash
-[ "$DBG" == "1" ] && echo [ $BASH_SOURCE DBG $DBG && dbg 
+[ "$DBG" == "1" ] && dbg_head $BASH_SOURCE
 
 j-usage(){ cat << EOU
 Common source for JUNO high level bash functions
@@ -28,6 +28,14 @@ Offline Trac Links
 * https://juno.ihep.ac.cn/trac/browser/cmtlibs#trunk
 
 * https://juno.ihep.ac.cn/trac/timeline
+
+Sniper Links
+---------------
+
+* https://github.com/SNiPER-Framework/sniper/releases/tag/v1.6
+* https://github.com/SNiPER-Framework/sniper/commit/f66fafa399f7a46af5044b9a877b503277cdfb69
+* https://juno.ihep.ac.cn/trac/browser/offline/trunk/installation/junoenv/junoenv-sniper.sh
+* https://juno.ihep.ac.cn/trac/browser/cmtlibs/trunk/Externals/ROOT/cmt/requirements?rev=31
 
 slack kanban
 --------------
@@ -143,6 +151,14 @@ j-dir(){ echo $(dirname $BASH_SOURCE) ; }
 j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
 
+j-scp(){  
+    local target=${1:-L7} 
+    local cmd="scp j.bash $target:j/j.bash" 
+    echo $cmd
+    eval $cmd
+}
+
+
 jvi(){ vi $BASH_SOURCE && jfu ; }
 jfu(){ source $BASH_SOURCE ; }
 
@@ -200,6 +216,10 @@ jokc(){
 }
 
 ################### INSTALLATION ###################################
+
+
+j-install-url(){ echo https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation ; }
+j-install-open(){ open $(j-install-url) ; }
 
 j-install(){
     :   https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
@@ -324,7 +344,7 @@ j-install-runtime-()
 }
 j-install-runtime()
 {
-    : setup the runtime environment
+    : setup the runtime environment script JUNOTOP/bashrc.sh 
     local runtime=$JUNOTOP/bashrc.sh
     if [ ! -s "$runtime" ]; then 
         j-install-runtime-
@@ -334,10 +354,32 @@ j-install-runtime()
     return 0 
 }
 
+j-install-runtime-resetup()
+{
+    : create JUNOTOP/bashrc.sh script that sets up the runtime environment usage of the externals
+    local msg="=== $FUNCNAME :"
+
+    cd $JUNOTOP/junoenv
+    bash junoenv env resetup
+    [ $? -ne 0 ] && echo $msg FAIL at env && return 1
+
+    local runtime=$JUNOTOP/bashrc.sh
+    source $runtime
+}
+
+
 j-install-cmtlibs()
 {
     : building the interface between cmt and external libraries
     : checks out https://juno.ihep.ac.cn/svn/cmtlibs/trunk into $JUNOTOP/ExternalInterface
+    :
+    : https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+    :
+    : http://juno.ihep.ac.cn/svn/cmtlibs/trunk
+    :    EIRelease/
+    :    Externals/
+    :    cmt/
+    :
 
     local msg="=== $FUNCNAME :"
     cd $JUNOTOP/junoenv
@@ -367,6 +409,7 @@ j-install-sniper()
     return 0 
 }
 
+
 j-install-offline()
 {
     : building the offline
@@ -381,7 +424,8 @@ j-install-offline()
 
 j-install-offline-data()
 {
-    : install offline data
+    : install offline data to $JUNOTOP/data
+
     local msg="=== $FUNCNAME :"
     cd $JUNOTOP/junoenv
 
@@ -392,233 +436,99 @@ j-install-offline-data()
 }
 
 
-
-
-
-
-
-
 j-install-issues(){ cat << EOI
 
-# Now trying [cmt make] in /hpcfs/juno/junogpu/blyth/junotop/offline/Calibration/PMTCalibSvc/cmt (46/130)
 
-...
+Note offline build error::
 
-#CMT---> (constituents.make) PMTCalibSvccompile done
-#CMT---> (constituents.make) Starting PMTCalibSvcinstall
-#CMT---> building static library ../amd64_linux26/libPMTCalibSvc.a
-#CMT---> building shared library ../amd64_linux26/libPMTCalibSvc.so
-/usr/bin/ld: cannot find -lRootWriter
-/usr/bin/ld: cannot find -lRootWriter
-/usr/bin/ld: cannot find -lPyROOT
-collect2: error: ld returned 1 exit status
-gmake[2]: *** [../amd64_linux26/libPMTCalibSvc.so] Error 1
-gmake[1]: *** [PMTCalibSvcinstall] Error 2
-gmake: *** [all] Error 2
-#CMT---> Error: execution failed : make
-#CMT---> Error: execution error : cmt make
+    # Now trying [cmt make] in /hpcfs/juno/junogpu/blyth/junotop/offline/Calibration/PMTCalibSvc/cmt (46/130)
 
+    ...
+
+        #CMT---> (constituents.make) PMTCalibSvccompile done
+        #CMT---> (constituents.make) Starting PMTCalibSvcinstall
+        #CMT---> building static library ../amd64_linux26/libPMTCalibSvc.a
+        #CMT---> building shared library ../amd64_linux26/libPMTCalibSvc.so
+        /usr/bin/ld: cannot find -lRootWriter
+        /usr/bin/ld: cannot find -lRootWriter
+        /usr/bin/ld: cannot find -lPyROOT
+        collect2: error: ld returned 1 exit status
+        gmake[2]: *** [../amd64_linux26/libPMTCalibSvc.so] Error 1
+        gmake[1]: *** [PMTCalibSvcinstall] Error 2
+        gmake: *** [all] Error 2
+        #CMT---> Error: execution failed : make
+        #CMT---> Error: execution error : cmt make
+
+
+Doing again *j-install-sniper* notice that there is an error
+New ROOT needs Sniper v1.6 the default of v1.5 gives error.::
+
+        #CMT---> compiling ../src/RootWriter.cc
+        In file included from /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/python/exception_translator.hpp:10:0,
+                         from /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/python.hpp:28,
+                         from /hpcfs/juno/junogpu/blyth/junotop/sniper/SniperSvc/RootWriter/RootWriter/RootWriter.h:22,
+                         from ../src/RootWriter.cc:19:
+        /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/bind.hpp:41:265: note: #pragma message: The practice of declaring the Bind placeholders (_1, _2, ...) in the global namespace is deprecated. Please use <boost/bind/bind.hpp> + using namespace boost::placeholders, or define BOOST_BIND_GLOBAL_PLACEHOLDERS to retain the current behavior.
+         )
+                                                                                                                                                                                                                                                                                 ^
+        ../src/RootWriter.cc: In member function 'bool RootWriter::attach_py(const string&, boost::python::api::object)':
+        ../src/RootWriter.cc:140:21: error: 'ObjectProxy_FromVoidPtr' is not a member of 'TPython'
+             PyObject* dir = TPython::ObjectProxy_FromVoidPtr((void*)pDir, "TDirectory");
+                             ^
+        gmake[2]: *** [../amd64_linux26/RootWriter.o] Error 1
+        gmake[1]: *** [RootWritercompile] Error 2
 
 
 EOI
 }
 
 
-#####################
+#####################  OFFLINE UPDATING ##################
 
-jeb(){ cd $JUNOTOP/junoenv ; bash junoenv ${1:-dummy} ; }
-
-jen(){
-   : create JUNOTOP/bashrc.sh script that sets up the runtime environment usage of the externals
-   local msg="=== $FUNCNAME :"
-   jck
-   [ $? -ne 0 ] && echo $msg FAIL at jck && return 1
-
-   cd $JUNOTOP/junoenv
-   bash junoenv env resetup
-   [ $? -ne 0 ] && echo $msg FAIL at env && return 1
-
-   cd $JUNOTOP
-   source bashrc.sh
+j-offline(){ 
+    : building the offline
+    cd $JUNOTOP/junoenv
+    bash junoenv offline
 }
 
-joko(){
-   local path=ExternalInterface/Externals/OpticksG4OK/cmt/requirements
-   local dir=$(dirname $path)
-
-   cd $JUNOTOP
-   mkdir -p $dir
-   echo "v0" > $dir/version.cmt
-
-   cat << EOR > $path
-package OpticksG4OK
-
-macro OpticksG4OK_home "${OPTICKS_TOP}"
-
-macro OpticksG4OK_cppflags " \`opticks-config --cflags G4OK\` "
-macro OpticksG4OK_linkopts " \`opticks-config --libs G4OK\` " 
-   
-EOR
-   echo $msg path $path 
-   cat -n $path 
+j-offline-alt(){ 
+    : from junoenv-offline.sh:junoenv-offline-compile which is called by "bash junoenv offline"
+    cd $JUNOTOP/offline/JunoRelease/cmt
+    cmt br cmt config
+    source setup.sh
+    cmt br cmt make   
 }
 
-jor(){
-   cd $JUNOTOP
-
-   local pkg=OpticksG4OK
-   local path=ExternalInterface/EIRelease/cmt/requirements
-   grep $pkg $path > /dev/null
-   [ $? -eq 0 ] && echo $msg path $path already has $pkg && return 0
-
-   cat << EOT >> $path
-
-use $pkg    v* Externals
-EOT
-   echo path $path
-   cat -n $path
-}
-
-jei(){   
-   : https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
-   : building the interface between cmt and external libraries
-   : http://juno.ihep.ac.cn/svn/cmtlibs/trunk
-   :    EIRelease/
-   :    Externals/
-   :    cmt/
-   :
-
-   cd $JUNOTOP/junoenv
-   bash junoenv cmtlibs
-
-   cd $JUNOTOP/ExternalInterface/EIRelease/cmt/
-   source setup.sh  
-}
-
-jes(){
-   cd $JUNOTOP/junoenv
-   bash junoenv sniper
-   cd $JUNOTOP/sniper/SniperRelease/cmt/
-   source setup.sh
-}
-
-jep(){
-   cd $JUNOTOP/offline
-   local path=Simulation/DetSimV2/DetSimPolicy/cmt/requirements
-   local pkg=OpticksG4OK
-   grep $pkg $path
-   [ $? -eq 0 ] && echo path $path already has pkg $pkg && return 0
-
-   cat << EOP >> $path
-
-use $pkg v* Externals
-EOP
-
-   cat -n $path
-}
-
-jeo(){ 
-   : building the offline
-   cd $JUNOTOP/junoenv
-   bash junoenv offline
-
-   #cd $JUNOTOP/offline/JunoRelease/cmt/
-   #cmt br cmt config
-   #source setup.sh
-   #cmt br cmt make  
-}
-
-jeda(){
-   cd $JUNOTOP/junoenv 
-   bash junoenv offline-data
-}
-
-mak(){
+j-make(){
    cmt br cmt config
    source setup.sh
+   #cmt br cmt make 
    cmt make 
 }
 
-jenv(){ 
-   source $HOME/juno-tutorial/bashrc 
-}
-
-
-
-
-
-
-
-
-joc(){
-   # from junoenv-offline.sh:junoenv-offline-compile which is called by "bash junoenv offline"
-   cd $JUNOTOP/offline/JunoRelease/cmt
-   cmt br cmt config
-   source setup.sh
-   cmt br cmt make   
-}
-
-jbc(){
-    cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/cmt
-    cmt br cmt config
-    source setup.sh
-    #cmt br cmt make
-    make
-}
-
-
-
-
-
-
-
-
-
-
-
-
-jokc(){
-    : list offline .cc WITH_G4OPTICKS
-    cd $JUNOTOP/offline
-    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
-}
-
-
-
-jokp0-(){ cat << EOP
-Simulation/DetSimV2/DetSimPolicy/cmt
-Simulation/DetSimV2/PhysiSim/cmt
-Simulation/DetSimV2/DetSimAlg/cmt
-Simulation/DetSimV2/DetSimOptions/cmt
-Simulation/DetSimV2/PMTSim/cmt
-Simulation/DetSimV2/G4OpticksBridge/cmt
-EOP
-}
-
-
-joc-list(){
+j-cmtdirs-(){
    : list cmt directories in dependency order without the usual cmt guff
    cd $JUNOTOP/offline/JunoRelease/cmt
    cmt br pwd | grep -v ^#
 }
-
-jokdirs--eg(){ cat << EOX
-Simulation/DetSimV2/PhysiSim/cmt
-Simulation/DetSimV2/PMTSim/cmt
-Simulation/DetSimV2/DetSimOptions/cmt
-EOX
+j-cmtdirs(){ 
+   : list cmt directories in dependency order with package not found warnings elided 
+   j-cmtdirs- 2>/dev/null 
 }
 
-jokdirs--(){
+
+################# jok : juno-opticks functions ##################
+
+jok-cmtdirs(){
+   : cmtdirs relative to JUNOTOP/offline in JunoRelease dependency order with files that contain WITH_G4OPTICKS
+
    local cache="$HOME/.jokdirs"
    if [ -f "$cache" ]; then 
        cat $cache
        return 0
    fi 
-   local dirs=$(joc-list)
+   local dirs=$(j-cmtdirs)
    local dir
-
-   : directories in CMT dependency order with files that contain WITH_G4OPTICKS
    local sel=() 
    for dir in $dirs ; do 
        local ncc=$(find $dir/.. -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+ | wc -l)
@@ -636,20 +546,31 @@ jokdirs--(){
    fi
 }
 
+jok-cmtdirs-manual(){ cat << EOP
+Simulation/DetSimV2/DetSimPolicy/cmt
+Simulation/DetSimV2/PhysiSim/cmt
+Simulation/DetSimV2/DetSimAlg/cmt
+Simulation/DetSimV2/DetSimOptions/cmt
+Simulation/DetSimV2/PMTSim/cmt
+Simulation/DetSimV2/G4OpticksBridge/cmt
+EOP
+}
 
-jokp--(){
-    : list relative cmt dirs of projects having .cc WITH_G4OPTICKS : caution the order is arbitrary
+jok-cmtdirs-eg(){ cat << EOX
+Simulation/DetSimV2/PhysiSim/cmt
+Simulation/DetSimV2/PMTSim/cmt
+Simulation/DetSimV2/DetSimOptions/cmt
+EOX
+}
+
+jok-cc(){
+    : list offline .cc WITH_G4OPTICKS
     cd $JUNOTOP/offline
-    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  | xargs -n1 dirname | xargs -n1 dirname | sort | uniq | perl -ne 'm,\./(\S*), && print "$1/cmt\n"' - 
-}  
-
-jokp-(){
-   jokp-- | grep -v Examples  | grep -v DetSimMTUtil
+    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
 }
 
 
-
-jokp(){
+jok-rebuild(){
    : in all projects touch sources WITH_G4OPTICKS and rebuild using cmt Makefile
 
    local msg="=== $FUNCNAME :"
@@ -658,31 +579,29 @@ jokp(){
 
    local dir
    local rel
-   echo $msg jokdirs-- 
-   jokdirs--
-   for rel in $(jokdirs--) ; do 
+   echo $msg jok-cmtdirs 
+   jok-cmtdirs
+   for rel in $(jok-cmtdirs) ; do 
        local dir=$JUNOTOP/offline/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && return 1
        cd $dir
        pwd
    done
- 
 
-   for rel in $(jokdirs--) ; do 
+   for rel in $(jok-cmtdirs) ; do 
 
        local dir=$JUNOTOP/offline/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && continue
        cd $dir
        printf "\n\n\n ================== $(pwd) ==============\n\n\n" 
 
-       : cmt dependency check doesnt notice change in CMTEXTRATAGS so must touch to force recompile
+       : cmt dependency check doesnt notice CMTEXTRATAGS so must touch to force recompile
        : somehow clean is not working to force recompile
 
        cmt config
        source setup.sh
 
        touch $(grep -l WITH_G4OPTICKS ../src/*.cc) 
-       # touching files as staleness checking doesnt work with macro changes
 
        #make clean
        make  
@@ -692,7 +611,7 @@ jokp(){
 
 }
 
-jmak(){
+jok-make(){
    local rel 
    while read rel ; do  
        local dir=$JUNOTOP/offline/$rel
@@ -701,14 +620,11 @@ jmak(){
        pwd
        printf "\n\n\n ================== $(pwd) ==============\n\n\n" 
 
-       : cmt dependency check doesnt notice change in CMTEXTRATAGS so must touch to force recompile
-       : somehow clean is not working to force recompile
 
        cmt config
        source setup.sh
 
        touch $(grep -l WITH_G4OPTICKS ../src/*.cc) 
-       # touching files as staleness checking doesnt work with macro changes
 
        #make clean
        make  
@@ -716,16 +632,16 @@ jmak(){
    done
 }
 
-jdso(){ echo Simulation/DetSimV2/DetSimOptions/cmt | jmak ; }
+jok-dso(){ echo Simulation/DetSimV2/DetSimOptions/cmt | jok-make ; }
 
 
 
 ################### ENVIRONMENT ###################################
 
-jg4(){ echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; } 
-jok(){ echo $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge ; }
+j-g4(){  echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; } 
+j-okb(){ echo $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge ; }  # not currently used
 
-jre()
+j-runtime-env()
 {
    : setup the runtime environment CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, LD_LIBRARY_PATH
 
@@ -741,12 +657,13 @@ jre()
    echo jre.gob ] 
    echo jre ]
 }
+jre(){ j-runtime-env ; }
 
 
-jre-notes(){ cat << EON
+j-runtime-env-notes(){ cat << EON
 
 $JUNOTOP/bashrc.sh
-    invokes bashrc of all the externaks including ~/junotop/ExternalLibs/Opticks/0.1.0/bashrc
+    invokes bashrc of all the externals including ~/junotop/ExternalLibs/Opticks/0.1.0/bashrc
     that contains only::
 
         source ${OPTICKS_TOP}/bin/opticks-setup.sh    
@@ -758,29 +675,6 @@ EON
 
 
 ################### RUNNING ###################################
-
-elog(){
-   : hmm opticks logging control - should be elsewhere ? no opticks is part of JUNO Offline - so it should be here
-   export X4Solid=INFO
-   export X4PhysicalVolume=INFO
-   export GGeo=INFO
-   export GMaterialLib=INFO
-   export GPropertyLib=INFO
-   export GGeoSensor=INFO
-   export CGenstepCollector=INFO 
-   export G4Opticks=INFO 
-   export OKMgr=INFO
-   export OKPropagator=INFO
-   export OpMgr=INFO 
-   export OpEngine=INFO 
-   export OpticksRun=INFO 
-   export OpticksGen=INFO
-   export OEvent=INFO 
-   export OPropagator=INFO 
-   export OGeo=INFO
-   export GMesh=INFO 
-   export OContext=INFO
-}
 
 okt(){
    type $FUNCNAME
@@ -823,20 +717,33 @@ gdb_(){
 ############################################# tds : tut_detsim.py runner #############################
 
 
-#pyj(){ python $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/share/pyjob_acrylic.py ; }
-
 tds0(){
+   : run with opticks disabled
    local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
    tds- $opts 
 }
 
-tds-logenv(){
+tds-elog(){
+   : hmm opticks logging control - should be elsewhere ? no opticks is part of JUNO Offline - so it should be here
+   export X4Solid=INFO
+   export X4PhysicalVolume=INFO
    export GGeo=INFO
-   export GParts=INFO
-   #export X4MaterialTable=INFO
-   #export GMaterialLib=INFO 
-   export G4Opticks=INFO
-   export OpticksAim=INFO
+   export GMaterialLib=INFO
+   export GPropertyLib=INFO
+   export GGeoSensor=INFO
+   export CGenstepCollector=INFO 
+   export G4Opticks=INFO 
+   export OKMgr=INFO
+   export OKPropagator=INFO
+   export OpMgr=INFO 
+   export OpEngine=INFO 
+   export OpticksRun=INFO 
+   export OpticksGen=INFO
+   export OEvent=INFO 
+   export OPropagator=INFO 
+   export OGeo=INFO
+   export GMesh=INFO 
+   export OContext=INFO
 }
 
 tds(){ 
@@ -893,7 +800,7 @@ tds-(){
    fi
 
    local iwd=$PWD
-   local dir=/tmp/tds
+   local dir=/tmp/$USER/opticks/tds
    mkdir -p $dir
    cd $dir
    local runline="gdb $H $B $T --args python $script $* $args "
@@ -906,16 +813,6 @@ tds-(){
 
 
 ############################## tds runners with various breakpoints #########################
-
-tdsh-(){ cat << EOB
-junoSD_PMT_v2::junoSD_PMT_v2
-junoSD_PMT_v2::Initialize
-junoSD_PMT_v2::ProcessHits
-junoSD_PMT_v2::get_pmtid
-junoSD_PMT_v2::EndOfEvent
-EOB
-}
-tdsh(){ BP="$(tdsh-)" tds ; }
 
 tds1(){ BP=R12860PMTManager::R12860PMTManager     tds ; } 
 
@@ -936,7 +833,6 @@ tds3-(){
 }
 tds3(){ BP="$(tds3-)" tds ; }
 
-
 tds4-(){ cat << EOB
 DsG4Scintillation::PostStepDoIt
 G4VUserPhysicsList::Construct
@@ -947,7 +843,17 @@ EOB
 
 tds4(){ BP="$(tds4-)" tds ; }
 
+tds5-(){ cat << EOB
+junoSD_PMT_v2::junoSD_PMT_v2
+junoSD_PMT_v2::Initialize
+junoSD_PMT_v2::ProcessHits
+junoSD_PMT_v2::get_pmtid
+junoSD_PMT_v2::EndOfEvent
+EOB
+}
+tds5(){ BP="$(tds5-)" tds ; }
 
 
-[ "$DBG" == "1" ] && echo ] $BASH_SOURCE DBG $DBG && dbg 
+###########################################################################################
 
+[ "$DBG" == "1" ] && dbg_tail $BASH_SOURCE
