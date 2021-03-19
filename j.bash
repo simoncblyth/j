@@ -43,6 +43,22 @@ slack kanban
 * https://juno-analysis.slack.com 
 * https://juno.ihep.ac.cn/kanboard/
 
+Example Paths
+---------------
+
+/junofs/users/lint/juno-release/J19v1r1-branch/jobs/geometry_acrylic.gdml
+
+    still with torus 
+
+Simon, this is Jilei's muon jobs: 
+
+    /junofs/users/xujl/juno7/sim_results/J18v2r1/muon/twomu/optical/
+
+
+
+
+
+
 Index
 ------
 
