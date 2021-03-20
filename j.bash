@@ -258,6 +258,9 @@ j-install(){
     j-install-offline-data
     [ $? -ne 0 ] && return 9
 
+    j-install-opticks          ## does nothing without pre-requisite envvars
+    [ $? -ne 0 ] && return 10
+
     return 0 
 }
 
@@ -452,48 +455,45 @@ j-install-offline-data()
 }
 
 
+j-install-opticks-()
+{
+    : building the opticks
+
+    local msg="=== $FUNCNAME :"
+    cd $JUNOTOP/junoenv
+    bash junoenv opticks
+    [ $? -ne 0 ] && echo $msg failed && return 1 
+
+    return 0 
+}
+
+j-install-opticks-envdump()
+{
+    local vars="OPTICKS_CUDA_PREFIX OPTICKS_OPTIX_PREFIX OPTICKS_COMPUTE_CAPABILITY"
+    local var
+    for var in $vars ; do printf "%-30s : %s \n" $var ${!var} ; done 
+}
+
+j-install-opticks()
+{
+    local msg="=== $FUNCNAME: "
+    if 
+        [ -n "$OPTICKS_CUDA_PREFIX" -a -d "$OPTICKS_CUDA_PREFIX" ] &&
+        [ -n "$OPTICKS_OPTIX_PREFIX" -a -d "$OPTICKS_OPTIX_PREFIX" ] &&
+        [ -n "$OPTICKS_COMPUTE_CAPABILITY" ] 
+    then 
+        echo $msg environment looks ready to install opticks   
+        j-install-opticks-envdump
+        j-install-opticks-
+    else
+        echo $msg environment is not ready to install opticks
+        j-install-opticks-envdump
+    fi 
+}
+
+
+
 j-install-issues(){ cat << EOI
-
-
-Note offline build error::
-
-    # Now trying [cmt make] in /hpcfs/juno/junogpu/blyth/junotop/offline/Calibration/PMTCalibSvc/cmt (46/130)
-
-    ...
-
-        #CMT---> (constituents.make) PMTCalibSvccompile done
-        #CMT---> (constituents.make) Starting PMTCalibSvcinstall
-        #CMT---> building static library ../amd64_linux26/libPMTCalibSvc.a
-        #CMT---> building shared library ../amd64_linux26/libPMTCalibSvc.so
-        /usr/bin/ld: cannot find -lRootWriter
-        /usr/bin/ld: cannot find -lRootWriter
-        /usr/bin/ld: cannot find -lPyROOT
-        collect2: error: ld returned 1 exit status
-        gmake[2]: *** [../amd64_linux26/libPMTCalibSvc.so] Error 1
-        gmake[1]: *** [PMTCalibSvcinstall] Error 2
-        gmake: *** [all] Error 2
-        #CMT---> Error: execution failed : make
-        #CMT---> Error: execution error : cmt make
-
-
-Doing again *j-install-sniper* notice that there is an error
-New ROOT needs Sniper v1.6 the default of v1.5 gives error.::
-
-        #CMT---> compiling ../src/RootWriter.cc
-        In file included from /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/python/exception_translator.hpp:10:0,
-                         from /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/python.hpp:28,
-                         from /hpcfs/juno/junogpu/blyth/junotop/sniper/SniperSvc/RootWriter/RootWriter/RootWriter.h:22,
-                         from ../src/RootWriter.cc:19:
-        /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Boost/1.75.0/include/boost/bind.hpp:41:265: note: #pragma message: The practice of declaring the Bind placeholders (_1, _2, ...) in the global namespace is deprecated. Please use <boost/bind/bind.hpp> + using namespace boost::placeholders, or define BOOST_BIND_GLOBAL_PLACEHOLDERS to retain the current behavior.
-         )
-                                                                                                                                                                                                                                                                                 ^
-        ../src/RootWriter.cc: In member function 'bool RootWriter::attach_py(const string&, boost::python::api::object)':
-        ../src/RootWriter.cc:140:21: error: 'ObjectProxy_FromVoidPtr' is not a member of 'TPython'
-             PyObject* dir = TPython::ObjectProxy_FromVoidPtr((void*)pDir, "TDirectory");
-                             ^
-        gmake[2]: *** [../amd64_linux26/RootWriter.o] Error 1
-        gmake[1]: *** [RootWritercompile] Error 2
-
 
 EOI
 }
@@ -657,23 +657,29 @@ jok-dso(){ echo Simulation/DetSimV2/DetSimOptions/cmt | jok-make ; }
 j-g4(){  echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; } 
 j-okb(){ echo $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge ; }  # not currently used
 
-j-runtime-env()
+j-runtime-env-()
 {
-   : setup the runtime environment CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, LD_LIBRARY_PATH
-
-   #local ok=$(jok)
-   export JFU_JRE=1 
-
-   echo  jre 
+   : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont
+   local msg="=== $FUNCNAME: "
+   echo $msg
    source $JUNOTOP/bashrc.sh   # sources the bashrc of the JUNOTOP/ExternalLibs
    source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
    source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
+   echo $msg
+}
 
-   #echo jre.gob [ 
-   #source $ok/cmt/setup.sh  # result of : cmt br cmt config
-   #echo jre.gob ] 
+j-runtime-env()
+{
+   : setup the runtime environment CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, LD_LIBRARY_PATH, PATH, MANPATH
+   local msg="=== $FUNCNAME: "
+   local var=J_RUNTIME_ENV
+   if [ -n "${!var}" ]; then
+       echo $msg skip as $var:${!var}
+   else 
+       export $var=1 
+       j-runtime-env-
+   fi
 
-   echo jre 
 }
 jre(){ j-runtime-env ; }
 
