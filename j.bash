@@ -169,7 +169,7 @@ j(){ j-cd ; }
 
 j-scp(){  
     local target=${1:-L7} 
-    local cmd="scp j.bash $target:j/j.bash" 
+    local cmd="scp $(j-dir)/j.bash $target:j/j.bash" 
     echo $cmd
     eval $cmd
 }
@@ -661,17 +661,19 @@ j-runtime-env()
 {
    : setup the runtime environment CMAKE_PREFIX_PATH, PKG_CONFIG_PATH, LD_LIBRARY_PATH
 
-   local ok=$(jok)
+   #local ok=$(jok)
    export JFU_JRE=1 
 
-   echo jre [ 
-   source $JUNOTOP/bashrc.sh
+   echo  jre 
+   source $JUNOTOP/bashrc.sh   # sources the bashrc of the JUNOTOP/ExternalLibs
    source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
    source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
-   echo jre.gob [ 
-   source $ok/cmt/setup.sh  # result of : cmt br cmt config
-   echo jre.gob ] 
-   echo jre ]
+
+   #echo jre.gob [ 
+   #source $ok/cmt/setup.sh  # result of : cmt br cmt config
+   #echo jre.gob ] 
+
+   echo jre 
 }
 jre(){ j-runtime-env ; }
 
