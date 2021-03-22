@@ -154,12 +154,11 @@ class PMTParamSvc(object):
     """
     path = "$JUNOTOP/data/Simulation/ElecSim/pmtdata.txt"
     cat = {
-       'Unknown':-1,
-       'NNVT':0,
-       'Hamamatsu':1,
-       'HZC':2,
-       'HighQENNVT':3,
-       'NNVT_HighQE':3,
+       'Unknown':kPMT_Unknown,
+       'NNVT':kPMT_NNVT,
+       'Hamamatsu':kPMT_Hamamatsu,
+       'HZC':kPMT_HZC,
+       'HighQENNVT':kPMT_NNVT_HighQE
     }
     rcat = dict(zip(cat.values(),cat.keys()))
 
@@ -246,6 +245,8 @@ class PMTParamSvc(object):
     @classmethod
     def parse(cls, cat, path):
         """
+        :param cat: dict mapping from names in pmtdata.txt to PMTParamSvc enum values
+        :param path: to pmtdata.txt
 
         0 HighQENNVT 0.2569
         1 Hamamatsu 0.3229
@@ -261,7 +262,11 @@ class PMTParamSvc(object):
 
         """
         path = os.path.expandvars(path)
+
+        # first load into python object array o
         o = np.loadtxt(path, dtype=np.object)
+
+        # then interpret the objects into simple ints and floats in array a
         a = np.zeros( (len(o),4), dtype=np.int32 )
         a.fill(cat["Unknown"])
 
@@ -278,6 +283,11 @@ class PMTParamSvc(object):
 
     @classmethod
     def summary(cls, cats):
+        """
+        :param cats: array of category enum integers
+
+        Dump the number of each category 
+        """
         ucats, ucounts = np.unique(cats, return_counts=True)
         cc = dict(zip(ucats,ucounts))
         ucsum = ucounts.sum()
@@ -323,13 +333,13 @@ class PMTParamSvc(object):
         return self
 
     def isNNVT(self, pmtid):
-        return self.Is20inch(pmtid) and (self.pmt_categories[pmtid] == self.cat['NNVT'] or self.pmt_categories[pmtid] == self.cat['NNVT_HighQE'])
+        return self.Is20inch(pmtid) and (self.pmt_categories[pmtid] == self.cat['NNVT'] or self.pmt_categories[pmtid] == self.cat['HighQENNVT'])
 
     def isHamamatsu(self, pmtid):
         return self.Is20inch(pmtid) and self.pmt_categories[pmtid] == self.cat['Hamamatsu']
 
     def isHighQE(self, pmtid):
-        return not self.isHamamatsu(pmtid) and self.pmt_categories[pmtid] == self.cat['NNVT_HighQE']
+        return not self.isHamamatsu(pmtid) and self.pmt_categories[pmtid] == self.cat['HighQENNVT']
 
     def getPMTCategory(self, pmtid):
         return self.categories[pmtid]

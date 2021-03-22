@@ -36,6 +36,7 @@ sim_names[kPMTType_HZC]="kPMTType_HZC"
 # arrays that map enum sim->par and par->sim indices,  +1 turns the enum value into a 0-based index
 sp = 1 + np.array( [kPMT_Unknown, kPMT_Hamamatsu, kPMT_NNVT_HighQE, kPMT_NNVT, kPMT_HZC], dtype=np.int32 )
 ps = 1 + np.array( [kPMTType_Unknown, kPMTType_NormalNNVT, kPMTType_Hamamatsu, kPMTType_HZC, kPMTType_HiQENNVT], dtype=np.int32 )
+# notice how these mappings use the order of the other type 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     num_lpmt = len(sim.a)
     pmtid = np.arange(num_lpmt)
 
-    sim_cat = sim.getPMTCategory(pmtid)
+    sim_cat = sim.getPMTCategory(pmtid)  # NB pmtid is an array with all IDs 
     par_cat = par.getPMTCategory(pmtid)
 
     par_cat_s = ps[par_cat+1]-1   # translate par_cat into sim lingo for comparison with sim_cat

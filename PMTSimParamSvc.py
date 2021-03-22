@@ -130,6 +130,36 @@ class PMTSimParamSvc(object):
         }
 
     """
+
+    cat = {
+       'kPMTType_Unknown':kPMTType_Unknown,
+       'kPMTType_Hamamatsu':kPMTType_Hamamatsu,
+       'kPMTType_HiQENNVT':kPMTType_HiQENNVT,
+       'kPMTType_NormalNNVT':kPMTType_NormalNNVT,
+       'kPMTType_HZC':kPMTType_HZC
+    }
+    rcat = dict(zip(cat.values(),cat.keys()))
+
+    @classmethod
+    def summary(cls, cats):
+        """
+        :param cats: array of category enum integers
+
+        Dump the number of each category 
+        """
+        ucats, ucounts = np.unique(cats, return_counts=True)
+        cc = dict(zip(ucats,ucounts))
+        ucsum = ucounts.sum()
+        fmt0 = " %2d : %20s : %5d "
+        fmt1 = " %2s : %20s : %5d "
+        for k,v in cc.items():
+            print(fmt0 % (k,cls.rcat[k], v ))
+        pass
+        print(fmt1 % ("","SUM", ucsum ))
+        assert len(cats) == ucsum
+    pass
+
+
     def __init__(self): 
         path = os.path.expandvars("$JUNOTOP/data/Simulation/ElecSim/PmtData_Lpmt.root")
         log.info("root2array %s " % path )
@@ -156,11 +186,17 @@ class PMTSimParamSvc(object):
         pmt_categories_[np.logical_and(isHamamatsu == 0, isHiQEMCP == 1)] = kPMTType_HiQENNVT
         pmt_categories_[np.logical_and(isHamamatsu == 0, isHiQEMCP == 0)] = kPMTType_NormalNNVT
 
+        self.summary(pmt_categories_)
+
         top_category = np.zeros( 1, dtype=np.int32 )
         top_category[0] = kPMTType_Unknown 
         pmt_categories = np.concatenate( (pmt_categories_, top_category) )
 
         assert np.all( pmt_categories > -10 )
+
+
+
+
 
         self.num_pmt = num_pmt
         self.path = path 
