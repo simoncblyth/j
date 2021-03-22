@@ -507,6 +507,14 @@ j-offline(){
     bash junoenv offline
 }
 
+j-opticks(){ 
+    : controlling opticks
+    cd $JUNOTOP/junoenv
+    bash junoenv opticks $* 
+}
+
+
+
 j-offline-alt(){ 
     : from junoenv-offline.sh:junoenv-offline-compile which is called by "bash junoenv offline"
     cd $JUNOTOP/offline/JunoRelease/cmt
