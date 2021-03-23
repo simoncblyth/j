@@ -795,10 +795,11 @@ tds-(){
    local msg="=== $FUNCNAME :"
 
    if [ "${CMTEXTRATAGS/opticks}" != "${CMTEXTRATAGS}" ]; then 
-       [ -z "$OPTICKS_TOP" ] && echo $msg OPTICKS_TOP is not defined && return 1
+       echo $msg CMTEXTRATAGS $CMTEXTRATAGS contains opticks
+       #[ -z "$OPTICKS_TOP" ] && echo $msg OPTICKS_TOP is not defined && return 1
    fi
 
-   [ -z "$JFU_JRE" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
+   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
 
    local label="tds" 
    local arg 
