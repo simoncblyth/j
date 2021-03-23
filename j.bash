@@ -665,6 +665,17 @@ jok-dso(){ echo Simulation/DetSimV2/DetSimOptions/cmt | jok-make ; }
 j-g4(){  echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; } 
 j-okb(){ echo $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge ; }  # not currently used
 
+
+j-runtime-env-notes(){  cat << EON
+
+Below warning from SniperRelease line, probably not needed ?
+Should come in frm JunoRelease as dependency ?
+
+#CMT---> Warning: The tag opticks is not used in any tag expression. Please check spelling
+
+EON
+}
+
 j-runtime-env-()
 {
    : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont
