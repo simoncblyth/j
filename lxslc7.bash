@@ -20,7 +20,8 @@ sc(){ cat $(job) ; }
 sr(){ srun --partition=gpu --account=junogpu --gres=gpu:v100:1 $(job) ; }
 sb(){ sbatch $(job) ; squeue  ; }
 sq(){ squeue ; }
-shelp(){
+sf(){
+   type so
    type sj
    type sc
    type sr

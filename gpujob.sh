@@ -53,20 +53,27 @@ tds-(){
     cd $iwd
 }
 
-
-
 gpujob-setup()
 {
    local msg="=== $FUNCNAME:"
    echo $msg $USER
-   export JUNOTOP=/hpcfs/juno/junogpu/blyth/junotop
-   export HOME=/hpcfs/juno/junogpu/blyth   # avoid /afs and control where to put .opticks/rngcache/RNG/
+
+   rm -rf /tmp/blyth
+
+   export JUNOTOP=/hpcfs/juno/junogpu/$USER/junotop
+   export HOME=/hpcfs/juno/junogpu/$USER   # avoid /afs and control where to put .opticks/rngcache/RNG/
+   # TODO: adopt OPTICKS_USERHOME that defaults to HOME in order to avoid having to change HOME to avoid AFS
+   # TODO: changes relative to invoking env cause problems eg for geocache-kcd  
 
    source $JUNOTOP/bashrc.sh
-   source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
+   CMTEXTRATAGS= source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh  # avoid CMT warning about unused tag opticks
    source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
    mkdir -p /hpcfs/juno/junogpu/blyth/gpujob
+
    [ -z "$OPTICKS_PREFIX" ] && echo $msg MISSING OPTICKS_PREFIX && return 1
+   # [ -n "$TMP" -a ! -d "$TMP" ] && echo $msg creating TMP $TMP && mkdir -p $TMP
+   # dont do this here : try in opticks setup
+
    opticks-(){ . $JUNOTOP/opticks/opticks.bash && opticks-env  ; } 
    opticks-
    env | grep OPTICKS_
@@ -76,16 +83,20 @@ gpujob-setup()
 gpujob-head(){ 
    hostname 
    nvidia-smi   
-   opticks-info
-   opticks-paths
-   #UseOptiX  TODO:use an always built executable instead of this optional one
+   #opticks-info
+   #opticks-paths
 }
 gpujob-body()
 {
+   local msg="=== $FUNCNAME:"
+   echo $msg TMP $TMP
    #opticks-full-prepare  # create rngcache files
    #tds0
-   tds
-   #opticks-t
+   #tds
+   opticks-t
+   #ls -alst /tmp/blyth/opticks/
+ 
+   ls -l /tmp | grep blyth
 }
 gpujob-tail(){
    local rc=$?    # capture the return code of prior command
