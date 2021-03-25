@@ -29,6 +29,18 @@ Offline Trac Links
 
 * https://juno.ihep.ac.cn/trac/timeline
 
+
+CVMFS Anaconda
+---------------
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Anaconda
+
+::
+
+   source /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/bin/activate root622
+
+
+
 Sniper Links
 ---------------
 
