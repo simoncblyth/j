@@ -5,6 +5,25 @@ usage(){ cat << EOU
 
    source anaconda_test.bash
 
+Maybe related
+
+* https://github.com/astroconda/astroconda-contrib/issues/77
+
+* https://conda.io/projects/conda/en/latest/user-guide/concepts/environments.html#saved-environment-variables
+
+
+L7[blyth@lxslc701 blyth]$ cat /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/bin/activate 
+#!/bin/sh
+_CONDA_ROOT="/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64"
+# Copyright (C) 2012 Anaconda, Inc
+# SPDX-License-Identifier: BSD-3-Clause
+\. "$_CONDA_ROOT/etc/profile.d/conda.sh" || return $?
+conda activate "$@"
+L7[blyth@lxslc701 blyth]$ 
+
+
+* /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/etc/profile.d/conda.sh
+
 
 EOU
 }

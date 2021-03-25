@@ -682,7 +682,7 @@ j-runtime-env-()
    local msg="=== $FUNCNAME: "
    echo $msg
    source $JUNOTOP/bashrc.sh   # sources the bashrc of the JUNOTOP/ExternalLibs
-   source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
+   CMTEXTRATAGS= source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
    source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
    echo $msg
 }

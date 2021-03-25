@@ -11,6 +11,9 @@ EOU
 afs(){ type $FUNCNAME && kinit $USER && aklog -d ; }
 
 
+
+ipy(){ HOME=$G PYTHONPATH= /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/envs/root622/bin/ipython $* ; }
+
 g(){ cd $G ; }
 job(){ echo $G/j/gpujob.sh ; }
 
