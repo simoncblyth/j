@@ -1,0 +1,175 @@
+L7[blyth@lxslc701 blyth]$ source anaconda_test.bash
+p /hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python
+p /hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python
+p /hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib
+p /hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Git/1.8.4.3/lib/python2.7/site-packages
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/./python2.7/lib-dynload
+p /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/python2.7/site-packages
+n 11
+   0 : /hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python
+   1 : /hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python
+   2 : /hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib
+   3 : /hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib
+   4 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages
+   5 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages
+   6 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib
+   7 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages
+   8 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Git/1.8.4.3/lib/python2.7/site-packages 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Git/1.8.4.3/lib/python2.7/site-packages
+   9 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/./python2.7/lib-dynload 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Git/1.8.4.3/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/./python2.7/lib-dynload
+Error processing line 1 of /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site-packages/matplotlib-3.3.2-py3.8-nspkg.pth:
+
+Fatal Python error: init_import_size: Failed to import the site module
+Python runtime state: initialized
+Traceback (most recent call last):
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 169, in addpackage
+    exec(line)
+  File "<string>", line 1, in <module>
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/importlib/util.py", line 14, in <module>
+    from contextlib import contextmanager
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/contextlib.py", line 5, in <module>
+    from collections import deque
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/collections/__init__.py", line 21, in <module>
+    from operator import itemgetter as _itemgetter, eq as _eq
+ImportError: dynamic module does not define module export function (PyInit_operator)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 580, in <module>
+    main()
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 567, in main
+    known_paths = addsitepackages(known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 350, in addsitepackages
+    addsitedir(sitedir, known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 208, in addsitedir
+    addpackage(sitedir, name, known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 179, in addpackage
+    import traceback
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/traceback.py", line 3, in <module>
+    import collections
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/collections/__init__.py", line 21, in <module>
+    from operator import itemgetter as _itemgetter, eq as _eq
+ImportError: dynamic module does not define module export function (PyInit_operator)
+  10 : /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/python2.7/site-packages 
+/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/python:/hpcfs/juno/junogpu/blyth/junotop/offline/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/sniper/InstallArea/amd64_linux26/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-yaml/5.1.2/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/python-cython/0.29.16/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/ROOT/6.22.06/lib:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/xrootd/4.12.6/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Git/1.8.4.3/lib/python2.7/site-packages:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/./python2.7/lib-dynload:/hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/python2.7/site-packages
+Error processing line 1 of /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site-packages/matplotlib-3.3.2-py3.8-nspkg.pth:
+
+Fatal Python error: init_import_size: Failed to import the site module
+Python runtime state: initialized
+Traceback (most recent call last):
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 169, in addpackage
+    exec(line)
+  File "<string>", line 1, in <module>
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/importlib/util.py", line 14, in <module>
+    from contextlib import contextmanager
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/contextlib.py", line 5, in <module>
+    from collections import deque
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/collections/__init__.py", line 21, in <module>
+    from operator import itemgetter as _itemgetter, eq as _eq
+ImportError: dynamic module does not define module export function (PyInit_operator)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 580, in <module>
+    main()
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 567, in main
+    known_paths = addsitepackages(known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 350, in addsitepackages
+    addsitedir(sitedir, known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 208, in addsitedir
+    addpackage(sitedir, name, known_paths)
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/site.py", line 179, in addpackage
+    import traceback
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/traceback.py", line 3, in <module>
+    import collections
+  File "/cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/lib/python3.8/collections/__init__.py", line 21, in <module>
+    from operator import itemgetter as _itemgetter, eq as _eq
+ImportError: dynamic module does not define module export function (PyInit_operator)
+L7[blyth@lxslc701 blyth]$ l /hpcfs/juno/junogpu/blyth/junotop/ExternalLibs/Python/2.7.17/lib/./python2.7/lib-dynload/
+total 10608
+  4 drwxr-xr-x  2 blyth dyw   4096 Mar 19 00:04 .
+  4 -rw-r--r--  1 blyth dyw   1525 Mar 19 00:04 Python-2.7.17-py2.7.egg-info
+ 36 drwxr-xr-x 28 blyth dyw  36864 Mar 19 00:04 ..
+596 -rwxr-xr-x  1 blyth dyw 606352 Mar 19 00:03 _ctypes.so
+216 -rwxr-xr-x  1 blyth dyw 217168 Mar 19 00:02 _tkinter.so
+ 80 -rwxr-xr-x  1 blyth dyw  78240 Mar 19 00:02 ossaudiodev.so
+ 44 -rwxr-xr-x  1 blyth dyw  41920 Mar 19 00:02 linuxaudiodev.so
+ 96 -rwxr-xr-x  1 blyth dyw  96384 Mar 19 00:02 _multiprocessing.so
+ 88 -rwxr-xr-x  1 blyth dyw  86336 Mar 19 00:02 _codecs_iso2022.so
+176 -rwxr-xr-x  1 blyth dyw 179056 Mar 19 00:02 _codecs_hk.so
+176 -rwxr-xr-x  1 blyth dyw 177848 Mar 19 00:02 _codecs_cn.so
+128 -rwxr-xr-x  1 blyth dyw 128800 Mar 19 00:02 _codecs_tw.so
+300 -rwxr-xr-x  1 blyth dyw 305464 Mar 19 00:02 _codecs_jp.so
+156 -rwxr-xr-x  1 blyth dyw 159712 Mar 19 00:02 _codecs_kr.so
+128 -rwxr-xr-x  1 blyth dyw 128632 Mar 19 00:02 _multibytecodec.so
+168 -rwxr-xr-x  1 blyth dyw 171840 Mar 19 00:02 _elementtree.so
+864 -rwxr-xr-x  1 blyth dyw 882720 Mar 19 00:02 pyexpat.so
+124 -rwxr-xr-x  1 blyth dyw 126416 Mar 19 00:02 bz2.so
+ 68 -rwxr-xr-x  1 blyth dyw  68384 Mar 19 00:02 binascii.so
+ 84 -rwxr-xr-x  1 blyth dyw  84216 Mar 19 00:02 zlib.so
+ 44 -rwxr-xr-x  1 blyth dyw  42928 Mar 19 00:02 _curses_panel.so
+256 -rwxr-xr-x  1 blyth dyw 260880 Mar 19 00:02 _curses.so
+ 48 -rwxr-xr-x  1 blyth dyw  45384 Mar 19 00:02 nis.so
+ 48 -rwxr-xr-x  1 blyth dyw  45512 Mar 19 00:02 gdbm.so
+ 32 -rwxr-xr-x  1 blyth dyw  30416 Mar 19 00:02 resource.so
+ 48 -rwxr-xr-x  1 blyth dyw  45352 Mar 19 00:02 termios.so
+ 40 -rwxr-xr-x  1 blyth dyw  39776 Mar 19 00:02 dbm.so
+272 -rwxr-xr-x  1 blyth dyw 274456 Mar 19 00:02 _sqlite3.so
+744 -rwxr-xr-x  1 blyth dyw 758256 Mar 19 00:02 _bsddb.so
+ 76 -rwxr-xr-x  1 blyth dyw  74200 Mar 19 00:02 _hashlib.so
+284 -rwxr-xr-x  1 blyth dyw 290216 Mar 19 00:02 _ssl.so
+256 -rwxr-xr-x  1 blyth dyw 259456 Mar 19 00:02 _socket.so
+ 96 -rwxr-xr-x  1 blyth dyw  94784 Mar 19 00:02 _csv.so
+ 20 -rwxr-xr-x  1 blyth dyw  17832 Mar 19 00:02 crypt.so
+ 72 -rwxr-xr-x  1 blyth dyw  73280 Mar 19 00:02 readline.so
+108 -rwxr-xr-x  1 blyth dyw 107304 Mar 19 00:02 audioop.so
+320 -rwxr-xr-x  1 blyth dyw 326848 Mar 19 00:02 cPickle.so
+ 80 -rwxr-xr-x  1 blyth dyw  80744 Mar 19 00:02 mmap.so
+ 32 -rwxr-xr-x  1 blyth dyw  29560 Mar 19 00:02 syslog.so
+ 64 -rwxr-xr-x  1 blyth dyw  62984 Mar 19 00:02 cStringIO.so
+324 -rwxr-xr-x  1 blyth dyw 328104 Mar 19 00:02 parser.so
+ 72 -rwxr-xr-x  1 blyth dyw  73624 Mar 19 00:02 select.so
+ 28 -rwxr-xr-x  1 blyth dyw  28432 Mar 19 00:02 spwd.so
+ 56 -rwxr-xr-x  1 blyth dyw  54600 Mar 19 00:02 fcntl.so
+ 32 -rwxr-xr-x  1 blyth dyw  28688 Mar 19 00:02 grp.so
+ 60 -rwxr-xr-x  1 blyth dyw  59272 Mar 19 00:02 _locale.so
+748 -rwxr-xr-x  1 blyth dyw 763112 Mar 19 00:02 unicodedata.so
+ 68 -rwxr-xr-x  1 blyth dyw  67232 Mar 19 00:02 _lsprof.so
+100 -rwxr-xr-x  1 blyth dyw 102072 Mar 19 00:02 _hotshot.so
+164 -rwxr-xr-x  1 blyth dyw 167688 Mar 19 00:02 _testcapi.so
+144 -rwxr-xr-x  1 blyth dyw 144224 Mar 19 00:02 _json.so
+ 40 -rwxr-xr-x  1 blyth dyw  39136 Mar 19 00:02 _functools.so
+524 -rwxr-xr-x  1 blyth dyw 534632 Mar 19 00:02 _io.so
+ 96 -rwxr-xr-x  1 blyth dyw  95848 Mar 19 00:02 operator.so
+ 32 -rwxr-xr-x  1 blyth dyw  31408 Mar 19 00:02 _bisect.so
+128 -rwxr-xr-x  1 blyth dyw 128224 Mar 19 00:02 _collections.so
+ 56 -rwxr-xr-x  1 blyth dyw  53376 Mar 19 00:02 _heapq.so
+ 44 -rwxr-xr-x  1 blyth dyw  41496 Mar 19 00:02 _random.so
+ 20 -rwxr-xr-x  1 blyth dyw  20384 Mar 19 00:02 future_builtins.so
+172 -rwxr-xr-x  1 blyth dyw 174384 Mar 19 00:02 itertools.so
+384 -rwxr-xr-x  1 blyth dyw 392768 Mar 19 00:02 datetime.so
+ 80 -rwxr-xr-x  1 blyth dyw  80504 Mar 19 00:02 strop.so
+ 60 -rwxr-xr-x  1 blyth dyw  59128 Mar 19 00:02 time.so
+196 -rwxr-xr-x  1 blyth dyw 199072 Mar 19 00:01 math.so
+160 -rwxr-xr-x  1 blyth dyw 160232 Mar 19 00:01 cmath.so
+144 -rwxr-xr-x  1 blyth dyw 147448 Mar 19 00:01 array.so
+ 52 -rwxr-xr-x  1 blyth dyw  52416 Mar 19 00:01 _ctypes_test.so
+148 -rwxr-xr-x  1 blyth dyw 149088 Mar 19 00:01 _struct.so
+L7[blyth@lxslc701 blyth]$ 
+
