@@ -132,11 +132,12 @@ class Q(object):
     Rather than using the more precise 1239.8418754199977 which 
     will give nm slightly off 
     """
-    headings = tuple(["name", "ptitle", "shape", "eV[0]", "eV[-1]", "nm[0]", "nm[-1]", "len(vals)", "msg" ])
-    fmt = "%40s : %40s : %10s : %10s : %10s : %10s : %10s : %10s : %s "  
-
     #hc_eVnm=1239.8418754199977  # h_Planck*c_light*1e12    
     hc_eVnm=1240.0 
+
+
+    headings = tuple(["name", "ptitle", "shape", "eV[0]", "eV[-1]", "nm[0]", "nm[-1]", "len(vals)", "msg" ])
+    fmt = "%40s : %40s : %10s : %10s : %10s : %10s : %10s : %10s : %s "  
 
     def __init__(self, name, v, sv, msg, mm):
 
