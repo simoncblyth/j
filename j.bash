@@ -243,6 +243,23 @@ jokc(){
     find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
 }
 
+j-find-(){ cat << EOC
+find . -name '*.cc'  -exec grep -H G4OPTICKS {}  
+find . -name '*.cc'  -exec grep -H g4opticks {} 
+find . -name '*.cc'  -exec grep -H g4ok {} 
+find . -name '*.py'  -exec grep -H opticks {} 
+EOC
+}
+
+j-find(){
+    local line
+    cd $JUNOTOP/offline
+    j-find- | while read line ; do 
+        echo "$line \;"
+        eval "$line \;"
+    done 
+}
+
 ################### INSTALLATION ###################################
 
 
@@ -606,25 +623,33 @@ jok-cc(){
 }
 
 
-jok-rebuild(){
+
+
+jok-all(){ jok-touchbuild- $(jok-cmtdirs) ; }
+jok-phy(){ jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt ; }
+jok-pmt(){ jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt ; }
+jok-dso(){ jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt ; }
+
+
+
+jok-touchbuild-(){
    : in all projects touch sources WITH_G4OPTICKS and rebuild using cmt Makefile
 
    local msg="=== $FUNCNAME :"
    echo $msg CMTEXTRATAGS : $CMTEXTRATAGS
-   [ -z "$JFU_JRE" ] && echo $msg MUST RUN jre BEFORE jokp && return 2
+   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE $FUNCNAME && return 2 
 
    local dir
    local rel
-   echo $msg jok-cmtdirs 
-   jok-cmtdirs
-   for rel in $(jok-cmtdirs) ; do 
+   echo $msg $*
+   for rel in $* ; do 
        local dir=$JUNOTOP/offline/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && return 1
        cd $dir
        pwd
    done
 
-   for rel in $(jok-cmtdirs) ; do 
+   for rel in $* ; do 
 
        local dir=$JUNOTOP/offline/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && continue
@@ -646,7 +671,6 @@ jok-rebuild(){
    echo $msg CMTEXTRATAGS : $CMTEXTRATAGS
 
 }
-
 jok-make(){
    local rel 
    while read rel ; do  
@@ -854,6 +878,11 @@ tds-ectrl(){
        export LSXDC_GEOSPECIFIC=${lsxdc_geospecific} 
        echo $msg LSXDC_GEOSPECIFIC ${LSXDC_GEOSPECIFIC} 
    fi
+
+
+   export PMTEfficiencyCheck_dump=1 
+   #export PMTEfficiencyCheck_assert_match=1 
+
 }
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
