@@ -771,6 +771,18 @@ gdb_(){
 
 ############################################# tds : tut_detsim.py runner #############################
 
+tds-label(){
+   local label="tds" 
+   local arg 
+   for arg in $* ; do
+       case $arg in  
+           --no-guide_tube)           label="${label}_ngt" ;;
+           --pmt20inch-polycone-neck) label="${label}_pcnk" ;;
+           --pmt20inch-simplify-csg)  label="${label}_sycg" ;;
+       esac 
+   done
+   echo $label 
+}
 
 tds0(){
    : run with opticks disabled
@@ -778,7 +790,7 @@ tds0(){
    tds- $opts 
 }
 
-tds-elog(){
+tds-elog-0(){
    : hmm opticks logging control - should be elsewhere ? no opticks is part of JUNO Offline - so it should be here
    export X4Solid=INFO
    export X4PhysicalVolume=INFO
@@ -801,6 +813,49 @@ tds-elog(){
    export OContext=INFO
 }
 
+tds-elog-1(){
+   export OGeo=INFO
+}
+
+tds-ectrl-notes(){ cat << EON
+
+Control via envvar is appropriate only for temporary debugging. 
+Changes should be solidified into code ASAP, for example into 
+
+   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+
+EON
+}
+
+tds-ectrl(){
+   local msg="=== $FUNCNAME :"
+   #export OPTICKS_RESOURCE_LAYOUT=2
+
+   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default  
+   #export OPTICKS_EMBEDDED_COMMANDLINE="dev"  
+   #export OPTICKS_EMBEDDED_COMMANDLINE=" --compute --embedded --xanalytic --save --natural --printenabled --pindex 0"
+
+   local extra
+   #local extra="--dbggssave --dumphit --layout 100 --savesensor"
+   #local extra="--dbggdmlpath $dbggdmlpath" 
+   #local extra="--gdmlkludge"
+
+   unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
+   if [ -n "$extra"]; then 
+       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
+       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
+   fi    
+
+   local lsxdc_geospecific
+   #local lsxdc_geospecific="--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3  --gdmlkludge" 
+    
+   unset LSXDC_GEOSPECIFIC
+   if [ -n "${lsxdc_geospecific}" ]; then  
+       export LSXDC_GEOSPECIFIC=${lsxdc_geospecific} 
+       echo $msg LSXDC_GEOSPECIFIC ${LSXDC_GEOSPECIFIC} 
+   fi
+}
+
 tds(){ 
    #local opts="--no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
    #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
@@ -808,13 +863,14 @@ tds(){
    local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
    #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"  
 
-   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default  
-   #export OPTICKS_EMBEDDED_COMMANDLINE="dev"  
-   #export OPTICKS_EMBEDDED_COMMANDLINE=" --compute --embedded --xanalytic --save --natural --printenabled --pindex 0"
+   tds-elog-1
+   tds-ectrl 
 
-   tds- $opts 
+   tds- $opts gun
 }
+
 tds-(){ 
+   type $FUNCNAME
    local msg="=== $FUNCNAME :"
 
    if [ "${CMTEXTRATAGS/opticks}" != "${CMTEXTRATAGS}" ]; then 
@@ -823,27 +879,8 @@ tds-(){
    fi
 
    [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
-
-   local label="tds" 
-   local arg 
-   for arg in $* ; do
-       case $arg in  
-           --no-guide_tube)           label="${label}_ngt" ;;
-           --pmt20inch-polycone-neck) label="${label}_pcnk" ;;
-           --pmt20inch-simplify-csg)  label="${label}_sycg" ;;
-       esac 
-   done
-   
-   local dbggdmlpath="$OPTICKS_TOP/${label}_202102.gdml"
-   echo $msg label $label dbggdmlpath $dbggdmlpath 
-   type $FUNCNAME
-
-   #export OPTICKS_RESOURCE_LAYOUT=2
-   export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="--dbggdmlpath $dbggdmlpath"  # --dbggssave --dumphit --layout 100 --savesensor
-    
+ 
    local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py
-   local args="gun"  
-
    if [ -z "$BP" ]; then
       H="" 
       B="" 
@@ -856,16 +893,19 @@ tds-(){
    fi
 
    local iwd=$PWD
-   local dir=/tmp/$USER/opticks/tds
+   local dir=$(tds-dir)
    mkdir -p $dir
    cd $dir
-   local runline="gdb $H $B $T --args python $script $* $args "
+   local runline="gdb $H $B $T --args python $script $*"
    echo $runline
    date
    eval $runline 
    date
    cd $iwd
 }
+
+tds-dir(){ echo /tmp/$USER/opticks/tds ; }
+tds-cd(){ cd $(tds-dir) ; }
 
 
 ############################## tds runners with various breakpoints #########################
