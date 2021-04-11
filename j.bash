@@ -879,8 +879,9 @@ tds-ectrl(){
        echo $msg LSXDC_GEOSPECIFIC ${LSXDC_GEOSPECIFIC} 
    fi
 
-
-   export PMTEfficiencyCheck_dump=1 
+   unset PMTEfficiencyCheck_dump
+   unset PMTEfficiencyCheck_assert_match
+   #export PMTEfficiencyCheck_dump=1 
    #export PMTEfficiencyCheck_assert_match=1 
 
 }
