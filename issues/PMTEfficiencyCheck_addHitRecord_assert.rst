@@ -2,6 +2,20 @@ PMTEfficiencyCheck_addHitRecord_assert
 ==========================================
 
 
+Actions
+----------
+
+1. add envvar controls::
+
+    PMTEfficiencyCheck_dump
+    PMTEfficiencyCheck_assert_match
+
+2. add string list name saving for more easily maintained analysis
+3. add mismatch summary bitfield
+4. relocate PMTEfficiencyCheck.py into j 
+
+Response
+-----------
 
 When you meet a problem the first thing you should do is 
 take a look at the code where the error occurs.::
@@ -36,8 +50,6 @@ take a look at the code where the error occurs.::
      72     assert( qe_match );
      73     assert( ce_match );
      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
 
 
 Hu Yuxiang report

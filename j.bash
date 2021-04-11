@@ -891,7 +891,7 @@ tds(){
    #local opts="--no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
    #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
    #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
-   local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
+   local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2"  
    #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"  
 
    tds-elog-1

@@ -9,15 +9,7 @@ The arrays that this script analyses are created by:
 
 Grab the arrays using scp/rsync::
 
-    name=PMTEfficiencyCheck
-    dir=/tmp/$USER/opticks/$name
-    mkdir -p $dir
-    rsync -rtz --progress P:/tmp/$USER/opticks/$name/ /tmp/$USER/opticks/$name/ 
-
-    r:recursive
-    t:preserve modification times
-    z:compress
-    --progress              show progress during transfer
+    ./PMTEfficiencyCheck.sh grab 
 
 
 """
@@ -25,6 +17,7 @@ Grab the arrays using scp/rsync::
 import os
 import numpy as np
 from glob import glob 
+from collections import OrderedDict as odict 
 
 try:
     import matplotlib.pyplot as plt 
@@ -54,9 +47,72 @@ def print_shapes(qty):
     pass
 
 
+
+class Mismatch(object):
+    """
+    unsigned mismatch = 
+        ( unsigned(!qe_match)       << 0 ) | 
+        ( unsigned(!ce_match)       << 1 ) | 
+        ( unsigned(!de_match)       << 2 ) | 
+        ( unsigned(parcat_mismatch) << 3 ) | 
+        ( unsigned(simcat_mismatch) << 4 ) 
+        ;   
+    """
+    qe_ = ( 0x1 << 0 )
+    ce_ = ( 0x1 << 1 )
+    de_ = ( 0x1 << 2 )
+    pc_ = ( 0x1 << 3 )
+    sc_ = ( 0x1 << 4 )
+
+    def __init__(self, a):
+        self.a = a 
+
+        u, c = np.unique(a, return_counts=True)
+
+        n = []
+        for field in self.fields:
+            q = getattr(self, field)
+            n.append(np.count_nonzero(q))
+        pass 
+
+        self.tot = len(a)  
+        self.u = u 
+        self.c = c
+        self.n = n  
+
+    qe = property(lambda self:self.a & self.qe_) 
+    ce = property(lambda self:self.a & self.ce_) 
+    de = property(lambda self:self.a & self.de_) 
+    pc = property(lambda self:self.a & self.pc_) 
+    sc = property(lambda self:self.a & self.sc_) 
+
+    fields = ["qe","ce","de","pc","sc"]
+
+    def unique_smry(self):
+       fmt = "i {0:2d}   mismatch (dec) {1:5d} (hex) {1:5x} (bin) {1:10b}  mismatch_count {2:6d} "
+       return "\n".join([fmt.format(i, self.u[i], self.c[i]) for i in range(len(self.u))])
+
+    def nonzero_smry(self):
+       fmt = " {0:2s} {1:6d} {2:8.3f}" 
+       return "\n".join([fmt.format(self.fields[i], self.n[i], float(self.n[i])/float(self.tot)) for i in range(len(self.n))])
+
+    def __str__(self):
+       return "\n".join([
+                         "Mismatch", 
+                         "total:%d" % self.tot,
+                         "bitfield unique_smry",self.unique_smry(), 
+                         "bitwise nonzero_smry",self.nonzero_smry()
+                        ]) 
+
+    __repr__ = __str__
+
+
+
 if __name__ == '__main__':
 
-    base = os.path.expandvars("/tmp/$USER/opticks/PMTEfficiencyCheck/SCB_KLUDGE_FIX")
+    #flavor = "SCB_KLUDGE_FIX"
+    flavor = "ASIS"
+    base = os.path.expandvars("/tmp/$USER/opticks/PMTEfficiencyCheck/%s" % flavor)
     name = os.path.basename(base)
     paths = sorted(glob("%s/*.npy" % base))
     #paths = paths[0:1]
@@ -88,10 +144,13 @@ if __name__ == '__main__':
 
     global_pos = a[:,3,:3]
     simCat = a.view(np.int32)[:,3,6]  
-    spare     = a.view(np.uint32)[:,3,7]
-    assert np.all( spare == 0 ) 
+    mismatch = a.view(np.uint32)[:,3,7]
+    #assert np.all( mismatch == 0 ) 
 
-    print_shapes("pmtId parCat simCat ceCat volIdx qeff qeff2 ceff ceff2 deff deff2 local_pos local_theta global_pos spare")
+    mima = Mismatch(mismatch)
+    print(mima)
+
+    print_shapes("pmtId parCat simCat ceCat volIdx qeff qeff2 ceff ceff2 deff deff2 local_pos local_theta global_pos mismatch")
 
     global_radius = np.sqrt(np.sum(global_pos*global_pos, axis=1))
     local_radius = np.sqrt(np.sum(local_pos*local_pos, axis=1))
@@ -177,7 +236,7 @@ if 1 and plt:
         pass
     pass
     fig, axs = plt.subplots(2, sharex=True)
-    fig.suptitle("~/jnu/PMTEfficiencyCheck.py : %s : theta_efficiency_plot_cats" % name) 
+    fig.suptitle("~/j/PMTEfficiencyCheck.py : %s : theta_efficiency_plot_cats" % name) 
     theta_efficiency_plot_cats( axs[0], local_theta, ceff  , pmtCat, [0,1,2,3], pmtCatName ) 
     axs[0].set_ylabel("ceff")
     axs[0].set_xlabel("local_theta")
