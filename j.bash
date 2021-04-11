@@ -856,6 +856,7 @@ tds-ectrl(){
    fi
 }
 
+tds-mu(){ tds --particles mu- --momentums 215000 ; }
 tds(){ 
    #local opts="--no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
    #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
@@ -866,7 +867,7 @@ tds(){
    tds-elog-1
    tds-ectrl 
 
-   tds- $opts gun
+   tds- $opts gun $*
 }
 
 tds-(){ 
