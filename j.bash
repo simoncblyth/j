@@ -866,7 +866,7 @@ tds-ectrl(){
    extra="--rngmax 100"
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
-   if [ -n "$extra"]; then 
+   if [ -n "$extra" ]; then 
        export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
        echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
    fi    
