@@ -108,6 +108,55 @@ class Mismatch(object):
 
 
 
+
+
+def split_cylindrical_plot(rcyl, zcyl, volIdx, idx):
+    """
+    """
+    nvol = 3 
+    #sli = slice(0,None)  
+    sli = slice(0,10000)  
+
+    fig, axs = plt.subplots(nvol)
+    for i in range(nvol):
+        ax = axs[i]
+        v_rcyl = rcyl[volIdx == i] 
+        v_zcyl = zcyl[volIdx == i] 
+        ax.scatter( v_rcyl[sli], v_zcyl[sli], s=1 )
+        ax.scatter( rcyl[idx], zcyl[idx], c='r' )
+        ax.set_aspect('equal')
+    pass
+    fig.show()
+
+
+def combined_cylindrical_plot(rcyl, zcyl, volIdx, idx):
+    """
+    """
+    nvol = 3 
+    #sli = slice(0,None)  
+    sli = slice(0,10000)  
+    col = 'rgb'
+
+    fig, axs = plt.subplots(1)
+    ax = axs 
+
+    for i in range(nvol):
+        v_rcyl = rcyl[volIdx == i] 
+        v_zcyl = zcyl[volIdx == i] 
+        ax.scatter( v_rcyl[sli], v_zcyl[sli], s=1, c=col[i] )
+        ax.scatter( rcyl[idx], zcyl[idx], c='r' )
+        ax.set_aspect('equal')
+    pass
+    fig.show()
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
 
     #flavor = "SCB_KLUDGE_FIX"
@@ -115,7 +164,7 @@ if __name__ == '__main__':
     base = os.path.expandvars("/tmp/$USER/opticks/PMTEfficiencyCheck/%s" % flavor)
     name = os.path.basename(base)
     paths = sorted(glob("%s/*.npy" % base))
-    #paths = paths[0:1]
+    paths = paths[0:1]
 
     arrs = []
     for i,path in enumerate(paths):
@@ -130,7 +179,7 @@ if __name__ == '__main__':
     pmtId  = a.view(np.uint32)[:,0,0]  
     parCat = a.view(np.uint32)[:,0,1]  
     ceCat  = a.view(np.uint32)[:,0,2]  
-    volIdx = a.view(np.uint32)[:,0,3] ; assert volIdx.max() <= 2 
+    volIdx = a.view(np.uint32)[:,0,3] ; assert volIdx.max() <= 3  # tds-mu pushed to 3  
     qeff = a[:,0,2]
     qeff2 = a[:,0,3]
 
@@ -147,8 +196,34 @@ if __name__ == '__main__':
     mismatch = a.view(np.uint32)[:,3,7]
     #assert np.all( mismatch == 0 ) 
 
+
+
+
     mima = Mismatch(mismatch)
     print(mima)
+
+    d_qe = np.abs(qeff - qeff2)  
+    d_de = np.abs(deff - deff2)  
+    d_ce = np.abs(ceff - ceff2)  
+    
+    epsilon = 1e-6
+    w_qe = np.where(d_qe > epsilon)
+    w_de = np.where(d_de > epsilon)
+    w_ce = np.where(d_ce > epsilon)
+
+    print("w_qe: %s " % w_qe)
+    print("w_de: %s " % w_de)
+    print("w_ce: %s " % w_ce)
+
+    idx = np.where(volIdx == 3)[0][0]  
+
+
+    rcyl = np.sqrt( np.sum( local_pos[:,:2]*local_pos[:,:2], axis=1 )) 
+    zcyl = local_pos[:,2]
+    #split_cylindrical_plot( rcyl, zcyl, volIdx, idx )
+    combined_cylindrical_plot( rcyl, zcyl, volIdx, idx )
+
+ 
 
     print_shapes("pmtId parCat simCat ceCat volIdx qeff qeff2 ceff ceff2 deff deff2 local_pos local_theta global_pos mismatch")
 
@@ -227,7 +302,8 @@ if __name__ == '__main__':
     pass
 
 
-if 1 and plt:
+
+if 0 and plt:
     def theta_efficiency_plot_cats( ax, th, ef, pmtCat, cats, catNames):
         for cat in cats:
             sel = pmtCat == cat
