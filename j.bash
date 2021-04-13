@@ -178,6 +178,7 @@ j-env(){  echo -n ; }
 j-dir(){ echo $(dirname $BASH_SOURCE) ; }
 j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
+ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
 
 j-scp(){  
     local target=${1:-L7} 
@@ -860,9 +861,9 @@ tds-ectrl(){
    #export OPTICKS_EMBEDDED_COMMANDLINE=" --compute --embedded --xanalytic --save --natural --printenabled --pindex 0"
 
    local extra
-   #local extra="--dbggssave --dumphit --layout 100 --savesensor"
-   #local extra="--dbggdmlpath $dbggdmlpath" 
-   #local extra="--gdmlkludge"
+   #extra="--dbggssave --dumphit --layout 100 --savesensor"
+   #extra="--dbggdmlpath $dbggdmlpath" 
+   extra="--rngmax 100"
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra"]; then 
