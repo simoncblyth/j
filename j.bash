@@ -864,7 +864,7 @@ tds-ectrl(){
    #extra="--dbggssave --dumphit --layout 100 --savesensor"
    #extra="--dbggdmlpath $dbggdmlpath" 
    #extra="--rngmax 100"
-   extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual"
+   extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8,"
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra" ]; then 
