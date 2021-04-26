@@ -815,7 +815,7 @@ tds0(){
    tds- $opts 
 }
 
-tds-elog-0(){
+tds-elog-verbose(){
    : hmm opticks logging control - should be elsewhere ? no opticks is part of JUNO Offline - so it should be here
    export X4Solid=INFO
    export X4PhysicalVolume=INFO
@@ -838,8 +838,8 @@ tds-elog-0(){
    export OContext=INFO
 }
 
-tds-elog-1(){
-   export OGeo=INFO
+tds-elog-quiet(){
+   export G4Opticks=INFO 
 }
 
 tds-ectrl-notes(){ cat << EON
@@ -888,6 +888,16 @@ tds-ectrl(){
 
 }
 
+
+tds-grab(){  
+    local outbase=/tmp/$USER/opticks/tds
+    mkdir -p $outbase
+    local cmd="rsync -rtz --progress P:$outbase/ $outbase/"
+    echo $cmd
+    eval $cmd
+    open $outbase
+}
+
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
 tds(){ 
    #local opts="--no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
@@ -896,7 +906,7 @@ tds(){
    local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
    #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"  
 
-   tds-elog-1
+   tds-elog-quiet
    tds-ectrl 
 
    tds- $opts gun $*
