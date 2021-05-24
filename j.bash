@@ -214,8 +214,8 @@ je(){ cd $JUNOTOP/junoenv && pwd ; }
 jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
 psi(){ js PMTSIM/src ; }
-jb(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/cmt && pwd ; } 
-jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
+#jb(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/cmt && pwd ; } 
+#jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
 td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
 
@@ -630,7 +630,7 @@ jok-all(){ jok-touchbuild- $(jok-cmtdirs) ; }
 jok-phy(){ jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt ; }
 jok-pmt(){ jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt ; }
 jok-dso(){ jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt ; }
-
+jok-g4o(){ jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt ; }
 
 
 jok-touchbuild-(){
@@ -809,11 +809,6 @@ tds-label(){
    echo $label 
 }
 
-tds0(){
-   : run with opticks disabled
-   local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
-   tds- $opts 
-}
 
 tds-elog-verbose(){
    : hmm opticks logging control - should be elsewhere ? no opticks is part of JUNO Offline - so it should be here
@@ -897,6 +892,31 @@ tds-grab(){
     eval $cmd
     open $outbase
 }
+
+
+
+tds0(){
+   : run with opticks disabled
+   local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
+   tds- $opts gun $*
+}
+
+tds2(){
+   : run with opticks disabled, but with Opticks provided intrumentation used to save info from Geant4 in OpticksEvent format files
+   local opts="--opticks-mode 2 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
+   tds- $opts gun $*
+}
+
+tds3(){
+   : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
+   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
+   tds- $opts gun $*
+}
+
+
+
+
+
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
 tds(){ 
