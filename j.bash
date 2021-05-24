@@ -973,26 +973,26 @@ tds-cd(){ cd $(tds-dir) ; }
 
 ############################## tds runners with various breakpoints #########################
 
-tds1(){ BP=R12860PMTManager::R12860PMTManager     tds ; } 
+tdsA(){ BP=R12860PMTManager::R12860PMTManager     tds ; } 
 
-tds2-(){ cat << EOB
+tdsB-(){ cat << EOB
 G4Torus::G4Torus
 DetSim0Svc::createDetectorConstruction
 R12860PMTManager::R12860PMTManager
 EOB
 }
-tds2(){ BP="$(tds2-)" tds ; }
+tdsB(){ BP="$(tds2-)" tds ; }
 
-tds3-(){
+tdsC-(){
    : breakpoint signatures of PMTSolid ctors
    local iwd=$PWD
    cd $JUNOTOP/offline/Simulation/DetSimV2/PMTSim/src
    ls -1 *_PMTSolid.cc | perl -p -e 's,(\S*).cc,$1::$1,' - 
    cd $iwd
 }
-tds3(){ BP="$(tds3-)" tds ; }
+tdsC(){ BP="$(tdsC-)" tds ; }
 
-tds4-(){ cat << EOB
+tdsD-(){ cat << EOB
 DsG4Scintillation::PostStepDoIt
 G4VUserPhysicsList::Construct
 LSExpPhysicsList::ConstructProcess
@@ -1000,9 +1000,9 @@ G4OpticksAnaMgr::BeginOfRunAction
 EOB
 }
 
-tds4(){ BP="$(tds4-)" tds ; }
+tdsD(){ BP="$(tdsD-)" tds ; }
 
-tds5-(){ cat << EOB
+tdsE-(){ cat << EOB
 junoSD_PMT_v2::junoSD_PMT_v2
 junoSD_PMT_v2::Initialize
 junoSD_PMT_v2::ProcessHits
@@ -1010,7 +1010,7 @@ junoSD_PMT_v2::get_pmtid
 junoSD_PMT_v2::EndOfEvent
 EOB
 }
-tds5(){ BP="$(tds5-)" tds ; }
+tdsE(){ BP="$(tdsE-)" tds ; }
 
 
 ###########################################################################################
