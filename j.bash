@@ -907,9 +907,23 @@ tds2(){
    tds- $opts gun $*
 }
 
+anamgr(){ cat << EOU
+--opticks-anamgr
+--no-anamgr-normal
+--no-anamgr-genevt
+--no-anamgr-edm-v2
+--no-anamgr-grdm
+--no-anamgr-deposit
+--no-anamgr-deposit-tt
+--no-anamgr-interesting-process
+--no-anamgr-optical-parameter
+--no-anamgr-timer
+EOU
+}
+
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
-   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
+   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 $(anamgr) " ;   
    tds- $opts gun $*
 }
 

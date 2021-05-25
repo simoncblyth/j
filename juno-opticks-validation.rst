@@ -9,9 +9,18 @@ build tips
 ::
 
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
-    jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt 
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt
+        ## added trackInfo to S + C 
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt
+
+
+    jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt 
+
+
 
     jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
     # jok-g4o
@@ -32,8 +41,194 @@ build tips
 
 
 
-running
-----------
+running tips
+--------------
+
+::
+
+     export CG4Ctx=INFO
+     export DsG4Scintillation=INFO
+     export LocalG4Cerenkov1042=INFO
+
+     tds3
+
+
+UserInfo clash : fixed with dynamic_cast
+------------------------------------------
+
+::
+
+    epsilon:offline blyth$ jgr SetUserInformation
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:            aSecondaryTrack->SetUserInformation(new CTrackInfo( opticks_record_id, 'S' ) );
+    ./Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc:      aSecondaryTrack->SetUserInformation(new CTrackInfo( opticks_record_id, 'C' ) );
+
+    ./Simulation/DetSimV2/AnalysisCode/src/MuIsoProcessAnaMgr.cc:        theTrack->SetUserInformation(anInfo);
+    ./Simulation/DetSimV2/AnalysisCode/src/MuIsoProcessAnaMgr.cc:                (*secondaries)[i]->SetUserInformation(infoNew);
+    ./Simulation/DetSimV2/AnalysisCode/src/InteresingProcessAnaMgr.cc:        trk_michael->SetUserInformation(info);
+    ./Simulation/DetSimV2/AnalysisCode/src/InteresingProcessAnaMgr.cc:            sectrk->SetUserInformation(info);
+    ./Simulation/DetSimV2/AnalysisCode/src/InteresingProcessAnaMgr.cc:            sectrk->SetUserInformation(info);
+    ./Simulation/DetSimV2/AnalysisCode/src/NormalAnaMgr.cc:        theTrack->SetUserInformation(anInfo);
+    ./Simulation/DetSimV2/AnalysisCode/src/NormalAnaMgr.cc:                (*secondaries)[i]->SetUserInformation(infoNew);
+
+
+::
+
+    (gdb) bt
+    #0  0x00007fffedd850ff in void __gnu_cxx::new_allocator<int>::construct<int, int const&>(int*, int const&) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libEDMUtil.so
+    #1  0x00007fffedd83ee8 in std::enable_if<std::allocator_traits<std::allocator<int> >::__construct_helper<int, int const&>::value, void>::type std::allocator_traits<std::allocator<int> >::_S_construct<int, int const&>(std::allocator<int>&, int*, int const&) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libEDMUtil.so
+    #2  0x00007fffedd82021 in decltype (_S_construct({parm#1}, {parm#2}, (forward<int const&>)({parm#3}))) std::allocator_traits<std::allocator<int> >::construct<int, int const&>(std::allocator<int>&, int*, int const&) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libEDMUtil.so
+    #3  0x00007fffedd80c10 in std::vector<int, std::allocator<int> >::push_back(int const&) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libEDMUtil.so
+    #4  0x00007fffc04ae1b8 in NormalTrackInfo::markTracedAncestors (this=0x17911ba30, trkid=10) at /home/blyth/junotop/offline/Simulation/DetSimV2/SimUtil/include/NormalTrackInfo.hh:33
+    #5  0x00007fffc04ad8f6 in InteresingProcessAnaMgr::saveSecondaryInit (this=0x2ead490, aTrack=0x17911c770) at ../src/InteresingProcessAnaMgr.cc:537
+    #6  0x00007fffc04ad4d8 in InteresingProcessAnaMgr::saveNeutronCapture (this=0x2ead490, aTrack=0x17911c770) at ../src/InteresingProcessAnaMgr.cc:450
+    #7  0x00007fffc04ab299 in InteresingProcessAnaMgr::PreUserTrackingAction (this=0x2ead490, aTrack=0x17911c770) at ../src/InteresingProcessAnaMgr.cc:162
+    #8  0x00007fffc1c29598 in MgrOfAnaElem::PreUserTrackingAction (this=0x7fffc1e34440 <MgrOfAnaElem::instance()::s_mgr>, trk=0x17911c770) at ../src/MgrOfAnaElem.cc:60
+    #9  0x00007fffc247222c in LSExpTrackingAction::PreUserTrackingAction (this=0x3386ed0, aTrack=0x17911c770) at ../src/LSExpTrackingAction.cc:37
+    #10 0x00007fffd17a008e in G4TrackingManager::ProcessOneTrack(G4Track*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+    #11 0x00007fffd19d7b53 in G4EventManager::DoProcessing(G4Event*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4event.so
+    #12 0x00007fffc26be760 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+    #13 0x00007fffc1c21a3c in DetSimAlg::execute (this=0x250de70) at ../src/DetSimAlg.cc:112
+
+
+No dynamic_cast::
+
+    521 void
+    522 InteresingProcessAnaMgr::saveSecondaryInit(const G4Track* aTrack) {
+    523     NormalTrackInfo* info = (NormalTrackInfo*)(aTrack->GetUserInformation());
+    524     if ((not info)) {
+    525         return;
+    526     }
+
+
+
+
+recollections
+---------------
+
+1. need to make G4 do secondaries first for re-emission REJOIN-ing to work
+2. G4Track stopAndKill must be used to truncate the G4 simulation in the same way as Opticks bouncemax
+3. reem "gensteps" are excluded:: 
+
+     586         if((m_opticksMode & 1) && Num > 0 && !flagReemission)
+     587         {
+     588 #ifdef WITH_G4OPTICKS
+     589             G4Opticks::Get()->collectGenstep_DsG4Scintillation_r3971(
+     590                  &aTrack,
+
+
+
+Avoided some Geant4 bug with::
+
+    153 void Ctx::setTrackOptical(const G4Track* track)
+    154 {
+    155     const_cast<G4Track*>(track)->UseGivenVelocity(true);
+    156 
+
+
+
+G4 OpticksEvent missing gs.npy
+----------------------------------
+
+An organizational issue, as gensteps are by definition common to both simulations
+
+::
+
+    epsilon:ana blyth$ find /tmp/blyth/opticks/source/evt/g4live/natural -name gs.npy 
+    /tmp/blyth/opticks/source/evt/g4live/natural/1/gs.npy
+    /tmp/blyth/opticks/source/evt/g4live/natural/3/gs.npy
+    /tmp/blyth/opticks/source/evt/g4live/natural/2/gs.npy
+    epsilon:ana blyth$ 
+
+
+
+
+bookending photon generation
+---------------------------------
+
+Bookending the photon generation corresponding to each genstep, will 
+allow the CRecorder collected photons to be labelled with a genstep 
+index so can then see the correspondence between the same single gensteps 
+in each simulation without having to restrict running to a single genstep.
+This also identifies the gentype. 
+
+Hmm not directly. The geant4 photon generation loop creates secondary tracks 
+and collects them into the G4VParticleChange that is returned by eg L4Cerenkov::PostStepDoIt
+so in order to match need to plant info into these secondaries.
+
+
+numPhotons mismatch : a total no-no : clearly a bug 
+--------------------------------------------------------
+
+* after adding CTrackInfo instrumentation gentype is now to be trusted
+* maybe event mingling problem, are now not getting 1,2 written 
+
+
+::
+
+    epsilon:offline blyth$ evtbase.sh    ## rsync the events from P 
+    from P:/home/blyth/local/opticks/evtbase/source/evt/g4live/natural to /tmp/blyth/opticks/source/evt/g4live/natural    
+
+
+    epsilon:offline blyth$ evt.sh -1 2>/dev/null        ## seeing around 50% more in G4 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                              15833         1.00 
+    0000               42        0.497        7875        [2 ] SI AB
+    0001           7cccc2        0.133        2099        [6 ] SI BT BT BT BT SD
+    0002              462        0.066        1042        [3 ] SI SC AB
+    0003          7cccc62        0.058         912        [7 ] SI SC BT BT BT BT SD
+    0004           8cccc2        0.056         888        [6 ] SI BT BT BT BT SA
+    0005          8cccc62        0.025         398        [7 ] SI SC BT BT BT BT SA
+    0006         7cccc662        0.022         346        [8 ] SI SC SC BT BT BT BT SD
+    0007             4662        0.020         320        [4 ] SI SC SC AB
+    0008               41        0.016         248        [2 ] CK AB
+    0009             4cc2        0.013         200        [4 ] SI BT BT AB
+    0010         8cccc662        0.008         133        [8 ] SI SC SC BT BT BT BT SA
+    0011        7cccc6662        0.008         120        [9 ] SI SC SC SC BT BT BT BT SD
+    0012            46662        0.007         104        [5 ] SI SC SC SC AB
+    0013          7ccccc2        0.006         100        [7 ] SI BT BT BT BT BT SD
+    0014            4cc62        0.006          99        [5 ] SI SC BT BT AB
+    0015              4c2        0.005          84        [3 ] SI BT AB
+    0016         7ccccc62        0.004          60        [8 ] SI SC BT BT BT BT BT SD
+    0017          8ccccc2        0.003          54        [7 ] SI BT BT BT BT BT SA
+    0018        8cccc6662        0.003          52        [9 ] SI SC SC SC BT BT BT BT SA
+    0019             4c62        0.003          48        [4 ] SI SC BT AB
+    .                              15833         1.00 
+
+    In [1]: epsilon:offline blyth$ evt.sh 1 2>/dev/null
+    all_seqhis_ana
+    .                     cfo:-  1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.147        1653        [2 ] SI AB
+    0001            7ccc2        0.116        1307        [5 ] SI BT BT BT SD
+    0002            8ccc2        0.052         592        [5 ] SI BT BT BT SA
+    0003           7ccc62        0.052         591        [6 ] SI SC BT BT BT SD
+    0004              452        0.037         422        [3 ] SI RE AB
+    0005              462        0.035         392        [3 ] SI SC AB
+    0006           7ccc52        0.034         385        [6 ] SI RE BT BT BT SD
+    0007           8ccc62        0.022         249        [6 ] SI SC BT BT BT SA
+    0008          7ccc662        0.019         219        [7 ] SI SC SC BT BT BT SD
+    0009           8ccc52        0.015         169        [6 ] SI RE BT BT BT SA
+    0010          7ccc652        0.013         147        [7 ] SI RE SC BT BT BT SD
+    0011               41        0.013         142        [2 ] CK AB
+    0012             4662        0.012         137        [4 ] SI SC SC AB
+    0013            4cc62        0.012         130        [5 ] SI SC BT BT AB
+    0014             4cc2        0.012         130        [4 ] SI BT BT AB
+    0015             4552        0.011         124        [4 ] SI RE RE AB
+    0016             4652        0.011         121        [4 ] SI RE SC AB
+    0017           7cccc2        0.010         114        [6 ] SI BT BT BT BT SD
+    0018           4cccc2        0.009         105        [6 ] SI BT BT BT BT AB
+    0019          7ccc552        0.009          98        [7 ] SI RE RE BT BT BT SD
+    .                              11278         1.00 
+
+    In [1]: 
+
+
+
+
+
+running shakedown
+--------------------
 
 
 tds2 with "--opticks-anamgr" to feed G4OpticksRecorder with G4Run G4Event G4Track G4Step::
