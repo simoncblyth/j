@@ -730,14 +730,15 @@ j-runtime-env()
    local msg="=== $FUNCNAME: "
    local var=J_RUNTIME_ENV
    if [ -n "${!var}" ]; then
-       echo $msg skip as $var:${!var}
+       echo $msg skip as $var:${!var} use jre- or j-runtime-env- to force it 
    else 
        export $var=1 
        j-runtime-env-
    fi
 
 }
-jre(){ j-runtime-env ; }
+jre(){  j-runtime-env ; }
+jre-(){ j-runtime-env- ; }
 
 
 j-runtime-env-notes(){ cat << EON

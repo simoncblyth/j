@@ -53,6 +53,267 @@ running tips
      tds3
 
 
+numPhotons metadata out of whack with evt ?
+------------------------------------------------
+
+::
+
+    epsilon:ana blyth$ js.py /tmp/blyth/opticks/source/evt/g4live/natural/*/parameters.json --keys Tag,NumPhotons
+    /tmp/blyth/opticks/source/evt/g4live/natural/-1/parameters.json
+    Tag                  : -1
+    NumPhotons           : 17384
+    /tmp/blyth/opticks/source/evt/g4live/natural/-2/parameters.json
+    Tag                  : -2
+    NumPhotons           : 17815
+    /tmp/blyth/opticks/source/evt/g4live/natural/0/parameters.json
+    Tag                  : -
+    NumPhotons           : -
+    /tmp/blyth/opticks/source/evt/g4live/natural/1/parameters.json
+    Tag                  : 1
+    NumPhotons           : 11278
+    /tmp/blyth/opticks/source/evt/g4live/natural/2/parameters.json
+    Tag                  : 2
+    NumPhotons           : 11632
+    epsilon:ana blyth$ 
+
+
+This might be explained by the REJOIN-ing not working yet, leading to the reemission
+photons being added to the total for G4.  
+
+
+::
+
+    In [11]: 17384 - 11278
+    Out[11]: 6106
+
+
+Every RE in OK:1 may be leading a separate "photon" in G4:-1 
+
+* need to count RE nibbles, not photons
+* number of RE nibbles 5406 is in the ballpark 
+
+* also the truncation will be different as when the photons are split 
+  at each RE they will not be truncated as much in G4:-1 
+
+
+::
+
+    In [1]: a.seqhis_ana.seq_any_count_nibble("RE")
+    Out[1]: 5406
+
+    In [2]: a.seqhis_ana.seq_any_count_nibble("SI")
+    Out[2]: 11015
+
+    In [3]: a.seqhis_ana.seq_any_count_nibble("CK")
+    Out[3]: 263
+
+    In [4]: b.seqhis_ana.seq_any_count_nibble("RE")
+    Out[4]: 0
+
+
+
+The truth is *11278*::
+
+    epsilon:ana blyth$ gs.sh 1 
+    [2021-05-25 18:54:48,089] p84123 {/Users/blyth/opticks/ana/gs.py:137} INFO - Namespace(level='info', paths=['1'], pathtmpl='$TMP/source/evt/g4live/natural/%d/gs.npy')
+    [2021-05-25 18:54:48,090] p84123 {/Users/blyth/opticks/ana/gs.py:58} INFO -  path $TMP/source/evt/g4live/natural/1/gs.npy shape (66, 6, 4) 
+    [2021-05-25 18:54:48,090] p84123 {/Users/blyth/opticks/ana/gs.py:78} INFO - check_counts
+    num_gensteps : 66 
+    num_photons  : 11278 
+     (4)DsG4Scintillation_r3971   : ngs:   58  npho:11015 
+     (1)G4Cerenkov_1042           : ngs:    8  npho:  263 
+     (0)TOTALS                    : ngs:   66  npho:11278 
+    [2021-05-25 18:54:48,090] p84123 {/Users/blyth/opticks/ana/gs.py:102} INFO - check_pdgcode
+          11 :         e- : 62 
+          22 :      gamma : 4 
+    [2021-05-25 18:54:48,090] p84123 {/Users/blyth/opticks/ana/gs.py:116} INFO - check_ranges
+     tr     0.7426     3.5089 
+     xr   -15.7261    77.3296 
+     yr   -90.1411   401.1544 
+     zr  -537.4855  -206.4406 
+
+::
+
+    ab.sh 1 --nocompare
+
+
+    In [3]: a.seqhis_ana.table[:20]
+    Out[3]: 
+    all_seqhis_ana
+    .                     cfo:-  1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.147        1653        [2 ] SI AB
+    0001            7ccc2        0.116        1307        [5 ] SI BT BT BT SD
+    0002            8ccc2        0.052         592        [5 ] SI BT BT BT SA
+    0003           7ccc62        0.052         591        [6 ] SI SC BT BT BT SD
+    0004              452        0.037         422        [3 ] SI RE AB
+    0005              462        0.035         392        [3 ] SI SC AB
+    0006           7ccc52        0.034         385        [6 ] SI RE BT BT BT SD
+    0007           8ccc62        0.022         249        [6 ] SI SC BT BT BT SA
+    0008          7ccc662        0.019         219        [7 ] SI SC SC BT BT BT SD
+    0009           8ccc52        0.015         169        [6 ] SI RE BT BT BT SA
+    0010          7ccc652        0.013         147        [7 ] SI RE SC BT BT BT SD
+    0011               41        0.013         142        [2 ] CK AB
+    0012             4662        0.012         137        [4 ] SI SC SC AB
+    0013            4cc62        0.012         130        [5 ] SI SC BT BT AB
+    0014             4cc2        0.012         130        [4 ] SI BT BT AB
+    0015             4552        0.011         124        [4 ] SI RE RE AB
+    0016             4652        0.011         121        [4 ] SI RE SC AB
+    0017           7cccc2        0.010         114        [6 ] SI BT BT BT BT SD
+    0018           4cccc2        0.009         105        [6 ] SI BT BT BT BT AB
+    0019          7ccc552        0.009          98        [7 ] SI RE RE BT BT BT SD
+    .                              11278         1.00 
+
+    In [4]: b.seqhis_ana.table[:20]
+    Out[4]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.494        5570        [2 ] SI AB
+    0001           7cccc2        0.131        1474        [6 ] SI BT BT BT BT SD
+    0002              462        0.066         745        [3 ] SI SC AB
+    0003           8cccc2        0.056         635        [6 ] SI BT BT BT BT SA
+    0004          7cccc62        0.056         635        [7 ] SI SC BT BT BT BT SD
+    0005          8cccc62        0.026         288        [7 ] SI SC BT BT BT BT SA
+    0006         7cccc662        0.022         247        [8 ] SI SC SC BT BT BT BT SD
+    0007               41        0.022         246        [2 ] CK AB
+    0008             4662        0.021         234        [4 ] SI SC SC AB
+    0009             4cc2        0.013         144        [4 ] SI BT BT AB
+    0010         8cccc662        0.009          97        [8 ] SI SC SC BT BT BT BT SA
+    0011        7cccc6662        0.007          75        [9 ] SI SC SC SC BT BT BT BT SD
+    0012            4cc62        0.006          71        [5 ] SI SC BT BT AB
+    0013            46662        0.006          70        [5 ] SI SC SC SC AB
+    0014          7ccccc2        0.006          68        [7 ] SI BT BT BT BT BT SD
+    0015              4c2        0.005          62        [3 ] SI BT AB
+    0016         7ccccc62        0.004          42        [8 ] SI SC BT BT BT BT BT SD
+    0017          8ccccc2        0.004          42        [7 ] SI BT BT BT BT BT SA
+    0018        8cccc6662        0.004          40        [9 ] SI SC SC SC BT BT BT BT SA
+    0019             4c62        0.003          35        [4 ] SI SC BT AB
+    .                              11278         1.00 
+
+
+Observations:
+
+1. lots less BULK_ABSORB in OK:1 cf G4:-1 
+2. extra BT in G4 vs OK (virtual hatbox?)
+3. no RE:reemission in G4:-1
+4. G4 small CK/SI mismatches genstep : MUST BE A BUG  
+
+
+RE
+----
+
+::
+
+    In [11]: bre = b.seqhis_ana.seq_any("RE")
+
+    In [12]: np.count_nonzero(bre)
+    Out[12]: 0
+
+    In [13]: are = a.seqhis_ana.seq_any("RE")
+
+    In [14]: np.count_nonzero(are)
+    Out[14]: 3724
+
+
+
+small CK/SI mismatch : BUT should not happen, must be a bug  : G4:-1  -9:CK +9:SI 
+-----------------------------------------------------------------------------------------------
+
+* gensteps are in common so the counts of CK and SI much match 
+
+::
+
+    In [15]: ack = a.seqhis_ana.seq_any("CK")
+
+    In [16]: np.count_nonzero(ack)
+    Out[16]: 263
+
+    In [1]: a.seqhis_ana.seq_any_count("CK")
+    Out[1]: 263                                 ## CORRECT : MATCHES GS
+
+    In [7]: a.seqhis_ana.seq_startswith_count("SI")
+    Out[7]: 11015                               ## CORRECT : MATCHES GS
+
+
+
+    epsilon:ana blyth$ gs.sh 1 
+    [2021-05-25 20:31:30,264] p86263 {/Users/blyth/opticks/ana/gs.py:137} INFO - Namespace(level='info', paths=['1'], pathtmpl='$TMP/source/evt/g4live/natural/%d/gs.npy')
+    [2021-05-25 20:31:30,265] p86263 {/Users/blyth/opticks/ana/gs.py:58} INFO -  path $TMP/source/evt/g4live/natural/1/gs.npy shape (66, 6, 4) 
+    [2021-05-25 20:31:30,265] p86263 {/Users/blyth/opticks/ana/gs.py:78} INFO - check_counts
+    num_gensteps : 66 
+    num_photons  : 11278 
+     (4)DsG4Scintillation_r3971   : ngs:   58  npho:11015 
+     (1)G4Cerenkov_1042           : ngs:    8  npho:  263 
+     (0)TOTALS                    : ngs:   66  npho:11278 
+
+
+
+    In [17]: bck = b.seqhis_ana.seq_any("CK")
+
+    In [18]: np.count_nonzero(bck)
+    Out[18]: 254                    ## <<<< G4:-1 : MISSING 9 CK PHOTONS 
+
+    In [2]: b.seqhis_ana.seq_any_count("CK")
+    Out[2]: 254
+
+
+    In [8]: b.seqhis_ana.seq_startswith_count("SI")
+    Out[8]: 11024                  ###   HUH :  +9 RELATIVE TO GS
+
+    In [9]: b.seqhis_ana.seq_startswith_count("CK")
+    Out[9]: 254                    ###    HUH : -9 RELATIVE TO GS   
+
+
+
+
+    epsilon:ana blyth$ gs.sh -1 
+    [2021-05-25 20:32:08,824] p86437 {/Users/blyth/opticks/ana/gs.py:137} INFO - Namespace(level='info', paths=['-1'], pathtmpl='$TMP/source/evt/g4live/natural/%d/gs.npy')
+    [2021-05-25 20:32:08,824] p86437 {/Users/blyth/opticks/ana/gs.py:58} INFO -  path $TMP/source/evt/g4live/natural/-1/gs.npy shape (66, 6, 4) 
+    [2021-05-25 20:32:08,824] p86437 {/Users/blyth/opticks/ana/gs.py:78} INFO - check_counts
+    num_gensteps : 66 
+    num_photons  : 11278 
+     (4)DsG4Scintillation_r3971   : ngs:   58  npho:11015 
+     (1)G4Cerenkov_1042           : ngs:    8  npho:  263 
+     (0)TOTALS                    : ngs:   66  npho:11278 
+
+
+
+
+
+
+
+
+    In [1]: a.seqhis_ana.seq_startswith_count("CK")
+    Out[1]: 263
+
+    In [2]: b.seqhis_ana.seq_startswith_count("CK")
+    Out[2]: 254
+
+    In [5]: a.seqhis_ana.seq_any_count("SI")
+    Out[5]: 11015
+
+    In [6]: 11015+263
+    Out[6]: 11278
+
+    In [7]: b.seqhis_ana.seq_startswith_count("SI")
+    Out[7]: 11024
+
+
+
+    In [8]: a.seqhis_ana.seq_startswith_count("SI")
+    Out[8]: 11015
+
+    In [9]: b.seqhis_ana.seq_startswith_count("CK")
+    Out[9]: 254
+
+    In [10]: 11024+254
+    Out[10]: 11278
+
+
+
+
+
 UserInfo clash : fixed with dynamic_cast
 ------------------------------------------
 
