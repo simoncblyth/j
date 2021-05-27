@@ -10,20 +10,21 @@ build tips
 
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
 
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt
-        ## added trackInfo to S + C 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt
 
 
-    jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt 
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt       ## G4OpticksAnaMgr that passes G4 objects to CManager
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## logging 
 
 
+
+    jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
 
     jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
-    # jok-g4o
+
+
 
 
 ::
@@ -41,6 +42,105 @@ build tips
 
 
 
+
+logging makes be unconvinced that SetTrackSecondariesFirst(true) 
+--------------------------------------------------------------------
+
+* code look shows that is is set by is specifically excluded at doing 
+  anything with reemission : precisely when I need it 
+
+::
+
+    139 
+    140     if (m_useScintillation && 1) { // DsG4 (with re-emission)
+    141         DsG4Scintillation* scint = new DsG4Scintillation(m_opticksMode);
+    142 
+    143         scint->SetDoQuenching(m_enableQuenching);
+    144         scint->SetBirksConstant1(m_birksConstant1);
+    145         scint->SetBirksConstant2(m_birksConstant2);
+    146         scint->SetGammaSlowerTimeConstant(m_gammaSlowerTime);
+    147         scint->SetGammaSlowerRatio(m_gammaSlowerRatio);
+    148         scint->SetNeutronSlowerTimeConstant(m_neutronSlowerTime);
+    149         scint->SetNeutronSlowerRatio(m_neutronSlowerRatio);
+    150         scint->SetAlphaSlowerTimeConstant(m_alphaSlowerTime);
+    151         scint->SetAlphaSlowerRatio(m_alphaSlowerRatio);
+    152         scint->SetDoReemission(m_doReemission);
+    153         scint->SetDoReemissionOnly(m_doReemissionOnly);
+    154         scint->SetDoBothProcess(m_doScintAndCeren);
+    155         scint->SetApplyPreQE(m_scintPhotonScaleWeight>1.);
+    156         scint->SetPreQE(1./m_scintPhotonScaleWeight);
+    157         scint->SetScintillationYieldFactor(m_ScintillationYieldFactor); //1.);
+    158         scint->SetUseFastMu300nsTrick(m_useFastMu300nsTrick);
+    159         scint->SetTrackSecondariesFirst(true);
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    160         scint->SetFlagDecayTimeFast(flagDecayTimeFast);
+    161         scint->SetFlagDecayTimeSlow(flagDecayTimeSlow);
+    162         scint->SetVerboseLevel(0);
+    163 
+
+
+::
+
+    g4-cls G4Scintillation
+
+    156         void SetTrackSecondariesFirst(const G4bool state);
+    157         // If set, the primary particle tracking is interrupted and any
+    158         // produced scintillation photons are tracked next. When all 
+    159         // have been tracked, the tracking of the primary resumes.
+    160 
+    161         G4bool GetTrackSecondariesFirst() const;
+    162         // Returns the boolean flag for tracking secondaries first.
+    163 
+
+    296         ////////////////////////////////////////////////////////////////
+    297 
+    298         aParticleChange.SetNumberOfSecondaries(fNumPhotons);
+    299 
+    300         if (fTrackSecondariesFirst) {
+    301            if (aTrack.GetTrackStatus() == fAlive )
+    302                   aParticleChange.ProposeTrackStatus(fSuspend);
+    303         }
+    304 
+    305         ////////////////////////////////////////////////////////////////
+
+
+
+
+
+    jcv DsG4Scintillation
+
+    360 inline
+    361 void DsG4Scintillation::SetTrackSecondariesFirst(const G4bool state)
+    362 {
+    363     fTrackSecondariesFirst = state;
+    364 }
+    365 
+    366 inline
+    367 G4bool DsG4Scintillation::GetTrackSecondariesFirst() const
+    368 {
+    369         return fTrackSecondariesFirst;
+    370 }
+
+
+
+     197 G4VParticleChange*
+     198 DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+     199 
+     ...
+     470 
+     471     aParticleChange.SetNumberOfSecondaries(NumTracks);
+     472 
+     473     if (fTrackSecondariesFirst) {
+     474         if (!flagReemission)
+     475             if (aTrack.GetTrackStatus() == fAlive )
+     476                 aParticleChange.ProposeTrackStatus(fSuspend);
+     477     }
+     478 
+
+
+
+
+
 running tips
 --------------
 
@@ -53,7 +153,222 @@ running tips
      tds3
 
 
-numPhotons metadata out of whack with evt ?
+
+
+metadata numPhotons double counting ?
+-----------------------------------------
+
+::
+
+
+
+::
+
+    epsilon:offline blyth$ opticks-f setNumPhotons
+    ...
+    ./cfg4/CManager.cc:            g4evt->setNumPhotons( numPhotons, resize ); 
+    ...
+
+
+    142 void CManager::EndOfEventAction(const G4Event*)
+    143 {
+    144     LOG(LEVEL);
+    145 
+    146     char ctrl = '-' ;
+    147     plog::Severity level = info ;
+    148     if(m_ok->isSave())
+    149     {
+    150         unsigned numPhotons = m_ctx->getNumTrackOptical() ;
+    151         //   this doesnt account for reemission REJOIN, so it will be too high 
+    152         
+    153         OpticksEvent* g4evt = m_ok->getEvent(ctrl) ;
+    154         
+    155         if(g4evt)
+    156         {   
+    157             LOG(level) << " --save g4evt numPhotons " << numPhotons ;
+    158             bool resize = false ; 
+    159             g4evt->setNumPhotons( numPhotons, resize );
+    160             
+    161             m_ok->saveEvent(ctrl);
+    162             m_ok->resetEvent(ctrl);
+    163         }
+    164     }
+    165     else
+    166     {   
+    167         LOG(level) << " NOT saving as no --save " ;
+    168     }
+    169 }
+
+
+wed may 26 2021 : with first try at REJOIN : but suspect non-sequential RE messing up REJOIN
+-----------------------------------------------------------------------------------------------
+
+
+* "SI AB" : G4 - OK : 3555 - 1653 = 1902
+* "CK AB" : G4 - OK : 246 - 142 = 104
+
+Because Opticks does RE as a fraction of AB... 
+does that mean should adjust the absorption_distance. 
+Surely not, as this has matched before. 
+
+First check simpler things like dumping absorption distance etc..
+
+* Also "CK AB" also lots less with OK.  
+* Note that "CK AB" still has reemission prob 
+
+::
+
+    132     if (absorption_distance <= scattering_distance)
+    133     {   
+    134         if (absorption_distance <= s.distance_to_boundary)
+    135         {   
+    136             p.time += absorption_distance/speed ;   
+    137             p.position += absorption_distance*p.direction;
+    138             
+    139             const float& reemission_prob = s.material1.w ;  
+    140             float u_reemit = reemission_prob == 0.f ? 2.f : curand_uniform(&rng);  // avoid consumption at absorption when not scintillator
+    141             
+    142             if (u_reemit < reemission_prob)
+    143             {   
+    144                 // no materialIndex input to reemission_lookup as both scintillators share same CDF 
+    145                 // non-scintillators have zero reemission_prob
+    146                 p.wavelength = reemission_lookup(curand_uniform(&rng));
+    147                 p.direction = uniform_sphere(&rng);
+    148                 p.polarization = normalize(cross(uniform_sphere(&rng), p.direction));
+    149                 p.flags.i.x = 0 ;   // no-boundary-yet for new direction
+    150                 
+    151                 s.flag = BULK_REEMIT ;
+    152                 return CONTINUE;
+    153             }   
+    154             else
+    155             {   
+    156                 s.flag = BULK_ABSORB ;
+    157                 return BREAK;
+    158             }
+    159         }
+    160         //  otherwise sail to boundary  
+    161     }
+    162     else
+
+
+
+
+
+
+
+Counts with RE in any slot fairly close::
+
+    In [38]: np.where(are)[0].shape
+    Out[38]: (3724,)
+
+    In [39]: np.where(bre)[0].shape
+    Out[39]: (3956,)
+
+
+
+
+::
+
+    epsilon:j blyth$ ab.sh 1 --nocompare
+
+    In [4]: a.seqhis_ana.table[:20]   ##  
+    Out[4]: 
+    all_seqhis_ana
+    .                     cfo:-  1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.147        1653        [2 ] SI AB
+    0001            7ccc2        0.116        1307        [5 ] SI BT BT BT SD
+    0002            8ccc2        0.052         592        [5 ] SI BT BT BT SA
+    0003           7ccc62        0.052         591        [6 ] SI SC BT BT BT SD
+    0004              452        0.037         422        [3 ] SI RE AB
+    0005              462        0.035         392        [3 ] SI SC AB
+    0006           7ccc52        0.034         385        [6 ] SI RE BT BT BT SD
+    0007           8ccc62        0.022         249        [6 ] SI SC BT BT BT SA
+    0008          7ccc662        0.019         219        [7 ] SI SC SC BT BT BT SD
+    0009           8ccc52        0.015         169        [6 ] SI RE BT BT BT SA
+    0010          7ccc652        0.013         147        [7 ] SI RE SC BT BT BT SD
+    0011               41        0.013         142        [2 ] CK AB
+    0012             4662        0.012         137        [4 ] SI SC SC AB
+    0013            4cc62        0.012         130        [5 ] SI SC BT BT AB
+    0014             4cc2        0.012         130        [4 ] SI BT BT AB
+    0015             4552        0.011         124        [4 ] SI RE RE AB
+    0016             4652        0.011         121        [4 ] SI RE SC AB
+    0017           7cccc2        0.010         114        [6 ] SI BT BT BT BT SD
+    0018           4cccc2        0.009         105        [6 ] SI BT BT BT BT AB
+    0019          7ccc552        0.009          98        [7 ] SI RE RE BT BT BT SD
+    .                              11278         1.00 
+
+    In [5]: b.seqhis_ana.table[:20]    ## G4 lots more "SI AB" and "CK AB" 
+    Out[5]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.315        3555        [2 ] SI AB
+    0001              452        0.099        1122        [3 ] SI RE AB
+    0002           7cccc2        0.085         953        [6 ] SI BT BT BT BT SD
+    0003              462        0.043         480        [3 ] SI SC AB
+    0004           8cccc2        0.037         422        [6 ] SI BT BT BT BT SA
+    0005          7cccc62        0.037         416        [7 ] SI SC BT BT BT BT SD
+    0006             4552        0.028         314        [4 ] SI RE RE AB
+    0007          7cccc52        0.026         291        [7 ] SI RE BT BT BT BT SD
+    0008               41        0.022         246        [2 ] CK AB
+    0009          8cccc62        0.016         180        [7 ] SI SC BT BT BT BT SA
+    0010         7cccc662        0.014         159        [8 ] SI SC SC BT BT BT BT SD
+    0011             4662        0.013         150        [4 ] SI SC SC AB
+    0012             4652        0.013         146        [4 ] SI RE SC AB
+    0013         7cccc652        0.011         124        [8 ] SI RE SC BT BT BT BT SD
+    0014          8cccc52        0.010         113        [7 ] SI RE BT BT BT BT SA
+    0015             4562        0.010         111        [4 ] SI SC RE AB
+    0016             4cc2        0.008          95        [4 ] SI BT BT AB
+    0017            45552        0.008          93        [5 ] SI RE RE RE AB
+    0018         7cccc552        0.008          90        [8 ] SI RE RE BT BT BT BT SD
+    0019         8cccc662        0.006          67        [8 ] SI SC SC BT BT BT BT SA
+    .                              11278         1.00 
+
+
+
+
+
+wed may 26 2021 : review reemission and REJOIN-ing
+------------------------------------------------------
+
+::
+
+
+    246 /**
+    247 CRecorder::Record
+    248 --------------------
+    ...
+    259 * see notes/issues/reemission_review.rst
+    260 
+    261 Rejoining happens on output side not in the crec CStp list.
+    262 
+    263 The rejoins of AB(actually RE) tracks with reborn secondaries 
+    264 are done by writing two (or more) sequences of track steps  
+    265 into the same record_id in the record buffer at the 
+    266 appropriate non-zeroed slot.
+    267 
+    268 WAS a bit confused by this ...
+    269  
+    270 This assumes that the REJOINing track will
+    271 be the one immediately after the original AB. 
+    272 By virtue of the Cerenkov/Scintillation process setting:
+    273 
+    274      SetTrackSecondariesFirst(true)
+    275   
+    276 If not so, this will "join" unrelated tracks ?
+    277 (Really? remember it has random access into record buffer
+    278 using record_id)
+    279 
+    280 TODO: find how to check this is the case and assert on it
+    281 
+    289 **/
+
+
+
+
+
+tue numPhotons metadata out of whack with evt ?
 ------------------------------------------------
 
 ::
@@ -169,16 +484,16 @@ The truth is *11278*::
     all_seqhis_ana
     .                     cfo:-  -1:g4live:source 
     .                              11278         1.00 
-    0000               42        0.494        5570        [2 ] SI AB
+    0000               42        0.494        5570        [2 ] SI AB                ##
     0001           7cccc2        0.131        1474        [6 ] SI BT BT BT BT SD
-    0002              462        0.066         745        [3 ] SI SC AB
+    0002              462        0.066         745        [3 ] SI SC AB             ##
     0003           8cccc2        0.056         635        [6 ] SI BT BT BT BT SA
     0004          7cccc62        0.056         635        [7 ] SI SC BT BT BT BT SD
     0005          8cccc62        0.026         288        [7 ] SI SC BT BT BT BT SA
     0006         7cccc662        0.022         247        [8 ] SI SC SC BT BT BT BT SD
-    0007               41        0.022         246        [2 ] CK AB
-    0008             4662        0.021         234        [4 ] SI SC SC AB
-    0009             4cc2        0.013         144        [4 ] SI BT BT AB
+    0007               41        0.022         246        [2 ] CK AB                ##  
+    0008             4662        0.021         234        [4 ] SI SC SC AB          ##
+    0009             4cc2        0.013         144        [4 ] SI BT BT AB           
     0010         8cccc662        0.009          97        [8 ] SI SC SC BT BT BT BT SA
     0011        7cccc6662        0.007          75        [9 ] SI SC SC SC BT BT BT BT SD
     0012            4cc62        0.006          71        [5 ] SI SC BT BT AB
@@ -192,12 +507,161 @@ The truth is *11278*::
     .                              11278         1.00 
 
 
+
+
 Observations:
 
 1. lots less BULK_ABSORB in OK:1 cf G4:-1 
-2. extra BT in G4 vs OK (virtual hatbox?)
-3. no RE:reemission in G4:-1
+
+   * consistent with many of the extra G4 "AB" going on to be RE-emitted
+     and appearing as extra photons with G4 
+
+   * counts for G4 histories ending with AB are elevated compared to OK, again reemission   
+
+2. no RE:reemission in G4:-1
+
+3. extra BT in G4 vs OK (virtual hatbox?)
 4. G4 small CK/SI mismatches genstep : MUST BE A BUG  
+
+
+
+After first try at REJOIN::
+
+  
+
+    In [5]: b.seqhis_ana.table[:20]
+    Out[5]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.315        3555        [2 ] SI AB
+    0001              452        0.099        1122        [3 ] SI RE AB
+    0002           7cccc2        0.085         953        [6 ] SI BT BT BT BT SD
+    0003              462        0.043         480        [3 ] SI SC AB
+    0004           8cccc2        0.037         422        [6 ] SI BT BT BT BT SA
+    0005          7cccc62        0.037         416        [7 ] SI SC BT BT BT BT SD
+    0006             4552        0.028         314        [4 ] SI RE RE AB
+    0007          7cccc52        0.026         291        [7 ] SI RE BT BT BT BT SD
+    0008               41        0.022         246        [2 ] CK AB
+    0009          8cccc62        0.016         180        [7 ] SI SC BT BT BT BT SA
+    0010         7cccc662        0.014         159        [8 ] SI SC SC BT BT BT BT SD
+    0011             4662        0.013         150        [4 ] SI SC SC AB
+    0012             4652        0.013         146        [4 ] SI RE SC AB
+    0013         7cccc652        0.011         124        [8 ] SI RE SC BT BT BT BT SD
+    0014          8cccc52        0.010         113        [7 ] SI RE BT BT BT BT SA
+    0015             4562        0.010         111        [4 ] SI SC RE AB
+    0016             4cc2        0.008          95        [4 ] SI BT BT AB
+    0017            45552        0.008          93        [5 ] SI RE RE RE AB
+    0018         7cccc552        0.008          90        [8 ] SI RE RE BT BT BT BT SD
+    0019         8cccc662        0.006          67        [8 ] SI SC SC BT BT BT BT SA
+    .                              11278         1.00 
+
+
+* now get RE
+* but still more AB 
+* TODO: check the REJOIN points, suspicion of non-sequential 
+
+
+How to check are REJOIN-in the correct tracks  ?
+----------------------------------------------------
+
+::
+
+    In [26]: als[:2]
+    Out[26]: 
+    SI BT BT BT SD
+    SI RE AB
+
+    In [27]: bls[:2]
+    Out[27]: 
+    SI AB
+    SI SC SC BT BT BT BR BT BT SC
+
+    In [28]: a.rpost_(slice(0,10))[0]
+    Out[28]: 
+    A([[    60.4266,    113.5289,   -419.3243,      5.6764],
+       [-16342.6618,   6793.4202,    184.9422,     96.939 ],
+       [-16454.3596,   6839.198 ,    188.6044,     97.5616],
+       [-17860.6525,   7410.5045,    243.5377,    104.5198],
+       [-17866.1458,   7414.1667,    243.5377,    104.5564],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ]])
+
+    In [29]: b.rpost_(slice(0,10))[0]
+    Out[29]: 
+    A([[    60.4266,    113.5289,   -419.3243,      4.9074],
+       [-11856.4409,   1254.3107,   -413.831 ,     66.213 ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ],
+       [     0.    ,      0.    ,      0.    ,      0.    ]])
+
+
+
+
+Find psel with RE in any slot::
+
+
+    In [31]: a.seqhis_ana.seq_any("RE")
+    Out[31]: array([False,  True, False, ..., False, False, False])
+
+    In [32]: b.seqhis_ana.seq_any("RE")
+    Out[32]: array([False, False, False, ...,  True, False, False])
+
+    In [33]: are = a.seqhis_ana.seq_any("RE")
+
+    In [34]: bre = b.seqhis_ana.seq_any("RE")
+
+    In [35]: np.where(are)
+    Out[35]: (array([    1,     4,     5, ..., 11262, 11263, 11266]),)
+
+    In [36]: np.where(are)[0]
+    Out[36]: array([    1,     4,     5, ..., 11262, 11263, 11266])
+
+    In [37]: np.where(bre)[0]
+    Out[37]: array([    3,     4,     6, ..., 11262, 11264, 11275])
+
+
+Counts with RE in any slot fairly close::
+
+    In [38]: np.where(are)[0].shape
+    Out[38]: (3724,)
+
+    In [39]: np.where(bre)[0].shape
+    Out[39]: (3956,)
+
+Find the histories of single photons::
+
+    In [47]: afl = a.seqhis_ana.af.label
+
+    In [48]: a.seqhis
+    Out[48]: A([      511170,         1106,           66, ...,           66,           66, 871019341410], dtype=uint64)
+
+    In [50]: afl(511170)
+    Out[50]: 'SI BT BT BT SD'
+
+    In [51]: a.seqhis[are]
+    Out[51]: A([     1106,     19538,    288082, ...,      1106, 130860626,     17746], dtype=uint64)
+
+    In [52]: afl(1106)
+    Out[52]: 'SI RE AB'
+
+    In [53]: afl(19538)
+    Out[53]: 'SI RE BT AB'
+
+    In [54]: afl(288082)
+    Out[54]: 'SI RE RE SC AB'
+
+
+
+
 
 
 RE
