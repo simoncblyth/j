@@ -19,6 +19,9 @@ build tips
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## logging 
 
 
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt
+
+
 
     jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
 
@@ -151,6 +154,299 @@ running tips
      export LocalG4Cerenkov1042=INFO
 
      tds3
+
+
+
+
+::
+
+    opticks --input-photon-path 
+
+
+
+thu may 27 2021 : JUNO-Opticks "gun" tracing with eye to adding "opticks_input_photon_source" standin for "gun"
+------------------------------------------------------------------------------------------------------------------
+
+* get path to input photon file by envvar for simplicity 
+
+::
+
+    jcv tut_detsim JUNOApplication JUNODetSimModule
+    
+
+* https://docs.python.org/3/library/argparse.html
+
+::
+
+    >>> # create the top-level parser
+    >>> parser = argparse.ArgumentParser(prog='PROG')
+    >>> parser.add_argument('--foo', action='store_true', help='foo help')
+    >>> subparsers = parser.add_subparsers(help='sub-command help')
+    >>>
+    >>> # create the parser for the "a" command
+    >>> parser_a = subparsers.add_parser('a', help='a help')
+    >>> parser_a.add_argument('bar', type=int, help='bar help')
+    >>>
+    >>> # create the parser for the "b" command
+    >>> parser_b = subparsers.add_parser('b', help='b help')
+    >>> parser_b.add_argument('--baz', choices='XYZ', help='baz help')
+    >>>
+    >>> # parse some argument lists
+    >>> parser.parse_args(['a', '12'])
+    Namespace(bar=12, foo=False)
+    >>> parser.parse_args(['--foo', 'b', '--baz', 'Z'])
+    Namespace(baz='Z', foo=True)
+
+ 
+::
+
+     096         subparsers = parser.add_subparsers(help='Please select the generator mode',
+      97                                            dest='gentool_mode')
+      98         subparsers.required = True
+      99         self.register_subparser_gun(subparsers, base_parser_positioner)
+     100         self.register_subparser_photon(subparsers, base_parser_positioner)
+     101         self.register_subparser_gendecay(subparsers, base_parser_positioner)
+
+
+::
+
+     619     def register_subparser_gun(self, subparsers, base_parser_positioner):
+     620         parser_gun = subparsers.add_parser("gun", help="gun mode", parents=[base_parser_positioner])
+     621         parser_gun.add_argument("--particles",default="gamma", nargs='+',
+     622                                 help="Particles to do the simulation.")
+     623         parser_gun.add_argument("--momentums",default=1.0, nargs='+',
+     624                                 type=float, 
+     625                                 help="Momentums(MeV) p1 p2 ....")
+     626         parser_gun.add_argument("--momentums-mode", default="Fix",
+     627                                     choices=["Fix", "Uniform", "Range", "Gaus"],
+     628                                     help="different momentum modes")
+     629         parser_gun.add_argument("--momentums-extra-params", nargs='+',
+     630                                 type=float,
+     631                                 help="Extra Momentums Parameters(MeV) p1 p2 .... when mode is different, meaning is different."
+     632                                      " Uniform: [mom-param, mom+param];"
+     633                                      " Range: [mom, param];"
+     634                                      " Gaus: Gaus(mom, param);"
+     635                                 )
+     636         parser_gun.add_argument("--momentums-interp", default="Momentum",
+     637                                     choices=["Momentum", "KineticEnergy", "TotalEnergy"],
+     638                                     help="Interpret momentum.")
+     639         parser_gun.add_argument("--positions",default=[(0,0,0)], nargs='+',
+     640                                 type=float, action=MakeTVAction,
+     641                                 help="Positions (mm) x1 y1 z1 x2 y2 z2 ....")
+     642         parser_gun.add_argument("--times",default=None, nargs='+',
+     643                                 type=float,
+     644                                 help="Time (mm) t1 t2 ....")
+     645         parser_gun.add_argument("--directions",default=None, nargs='+',
+     646                                 type=float, action=MakeTVAction,
+     647                                 help="If you don't set, the directions are randoms. "
+     648                                      "Directions dx1 dy1 dz1 dx2 dy2 dz2 ....")
+
+     649         parser_gun.add_argument("--opticks-input-photon-source-path", default=None,  
+     650                                 help="overrides other gun options with input photons from .npy files" 
+     651                                      " for Opticks debugging, requires compilation WITH_G4OPTICKS" )
+     652     
+
+
+::
+
+     jgr momentums_extra_params
+
+    epsilon:offline blyth$ jgr momentums_extra_params
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        if args.momentums_extra_params:
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            gun.property("particleMomentumParams").set(args.momentums_extra_params)
+    epsilon:offline blyth$ 
+
+
+
+Maybe create an opticks gentool, rather than overriding the existing gun.
+
+Cannot use existing generators as for alignment purposes 
+needs to operate without consuming any randoms. 
+
+
+::
+
+    epsilon:offline blyth$ jgr GtGunGenTool
+    ./Simulation/GenTools/doc/README.rst:GtGunGenTool
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtGunGenTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtGunGenTool/gun")
+    ./Simulation/GenTools/src/GtGunGenTool.cc:#include "GtGunGenTool.h"
+    ./Simulation/GenTools/src/GtGunGenTool.cc:DECLARE_TOOL(GtGunGenTool);
+    ./Simulation/GenTools/src/GtGunGenTool.cc:GtGunGenTool::GtGunGenTool(const std::string& name)
+    ./Simulation/GenTools/src/GtGunGenTool.cc:GtGunGenTool::~GtGunGenTool()
+    ./Simulation/GenTools/src/GtGunGenTool.cc:GtGunGenTool::configure()
+    ./Simulation/GenTools/src/GtGunGenTool.cc:GtGunGenTool::mutate(HepMC::GenEvent& event)
+    ...
+ 
+
+thu may 27 2021 : how to do JUNO-Opticks aligned running
+-----------------------------------------------------------------
+
+
+Previous aligned running was done in CFG4 in a fully controlled Geant4 
+environment.  Doing it within JUNO Offline will require:
+
+1. input photons : needs new development as need to work with JUNO-Offline 
+   approach to generation  
+
+   * how much of existing machinery cfg4/CInputPhotonSource is usable 
+     in JUNO context ?  CInputPhotonSource < CSource < G4VPrimaryGenerator
+
+   * investigate existing JUNO generators and see how to add
+     a WITH_G4OPTICKS only generator based on CInputPhotonSoutce 
+
+2. input random numbers : existing machinery CAlignEngine should 
+   be directly usable as this is done at Geant4 level beneath the level 
+   of the experiment  
+
+
+thu may 27 2021 : the case for JUNO-Opticks aligned running 
+-----------------------------------------------------------------
+
+
+Initially I was planning to do statistical non-random-aligned comparisons first 
+before reviving the random aligned but given the large differences 
+I see in the histories I think the fastest way to resolve problems and debug the 
+machinery maybe to start with the sledgehammer of random-aligned running.  
+
+Random aligned running uses input photons so there is no consumption 
+of random numbers to generate the photons and input random numbers. 
+With random aligned running you need a “quiet" Geant4 environment in terms 
+of the random numbers that Geant4 consumes.
+You can configure Geant4 to use the sequence of random numbers that you give it.
+
+Random aligned running is difficult to get working across many photons
+because it means you need to understand every random number consumed by Geant4 
+and have Opticks do the same.  While it is difficult to keep the simulations together 
+for large numbers of photons due to edge case details of Geant4 doing complicated things it 
+is not so difficult to do for a small number of photons : and those small numbers of photons 
+can be exceedingly informative at finding discrepancies because you 
+can make direct comparisons of every photon step unclouded by statistics.
+
+
+
+
+
+thu may 27 2021 : brief description of current investigations 
+----------------------------------------------------------------
+
+Currently there are big differences, although as this stage the problems 
+could be bugs in the bookkeeping machinery rather than the simulation. 
+
+I use the convention of using +ve tags Opticks events and negated ones for Geant4 events 
+In the below a (OK:1) and b (G4:-1) are two events being compared
+
+Get into ipython and load two events (+1 and -1) using::
+
+    ab.sh 1 —-nocompare   
+
+        ## —nocompare currently as there are metadata bugs that need to be fixed
+        ## before the comparison table will work 
+
+
+For every step of the photon I record four bits (aka nibble) of history flag into 
+a 64 bit unsigned long long called “seqhis” (there is also “seqmat” for materials)
+So I record the history of up to 16 steps of the photon.   
+Sorting these integers and counting how many there are of each gives 
+a history table showing how many photons with each history.
+
+The below table shows the hex of the seqhis and the fraction of that and the 
+count with the label showing the step history in readable form
+
+   SI : scintillation generation
+   CK : cherenkov generation
+   AB : bulk absorb 
+   BT : boundary transmit 
+   SD : surface detect  
+   SA : surface absorb 
+   SC : bulk scatter 
+   RE : reemission    
+
+
+In [1]: a.seqhis_ana.table[:20]
+Out[1]: 
+all_seqhis_ana
+.                     cfo:-  1:g4live:source 
+.                              11278         1.00 
+0000               42        0.147        1653        [2 ] SI AB
+0001            7ccc2        0.116        1307        [5 ] SI BT BT BT SD
+0002            8ccc2        0.052         592        [5 ] SI BT BT BT SA
+0003           7ccc62        0.052         591        [6 ] SI SC BT BT BT SD
+0004              452        0.037         422        [3 ] SI RE AB
+0005              462        0.035         392        [3 ] SI SC AB
+0006           7ccc52        0.034         385        [6 ] SI RE BT BT BT SD
+0007           8ccc62        0.022         249        [6 ] SI SC BT BT BT SA
+0008          7ccc662        0.019         219        [7 ] SI SC SC BT BT BT SD
+0009           8ccc52        0.015         169        [6 ] SI RE BT BT BT SA
+0010          7ccc652        0.013         147        [7 ] SI RE SC BT BT BT SD
+0011               41        0.013         142        [2 ] CK AB
+0012             4662        0.012         137        [4 ] SI SC SC AB
+0013            4cc62        0.012         130        [5 ] SI SC BT BT AB
+0014             4cc2        0.012         130        [4 ] SI BT BT AB
+0015             4552        0.011         124        [4 ] SI RE RE AB
+0016             4652        0.011         121        [4 ] SI RE SC AB
+0017           7cccc2        0.010         114        [6 ] SI BT BT BT BT SD
+0018           4cccc2        0.009         105        [6 ] SI BT BT BT BT AB
+0019          7ccc552        0.009          98        [7 ] SI RE RE BT BT BT SD
+.                              11278         1.00 
+
+
+### G4 in the below has much more AB that OK above : MAYBE RE-JOIN not working properly 
+### G4 has one extra “BT” on the way to SD : that is the virtual PMT container that is 
+### skipped from GPU geometry (perhaps will put that back to match this)
+
+In [2]: b.seqhis_ana.table[:20]
+Out[2]: 
+all_seqhis_ana
+.                     cfo:-  -1:g4live:source    
+.                              11278         1.00 
+0000               42        0.315        3555        [2 ] SI AB
+0001              452        0.099        1122        [3 ] SI RE AB
+0002           7cccc2        0.085         953        [6 ] SI BT BT BT BT SD
+0003              462        0.043         480        [3 ] SI SC AB
+0004           8cccc2        0.037         422        [6 ] SI BT BT BT BT SA
+0005          7cccc62        0.037         416        [7 ] SI SC BT BT BT BT SD
+0006             4552        0.028         314        [4 ] SI RE RE AB
+0007          7cccc52        0.026         291        [7 ] SI RE BT BT BT BT SD
+0008               41        0.022         246        [2 ] CK AB
+0009          8cccc62        0.016         180        [7 ] SI SC BT BT BT BT SA
+0010         7cccc662        0.014         159        [8 ] SI SC SC BT BT BT BT SD
+0011             4662        0.013         150        [4 ] SI SC SC AB
+0012             4652        0.013         146        [4 ] SI RE SC AB
+0013         7cccc652        0.011         124        [8 ] SI RE SC BT BT BT BT SD
+0014          8cccc52        0.010         113        [7 ] SI RE BT BT BT BT SA
+0015             4562        0.010         111        [4 ] SI SC RE AB
+0016             4cc2        0.008          95        [4 ] SI BT BT AB
+0017            45552        0.008          93        [5 ] SI RE RE RE AB
+0018         7cccc552        0.008          90        [8 ] SI RE RE BT BT BT BT SD
+0019         8cccc662        0.006          67        [8 ] SI SC SC BT BT BT BT SA
+.                              11278         1.00 
+
+In [3]: 
+
+
+
+As the G4 machinery (event B) has only been up and running for a day or so, 
+I don’t believe what I am seeing yet. It needs debugging.
+
+In particular reemission is quite complicated because there is a fundamental 
+difference regarding how the simulation is done on GPU and CPU that has to be 
+handled in order to do the bookkeeping in the same way.
+
+In JUNO Offline Geant4 reemission is handled as a secondary track 
+but in Opticks a fraction of the AB (bulk absorbed) gets RE (reemitted).
+This means that for Geant4 events to be matched in the above way 
+you have to join together the secondary reemission  photons with their parents
+across multiple generations of reemission.
+I call that REJOIN-ing. The machinery to do that is fragile,  
+I am currently debugging this.
+
+If the REJOIN-ing is done wrong then you join the wrong photons together and 
+mess up the histories. That could well be happening. 
+
+Note that the above is just the start of the table the full table 
+has many more lines with all the possible histories of the photons.
+
 
 
 
