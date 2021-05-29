@@ -11,21 +11,31 @@ build tips
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
 
 
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt       ## G4OpticksAnaMgr that passes G4 objects to CManager, NB NOT YET IN STANDARD SETUP
 
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt       ## G4OpticksAnaMgr that passes G4 objects to CManager
+
+          
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
 
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## logging 
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## EndOfEvent invoke setInputPhotons 
 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt
 
 
 
     jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
 
     jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
+
+
+
+    when adding " -g " under CMTEXTTRATAGS opticks need to remember to touch the class are interested in having symbols for
+
+    O[blyth@localhost offline]$ touch Simulation/GenTools/src/GenTools.cc
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt   ## GtOpticksTool for running with input photons
+
+    BP=GenTools::execute tds3
 
 
 
@@ -42,6 +52,754 @@ build tips
     -rw-rw-r--. 1 blyth blyth 87 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so.cmtref
     O[blyth@localhost cmt]$ date
     Fri May 21 21:23:38 CST 2021
+
+
+
+thoughts on input_photon testing using GtOpticksTool 
+--------------------------------------------------------
+
+Excellent debugging tool to be able to craft primary photons with ana/input_photons.py 
+and hence know exactly what should be recorded.  
+
+But the input opticals mean are using primary optical photons which are very 
+different from standard primaries. So it would be easy to setup a CRecorder 
+approach that works with this situation but not the real one.   
+
+There is no C+S process involved generating the opticals, only S is 
+relevant for the reemission handling. 
+
+Even if you could implement input gensteps within Geant4 the same 
+problem of unnatural primaries would presumably happen, but this 
+is irrelevant anyhow as input gensteps would require hacking much more
+of Geant4 than is acceptable (ie more than just C+S proc).  
+
+Hence proceed with input photons but stay mindful of its 
+artifical nature and avoid doing things that will break generality.  
+
+
+thoughts on CRecorder static/dynamic modes : PLAN: adopt genstep-level-chunking using CG4Ctx::setGenstep
+-----------------------------------------------------------------------------------------------------------------------
+
+static(event-level-chunking) 
+   used when have all the gensteps up front, so can allocate total photons 
+   all at once
+
+dynamic(photon-level-chunking)
+   attempt at operating in a gather photons one by one manner, BUT this 
+   is very fragile to keep working, possibly from G4Track order variation 
+
+genstep-level-chunking 
+   idea for a new way mode of CRecorder operation that can be used 
+   without having all gensteps up front, all that need is to know the basics
+   of the genstep : num_photons, genstep_offset
+
+   * CG4Ctx::setGenstep(numPhotons, offset)
+
+   * can fabricate setGenstep call for input_photons running  (which have no C+S)
+     by detection of the primary opticals in CG4Ctx::setEvent 
+
+   * so can allocate and collect all photons on a genstep
+   * advantage with this mode is that can use it both in live running 
+     and when operating from canned gensteps : so this mode can replace 
+     both the above and be less fragile wrt the details of the G4 track ordering etc..
+
+
+
+1 : miss 2 at recording stage
+------------------------------------------
+
+Observations:
+
+* order is inverted compared to input photons
+* 0.2 and 0.8 are missing 
+
+::
+
+    epsilon:opticks blyth$ ab.sh 1 --nocompare
+
+    In [5]: b.rpost_(slice(0,1))                                                                                                                                                                        
+    Out[5]: 
+    A([[[0.    , 0.    , 0.    , 0.6958]],
+
+       [[0.    , 0.    , 0.    , 0.586 ]],
+
+       [[0.    , 0.    , 0.    , 0.5127]],
+
+       [[0.    , 0.    , 0.    , 0.4028]],
+
+       [[0.    , 0.    , 0.    , 0.293 ]],
+
+       [[0.    , 0.    , 0.    , 0.1099]]])
+
+    In [6]:                                                 
+
+
+
+
+2 : several extras 
+-------------------------
+
+* evt 2 has same input photons at evt 1 
+
+::
+
+    epsilon:opticks blyth$ ab.sh 2 --nocompare
+
+
+    In [3]: bls[:100]                                                                                                                                                                                   
+    Out[3]: 
+
+    TO SC SC AB
+    TO BT BT BT BT SA
+    TO BT BT BT BT SD
+
+    TO AB
+    TO RE AB
+    TO RE RE SC SC SC BT BT BT BT
+
+    TO AB
+    TO RE AB
+    TO RE RE AB
+    TO RE RE RE SC BT BT SC BT BT
+
+    TO SC AB
+    TO AB
+
+
+
+
+    In [1]: b.rpost_(slice(0,1))                                                                                                                                                                        
+    Out[1]: 
+    A([[[0.    , 0.    , 0.    , 0.8057]],
+
+       [[0.    , 0.    , 0.    , 0.6958]],
+
+       [[0.    , 0.    , 0.    , 0.586 ]],
+
+
+       [[0.    , 0.    , 0.    , 0.5127]],
+
+       [[0.    , 0.    , 0.    , 0.5127]],
+
+       [[0.    , 0.    , 0.    , 0.5127]],
+
+
+       [[0.    , 0.    , 0.    , 0.4028]],
+
+       [[0.    , 0.    , 0.    , 0.4028]],
+
+       [[0.    , 0.    , 0.    , 0.4028]],
+
+       [[0.    , 0.    , 0.    , 0.4028]],
+
+
+
+       [[0.    , 0.    , 0.    , 0.293 ]],
+
+       [[0.    , 0.    , 0.    , 0.1099]]])
+
+
+
+
+
+
+
+What happens next after GenTools mutate-ing the HepMC::event ?
+-----------------------------------------------------------------
+
+jcv GenTools::
+
+    073 bool
+     74 GenTools::execute()
+     75 {
+    ...
+    160     // increase the event number
+    161     ++m_evtid;
+    162     return register_data(event);
+    163 }
+
+
+    176 bool
+    177 GenTools::register_data(HepMC::GenEvent* event)
+    178 {
+    179     JM::EvtNavigator* nav = new JM::EvtNavigator();
+    180     LogDebug << "time stamp: '" << m_current_timestamp << "'." << std::endl;
+    181     nav->setTimeStamp(m_current_timestamp);
+    182 
+    183     SniperPtr<IDataMemMgr> mMgr(*getParent(), "BufferMemMgr");
+    184     mMgr->adopt(nav, "/Event");
+    185 
+    186     JM::GenHeader* gen_header = new JM::GenHeader;
+    187     JM::GenEvent* gen_event = new JM::GenEvent;
+    188     gen_event->setEvent(event);
+    189 
+    190     gen_header->setEvent(gen_event);
+    191     nav->addHeader("/Event/Gen", gen_header);
+    192     return true;
+    193 }
+
+
+::
+
+    epsilon:offline blyth$ jgr /Event/Gen
+    ./Simulation/GenTools/share/dump.py:    outputsvc.property("OutputStreams").set({"/Event/Gen": "sample_gen.root"})
+    ./Simulation/GenTools/src/PostGenTools.cc:    JM::GenHeader* gen_header = dynamic_cast<JM::GenHeader*>(evt_nav->getHeader("/Event/Gen"));
+    ./Simulation/GenTools/src/GenTools.cc:    nav->addHeader("/Event/Gen", gen_header);
+    ./Simulation/DetSimV2/DetSimMTUtil/src/LSExpMTPrimaryGeneratorAction.cc:    JM::GenHeader* gen_header = dynamic_cast<JM::GenHeader*>(evt_nav->getHeader("/Event/Gen"));
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpPrimaryGeneratorAction.cc:    JM::GenHeader* gen_header = dynamic_cast<JM::GenHeader*>(evt_nav->getHeader("/Event/Gen"));
+    ./Simulation/DetSimV2/AnalysisCode/src/DataModelWriterWithSplit.cc:        nav->copyHeader(evt_nav, "/Event/Gen", "/Event/Gen");
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            output_streams["/Event/Gen"] = args.output
+    ./DataModel/GenEventV2/cmt/requirements:apply_pattern cint_dictionary files="../Event/GenHeader.h ../Event/GenEvent.h"
+    ./DataModel/EDMUtil/src/JunoEDMDefinitions.cc:JUNO_BOOK_EDM(JM::GenHeader, JM::GenEvent, 100, /Event/Gen);
+    epsilon:offline blyth$ 
+
+
+
+LSExpPrimaryGeneratorAction load_gen_event HepMC::GenEvent and converts into G4Event in LSExpPrimaryGeneratorAction::GeneratePrimaries
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+jcv LSExpPrimaryGeneratorAction::
+
+    463 HepMC::GenEvent*
+    464 LSExpPrimaryGeneratorAction::load_gen_event() {
+    465     // FIXME: Don't know the scope
+    466     SniperDataPtr<JM::NavBuffer>  navBuf(*m_scope, "/Event");
+    467     if (navBuf.invalid()) {
+    468         return 0;
+    469     }
+    470     JM::EvtNavigator* evt_nav = navBuf->curEvt();
+    471     if (not evt_nav) {
+    472         return 0;
+    473     }
+    474     JM::GenHeader* gen_header = dynamic_cast<JM::GenHeader*>(evt_nav->getHeader("/Event/Gen"));
+    475     if (not gen_header) {
+    476         return 0;
+    477     }
+    478     JM::GenEvent* gen_event = dynamic_cast<JM::GenEvent*>(gen_header->event());
+    479     if (not gen_event) {
+    480         return 0;
+    481     }
+    482     return gen_event->getEvent();
+    483 }
+
+::
+
+    (gdb) b LSExpPrimaryGeneratorAction::load_gen_event
+
+    (gdb) bt
+    #0  LSExpPrimaryGeneratorAction::load_gen_event (this=0x32472a0) at ../src/LSExpPrimaryGeneratorAction.cc:466
+    #1  0x00007fffc24664f9 in LSExpPrimaryGeneratorAction::GeneratePrimaries (this=0x32472a0, anEvent=0x2a6d340) at ../src/LSExpPrimaryGeneratorAction.cc:87
+    #2  0x00007fffce2c7b3a in G4RunManager::GenerateEvent(int) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4run.so
+    #3  0x00007fffc26b5737 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+    #4  0x00007fffc1c16a3c in DetSimAlg::execute (this=0x250ef50) at ../src/DetSimAlg.cc:112
+    #5  0x00007fffef13836d in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #6  0x00007fffef13d568 in TaskWatchDog::run() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+
+
+
+     73 void LSExpPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
+     74 {
+     75     // special case: no task in the MT mode
+     76     if (m_isMT && !m_scope) {
+     77         G4ParticleTable* particletbl = G4ParticleTable::GetParticleTable();
+     78         G4ParticleDefinition* particle_def = particletbl->FindParticle(particleName);
+     79         particleGun->SetParticleDefinition(particle_def);
+     80         particleGun->GeneratePrimaryVertex(anEvent);
+     81         return;
+     82     }
+     83 
+     84     // normal case: load data from event data buffer
+     85 
+     86     HepMC::GenEvent* gep = 0;
+     87     gep = load_gen_event();
+     88     if (not gep) {
+     89         // TODO raise an Error
+     90         assert(gep);
+     91         return;
+     92     }
+     93     if (SniperLog::logLevel() <= 2) {
+     94         gep->print();
+     95     }
+     96 
+     97     // set the event id
+     98     anEvent->SetEventID( gep->event_number() );
+     99 
+    100     // Refer to G4DataHelpers in Dayabay
+    101     // Loop over vertex first
+    102     //     Loop over particles in vertex
+    103 
+    104     // Loop over vertices in the event
+    105     HepMC::GenEvent::vertex_const_iterator
+    106         iVtx = (*gep).vertices_begin(),
+    107         doneVtx = (*gep).vertices_end();
+    108     for (/*nop*/; doneVtx != iVtx; ++iVtx) {
+    109         const HepMC::FourVector& v = (*iVtx)->position();
+    110         G4PrimaryVertex* g4vtx = new G4PrimaryVertex(v.x(), v.y(), v.z(), v.t());
+    111 
+    112         // Loop over particles in the vertex
+    113         HepMC::GenVertex::particles_out_const_iterator
+    114             iPart = (*iVtx)->particles_out_const_begin(),
+    115             donePart = (*iVtx)->particles_out_const_end();
+    116         for (/*nop*/; donePart != iPart; ++iPart) {
+    117 
+    118             // Only keep particles that are important for tracking
+    119             // Use status to pass messages.
+    120             int istatus = (*iPart)->status();
+    121             if (istatus == 0x1000) {
+    122                 // NEW: the normal particle, need to use G4 to do radioactivity decay simulation
+    123             } else if (istatus != 1) {
+    124                 continue;
+    125             }
+    126 
+    127             G4int pdgcode= (*iPart)-> pdg_id();
+    128             // check the pdgid
+    129             G4ParticleTable* particletbl = G4ParticleTable::GetParticleTable();
+    130             G4ParticleDefinition* particle_def = particletbl->FindParticle(pdgcode);
+    131 
+    ...
+    439 
+    440             } else if (pdgcode == 20022) {
+    441                 particle_def = G4OpticalPhoton::Definition();
+    442             }
+    443             //
+    444             const HepMC::FourVector& p = (*iPart)->momentum();
+    445             // TODO: What's the unit!
+    446             G4PrimaryParticle* g4prim=new G4PrimaryParticle(particle_def, p.px(), p.py(), p.pz());
+    447 
+    448             HepMC::ThreeVector pol = (*iPart)->polarization().normal3d();
+    449             g4prim->SetPolarization(pol.x(),pol.y(),pol.z());
+    450 
+    451             g4vtx->SetPrimary(g4prim);
+    452         }
+    453 
+    454         if (SniperLog::logLevel() <= 2) {
+    455             g4vtx->Print();
+    456         }
+    457 
+    458         anEvent->AddPrimaryVertex(g4vtx);
+    459 
+    460     }
+    461 }
+
+
+Break on exit of LSExpPrimaryGeneratorAction::GeneratePrimaries::
+
+    (gdb) b 461
+    Breakpoint 7 at 0x7fffc2468059: file ../src/LSExpPrimaryGeneratorAction.cc, line 461.
+
+
+    (gdb) p anEvent
+    $14 = (G4Event *) 0x2a6d340
+    (gdb) p anEvent->numberOfPrimaryVertex
+    $15 = 8
+    (gdb) 
+
+
+::
+
+    g4-cc G4VUserPrimaryGeneratorAction
+
+    g4-cls G4RunManager
+
+
+    429 G4Event* G4RunManager::GenerateEvent(G4int i_event)
+    430 { 
+    ...
+    438   G4Event* anEvent = new G4Event(i_event);
+    ...
+    458   if(printModulo > 0 && anEvent->GetEventID()%printModulo == 0 )
+    459   { G4cout << "--> Event " << anEvent->GetEventID() << " starts." << G4endl; }
+    460   userPrimaryGeneratorAction->GeneratePrimaries(anEvent);
+    461   return anEvent;
+    462 }
+
+    epsilon:offline blyth$ g4-cc GenerateEvent
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4WorkerRunManager.cc:      G4Exception("G4RunManager::GenerateEvent()", "Run0032", FatalException,
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4WorkerRunManager.cc:  currentEvent = GenerateEvent(i_event);
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4WorkerRunManager.cc:G4Event* G4WorkerRunManager::GenerateEvent(G4int i_event)
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4RunManager.cc:  currentEvent = GenerateEvent(i_event);
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4RunManager.cc:G4Event* G4RunManager::GenerateEvent(G4int i_event)
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/run/src/G4RunManager.cc:    G4Exception("G4RunManager::GenerateEvent()", "Run0032", FatalException,
+    epsilon:offline blyth$ 
+
+
+    (gdb) bt
+    #0  LSExpPrimaryGeneratorAction::GeneratePrimaries (this=0x32472a0, anEvent=0x2a6d340) at ../src/LSExpPrimaryGeneratorAction.cc:461
+    #1  0x00007fffce2c7b3a in G4RunManager::GenerateEvent(int) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4run.so
+    #2  0x00007fffc26b5737 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+    #3  0x00007fffc1c16a3c in DetSimAlg::execute (this=0x250ef50) at ../src/DetSimAlg.cc:112
+    #4  0x00007fffef13836d in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+
+
+    027 bool G4SvcRunManager::SimulateEvent(int i_event) {
+     28     currentEvent = GenerateEvent(i_event);
+     29     eventManager->ProcessOneEvent(currentEvent);
+     30     AnalyzeEvent(currentEvent);
+     31     UpdateScoring();
+     32     StackPreviousEvent(currentEvent);
+     33     currentEvent = 0;
+     34 
+     35     if(runAborted) return false;
+     36     return true;
+     37 
+     38 }
+
+    (gdb) b CG4Ctx::setEvent
+    Breakpoint 8 at 0x7fffcd48f6ce: file /home/blyth/opticks/cfg4/CG4Ctx.cc, line 262.
+    (gdb) c
+    Continuing.
+    junoSD_PMT_v2::Initialize
+
+    Breakpoint 8, CG4Ctx::setEvent (this=0x14bd49b90, event=0x2a6d340) at /home/blyth/opticks/cfg4/CG4Ctx.cc:262
+    262	    _event = const_cast<G4Event*>(event) ; 
+    (gdb) p event->numberOfPrimaryVertex
+    $16 = 8
+
+    (gdb) b CG4Ctx::setTrack
+    Breakpoint 9 at 0x7fffcd48fa58: file /home/blyth/opticks/cfg4/CG4Ctx.cc, line 356.
+
+
+    (gdb) p _track->GetGlobalTime()
+    $18 = 0.80000001192092896
+    (gdb) 
+
+
+
+
+HepMC::GenEvent
+-------------------
+
+* https://rivet.hepforge.org/code/hepmc.bak/classHepMC_1_1GenEvent.html
+
+* http://th-www.if.uj.edu.pl/~erichter/TauAnalFrame/external/hepmc269-SRC/doc/HepMC2_user_manual.pdf
+
+signalprocessvertex:(optional) pointer to the vertex defined as the signal process - allows fastnavigation to the core of the event
+
+
+
+
+::
+
+
+    (gdb) p event.print(std::cout)
+    ________________________________________________________________________________
+    GenEvent: #0 ID=0 SignalProcessGenVertex Barcode: 0
+     Momenutm units:MEV          Position units:MM      
+     Entries this event: 8 vertices, 8 particles.
+     Beam Particles are not defined.
+     RndmState(0)=
+     Wgts(0)=
+     EventScale -1 [energy] 	 alphaQCD=-1	 alphaQED=-1
+                                        GenParticle Legend
+            Barcode   PDG ID      ( Px,       Py,       Pz,     E ) Stat  DecayVtx
+    ________________________________________________________________________________
+    Vertex:-1        ID:0     (X,cT)=-5.77e-01,-5.77e-01,-5.77e-01,+1.00e-01
+     O:1  10001    20022     -1.63e-06,-1.63e-06,-1.63e-06,+2.82e-06 1  
+    Vertex:-2        ID:0     (X,cT)=+5.77e-01,-5.77e-01,-5.77e-01,+2.00e-01
+     O:1  10002    20022     +1.63e-06,-1.63e-06,-1.63e-06,+2.82e-06 1  
+    Vertex:-3        ID:0     (X,cT)=-5.77e-01,+5.77e-01,-5.77e-01,+3.00e-01
+     O:1  10003    20022     -1.63e-06,+1.63e-06,-1.63e-06,+2.82e-06 1  
+    Vertex:-4        ID:0     (X,cT)=+5.77e-01,+5.77e-01,-5.77e-01,+4.00e-01
+     O:1  10004    20022     +1.63e-06,+1.63e-06,-1.63e-06,+2.82e-06 1  
+    Vertex:-5        ID:0     (X,cT)=-5.77e-01,-5.77e-01,+5.77e-01,+5.00e-01
+     O:1  10005    20022     -1.63e-06,-1.63e-06,+1.63e-06,+2.82e-06 1  
+    Vertex:-6        ID:0     (X,cT)=+5.77e-01,-5.77e-01,+5.77e-01,+6.00e-01
+     O:1  10006    20022     +1.63e-06,-1.63e-06,+1.63e-06,+2.82e-06 1  
+    Vertex:-7        ID:0     (X,cT)=-5.77e-01,+5.77e-01,+5.77e-01,+7.00e-01
+     O:1  10007    20022     -1.63e-06,+1.63e-06,+1.63e-06,+2.82e-06 1  
+    Vertex:-8        ID:0     (X,cT)=+5.77e-01,+5.77e-01,+5.77e-01,+8.00e-01
+     O:1  10008    20022     +1.63e-06,+1.63e-06,+1.63e-06,+2.82e-06 1  
+    ________________________________________________________________________________
+    $10 = void
+    (gdb) 
+
+
+
+    (gdb) p event   # after mutate
+    $9 = (HepMC::GenEvent &) @0x250ca50: 
+          {_vptr.GenEvent = 0x7fffd7679970 <vtable for HepMC::GenEvent+16>, 
+            m_signal_process_id = 0, 
+            m_event_number = 0, 
+            m_mpi = -1, 
+            m_event_scale = -1, 
+            m_alphaQCD = -1, 
+            m_alphaQED = -1, 
+            m_signal_process_vertex = 0x0, 
+            m_beam_particle_1 = 0x0, 
+            m_beam_particle_2 = 0x0, 
+            m_weights = {m_weights = std::vector of length 0, capacity 0, m_names = std::map with 0 elements}, 
+            m_random_states = std::vector of length 0, capacity 0, 
+            m_vertex_barcodes = std::map with 8 elements = 
+                  {[-1] = 0x16945d150, 
+                   [-2] = 0x16945d3c0, 
+                   [-3] = 0x169460a60, 
+                   [-4] = 0x169460cd0, 
+                   [-5] = 0x169460f40, 
+                   [-6] = 0x1694611b0, 
+                   [-7] = 0x169461420, 
+                   [-8] = 0x169461690}, 
+            m_particle_barcodes = std::map with 8 elements = 
+                 {[10001] = 0x16945d210, 
+                  [10002] = 0x16945d480, 
+                  [10003] = 0x169460b20, 
+                  [10004] = 0x169460d90, 
+                  [10005] = 0x169461000, 
+                  [10006] = 0x169461270, 
+                  [10007] = 0x1694614e0, 
+                  [10008] = 0x169461750}, 
+            m_cross_section = 0x0, 
+            m_heavy_ion = 0x0, 
+            m_pdf_info = 0x0, 
+            m_momentum_unit = HepMC::Units::MEV, 
+            m_position_unit = HepMC::Units::MM}
+    (gdb) 
+
+
+
+"make input photons distinguishable by offseting start positions by the initial direction and times by the index"
+----------------------------------------------------------------------------------------------------------------------
+
+::
+
+    O[blyth@localhost opticks]$ rm -rf /home/blyth/.opticks/InputPhotons
+    O[blyth@localhost opticks]$ input_photons.sh 
+    /home/blyth/junotop/ExternalLibs/Opticks/0.0.0-rc1/bashrc: line 4: /home/blyth/junotop/ExternalLibs/Opticks/0.0.0-rc1/bin/opticks-setup.sh: No such file or directory
+    mo .bashrc OPTICKS_MODE:dev O : ordinary opticks dev ontop of juno externals CMTEXTRATAGS:
+    Python 3.7.7 (default, May  7 2020, 21:25:33) 
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 7.18.1 -- An enhanced Interactive Python. Type '?' for help.
+    [2021-05-29 02:26:01,794] p281180 {/home/blyth/opticks/ana/input_photons.py:107} INFO - seeding with 0 
+    [2021-05-29 02:26:01,794] p281180 {/home/blyth/opticks/ana/input_photons.py:110} INFO - generate RandomSpherical10 
+    [2021-05-29 02:26:01,795] p281180 {/home/blyth/opticks/ana/input_photons.py:153} INFO - creating folder /home/blyth/.opticks/InputPhotons 
+    [2021-05-29 02:26:01,795] p281180 {/home/blyth/opticks/ana/input_photons.py:156} INFO - save RandomSpherical10 to /home/blyth/.opticks/InputPhotons/RandomSpherical10.npy and /home/blyth/.opticks/InputPhotons/RandomSpherical10.json 
+    {'seed': 0, 'name': 'RandomSpherical10', 'num': 10, 'creator': 'input_photons.py'}
+    [[ -0.774  -0.245   0.583   0.1    -0.774  -0.245   0.583   1.     -0.602   0.     -0.799 440.      0.      0.      0.      0.   ]
+     [ -0.217  -0.975   0.058   0.2    -0.217  -0.975   0.058   1.     -0.258   0.     -0.966 440.      0.      0.      0.      0.   ]
+     [ -0.791  -0.596   0.136   0.3    -0.791  -0.596   0.136   1.     -0.17    0.     -0.986 440.      0.      0.      0.      0.   ]
+     [ -0.504  -0.146   0.851   0.4    -0.504  -0.146   0.851   1.     -0.86    0.     -0.51  440.      0.      0.      0.      0.   ]
+     [ -0.456   0.237  -0.858   0.5    -0.456   0.237  -0.858   1.      0.883   0.     -0.469 440.      0.      0.      0.      0.   ]
+     [ -0.343  -0.448  -0.826   0.6    -0.343  -0.448  -0.826   1.      0.923   0.     -0.384 440.      0.      0.      0.      0.   ]
+     [ -0.26    0.108  -0.96    0.7    -0.26    0.108  -0.96    1.      0.965   0.     -0.262 440.      0.      0.      0.      0.   ]
+     [  0.581  -0.469   0.665   0.8     0.581  -0.469   0.665   1.     -0.753   0.      0.658 440.      0.      0.      0.      0.   ]
+     [  0.809  -0.188   0.556   0.9     0.809  -0.188   0.556   1.     -0.566   0.      0.824 440.      0.      0.      0.      0.   ]
+     [ -0.5     0.45    0.74    1.     -0.5     0.45    0.74    1.     -0.829   0.     -0.56  440.      0.      0.      0.      0.   ]]
+    [2021-05-29 02:26:01,800] p281180 {/home/blyth/opticks/ana/input_photons.py:107} INFO - seeding with 0 
+    [2021-05-29 02:26:01,800] p281180 {/home/blyth/opticks/ana/input_photons.py:110} INFO - generate CubeCorners 
+    [2021-05-29 02:26:01,800] p281180 {/home/blyth/opticks/ana/input_photons.py:156} INFO - save CubeCorners to /home/blyth/.opticks/InputPhotons/CubeCorners.npy and /home/blyth/.opticks/InputPhotons/CubeCorners.json 
+    {'seed': 0, 'name': 'CubeCorners', 'num': 8, 'creator': 'input_photons.py'}
+    [[ -0.577  -0.577  -0.577   0.1    -0.577  -0.577  -0.577   1.      0.707   0.     -0.707 440.      0.      0.      0.      0.   ]
+     [  0.577  -0.577  -0.577   0.2     0.577  -0.577  -0.577   1.      0.707  -0.      0.707 440.      0.      0.      0.      0.   ]
+     [ -0.577   0.577  -0.577   0.3    -0.577   0.577  -0.577   1.      0.707   0.     -0.707 440.      0.      0.      0.      0.   ]
+     [  0.577   0.577  -0.577   0.4     0.577   0.577  -0.577   1.      0.707  -0.      0.707 440.      0.      0.      0.      0.   ]
+     [ -0.577  -0.577   0.577   0.5    -0.577  -0.577   0.577   1.     -0.707   0.     -0.707 440.      0.      0.      0.      0.   ]
+     [  0.577  -0.577   0.577   0.6     0.577  -0.577   0.577   1.     -0.707   0.      0.707 440.      0.      0.      0.      0.   ]
+     [ -0.577   0.577   0.577   0.7    -0.577   0.577   0.577   1.     -0.707   0.     -0.707 440.      0.      0.      0.      0.   ]
+     [  0.577   0.577   0.577   0.8     0.577   0.577   0.577   1.     -0.707   0.      0.707 440.      0.      0.      0.      0.   ]]
+
+
+
+
+GtOpticksTool what calls mutate : where is 1/10 input photons lost ?
+----------------------------------------------------------------------
+
+::
+
+    epsilon:offline blyth$ jgr mutate
+
+    ./Simulation/GenDecay/src/GtDecayerator.h:    bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenDecay/src/GtDecayerator.cpp:GtDecayerator::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/GenTools/IGenTool.h:        virtual bool mutate(HepMC::GenEvent& event)=0;
+    ./Simulation/GenTools/src/GtHepMCDumper.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtPelletronBeamerTool.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtHepEvtGenTool.cc:GtHepEvtGenTool::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/src/GtSNTool.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtPelletronBeamerTool.cc:GtPelletronBeamerTool::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/src/GtHepEvtGenTool.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtGstTool.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtPositionerTool.h:        bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtOpticksTool.cc:bool GtOpticksTool::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/src/GtOpticksTool.cc:    std::cout << "GtOpticksTool::mutate numPhotons " << numPhotons << std::endl ; 
+    ./Simulation/GenTools/src/GtOpticksTool.cc:bool GtOpticksTool::mutate(HepMC::GenEvent& ){ return false ; }
+    ./Simulation/GenTools/src/GtOPLoaderTool.cc:GtOPLoaderTool::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/src/GtTimeOffsetTool.cc:GtTimeOffsetTool::mutate(HepMC::GenEvent& event)
+    ./Simulation/GenTools/src/GenTools.cc:    // mutate event
+    ./Simulation/GenTools/src/GenTools.cc:            if ((*it)->mutate(*event)) {
+    ./Simulation/GenTools/src/GenTools.cc:                // mutate failed
+    ./Simulation/GenTools/src/GtOpScintTool.h:    bool mutate(HepMC::GenEvent& event);
+    ./Simulation/GenTools/src/GtSNTool.cc:GtSNTool::mutate(HepMC::GenEvent& event) 
+    ./Simulation/GenTools/src/GtOpScintTool.cc:GtOpScintTool::mutate(HepMC::GenEvent& event)
+
+    epsilon:offline blyth$ jcv GenTools
+
+    BP=GenTools::execute tds3
+
+
+Opticks input photons enter via the source buffer and use dummy gensteps with gencode OpticksGenstep_EMITSOURCE
+-------------------------------------------------------------------------------------------------------------------
+
+::
+
+    627     else if(gencode == OpticksGenstep_EMITSOURCE)
+    628     {
+    629         // source_buffer is input only, photon_buffer output only, 
+    630         // photon_offset is same for both these buffers
+    631         pload(p, source_buffer, photon_offset );
+    632         s.flag = TORCH ;
+    633 #ifdef WITH_REFLECT_CHEAT_DEBUG
+    634         s.ureflectcheat = debug_control.w > 0u ? float(photon_id)/float(num_photon) : -1.f ;
+    635 #endif
+    636     }
+    637 
+
+oxrap/OEvent.cc::
+
+    227 #ifdef WITH_SOURCE
+    228     NPY<float>* source = evt->getSourceData() ;
+    229     if(source)
+    230     {
+    231         OpticksBufferControl* sourceCtrl = evt->getSourceCtrl();
+    232         m_sourceMarkDirty = sourceCtrl->isSet("BUFFER_COPY_ON_DIRTY") ;
+    233         m_source_buffer = m_ocontext->createBuffer<float>( source, "source");
+    234     }
+    235     else
+    236     {
+    237         m_source_buffer = m_ocontext->createEmptyBufferF4();
+    238     }
+    239     m_context["source_buffer"]->set( m_source_buffer );
+    240     m_source_buf = new OBuf("source", m_source_buffer);
+    241 #endif
+    242 
+
+::
+
+    epsilon:opticks blyth$ opticks-f setSource
+    ./cfg4/CG4.cc:    if(so) evt->setSourceData(so, clone_); 
+    ./optickscore/OpticksEvent.hh:       void setSourceData(NPY<float>* source_data_, bool clone_ );   // from CG4::postpropagate
+    ./optickscore/OpticksEvent.cc:void OpticksEvent::setSourceData(NPY<float>* source_data_, bool clone_ )
+    ./optickscore/OpticksEvent.cc:    OK_PROFILE("_OpticksEvent::setSourceData");
+    ./optickscore/OpticksEvent.cc:        LOG(debug) << "OpticksEvent::setSourceData"
+    ./optickscore/OpticksEvent.cc:    OK_PROFILE("_OpticksEvent::setSourceData_MultiViewNPY");  // NB dont use "." in the labels it messes up the ini
+    ./optickscore/OpticksEvent.cc:    OK_PROFILE("OpticksEvent::setSourceData_MultiViewNPY");
+    ./optickscore/OpticksEvent.cc:    OK_PROFILE("OpticksEvent::setSourceData");
+    ./optickscore/OpticksRun.cc:        if(m_g4evt) m_g4evt->setSourceData( emitsource, m_clone ); 
+    ./optickscore/OpticksRun.cc:        if(m_evt)   m_evt->setSourceData( emitsource, m_clone );
+    ./optickscore/OpticksRun.cc:        m_evt->setSourceData( m_g4evt ? m_g4evt->getSourceData() : NULL, m_clone ) ;   
+    ./npy/ViewNPY.cpp:from OpticksEvent::setSourceData
+    ./npy/TorchStepNPY.hpp:       void setSourceLocal(const char* s );
+    ./npy/TorchStepNPY.cpp:        case SOURCE         : setSourceLocal(s)    ;break;
+    ./npy/TorchStepNPY.cpp:void TorchStepNPY::setSourceLocal(const char* s)
+    epsilon:opticks blyth$ vi cfg4/CG4.cc
+    epsilon:opticks blyth$ 
+
+
+
+    373 /**     
+    374 OpticksRun::setupSourceData
+    375 -----------------------------
+    376         
+    377 This is invoked from OpticksRun::importGensteps, it is an 
+    378 important part of how input source photons are provisioned
+    379 to both simulations.
+    380 
+    381 **/
+    382 void OpticksRun::setupSourceData()
+    383 {   
+    384     if(hasActionControl(m_gensteps, "GS_EMITSOURCE"))
+    385     {   
+    386         void* aux = m_gensteps->getAux();
+    387         assert( aux );
+    388         NPY<float>* emitsource = (NPY<float>*)aux ;
+    389         
+    390         if(m_g4evt) m_g4evt->setSourceData( emitsource, m_clone );
+    391         if(m_evt)   m_evt->setSourceData( emitsource, m_clone );
+    392 
+    393         LOG(LEVEL) 
+    394             << "GS_EMITSOURCE"
+    395             << " emitsource " << emitsource->getShapeString()
+    396             ;
+    397     }
+    398     else
+    399     {
+    400         NPY<float>* g4source = m_g4evt ? m_g4evt->getSourceData() : NULL ;
+    401         m_evt->setSourceData( g4source, m_clone ) ;
+    402     }
+    403 }
+
+
+
+
+10 ana/input_photons.py 
+--------------------------
+
+* how to get the normally genstep driven Opticks work with input photons from within JUNO offline ?
+
+  * did this before in CFG4 using a standin genstep, but that approach not workable here as
+    the source of genstep is C+S 
+  * can add G4Opticks::setInputPhotons(NPY<float>*) but where to call that from 
+    GtOpticksTool can leave a handy instance pointer to itself that 
+   
+ 
+
+* somehow G4 machinery looses one photon ?
+
+::
+
+    In [4]: b.seqhis_ana.table
+    Out[4]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                                  9         1.00 
+    0000           7ccccd        0.444           4        [6 ] TO BT BT BT BT SD
+    0001               4d        0.333           3        [2 ] TO AB
+    0002           8ccccd        0.111           1        [6 ] TO BT BT BT BT SA
+    0003              4cd        0.111           1        [3 ] TO BT AB
+    .                                  9         1.00 
+
+    In [5]: bls
+    Out[5]: 
+    TO BT BT BT BT SD
+    TO BT BT BT BT SD
+    TO BT BT BT BT SD
+    TO BT BT BT BT SD
+    TO AB
+    TO AB
+    TO BT BT BT BT SA
+    TO AB
+    TO BT AB
+
+
+
+
+
+
+
+Simulation/GenTools/cmt/requirements
+----------------------------------------
+
+::
+
+    epsilon:offline blyth$ svn diff Simulation/GenTools/cmt/requirements
+    Index: Simulation/GenTools/cmt/requirements
+    ===================================================================
+    --- Simulation/GenTools/cmt/requirements	(revision 4581)
+    +++ Simulation/GenTools/cmt/requirements	(working copy)
+    @@ -8,6 +8,11 @@
+     use ROOT  v* Externals
+     use Geant4 v* Externals
+     
+    +# The below sets blank macro values unless CMTEXTRATAGS envvar includes opticks, 
+    +# thus it does no harm when the optional Opticks external is not installed.
+    +use OpticksG4OK    v* Externals
+    +
+    +
+     use BufferMemMgr v* CommonSvc
+     use RandomSvc v* CommonSvc
+     
+
+In other pkgs the OpticksG4OK come in via DetSimPolicy Simulation/DetSimV2/DetSimPolicy/cmt/requirements
+but GenTools does not depend on that for unknown reasons.
+
 
 
 

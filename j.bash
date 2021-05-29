@@ -925,7 +925,14 @@ EOU
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 $(anamgr) " ;   
-   local path="/tmp/input_photons.npy"
+   #local name="RandomSpherical10" 
+   local name="CubeCorners" 
+   local path="$HOME/.opticks/InputPhotons/${name}.npy"
+
+   export G4Opticks=INFO
+   export CManager=INFO
+   export CG4Ctx=INFO
+
    tds- $opts opticks --input-photon-path $path 
 }
 
