@@ -928,11 +928,21 @@ tds3(){
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
    local input_photon_path=${INPUT_PHOTON_PATH} 
 
+   tds_ls
+   tds_ols 
+
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
        tds- $opts opticks --input-photon-path ${input_photon_path} 
    else
        tds- $opts gun
    fi 
+}
+
+tds3gun(){
+   : quieten evars running with more  
+   tds_unset
+   tds_ounset
+   tds3
 }
 
 tds3ip(){
@@ -942,17 +952,36 @@ tds3ip(){
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
    export INPUT_PHOTON_PATH=$path
 
-   export G4Opticks=INFO
-   export CManager=INFO
-   export CRecorder=INFO
-   export CWriter=INFO
-   export CG4Ctx=INFO
-   export OpticksRun=INFO   # OpticksRun::createEvent sizes
-   export OpticksEvent=INFO   # sizing 
-
+   tds_export
    tds3 
 }
 
+
+tds_log(){ cat << EOV
+G4Opticks
+G4OpticksRecorder
+CManager
+CRecorder
+CWriter
+CG4Ctx
+OpticksRun
+OpticksEvent
+EOV
+}
+
+tds_ctrl(){ cat << EOV
+INPUT_PHOTON_PATH
+EVTMAX
+EOV
+}
+
+# evar control 
+tds_ls(){     for var in $(${VNAME:-tds_log}) ; do printf "%20s : [%s] \n"  $var ${!var} ; done ; }
+tds_export(){ for var in $(${VNAME:-tds_log}) ; do export $var=INFO                      ; done ; tds_ls ; } 
+tds_unset(){  for var in $(${VNAME:-tds_log}) ; do unset $var                            ; done ; tds_ls ; }
+
+tds_ctrl_ls(){    VNAME=tds_ctrl tds_ls ; }
+tds_ctrl_unset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
