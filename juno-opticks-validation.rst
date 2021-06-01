@@ -11,7 +11,7 @@ build tips
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
 
 
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt       ## G4OpticksAnaMgr that passes G4 objects to CManager, NB NOT YET IN STANDARD SETUP
+    jre ; CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt       ## G4OpticksAnaMgr that passes G4 objects to CManager, NB NOT YET IN STANDARD SETUP
 
 
           
@@ -52,6 +52,597 @@ build tips
     -rw-rw-r--. 1 blyth blyth 87 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so.cmtref
     O[blyth@localhost cmt]$ date
     Fri May 21 21:23:38 CST 2021
+
+
+
+
+Suspect OpticksRun::creatEvent without gensteps is a source of the sizing issue
+----------------------------------------------------------------------------------
+
+Now that have the carrier genstep, need to use that.  Will need to set ArrayContextIndex.::
+
+    unsigned tagoffset = gensteps ? gensteps->getArrayContentIndex() : 0 ;  // eg eventID
+
+Not so hasty, having the carrier genstep very early is only the case with input photons.
+With ordinary S+C Geant4 need to be able to operate with CRecorder/CWriter 
+dynamically growing the event genstep by genstep.
+
+FOUND FIX : the cause what that OpticksRun::setGensteps lacked ctrl so it was diddling with m_g4evt
+sizing which caused problem for dynamic CRecorder/CWriter genstep-by-genstep operation. Because the
+g4evt was resized.::
+
+    In [3]: bls                                                                                                                                                                                               
+    Out[3]: 
+    TO BT BT BT BT SA
+    TO SC BT BT BT SA
+    TO BT BT BT BT SD
+    TO AB
+    TO SC SC BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO BT BT AB
+    TO SC BT BT BR SA
+
+    In [4]: als                                                                                                                                                                                               
+    Out[4]: 
+    TO BT BT BT SA
+    TO BT BT BT SD
+    TO BT BT BT SA
+    TO BT BT BT SD
+    TO BT BT BT SD
+    TO BT BT BT SD
+    TO BT BT BT SA
+    TO AB
+
+
+
+Perhaps need to G4Opticks::setInputPhotons earlier than from junoSD_PMT_v2_Opticks::EndOfEvent
+-------------------------------------------------------------------------------------------------
+
+
+::
+
+    065 void junoSD_PMT_v2_Opticks::EndOfEvent(G4HCofThisEvent* /*HCE*/)
+     66 {
+     67     if(m_pmthitmerger_opticks == nullptr)
+     68     {
+     69         m_pmthitmerger_opticks = m_jpmt->getMergerOpticks();
+     70     }
+     71 
+     72     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
+     73     G4int eventID = event->GetEventID() ;
+     74 
+     75     G4Opticks* g4ok = G4Opticks::Get() ;
+     76 
+     77     unsigned num_gensteps = g4ok->getNumGensteps();
+     78     unsigned num_photons = g4ok->getNumPhotons();
+     79 
+     80     if(num_gensteps == 0 )
+     81     {
+     82         // hmm this grabbing from the input is kinda cheating, 
+     83         // should really re-constitute from the G4Event  primaries
+     84         // but input_photons.py is just for debugging, so I judge this
+     85         // to be accepatble
+     86         const GtOpticksTool* tool = GtOpticksTool::Get();
+     87         NPY<float>* input_photons = tool ? tool->getInputPhotons() : nullptr ;
+     88 
+     89         LOG(info)
+     90             << " no gensteps collected, looking for input photons "
+     91             << " input_photons " << input_photons
+     92             ;
+     93 
+     94         g4ok->setInputPhotons(input_photons);
+     95     }
+     96 
+     97 
+     98     LOG(info)
+     99         << "["
+    100         << " eventID " << eventID
+    101         << " m_opticksMode " << m_opticksMode
+    102         << " numGensteps " << num_gensteps
+    103         << " numPhotons " << num_photons
+    104         ;
+    105 
+    106     g4ok->propagateOpticalPhotons(eventID);
+
+
+
+
+With G4+OK input photons and EVTMAX 1/2/5, getting 16 photon G4 evt (when expect 8 CubeCorners) and those beyond 8 are gibberish
+-----------------------------------------------------------------------------------------------------------------------------------
+
+* setting the carrier genstep causes OpticksEvent::resize up to 8
+* subsequently that gets bumped to unwanted 16 via the add 
+
+::
+
+
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::setGensteps@308] gensteps 1,6,4
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGensteps@353]  m_gensteps 0x130f970a0 oac.desc gs0 : GS_EMITSOURCE  numSet:1 oac.numSet 1
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGensteps@361]  oac_label GS_EMBEDDED
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGenstepData@546] NOT adding oac_label GS_EMBEDDED as preexisting labels present: GS_EMITSOURCE  numSet:1
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGenstepData@559] Run evt Evt /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/2 20210531_233652 /home/blyth/junotop/ExternalLibs/Python/2.7.17/bin/python2.7 g4evt Evt /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-2 20210531_233652 /home/blyth/junotop/ExternalLibs/Python/2.7.17/bin/python2.7 shape 1,6,4 oac : GS_EMITSOURCE  numSet:1
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGenstepData@602]  Keys  OpticksGenstep_TORCH: 5 OpticksGenstep_G4Cerenkov_1042: 1 OpticksGenstep_G4Scintillation_1042: 2 OpticksGenstep_DsG4Cerenkov_r3971: 3 OpticksGenstep_DsG4Scintillation_r3971: 4 OpticksGenstep_G4GUN: 10
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::importGenstepData@612]  counts  [  label          7 num_photons          8 ]  [      total         8 ] 
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksEvent::setNumPhotons@301] RESIZING 8
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksEvent::resize@1293]  num_photons 8 num_records 80 maxrec 10 /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-2
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksEvent::setNumPhotons@301] RESIZING 8
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksEvent::resize@1293]  num_photons 8 num_records 80 maxrec 10 /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/2
+    2021-05-31 23:36:52.844 INFO  [450884] [OpticksRun::setupSourceData@413] GS_EMITSOURCE emitsource 8,4,4
+
+
+
+
+    2021-05-31 23:36:52.826 FATAL [450884] [G4Opticks::reset@531]  m_way_enabled reset m_hiys 
+    2021-05-31 23:36:52.826 INFO  [450884] [junoSD_PMT_v2_Opticks::EndOfEvent@142] ] num_hit 4 merged_count  0 m_merged_total 0 m_opticksMode 3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 5 hitCollection_muon 0 hitCollection_opticks 0
+    2021-05-31 23:36:52.826 INFO  [450884] [CManager::EndOfEventAction@118] 
+    2021-05-31 23:36:52.826 INFO  [450884] [CManager::EndOfEventAction@122]  mocking EndOfGenstep as have input photon primaries 
+    2021-05-31 23:36:52.826 INFO  [450884] [CManager::EndOfGenstep@143]  gentype T num_photons 8
+    2021-05-31 23:36:52.826 FATAL [450884] [CG4Ctx::setGenstepEnd@326] gentype [T] num_photons 8
+    2021-05-31 23:36:52.826 INFO  [450884] [CWriter::writeGenstep@160]  gentype [T] num_onestep_photons 8
+    2021-05-31 23:36:52.826 INFO  [450884] [CWriter::writeGenstep@163] bef.add ONESTEP(CPU style) m_history_buffer 8,1,2 m_photons_buffer 8,4,4 m_records_buffer 8,10,2,4
+    ????  hmm: probably omitted to clear these buffers ???
+
+    2021-05-31 23:36:52.826 INFO  [450884] [CWriter::writeGenstep@169] aft.add ONESTEP(CPU style) m_history_buffer 16,1,2 m_photons_buffer 16,4,4 m_records_buffer 16,10,2,4
+    ?????
+
+    2021-05-31 23:36:52.826 INFO  [450884] [CManager::save@217]  --save g4evt numPhotons 8
+    2021-05-31 23:36:52.826 INFO  [450884] [OpticksEvent::setNumPhotons@306] NOT RESIZING 8
+
+
+
+
+
+G4Opticks::setInputPhotons the carrier gensteps are getting mis-labeled as GS_EMBEDDED causing allowed gencodes fail
+-----------------------------------------------------------------------------------------------------------------------
+
+* fixed this by not-resetting labels when already present 
+
+::
+
+    (gdb) bt
+    #3  0x00007fffe6936252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffeef4f132 in G4StepNPY::checkGencodes (this=0x23b86c40) at /home/blyth/opticks/npy/G4StepNPY.cpp:322
+    #5  0x00007fffef3ab3d1 in OpticksRun::importGenstepData (this=0x708ab0, gs=0x8e0e580, oac_label=0x7fffef427142 "GS_EMBEDDED") at /home/blyth/opticks/optickscore/OpticksRun.cc:569
+    #6  0x00007fffef3aa3e9 in OpticksRun::importGensteps (this=0x708ab0) at /home/blyth/opticks/optickscore/OpticksRun.cc:353
+    #7  0x00007fffef3aa20a in OpticksRun::setGensteps (this=0x708ab0, gensteps=0x8e0e580) at /home/blyth/opticks/optickscore/OpticksRun.cc:312
+    #8  0x00007fffef3a9238 in OpticksRun::createEvent (this=0x708ab0, gensteps=0x8e0e580, ctrl=43 '+') at /home/blyth/opticks/optickscore/OpticksRun.cc:93
+    #9  0x00007ffff06b9f58 in OpMgr::propagate (this=0x8e10230) at /home/blyth/opticks/okop/OpMgr.cc:135
+    #10 0x00007ffff7bc2009 in G4Opticks::propagateOpticalPhotons (this=0x6e1350, eventID=0) at /home/blyth/opticks/g4ok/G4Opticks.cc:1154
+    #11 0x0000000000405516 in G4OKTest::propagate (this=0x7fffffff8aa0, eventID=0) at /home/blyth/opticks/g4ok/tests/G4OKTest.cc:375
+    #12 0x000000000040622b in main (argc=1, argv=0x7fffffff8db8) at /home/blyth/opticks/g4ok/tests/G4OKTest.cc:508
+    (gdb) 
+
+
+
+
+
+Changing NoRINDEX to yield SA (instead of NA) avoids the zeroing
+---------------------------------------------------------------------
+
+::
+
+    epsilon:j blyth$ ab.sh 1 --nocompare
+
+
+    In [1]: b.seqhis_ana.table                                                                                                                                                                          
+    Out[1]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                                  8         1.00 
+    0000           8ccccd        0.250           2        [6 ] TO BT BT BT BT SA
+    0001         7cccc66d        0.125           1        [8 ] TO SC SC BT BT BT BT SD
+    0002           8ccc6d        0.125           1        [6 ] TO SC BT BT BT SA
+    0003           8bcc6d        0.125           1        [6 ] TO SC BT BT BR SA
+    0004           7ccccd        0.125           1        [6 ] TO BT BT BT BT SD
+    0005             4ccd        0.125           1        [4 ] TO BT BT AB
+    0006               4d        0.125           1        [2 ] TO AB
+    .                                  8         1.00 
+
+    In [2]: b.rpostr()                                                                                                                                                                                  
+    Out[2]: 
+    A([[    0.    , 17700.5687, 17821.0886, 19343.4453, 19343.4453, 19349.7885,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   891.213 , 17699.9078, 17820.2621, 17869.0345, 20049.994 ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19273.6706, 19273.6706, 19276.8422,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   542.3396,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 10681.8698, 10931.8877, 17700.8247, 17819.5562, 19320.488 , 19320.488 , 19325.6158,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19295.8717, 19295.8717, 19302.2148,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 18055.7852,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  5515.3716, 17699.9085, 17819.9794, 19385.9602, 20050.2072,     0.    ,     0.    ,     0.    ,     0.    ]])
+
+    In [3]: bls                                                                                                                                                                                         
+    Out[3]: 
+    TO BT BT BT BT SA
+    TO SC BT BT BT SA
+    TO BT BT BT BT SD
+    TO AB
+    TO SC SC BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO BT BT AB
+    TO SC BT BT BR SA
+
+        
+::
+
+    epsilon:j blyth$ ab.sh 2 --nocompare
+
+    In [1]: bls                                                                                                                                                                                         
+    Out[1]: 
+    TO AB
+    TO SC BT BT BT SA
+    TO SC AB
+    TO RE RE RE SC BT BT SC BT BT
+    TO RE RE SC SC SC BT BT BT BT
+    TO BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO SC SC AB
+
+    In [2]: b.rpostr()                                                                                                                                                                                  
+    Out[2]: 
+    A([[    0.    ,  2892.4778,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  4215.0252, 17700.5793, 17819.7398, 17854.2641, 20050.2638,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 15175.9937, 14426.6828,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  2451.6287,  2401.0524,  2293.4526,  2117.6657, 17700.0623, 17819.3464, 18256.8615, 17820.29  , 17700.5538],
+       [    0.    , 12048.8193, 11961.9554,  9429.9378, 16127.7335, 16686.6426, 17700.8922, 17819.2802, 19326.6594, 19326.6594],
+       [    0.    , 17700.5687, 17821.0886, 19295.8717, 19295.8717, 19302.2148,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19292.7001, 19292.7001, 19296.9289,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   862.6688,  5856.1724, 14363.5445,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ]])
+
+    In [3]:                    
+
+
+
+
+
+20m : why does reaching the tyvek cause photon history seqhis/seqmat to get zeroed ?
+---------------------------------------------------------------------------------------
+
+* probably meeting Tyvek:NoRINDEX needs to be handled with SA rather than NA
+* hmm is it a surface ? What is RELECTIVITY of the Tyvek ?
+
+
+jcv LSExpDetectorConstruction_Opticks::
+
+     17 #ifdef WITH_G4OPTICKS
+     18 /**
+     19 LSExpDetectorConstruction_Opticks::Setup
+     20 ------------------------------------------
+     21 
+     22 1. pass geometry to Opticks, translate it to GPU and return sensor placements 
+     23 2. use the placements to pass sensor data : efficiencies, categories, identifiers
+     24 3. pass theta dependent efficiency tables for all sensor categories
+     25 
+     26 
+     27 
+     28 
+     29                              |--------- 2230 ----------------|-- 120--|
+     30                              20050                           17820    17700
+     31                           / /                               /         /
+     32                          / /                               /         /
+     33                         / pInnerWater                     /         /
+     34                        / /                               /         /
+     35                       / /                  (0)          /         /
+     36                      pTyvek                  \         pAcrylic  /
+     37                     / /                       \       /         /
+     38                    / /                         \     /         pTarget:LS
+     39                   / /                           \   /         /
+     40                  / /                             \ /         /
+     41                 / /                              (1)        /
+     42                / /                               / \       /
+     43               / /                               /   \     /
+     44              / /                               /     \   /         
+     45             / /                               /       \ /
+     46            / /                          Wa   /  Ac    (2)             
+     47           / /                               /         / \
+     48          / /                               /         /   \
+     49         / /                               /         /     \        LS    
+     50 
+
+
+
+2: ditto : genstep chunking giving correct number of photons but getting bad flag ?0?
+----------------------------------------------------------------------------------------
+
+
+::
+
+    bls[:10]
+    TO AB
+    ?0?              ## zeroed history photon is again the one that has got to radius > 20m
+    TO SC AB
+    TO RE RE RE SC BT BT SC BT BT
+    TO RE RE SC SC SC BT BT BT BT
+    TO BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO SC SC AB
+
+    In [1]: b.rpostr()                                                                                                                                                                                  
+    Out[1]: 
+    A([[    0.    ,  2892.4778,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  4215.0252, 17700.5793, 17819.7398, 17854.2641, **20050.2638**,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 15175.9937, 14426.6828,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  2451.6287,  2401.0524,  2293.4526,  2117.6657, 17700.0623, 17819.3464, 18256.8615, 17820.29  , 17700.5538],
+       [    0.    , 12048.8193, 11961.9554,  9429.9378, 16127.7335, 16686.6426, 17700.8922, 17819.2802, 19326.6594, 19326.6594],
+       [    0.    , 17700.5687, 17821.0886, 19295.8717, 19295.8717, 19302.2148,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19292.7001, 19292.7001, 19296.9289,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   862.6688,  5856.1724, 14363.5445,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ]])
+
+    In [2]:                                
+
+    In [1]: b.rpostt()                                                                                                                                                                                  
+    Out[1]: 
+    A([[  0.1099,  14.9052,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ],
+       [  0.1831,  21.7902, 117.6672, 118.3264, 118.5095, 128.8003,   0.    ,   0.    ,   0.    ,   0.    ],
+       [  0.293 ,  78.0053,  98.9166,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ],
+       [  0.4028,  15.7109,  19.7394,  23.6213,  27.8329, 116.3488, 117.008 , 119.0222, 121.659 , 122.4281],
+       [  0.5127,  62.5141,  64.5283,  92.288 , 165.0929, 205.8168, 211.6031, 212.2623, 220.0629, 220.0629],
+       [  0.586 ,  91.2626,  91.8851,  98.6969,  98.6969,  98.6969,   0.    ,   0.    ,   0.    ,   0.    ],
+       [  0.6958,  91.3724,  91.9584,  98.7701,  98.7701,  98.7701,   0.    ,   0.    ,   0.    ,   0.    ],
+       [  0.8057,   5.2004,  31.3852,  76.101 ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ,   0.    ]])
+
+
+
+
+
+    In [2]: x = np.array([  7379.3756,  17911.9236,  -5169.2251])   
+
+    In [5]: np.sqrt(np.sum(x*x))                                                                                                                                                                        
+    Out[5]: 20050.26382451319
+
+
+
+
+::
+
+    In [2]: b.seqhis_ana.table                                                                                                                                                                          
+    Out[2]: 
+    all_seqhis_ana
+    .                     cfo:-  -2:g4live:source 
+    .                                  8         1.00 
+    0000       cccc66655d        0.125           1        [10] TO RE RE SC SC SC BT BT BT BT
+    0001       cc6cc6555d        0.125           1        [10] TO RE RE RE SC BT BT SC BT BT
+    0002           8ccccd        0.125           1        [6 ] TO BT BT BT BT SA
+    0003           7ccccd        0.125           1        [6 ] TO BT BT BT BT SD
+    0004             466d        0.125           1        [4 ] TO SC SC AB
+    0005              46d        0.125           1        [3 ] TO SC AB
+    0006               4d        0.125           1        [2 ] TO AB
+    0007                0        0.125           1        [1 ] ?0?
+    .                                  8         1.00 
+
+    In [3]: bls                                                                                                                                                                                         
+    Out[3]: 
+    TO AB
+    ?0?                   record_id:1
+    TO SC AB
+    TO RE RE RE SC BT BT SC BT BT
+    TO RE RE SC SC SC BT BT BT BT
+    TO BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO SC SC AB
+
+
+    In [8]: b.rpost_(slice(0,10))                                                                                                                                                                       
+    Out[8]: 
+    A([[[     0.    ,      0.    ,      0.    ,      0.1099],
+        [ -1669.9728,  -1669.9728,  -1669.9728,     14.9052],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]],
+
+
+       BELOW IS THE  ?0? : WHICH IS ODD AS IT APPEARS TO HAVE A FULL HISTORY 
+
+       [[     0.    ,      0.    ,      0.    ,      0.1831],
+        [  2433.5459,  -2433.5459,  -2433.5459,     21.7902],
+        [  6817.2246,  15617.542 ,  -4788.3541,    117.6672],
+        [  6846.5224,  15734.7331,  -4804.8341,    118.3264],
+        [  6853.8469,  15769.5242,  -4808.4964,    118.5095],
+        [  7379.3756,  17911.9236,  -5169.2251,    128.8003],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.293 ],
+        [ -8761.8641,   8761.8641,  -8761.8641,     78.0053],
+        [-11133.1523,   6958.2202,  -5980.4071,     98.9166],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.4028],
+        [  1415.4485,   1415.4485,  -1415.4485,     15.7109],
+        [  1386.1507,   1366.0085,  -1406.2929,     19.7394],
+        [  1342.204 ,   1223.1819,  -1400.7996,     23.6213],
+        [   921.0486,    650.0443,  -1792.6572,     27.8329],
+        [  6786.0958, -14192.938 ,  -8111.8198,    116.3488],
+        [  6826.3802, -14297.3113,  -8155.7665,    117.008 ],
+        [  6974.7002, -14681.8445,  -8313.242 ,    119.0222],
+        [  7102.8779, -14313.7913,  -7888.4243,    121.659 ],
+        [  7124.8512, -14213.0802,  -7780.3888,    122.4281]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.5127],
+        [ -6956.389 ,  -6956.389 ,   6956.389 ,     62.5141],
+        [ -6998.5046,  -6795.2513,   6923.4291,     64.5283],
+        [ -3193.4568,  -8229.0109,   3317.9724,     92.288 ],
+        [  -924.7108,  -2058.1683,  15969.1153,    165.0929],
+        [   -42.1155,   5852.2294,  15626.6976,    205.8168],
+        [    34.7911,   5725.8827,  16749.1684,    211.6031],
+        [    43.9467,   5711.2339,  16879.1772,    212.2623],
+        [   168.4622,   5436.5673,  18545.4878,    220.0629],
+        [   168.4622,   5436.5673,  18545.4878,    220.0629]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.586 ],
+        [ 10219.4281, -10219.4281,  10219.4281,     91.2626],
+        [ 10289.0103, -10289.0103,  10289.0103,     91.8851],
+        [ 11140.4767, -11140.4767,  11140.4767,     98.6969],
+        [ 11140.4767, -11140.4767,  11140.4767,     98.6969],
+        [ 11144.1389, -11144.1389,  11144.1389,     98.6969],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.6958],
+        [-10219.4281,  10219.4281,  10219.4281,     91.3724],
+        [-10289.0103,  10289.0103,  10289.0103,     91.9584],
+        [-11138.6456,  11138.6456,  11138.6456,     98.7701],
+        [-11138.6456,  11138.6456,  11138.6456,     98.7701],
+        [-11142.3078,  11140.4767,  11140.4767,     98.7701],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]],
+
+       [[     0.    ,      0.    ,      0.    ,      0.8057],
+        [   498.0621,    498.0621,    498.0621,      5.2004],
+        [  2970.0613,   1100.4975,   4925.6874,     31.3852],
+        [  8088.0154,   5290.0784,  10625.9346,     76.101 ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ],
+        [     0.    ,      0.    ,      0.    ,      0.    ]]])
+
+
+
+
+
+1: genstep chunking giving correct number of photons but getting bad flag ?0?
+--------------------------------------------------------------------------------
+
+Bad photons have reached further, out to radius >20m::
+
+    bls[:10]
+    TO BT BT BT BT SA
+    ?0?
+    TO BT BT BT BT SD
+    TO AB
+    TO SC SC BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO BT BT AB
+    ?0?
+
+    In [1]: b.rpostr()                                                                                                                                                                                  
+    Out[1]: 
+    A([[    0.    , 17700.5687, 17821.0886, 19343.4453, 19343.4453, 19349.7885,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   891.213 , 17699.9078, 17820.2621, 17869.0345, **20049.994** ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19273.6706, 19273.6706, 19276.8422,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,   542.3396,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 10681.8698, 10931.8877, 17700.8247, 17819.5562, 19320.488 , 19320.488 , 19325.6158,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 19295.8717, 19295.8717, 19302.2148,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    , 17700.5687, 17821.0886, 18055.7852,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ,     0.    ],
+       [    0.    ,  5515.3716, 17699.9085, 17819.9794, 19385.9602, **20050.2072**,     0.    ,     0.    ,     0.    ,     0.    ]])
+
+    In [2]:                                      
+
+
+
+::
+
+    ab.sh 1 --nocompare
+
+    In [2]: bls                                                                                                                                                                                         
+    Out[2]: 
+    TO BT BT BT BT SA
+    ?0?                        record_id:1
+    TO BT BT BT BT SD
+    TO AB
+    TO SC SC BT BT BT BT SD
+    TO BT BT BT BT SA
+    TO BT BT AB
+    ?0?                        record_id:7
+
+    In [3]: b.seqhis_ana.table                                                                                                                                                                          
+    Out[3]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                                  8         1.00 
+    0000           8ccccd        0.250           2        [6 ] TO BT BT BT BT SA
+    0001                0        0.250           2        [1 ] ?0?
+    0002         7cccc66d        0.125           1        [8 ] TO SC SC BT BT BT BT SD
+    0003           7ccccd        0.125           1        [6 ] TO BT BT BT BT SD
+    0004             4ccd        0.125           1        [4 ] TO BT BT AB
+    0005               4d        0.125           1        [2 ] TO AB
+    .                                  8         1.00 
+
+
+
+When checking with logging, must look for the record_id to match with the order of the output arrays, 
+as processing order and output order are not the same.
+
+record_id:1 ends with NoRINDEX::
+
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setTrack@422]  _track_id 1 track.GetGlobalTime 0.2 _parent_id -1 _pdg_encoding 20022 _optical 1 _process_manager CProMgr n:[5] (0) name Transportation left -1 (1) name Scintillation left -1 (2) name OpAbsorption left -1 (3) name OpRayleigh left -1 (4) name OpBoundary left -1
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setTrackOptical@495]  _record_id 1 _primary_id 1 _reemtrack 0 tkui_gentype T _track.GetGlobalTime 0.2
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setGen@380]  gen 6 OpticksGenstep::GenType fabricated OpticksFlags::SourceType fabricated OpticksFlags::Flag TORCH valid 1
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                           Detection _boundary_status                       NotAtBoundary
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                       NotAtBoundary _boundary_status                   FresnelRefraction
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                   FresnelRefraction _boundary_status                        SameMaterial
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                        SameMaterial _boundary_status                   FresnelRefraction
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.248 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                   FresnelRefraction _boundary_status                            NoRINDEX
+    2021-05-30 21:53:38.248 INFO  [446990] [CManager::PostUserTrackingAction@243] 
+
+
+record_id:7 ends with NoRINDEX::
+
+    2021-05-30 21:53:38.243 INFO  [446990] [CG4Ctx::setTrack@422]  _track_id 7 track.GetGlobalTime 0.8 _parent_id -1 _pdg_encoding 20022 _optical 1 _process_manager CProMgr n:[5] (0) name Transportation left -1 (1) name Scintillation left -1 (2) name OpAbsorption left -1 (3) name OpRayleigh left -1 (4) name OpBoundary left -1
+    2021-05-30 21:53:38.243 INFO  [446990] [CG4Ctx::setTrackOptical@495]  _record_id 7 _primary_id 7 _reemtrack 0 tkui_gentype T _track.GetGlobalTime 0.8
+    2021-05-30 21:53:38.243 INFO  [446990] [CG4Ctx::setGen@380]  gen 6 OpticksGenstep::GenType fabricated OpticksFlags::SourceType fabricated OpticksFlags::Flag TORCH valid 1
+    2021-05-30 21:53:38.243 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.243 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                           Undefined _boundary_status                       NotAtBoundary
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.244 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                       NotAtBoundary _boundary_status                   FresnelRefraction
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.244 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                   FresnelRefraction _boundary_status                   FresnelRefraction
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.244 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                   FresnelRefraction _boundary_status                   FresnelReflection
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.244 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                   FresnelReflection _boundary_status                        StepTooSmall
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::UserSteppingAction@345] 
+    2021-05-30 21:53:38.244 INFO  [446990] [CG4Ctx::setStepOptical@597]  _prior_boundary_status                        StepTooSmall _boundary_status                            NoRINDEX
+    2021-05-30 21:53:38.244 INFO  [446990] [CManager::PostUserTrackingAction@243] 
+
+
+Q: what does one bad flag trash the whole history : seqhis and seqmat  ?
+
+::
+
+    In [10]: b.seqmat                                                                                                                                                                                   
+    Out[10]: A([  14610353,          0,   14610353,         17, 3740250385,   14610353,      65457,          0], dtype=uint64)
+
+    In [11]: b.seqhis                                                                                                                                                                                   
+    Out[11]: A([   9227469,          0,    8178893,         77, 2093794925,    9227469,      19661,          0], dtype=uint64)
+
+
+
+
+shakedown genstep chunking : onestep CRecorder/CWriter mode
+--------------------------------------------------------------
+
+::
+
+    (gdb) p m_onestep_records->getShapeString(0)
+    $2 = "8,10,2,4"
+    (gdb) p m_records_buffer->getShapeString(0)
+    $3 = "44516112,0,305,0,44514000,0,-150427432,32767,44513948,0,44513948,0,8,0,7,0,44513992,0,31102976,0,0,0,0,1,2,0,0,3,44514656,0,44514576,0,44508368,0,-1,-1,4132,0,44515344,0,-1,0,0,0,0,0,16777216,0,0,0,44"...
+    (gdb) 
+
 
 
 
@@ -112,6 +703,8 @@ Observations:
 
 * order is inverted compared to input photons
 * 0.2 and 0.8 are missing 
+* clear smoking gun for CRecorder messing up, should have 8 photons here 
+
 
 ::
 
@@ -139,7 +732,8 @@ Observations:
 2 : several extras 
 -------------------------
 
-* evt 2 has same input photons at evt 1 
+* evt 2 has same input photons at evt 1, but different random stream 
+* again clear smoking gun for CRecorder messing up, should have 8 photons here 
 
 ::
 

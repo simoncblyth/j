@@ -924,20 +924,34 @@ EOU
 
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
-   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 $(anamgr) " ;   
+   local evtmax=${EVTMAX:-2}
+   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
+   local input_photon_path=${INPUT_PHOTON_PATH} 
+
+   if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
+       tds- $opts opticks --input-photon-path ${input_photon_path} 
+   else
+       tds- $opts gun
+   fi 
+}
+
+tds3ip(){
+
    #local name="RandomSpherical10" 
    local name="CubeCorners" 
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
+   export INPUT_PHOTON_PATH=$path
 
    export G4Opticks=INFO
    export CManager=INFO
+   export CRecorder=INFO
+   export CWriter=INFO
    export CG4Ctx=INFO
+   export OpticksRun=INFO   # OpticksRun::createEvent sizes
+   export OpticksEvent=INFO   # sizing 
 
-   tds- $opts opticks --input-photon-path $path 
+   tds3 
 }
-
-
-
 
 
 
