@@ -931,6 +931,18 @@ tds3(){
    tds_ls
    tds_ols 
 
+   local extra
+   extra="--managermode 3"
+
+   #extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
+
+   unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
+   if [ -n "$extra" ]; then 
+       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
+       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
+   fi    
+
+
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
        tds- $opts opticks --input-photon-path ${input_photon_path} 
    else
@@ -963,9 +975,11 @@ G4OpticksRecorder
 CManager
 CRecorder
 CWriter
+CTrackInfo
 CG4Ctx
 OpticksRun
 OpticksEvent
+CG4
 EOV
 }
 

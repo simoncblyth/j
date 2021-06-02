@@ -16,11 +16,15 @@ build tips
 
     jre ; CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt  ## G4OpticksAnaMgr passes G4 objects to G4OpticksRecorder/CManager
 
-          
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
+
+
+
+
+
 
 
     jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
@@ -37,6 +41,8 @@ build tips
 
     BP=GenTools::execute tds3
 
+
+    BP=G4Track::SetUserInformation tds3
 
 
 
@@ -56,11 +62,83 @@ build tips
 
 
 
+cleanup issue
+----------------
+
+
+::
+
+    (gdb) 
+    #0  0x00007fffeee342ad in ?? () from /lib64/libstdc++.so.6
+    #1  0x00007fffeee96b63 in std::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string() () from /lib64/libstdc++.so.6
+    #2  0x00007fffd6069632 in NPYBase::~NPYBase (this=0x178bd0350, __in_chrg=<optimized out>) at /home/blyth/opticks/npy/NPYBase.cpp:479
+    #3  0x00007fffd61108fe in NPY<unsigned long long>::~NPY (this=0x178bd0350, __in_chrg=<optimized out>) at /home/blyth/opticks/npy/NPY.hpp:100
+    #4  0x00007fffd611092e in NPY<unsigned long long>::~NPY (this=0x178bd0350, __in_chrg=<optimized out>) at /home/blyth/opticks/npy/NPY.hpp:100
+    #5  0x00007fffcdd977a2 in CWriter::clearOnestep (this=0x14bd47e40) at /home/blyth/opticks/cfg4/CWriter.cc:213
+    #6  0x00007fffcdd9759a in CWriter::EndOfGenstep (this=0x14bd47e40) at /home/blyth/opticks/cfg4/CWriter.cc:200
+    #7  0x00007fffcdd8bdb2 in CRecorder::EndOfGenstep (this=0x14bd47cd0) at /home/blyth/opticks/cfg4/CRecorder.cc:189
+    #8  0x00007fffcddb67b0 in CManager::EndOfGenstep (this=0x14bd47b30) at /home/blyth/opticks/cfg4/CManager.cc:184
+    #9  0x00007fffcddb658b in CManager::BeginOfGenstep (this=0x14bd47b30, gentype=83 'S', num_photons=34) at /home/blyth/opticks/cfg4/CManager.cc:156
+    #10 0x00007fffce075d34 in G4OpticksRecorder::BeginOfGenstep (this=0x25314a0, gentype=83 'S', num_photons=34) at /home/blyth/opticks/g4ok/G4OpticksRecorder.cc:72
+    #11 0x00007fffce06d332 in G4Opticks::BeginOfGenstep (this=0x4cde850, gentype=83 'S', numPhotons=34) at /home/blyth/opticks/g4ok/G4Opticks.cc:1395
+    #12 0x00007fffd09c1488 in DsG4Scintillation::PostStepDoIt (this=0x14d791890, aTrack=..., aStep=...) at ../src/DsG4Scintillation.cc:622
+    #13 0x00007fffd04ac379 in G4SteppingManager::InvokePSDIP(unsigned long) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+
+
+
+getting worse : after trying to log in CTrackInfo dtor
+---------------------------------------------------------
+
+::
+
+    2021-06-02 04:11:58.552 INFO  [267386] [G4OpticksRecorder::PostUserTrackingAction@114] 
+    2021-06-02 04:11:58.552 INFO  [267386] [CManager::PostUserTrackingAction@287] 
+    2021-06-02 04:11:58.552 INFO  [267386] [CRecorder::postTrack@215] 
+    2021-06-02 04:11:58.552 INFO  [267386] [CRecorder::postTrackWriteSteps@462] [
+    2021-06-02 04:11:58.552 INFO  [267386] [CRecorder::postTrackWriteSteps@470]  NOT USE_CUSTOM_BOUNDARY 
+    2021-06-02 04:11:58.552 INFO  [267386] [CWriter::writeStepPoint_@313]  target_record_id 2
+    2021-06-02 04:11:58.552 INFO  [267386] [CWriter::writeStepPoint_@313]  target_record_id 2
+    2021-06-02 04:11:58.552 INFO  [267386] [CWriter::writePhoton@427]  target_record_id 2
+    2021-06-02 04:11:58.552 INFO  [267386] [CRecorder::postTrackWriteSteps@673] ]
+
+    Program received signal SIGSEGV, Segmentation fault.
+    0x00007fffce8c3477 in G4Track::~G4Track() () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4track.so
+
+
+    (gdb) bt
+    #0  0x00007fffce8c3477 in G4Track::~G4Track() () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4track.so
+    #1  0x00007fffd06ecd9d in G4EventManager::DoProcessing(G4Event*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4event.so
+    #2  0x00007fffc26ac760 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+    #3  0x00007fffc1c0da3c in DetSimAlg::execute (this=0x250f920) at ../src/DetSimAlg.cc:112
+    #4  0x00007fffef13836d in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #5  0x00007fffef13d568 in TaskWatchDog::run() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #6  0x00007fffef137f49 in Task::run() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #7  0x00007fffef6c013e in _object* boost::python::detail::invoke<boost::python::to_python_value<bool const&>, bool (Task::*)(), boo
+
 
 onestep crazy
 ---------------
 
 ::
+
+
+    (gdb) bt
+    #3  0x00007ffff6cf2252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd609a671 in NPY<short>::add (this=0x2a72df0, other=0x178bd1190) at /home/blyth/opticks/npy/NPY.cpp:450
+    #5  0x00007fffcd4718e5 in CWriter::EndOfGenstep (this=0x14bd47e30) at /home/blyth/opticks/cfg4/CWriter.cc:188
+    #6  0x00007fffcd4662fe in CRecorder::EndOfGenstep (this=0x14bd47cc0) at /home/blyth/opticks/cfg4/CRecorder.cc:189
+    #7  0x00007fffcd4906a4 in CManager::EndOfGenstep (this=0x14bd47b30) at /home/blyth/opticks/cfg4/CManager.cc:183
+    #8  0x00007fffcd49049c in CManager::BeginOfGenstep (this=0x14bd47b30, gentype=83 'S', num_photons=34) at /home/blyth/opticks/cfg4/CManager.cc:155
+    #9  0x00007fffce075d34 in G4OpticksRecorder::BeginOfGenstep (this=0x2531050, gentype=83 'S', num_photons=34) at /home/blyth/opticks/g4ok/G4OpticksRecorder.cc:72
+    #10 0x00007fffce06d332 in G4Opticks::BeginOfGenstep (this=0x4cdeb10, gentype=83 'S', numPhotons=34) at /home/blyth/opticks/g4ok/G4Opticks.cc:1395
+    #11 0x00007fffd09c12af in DsG4Scintillation::PostStepDoIt (this=0x14d791890, aTrack=..., aStep=...) at ../src/DsG4Scintillation.cc:614
+    #12 0x00007fffd04ac379 in G4SteppingManager::InvokePSDIP(unsigned long) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+    #13 0x00007fffd04ac7ff in G4SteppingManager::InvokePostStepDoItProcs() () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+    #14 0x00007fffd04a98a5 in G4SteppingManager::Stepping() () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+    #15 0x00007fffd04b50fd in G4TrackingManager::ProcessOneTrack(G4Track*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
+    #16 0x00007fffd06ecb53 in G4EventManager::DoProcessing(G4Event*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4event.so
+    #17 0x00007fffc26ad760 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+
 
     (gdb) p m_records_buffer->getShapeString(0)
     $4 = "2,10,2,4"
