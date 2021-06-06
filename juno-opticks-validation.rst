@@ -17,6 +17,9 @@ build tips
     jre ; CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt  ## G4OpticksAnaMgr passes G4 objects to G4OpticksRecorder/CManager
 
 
+
+    epsilon:offline blyth$ svn.py put | grep PhysiSim | sh 
+
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
@@ -61,10 +64,98 @@ build tips
 
 
 
+Sun Jun 6 2021 : CRecorder/CWriter machinery starting to work in dynamic running (gensteps one-by-one) 
+----------------------------------------------------------------------------------------------------------------
 
-cleanup issue
-----------------
+* issue with m_g4evt missing metadata still forces use of -C,--nocompare
 
+::
+
+    epsilon:j blyth$ ab.sh 1 -C
+
+    In [1]: ab.a.seqhis_ana.table[:30]                                                                                                                                                                        
+    Out[1]: 
+    all_seqhis_ana
+    .                     cfo:-  1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.147        1653        [2 ] SI AB
+    0001            7ccc2        0.116        1307        [5 ] SI BT BT BT SD
+    0002            8ccc2        0.052         592        [5 ] SI BT BT BT SA
+    0003           7ccc62        0.052         591        [6 ] SI SC BT BT BT SD
+    0004              452        0.037         422        [3 ] SI RE AB
+    0005              462        0.035         392        [3 ] SI SC AB
+    0006           7ccc52        0.034         385        [6 ] SI RE BT BT BT SD
+    0007           8ccc62        0.022         249        [6 ] SI SC BT BT BT SA
+    0008          7ccc662        0.019         219        [7 ] SI SC SC BT BT BT SD
+    0009           8ccc52        0.015         169        [6 ] SI RE BT BT BT SA
+    0010          7ccc652        0.013         147        [7 ] SI RE SC BT BT BT SD
+    0011               41        0.013         142        [2 ] CK AB
+    0012             4662        0.012         137        [4 ] SI SC SC AB
+    0013            4cc62        0.012         130        [5 ] SI SC BT BT AB
+    0014             4cc2        0.012         130        [4 ] SI BT BT AB
+    0015             4552        0.011         124        [4 ] SI RE RE AB
+    0016             4652        0.011         121        [4 ] SI RE SC AB
+    0017           7cccc2        0.010         114        [6 ] SI BT BT BT BT SD
+    0018           4cccc2        0.009         105        [6 ] SI BT BT BT BT AB
+    0019          7ccc552        0.009          98        [7 ] SI RE RE BT BT BT SD
+    0020           8cccc2        0.007          80        [6 ] SI BT BT BT BT SA
+    0021          8ccc662        0.007          78        [7 ] SI SC SC BT BT BT SA
+    0022         4cccccc2        0.006          72        [8 ] SI BT BT BT BT BT BT AB
+    0023         7ccc6662        0.006          68        [8 ] SI SC SC SC BT BT BT SD
+    0024          49cccc2        0.006          66        [7 ] SI BT BT BT BT DR AB
+    0025          8ccc652        0.006          63        [7 ] SI RE SC BT BT BT SA
+    0026          4ccccc2        0.005          62        [7 ] SI BT BT BT BT BT AB
+    0027          7ccc562        0.005          61        [7 ] SI SC RE BT BT BT SD
+    0028          7cccc62        0.005          59        [7 ] SI SC BT BT BT BT SD
+    0029          8ccc552        0.005          57        [7 ] SI RE RE BT BT BT SA
+    .                              11278         1.00 
+
+    In [2]: ab.b.seqhis_ana.table[:30]                                                                                                                                                                        
+    Out[2]: 
+    all_seqhis_ana
+    .                     cfo:-  -1:g4live:source 
+    .                              11278         1.00 
+    0000               42        0.148        1665        [2 ] SI AB
+    0001           7cccc2        0.118        1336        [6 ] SI BT BT BT BT SD
+    0002          7cccc62        0.053         599        [7 ] SI SC BT BT BT BT SD
+    0003           8cccc2        0.052         583        [6 ] SI BT BT BT BT SA
+    0004              452        0.047         534        [3 ] SI RE AB
+    0005             8cc2        0.041         464        [4 ] SI BT BT SA
+    0006          7cccc52        0.038         432        [7 ] SI RE BT BT BT BT SD
+    0007              462        0.033         367        [3 ] SI SC AB
+    0008          8cccc62        0.022         249        [7 ] SI SC BT BT BT BT SA
+    0009         7cccc662        0.020         230        [8 ] SI SC SC BT BT BT BT SD
+    0010            8cc62        0.016         186        [5 ] SI SC BT BT SA
+    0011         7cccc652        0.015         172        [8 ] SI RE SC BT BT BT BT SD
+    0012          8cccc52        0.015         168        [7 ] SI RE BT BT BT BT SA
+    0013               41        0.013         144        [2 ] CK AB
+    0014            8ccc2        0.013         143        [5 ] SI BT BT BT SA
+    0015             4552        0.013         142        [4 ] SI RE RE AB
+    0016            8cc52        0.012         138        [5 ] SI RE BT BT SA
+    0017         7cccc552        0.012         138        [8 ] SI RE RE BT BT BT BT SD
+    0018             4cc2        0.011         127        [4 ] SI BT BT AB
+    0019             4662        0.011         121        [4 ] SI SC SC AB
+    0020             4652        0.010         112        [4 ] SI RE SC AB
+    0021         8cccc652        0.008          94        [8 ] SI RE SC BT BT BT BT SA
+    0022         8cccc662        0.008          93        [8 ] SI SC SC BT BT BT BT SA
+    0023        7cccc6662        0.007          79        [9 ] SI SC SC SC BT BT BT BT SD
+    0024            4cc62        0.006          71        [5 ] SI SC BT BT AB
+    0025           8cc662        0.006          64        [6 ] SI SC SC BT BT SA
+    0026        7cccc6652        0.005          60        [9 ] SI RE SC SC BT BT BT BT SD
+    0027           8cc652        0.005          56        [6 ] SI RE SC BT BT SA
+    0028         8cccc552        0.005          54        [8 ] SI RE RE BT BT BT BT SA
+    0029          7ccccc2        0.005          53        [7 ] SI BT BT BT BT BT SD
+    .                              11278         1.00 
+
+    In [3]:                                                                             
+
+
+
+
+cleanup issue : this was a result of jackson-pollock-ing process memory due to bad record_id
+--------------------------------------------------------------------------------------------------
+
+* the problem moved around at every invokation 
 
 ::
 
@@ -83,7 +174,6 @@ cleanup issue
     #11 0x00007fffce06d332 in G4Opticks::BeginOfGenstep (this=0x4cde850, gentype=83 'S', numPhotons=34) at /home/blyth/opticks/g4ok/G4Opticks.cc:1395
     #12 0x00007fffd09c1488 in DsG4Scintillation::PostStepDoIt (this=0x14d791890, aTrack=..., aStep=...) at ../src/DsG4Scintillation.cc:622
     #13 0x00007fffd04ac379 in G4SteppingManager::InvokePSDIP(unsigned long) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4tracking.so
-
 
 
 getting worse : after trying to log in CTrackInfo dtor

@@ -969,33 +969,48 @@ tds3ip(){
 }
 
 
-tds_log(){ cat << EOV
-G4Opticks
-G4OpticksRecorder
+
+
+# logging evar control 
+tds_log_(){ cat << EOV
+#G4Opticks
+#G4OpticksRecorder
 CManager
-CRecorder
-CWriter
-CTrackInfo
-CG4Ctx
+#CRecorder
+CGenstepCollector
+#CWriter
+#CTrackInfo
+#CCtx
 OpticksRun
 OpticksEvent
-CG4
+#CG4
 EOV
 }
+
+tds_on(){  tds_log_ |  grep  -v ^\#  ; }
+tds_off(){ tds_log_ |  grep  ^\#  | tr "\#" " " ;  }
+tds_all(){ tds_on ; tds_off ; } 
+
+tds_ls(){     for var in $(${VNAME:-tds_all}) ; do printf "%20s : [%s] \n"  $var ${!var} ; done ; } 
+tds_export(){ for var in $(${VNAME:-tds_on})  ; do export $var=INFO                      ; done ; }   
+tds_unset(){  for var in $(${VNAME:-tds_off}) ; do unset $var                            ; done ; } 
+tds_log(){  
+    : exports/unsets logging evars according to tds_log_ commenting  
+    tds_export 
+    tds_unset 
+    tds_ls 
+}   
+
+#tds_log    
+
 
 tds_ctrl(){ cat << EOV
 INPUT_PHOTON_PATH
 EVTMAX
 EOV
 }
-
-# evar control 
-tds_ls(){     for var in $(${VNAME:-tds_log}) ; do printf "%20s : [%s] \n"  $var ${!var} ; done ; }
-tds_export(){ for var in $(${VNAME:-tds_log}) ; do export $var=INFO                      ; done ; tds_ls ; } 
-tds_unset(){  for var in $(${VNAME:-tds_log}) ; do unset $var                            ; done ; tds_ls ; }
-
-tds_ctrl_ls(){    VNAME=tds_ctrl tds_ls ; }
-tds_ctrl_unset(){ VNAME=tds_ctrl tds_unset ; }
+tds_ols(){    VNAME=tds_ctrl tds_ls ; }
+tds_ounset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
