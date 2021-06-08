@@ -179,6 +179,9 @@ j-dir(){ echo $(dirname $BASH_SOURCE) ; }
 j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
 ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
+j1(){ ji ; vi $(ls -1t | head -1) ; } 
+jr(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
+
 
 j-scp(){  
     local target=${1:-L7} 
@@ -218,6 +221,7 @@ psi(){ js PMTSIM/src ; }
 #jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
 td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
+jsdo(){ jcv junoSD_PMT_v2_Opticks ;  }
 
 #jcvv(){ jcv NNVT_MCPPMT_PMTSolid Hamamatsu_R12860_PMTSolid ; }
 #jcvv(){ jcv Hamamatsu_R12860_PMTSolid ; }
@@ -931,11 +935,8 @@ tds3(){
    tds_ls
    tds_ols 
 
-   local extra
-   extra="--managermode 3"
-
+   local extra=${EXTRA}
    #extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
-
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra" ]; then 
        export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
@@ -963,18 +964,30 @@ tds3ip(){
    local name="CubeCorners" 
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
    export INPUT_PHOTON_PATH=$path
+   export OPTICKS_EVENT_PFX=tds3ip
+   export EXTRA="--align" 
 
-   tds_export
+   tds_ols
+ 
    tds3 
 }
+
+tds_ctrl(){ cat << EOV
+INPUT_PHOTON_PATH
+OPTICKS_EVENT_PFX
+EVTMAX
+EOV
+}
+tds_ols(){    VNAME=tds_ctrl tds_ls ; }
+tds_ounset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 
 
 # logging evar control 
 tds_log_(){ cat << EOV
-#G4Opticks
-#G4OpticksRecorder
+G4Opticks
+G4OpticksRecorder
 CManager
 #CRecorder
 CGenstepCollector
@@ -1001,16 +1014,6 @@ tds_log(){
     tds_ls 
 }   
 
-#tds_log    
-
-
-tds_ctrl(){ cat << EOV
-INPUT_PHOTON_PATH
-EVTMAX
-EOV
-}
-tds_ols(){    VNAME=tds_ctrl tds_ls ; }
-tds_ounset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }

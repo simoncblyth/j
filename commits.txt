@@ -1,0 +1,48 @@
+
+epsilon:offline blyth$ svn ci -m "add opticks GenTools/subparser that currently just provides loading of input photons for debugging/validation" Examples/Tutorial/python/Tutorial/JUNODetSimModule.py Simulation/GenTools/cmt/requirements Simulation/GenTools/src/GtOpticksTool.cc Simulation/GenTools/src/GtOpticksTool.h  
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Sending        Simulation/GenTools/cmt/requirements
+Adding         Simulation/GenTools/src/GtOpticksTool.cc
+Adding         Simulation/GenTools/src/GtOpticksTool.h
+Transmitting file data .svn: E195023: Commit failed (details follow):
+svn: E195023: Changing file '/Users/blyth/junotop/offline/Simulation/GenTools/src/GtOpticksTool.cc' is forbidden by the server
+svn: E175013: Access to '/svn/offline/!svn/txr/4674-3x1/trunk/Simulation/GenTools/src/GtOpticksTool.cc' forbidden
+epsilon:offline blyth$ 
+epsilon:offline blyth$ 
+
+
+
+
+
+epsilon:offline blyth$ svn ci -m "GtOpticksTool typo" Simulation/GenTools/src/GtOpticksTool.cc
+Sending        Simulation/GenTools/src/GtOpticksTool.cc
+Transmitting file data .done
+Committing transaction...
+Committed revision 4676.
+epsilon:offline blyth$ 
+
+
+epsilon:offline blyth$ svn ci -m "Opticks genstep collection update using CPhotonInfo to enable CRecorder/CWriter operation via G4OpticksRecorder in ordinary Opticks instrumented Geant4 running" \
+> Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h Simulation/DetSimV2/PhysiSim/include/LocalG4Cerenkov1042.hh Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc \
+> Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+Sending        Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h
+Sending        Simulation/DetSimV2/PhysiSim/include/LocalG4Cerenkov1042.hh
+Sending        Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+Sending        Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+Transmitting file data ....done
+Committing transaction...
+Committed revision 4677.
+epsilon:offline blyth$ 
+
+
+epsilon:offline blyth$ svn ci -m "SD updates integrating G4Opticks with the optional G4OpticksRecorder/CRecorder/CWriter instrumentation when that is in use for validation/debugging" 
+Sending        Simulation/DetSimV2/PMTSim/cmt/requirements
+Sending        Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+Transmitting file data ....done
+Committing transaction...
+Committed revision 4678.
+epsilon:offline blyth$ 
+
+

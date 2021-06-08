@@ -2,6 +2,113 @@ juno-opticks-validation
 =========================
 
 
+update building a handful of pkgs will eventually fail
+---------------------------------------------------------
+
+At which point do a fuller build::
+
+    je ; bash junoenv offline
+
+
+
+"P" : OPTICKS_TOP defined and CMTEXTRATAGS=opticks
+------------------------------------------------------
+
+
+::
+
+    epsilon:~ blyth$ t P
+    P(){ TERM=${TERM}@tag:P,dbg:${DBG:-0} _P }
+
+    epsilon:ana blyth$ t _P
+    _P () 
+    { 
+        ssh P;
+        [ $? -ne 0 ] && echo \"ssh P\" gives connection refused if ssh tunnel \"tun\" is not running
+    }
+
+
+::
+
+    je
+    bash junoenv offline
+    bash junoenv opticks touchbuild
+
+
+
+switching between CMTEXTRATAGS=opticks and not : doing a clean will often be needed when transitioning
+---------------------------------------------------------------------------------------------------------
+
+* otherwise compilation objects expecting or not expecting symbols will be surprised causing link failures 
+
+::
+
+    jo 
+    cd Simulation/DetSimV2/AnalysisCode/cmt
+
+    cmt config 
+    cmt make clean 
+
+    O[blyth@localhost cmt]$ cmt make clean 
+    #CMT---> Info: Execute action make => gmake bin=../Linux-x86_64/ clean
+    #CMT---> (constituents.make) Starting AnalysisCodeclean
+    #CMT---> (constituents.make) Starting makeclean
+    #CMT---> (constituents.make) makeclean done
+    #CMT---> removing objects AnalysisCode
+    #CMT---> removing library AnalysisCode
+    #CMT---> (constituents.make) AnalysisCodeclean done
+    #CMT---> AnalysisCodeclean
+    #CMT---> allclean ok.
+    #CMT---> removing ../Linux-x86_64/cmt_build_library_links.stamp
+    O[blyth@localhost cmt]$ 
+
+
+    O[blyth@localhost cmt]$ CMTEXTRATAGS=opticks cmt config
+    O[blyth@localhost cmt]$ cmt make clean
+    O[blyth@localhost cmt]$ cmt make
+
+    CMTEXTRATAGS=opticks cmt show tags
+
+
+Rebuilding with use of Opticks, with manual touch build::
+
+    O[blyth@localhost cmt]$ touch ../src/G4OpticksAnaMgr.cc 
+
+    CMTEXTRATAGS=opticks cmt config
+    CMTEXTRATAGS=opticks cmt make 
+
+    # simpler to just export CMTEXTRATAGS=opticks as it does not seem to get lodged into tags via config
+
+
+Detecting whether the lib is using Opticks symbols and linking to Opticks libraries using "nm" and "ldd"::
+
+    O[blyth@localhost cmt]$ nm ../Linux-x86_64/libAnalysisCode.so | c++filt | grep G4OpticksRecorder
+                      U G4OpticksRecorder::G4OpticksRecorder()
+
+    O[blyth@localhost cmt]$ ldd ../Linux-x86_64/libAnalysisCode.so | grep opticks
+        libG4OK.so => /home/blyth/local/opticks/lib64/libG4OK.so (0x00007fe4b305a000)
+        libOpticksCore.so => /home/blyth/local/opticks/lib64/libOpticksCore.so (0x00007fe4b1a57000)
+        libNPY.so => /home/blyth/local/opticks/lib64/libNPY.so (0x00007fe4b1476000)
+        libSysRap.so => /home/blyth/local/opticks/lib64/libSysRap.so (0x00007fe4b11cb000)
+        libCFG4.so => /home/blyth/local/opticks/lib64/libCFG4.so (0x00007fe4af0c1000)
+        libExtG4.so => /home/blyth/local/opticks/lib64/../lib64/libExtG4.so (0x00007fe4ab5c3000)
+        libOKOP.so => /home/blyth/local/opticks/lib64/../lib64/libOKOP.so (0x00007fe4ab31b000)
+        libOptiXRap.so => /home/blyth/local/opticks/lib64/../lib64/libOptiXRap.so (0x00007fe4aa8e3000)
+        libOpticksGeo.so => /home/blyth/local/opticks/lib64/../lib64/libOpticksGeo.so (0x00007fe4aa6bb000)
+        libGGeo.so => /home/blyth/local/opticks/lib64/../lib64/libGGeo.so (0x00007fe4aa26c000)
+        libThrustRap.so => /home/blyth/local/opticks/lib64/../lib64/libThrustRap.so (0x00007fe4a9cc0000)
+        libBoostRap.so => /home/blyth/local/opticks/lib64/../lib64/libBoostRap.so (0x00007fe4a98e2000)
+        libCUDARap.so => /home/blyth/local/opticks/lib64/../lib64/libCUDARap.so (0x00007fe4a9183000)
+        libOKConf.so => /home/blyth/local/opticks/lib64/../lib64/libOKConf.so (0x00007fe4a4849000)
+        liboptix.so.6.5.0 => /home/blyth/local/opticks/lib64/../externals/OptiX/lib64/liboptix.so.6.5.0 (0x00007fe4a4558000)
+        liboptixu.so.6.5.0 => /home/blyth/local/opticks/lib64/../externals/OptiX/lib64/liboptixu.so.6.5.0 (0x00007fe4a4192000)
+        liboptix_prime.so.6.5.0 => /home/blyth/local/opticks/lib64/../externals/OptiX/lib64/liboptix_prime.so.6.5.0 (0x00007fe4a32ad000)
+    O[blyth@localhost cmt]$ 
+
+
+
+
+
 build tips
 --------------
 
@@ -11,10 +118,18 @@ build tips
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
 
 
+
+
     booting "G4Opticks" is needed at start of every session as this package is NOT YET IN STANDARD SETUP
-    TODO: rename pkg to G4OpticksAnaMgr and incorporate in standard list
+    TODO: rename pkg to G4OpticksAnaMgr and move into 
 
     jre ; CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt  ## G4OpticksAnaMgr passes G4 objects to G4OpticksRecorder/CManager
+
+    jcv G4OpticksAnaMgr   ## CAUTION 2 OF THESE TEMPORARILY 
+
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
+
 
 
 
@@ -28,9 +143,6 @@ build tips
 
 
 
-
-
-    jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
 
     jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
 
@@ -61,6 +173,251 @@ build tips
     -rw-rw-r--. 1 blyth blyth 87 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so.cmtref
     O[blyth@localhost cmt]$ date
     Fri May 21 21:23:38 CST 2021
+
+
+tidy up : after moving the G4OpticksAnaMgr into AnalysisCode have 4 pkgs to remove
+------------------------------------------------------------------------------------
+
+::
+
+    epsilon:DetSimV2 blyth$ l
+    total 8
+    0 drwxr-xr-x  11 blyth  staff  352 Jun  8 12:48 ..
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  8 12:48 TopTracker
+    0 drwxr-xr-x   6 blyth  staff  192 Jun  8 12:48 AnalysisCode
+    0 drwxr-xr-x  27 blyth  staff  864 Jun  8 12:48 .
+    8 -rw-r--r--   1 blyth  staff  581 Jun  8 12:48 CMakeLists.txt
+    0 drwxr-xr-x   6 blyth  staff  192 Jun  8 12:48 PMTSim
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  8 12:48 PhysiSim
+    0 drwxr-xr-x   6 blyth  staff  192 Jun  8 12:48 VoxelMethod
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  8 12:48 GenSim
+    0 drwxr-xr-x   7 blyth  staff  224 May 24 12:50 MCParamsSvc
+    0 drwxr-xr-x   6 blyth  staff  192 May 24 12:50 OPSimulator
+    0 drwxr-xr-x   5 blyth  staff  160 Jan 25 14:15 DetSimMTUtil
+    0 drwxr-xr-x   7 blyth  staff  224 Jan 25 14:15 DetSimMT
+
+    0 drwxr-xr-x   4 blyth  staff  128 May 24 12:06 G4Opticks     
+    0 drwxr-xr-x   7 blyth  staff  224 May 20  2020 G4DAEChroma
+    0 drwxr-xr-x   3 blyth  staff   96 May 20  2020 Opticks
+    0 drwxr-xr-x   6 blyth  staff  192 May 20  2020 DAE
+
+    0 drwxr-xr-x   8 blyth  staff  256 May 20  2020 MCGlobalTimeSvc
+    0 drwxr-xr-x   7 blyth  staff  224 May 20  2020 CalibUnit
+    0 drwxr-xr-x   7 blyth  staff  224 May 20  2020 DetSimAlg
+    0 drwxr-xr-x   3 blyth  staff   96 May 20  2020 DetSimPolicy
+    0 drwxr-xr-x   9 blyth  staff  288 May 20  2020 DetSimOptions
+    0 drwxr-xr-x  19 blyth  staff  608 May 20  2020 OpticalProperty
+    0 drwxr-xr-x   7 blyth  staff  224 May 20  2020 Chimney
+    0 drwxr-xr-x   6 blyth  staff  192 May 20  2020 G4Svc
+    0 drwxr-xr-x   6 blyth  staff  192 May 20  2020 SimUtil
+    0 drwxr-xr-x   6 blyth  staff  192 May 20  2020 CentralDetector
+
+
+
+DetSimV2/Opticks was an ancient hookup method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    package Opticks
+
+    macro Opticks_home "`opticks-config --prefix`"
+
+    set OPTICKSDATAROOT "$(Opticks_home)/opticksdata"
+
+    macro Opticks_cppflags " `opticks-config --cflags` "
+    macro Opticks_linkopts " `opticks-config --libs` "
+
+
+
+relocate G4OpticksAnaMgr into AnalysisCode : will get into standard list and simplify the python
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    epsilon:DetSimV2 blyth$ cp G4Opticks/src/G4OpticksAnaMgr.hh AnalysisCode/include/
+    epsilon:DetSimV2 blyth$ cp G4Opticks/src/G4OpticksAnaMgr.cc AnalysisCode/src/
+
+
+jcv JUNODetSimModule::
+
+    1212     def init_opticks(self, task, args):
+    1213         if args.opticks_anamgr:
+    1214             import os   # why this needed ?
+    1215             g4ok_root = os.environ.get("G4OPTICKSROOT",None)
+    1216             if g4ok_root is None:
+    1217                 msg = "--opticks-anamgr can only be used when non-standard G4Opticks package is built and setup, defining G4OPTICKSROOT "
+    1218                 log.fatal(msg)
+    1219                 assert 0, msg
+    1220             else:
+    1221                 log.info("[loadDll libG4Opticks.so --opticks-anamgr ")
+    1222                 Sniper.loadDll("libG4Opticks.so")
+    1223                 log.info("]loadDll libG4Opticks.so")
+    1224             pass
+    1225         else:
+    1226             log.info(" not loading libG4Opticks.so as --opticks-anamgr not requested" )
+    1227         pass
+
+
+
+
+
+Sun Jun 5 2021 : metadata issue : getting zeros for g4evt 
+------------------------------------------------------------
+
+* maybe because CGenstepCollector gets reset before g4evt save is done, 
+  presumably from okevt cleanup ?
+
+* the collector is equally relevant to both g4evt and okevt : so should not reset it 
+  under auspices of one or other event 
+
+  * its not, G4Opticks::reset/G4Opticks::resetCollectors does the honours
+  * the problem is that the SD EndOfEvent comes before the CManager::EndOfEvent
+    so G4Opticks::reset is called too soon 
+
+
+See::
+
+    jcv junoSD_PMT_v2_Opticks
+
+    // the SD::EndOfEvent comes before the CManager::EndOfEvent 
+    // resulting in the reset happening before g4evt gets saved 
+    // which messes with the metadata ?
+
+    088 void junoSD_PMT_v2_Opticks::EndOfEvent(G4HCofThisEvent* /*HCE*/)
+    089 {
+    ...
+    140     int merged_count(0);
+    141     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    142     {
+    143         g4ok->getHit(idx,&hit, hit_extra_ptr );
+    144 
+    145         collectHit(&hit, hit_extra_ptr, merged_count );
+    146 
+    147         if(idx < 20) dumpHit(idx, &hit, hit_extra_ptr );
+    148     }
+    149     g4ok->reset();
+    150 
+    151     LOG(info)
+    152        << "]"
+    153        << " num_hit " << num_hit
+    154        << ( merged_count > 0 ? " MERGED " : "" )
+    155        << " merged_count  " << merged_count
+    156        << " m_merged_total " << m_merged_total
+    157        << " m_opticksMode " << m_opticksMode
+    158        ;
+
+
+
+
+::
+
+    15     gp.x 13469.46   gp.y 7262.24    gp.z -11872.47  gp.R 19368.07   pmt 14337   SI|SD|BT|EX          otk 5      oti17.49    bti 107.85   bp.x 12389.23   bp.y 6668.57    bp.z -10935.70  bp.R 17820.00  
+    16     gp.x 4931.81    gp.y -12214.17  gp.z 14199.94   gp.R 19368.71   pmt 2146    SI|SD|BT|EC          otk 5      oti1.08     bti 92.61    bp.x 4546.33    bp.y -11250.32  bp.z 13050.43   bp.R 17820.00  
+    17     gp.x 8418.11    gp.y 14242.98   gp.z -9853.94   gp.R 19256.87   pmt 13474   SI|RE|SC|SD|BT|EX    otk 5      oti8.30     bti 122.72   bp.x 5940.87    bp.y 13887.19   bp.z -9455.39   bp.R 17820.00  
+    18     gp.x -12562.76  gp.y 12848.17   gp.z 7191.51    gp.R 19355.01   pmt 5406    SI|RE|SD|BT|EC       otk 5      oti9.26     bti 101.54   bp.x -11570.63  bp.y 11834.31   bp.z 6604.69    bp.R 17820.00  
+    19     gp.x 3971.13    gp.y -7194.90   gp.z 17475.10   gp.R 19311.02   pmt 743     SI|SD|BT|EC          otk 5      oti7.04     bti 98.97    bp.x 3672.46    bp.y -6651.38   bp.z 16119.08   bp.R 17820.00  
+    2021-06-06 22:57:51.279 FATAL [388229] [CGenstepCollector::reset@104]  num_gs 0
+    2021-06-06 22:57:51.279 FATAL [388229] [G4Opticks::reset@536]  m_way_enabled reset m_hiys 
+    2021-06-06 22:57:51.279 INFO  [388229] [junoSD_PMT_v2_Opticks::EndOfEvent@151] ] num_hit 3596 merged_count  0 m_merged_total 0 m_opticksMode 3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 5073 hitCollection_muon 0 hitCollection_opticks 0
+    2021-06-06 22:57:51.279 INFO  [388229] [CManager::EndOfEventAction@154]  m_mode 3
+    2021-06-06 22:57:51.279 INFO  [388229] [CManager::EndOfEventAction@157]  _number_of_input_photons 0
+    2021-06-06 22:57:51.280 INFO  [388229] [CManager::save@262]  m_mode 3
+    2021-06-06 22:57:51.280 INFO  [388229] [CManager::save@266]  m_mode 3 numPhotons 0
+    2021-06-06 22:57:51.280 INFO  [388229] [CManager::save@274]  --save g4evt numPhotons 0
+    2021-06-06 22:57:51.280 INFO  [388229] [OpticksEvent::setNumPhotons@306] NOT RESIZING 0
+    2021-06-06 22:57:51.280 INFO  [388229] [OpticksEvent::save@1869] /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1
+    2021-06-06 22:57:51.280 INFO  [388229] [OpticksEvent::save@1874]  id: 0 typ: natural tag: -1 det: g4live cat: NULL udet: g4live num_photons: 0 num_source : 0  genstep NULL nopstep 0,4,4 photon 11278,4,4 debug 0,1,4 way 0,2,4 source NULL record 11278,10,2,4 phosel 0,1,4 recsel 0,10,1,4 sequence 11278,1,2 seed 0,1,1 hit 0,4,4 dir /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1
+    2021-06-06 22:57:51.280 INFO  [388229] [OpticksEvent::saveHitData@1945]  num_hit 0 ht 0,4,4 tag -1
+    2021-06-06 22:57:51.280 INFO  [388229] [OpticksEvent::saveHiyData@1976]  num_hiy 0 hy 0,2,4 tag -1
+    2021-06-06 22:57:51.283 INFO  [388229] [OpticksEvent::saveIndex@2685] SKIP as not indexed 
+    2021-06-06 22:57:51.288 INFO  [388229] [OpticksEvent::makeReport@2070] tagdir /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1
+    2021-06-06 22:57:51.288 INFO  [388229] [OpticksEvent::saveReport@2188] [ /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1
+    2021-06-06 22:57:51.289 INFO  [388229] [OpticksEvent::saveReport@2192] ] /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1
+    2021-06-06 22:57:51.289 INFO  [388229] [OpticksEvent::saveReport@2188] [ /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1/20210606_225746
+    2021-06-06 22:57:51.290 INFO  [388229] [OpticksEvent::saveReport@2192] ] /home/blyth/local/opticks/evtbase/source/evt/g4live/natural/-1/20210606_225746
+    2021-06-06 22:57:51.290 INFO  [388229] [OpticksRun::resetEvent@239] [
+    2021-06-06 22:57:51.290 INFO  [388229] [OpticksEvent::resetBuffers@1198] [
+
+
+
+junoSD_PMT_v2_Opticks::EndOfEvent(G4HCofThisEvent*)  is called from G4VSensitiveDetector::EndOfEvent::
+
+    1027 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
+    1028 {
+    1029 
+    1030 #ifdef WITH_G4OPTICKS
+    1031     if(m_opticksMode > 0)
+    1032     {
+    1033         // Opticks GPU optical photon simulation and bulk hit population is done here 
+    1034         m_jpmt_opticks->EndOfEvent(HCE);
+    1035     }
+    1036 #endif
+    1037 
+    1038     //if(m_debug) {
+    1039     {
+
+
+
+    087 void G4OpticksRecorder::EndOfEventAction(const G4Event* event)
+     88 {
+     89     LOG(LEVEL);
+     90     m_manager->EndOfEventAction(event);
+     91 
+     92     // *G4Opticks::reset* needs to happen at end of event, but it should 
+     93     // be done from user code at higher level as it dictates when things 
+     94     // the user will need to access like hits
+     95     // get reset
+     96     //
+     97     //   G4Opticks* g4ok = G4Opticks::Get(); 
+     98     //   g4ok->reset();   
+     99     //
+    100 
+    101 }
+
+
+g4-cls G4EventManager::
+
+    099 void G4EventManager::DoProcessing(G4Event* anEvent)
+    100 {
+    ...
+    261 
+    262   if(sdManager)
+    263   { sdManager->TerminateCurrentEvent(currentEvent->GetHCofThisEvent()); }
+    264 
+    265   if(userEventAction) userEventAction->EndOfEventAction(currentEvent);
+    266 
+    267   stateManager->SetNewState(G4State_GeomClosed);
+    268   currentEvent = nullptr;
+    269   abortRequested = false;
+    270 }
+    271 
+
+* SD always gets EndOfEvent before userEventAction
+
+
+g4-cls G4SDManager::
+
+    116 void G4SDManager::TerminateCurrentEvent(G4HCofThisEvent* HCE)
+    117 {
+    118   treeTop->Terminate(HCE);
+    119 }
+    120 
+
+g4-cls G4SDStructure::
+
+    204 void G4SDStructure::Terminate(G4HCofThisEvent*HCE)
+    205 {
+    206   // Broadcast to subdirectories.
+    207   for(auto st : structure)
+    208   { st->Terminate(HCE); }
+    209   // Terminate all detectors in this directory.
+    210   for(auto dt : detector)
+    211   { if(dt->isActive()) dt->EndOfEvent(HCE); }
+    212 }
+    213 
+
 
 
 
