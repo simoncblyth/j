@@ -46,3 +46,27 @@ Committed revision 4678.
 epsilon:offline blyth$ 
 
 
+O[blyth@localhost offline]$ svn ci -m "move G4OpticksAnaMgr into AnalysisCode allowing removal of non-standard G4Opticks package and corresponding python"
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Sending        Simulation/DetSimV2/AnalysisCode/cmt/requirements
+Adding         Simulation/DetSimV2/AnalysisCode/include/G4OpticksAnaMgr.hh
+Adding         Simulation/DetSimV2/AnalysisCode/src/G4OpticksAnaMgr.cc
+Deleting       Simulation/DetSimV2/G4Opticks
+Transmitting file data ....
+Committed revision 4680.
+O[blyth@localhost offline]$ 
+
+
+epsilon:offline blyth$ svn ci -m "update code notes for --opticks-mode " 
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+Transmitting file data ..done
+Committing transaction...
+Committed revision 4681.
+epsilon:offline blyth$ 
+
+
+
+
+
+

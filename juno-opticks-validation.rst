@@ -10,6 +10,113 @@ At which point do a fuller build::
     je ; bash junoenv offline
 
 
+P/O env : outdated path
+-----------------------------
+
+$JUNOTOP/bashrc.sh::
+
+    O[blyth@localhost ~]$ cat $JUNOTOP/bashrc.sh
+    export JUNOTOP=/home/blyth/junotop
+    export CMTPROJECTPATH=/home/blyth/junotop:${CMTPROJECTPATH}
+    source /home/blyth/junotop/ExternalLibs/Opticks/0.0.0-rc1/bashrc
+    source /home/blyth/junotop/ExternalLibs/Python/2.7.17/bashrc
+    source /home/blyth/junotop/ExternalLibs/Boost/1.72.0/bashrc
+
+
+
+seem something similar before : trying to expand a non-existing event ?
+--------------------------------------------------------------------------
+
+
+Hmm, need to handle --nosave::
+
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@213] ]BOpticksResource::Get
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@214] 
+    # BOpticksKey::export_ 
+    export OPTICKS_KEY=DetSim0Svc.X4PhysicalVolume.pWorld.fe48b4d359786b95505117280fb5aac1
+
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@217] GDMLAuxUserinfoGeospecificOptions [(null)]
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::EmbeddedCommandLine@133] Using ecl :[ --compute --embedded --xanalytic --production --nosave] OPTICKS_EMBEDDED_COMMANDLINE
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::EmbeddedCommandLine@134]  mode(Pro/Dev/Asis) P using "pro" (production) commandline without event saving 
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::EmbeddedCommandLine@139] Using extra1 argument :[--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3 --gdmlkludge]
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::EmbeddedCommandLine@149] Using eclx envvar :[--align] OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@220] EmbeddedCommandLine : [ --compute --embedded --xanalytic --production --nosave  --way --pvname pAcrylic --boundary Water///Acrylic --waymask 3 --gdmlkludge --align]
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@222] [ok
+    2021-06-09 03:58:34.472 INFO  [119517] [G4Opticks::InitOpticks@234] instanciate Opticks using embedded commandline only 
+     --compute --embedded --xanalytic --production --nosave  --way --pvname pAcrylic --boundary Water///Acrylic --waymask 3 --gdmlkludge --align
+    2021-06-09 03:58:34.474 INFO  [119517] [G4Opticks::InitOpticks@238] ]ok
+    2021-06-09 03:58:34.474 INFO  [119517] [G4Opticks::InitOpticks@240] [ok.configure
+
+    ...
+
+
+    2021-06-09 04:00:29.862 INFO  [119517] [CManager::BeginOfEventAction@138]  not calling presave, creating OpticksEvent 
+    2021-06-09 04:00:29.862 INFO  [119517] [CManager::BeginOfEventAction@144]  mocking BeginOfGenstep as have input photon primaries CEvent::DescPrimary numPrim 8 numberOfInputPhotons 8
+     0 CPrimaryVertex::DescinputPhoton t0      0.100 pos [     -0.577    -0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577    -0.577    -0.577]  kEn 0.000 nm 440.000
+     1 CPrimaryVertex::DescinputPhoton t0      0.200 pos [      0.577    -0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577    -0.577    -0.577]  kEn 0.000 nm 440.000
+     2 CPrimaryVertex::DescinputPhoton t0      0.300 pos [     -0.577     0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577     0.577    -0.577]  kEn 0.000 nm 440.000
+     3 CPrimaryVertex::DescinputPhoton t0      0.400 pos [      0.577     0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577     0.577    -0.577]  kEn 0.000 nm 440.000
+     4 CPrimaryVertex::DescinputPhoton t0      0.500 pos [     -0.577    -0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577    -0.577     0.577]  kEn 0.000 nm 440.000
+     5 CPrimaryVertex::DescinputPhoton t0      0.600 pos [      0.577    -0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577    -0.577     0.577]  kEn 0.000 nm 440.000
+     6 CPrimaryVertex::DescinputPhoton t0      0.700 pos [     -0.577     0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577     0.577     0.577]  kEn 0.000 nm 440.000
+     7 CPrimaryVertex::DescinputPhoton t0      0.800 pos [      0.577     0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577     0.577     0.577]  kEn 0.000 nm 440.000
+
+    2021-06-09 04:00:29.862 INFO  [119517] [CManager::BeginOfGenstep@191]  gentype T num_photons 8
+    2021-06-09 04:00:29.862 FATAL [119517] [CWriter::expand@125]  Cannot expand as CWriter::initEvent has not been called, check CManager logging 
+    2021-06-09 04:00:29.862 INFO  [119517] [CWriter::BeginOfGenstep@151]  m_ctx._gentype [T] m_ctx._genstep_index 0 m_ctx._genstep_num_photons 8 m_ni 0
+    Begin of Event --> 0
+    2021-06-09 04:00:29.862 INFO  [119517] [G4OpticksRecorder::PreUserTrackingAction@122] 
+    2021-06-09 04:00:30.099 INFO  [119517] [G4OpticksRecorder::UserSteppingAction@133] 
+    python: /home/blyth/opticks/cfg4/CCtx.cc:100: unsigned int CCtx::step_limit() const: Assertion `_ok_event_init' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff6cf9387 in raise () from /lib64/libc.so.6
+
+
+
+
+
+
+
+::
+
+    2021-06-09 03:38:32.667 INFO  [86305] [CGenstepCollector::collectTorchGenstep@620]  torch_emitsource pass along  oac GS_EMITSOURCE  aux 0x2febfb0
+    2021-06-09 03:38:32.667 INFO  [86305] [CManager::BeginOfEventAction@126]  m_mode 3
+    2021-06-09 03:38:32.668 INFO  [86305] [CManager::BeginOfEventAction@135]  mocking BeginOfGenstep as have input photon primaries CEvent::DescPrimary numPrim 8 numberOfInputPhotons 8
+     0 CPrimaryVertex::DescinputPhoton t0      0.100 pos [     -0.577    -0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577    -0.577    -0.577]  kEn 0.000 nm 440.000
+     1 CPrimaryVertex::DescinputPhoton t0      0.200 pos [      0.577    -0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577    -0.577    -0.577]  kEn 0.000 nm 440.000
+     2 CPrimaryVertex::DescinputPhoton t0      0.300 pos [     -0.577     0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577     0.577    -0.577]  kEn 0.000 nm 440.000
+     3 CPrimaryVertex::DescinputPhoton t0      0.400 pos [      0.577     0.577    -0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577     0.577    -0.577]  kEn 0.000 nm 440.000
+     4 CPrimaryVertex::DescinputPhoton t0      0.500 pos [     -0.577    -0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577    -0.577     0.577]  kEn 0.000 nm 440.000
+     5 CPrimaryVertex::DescinputPhoton t0      0.600 pos [      0.577    -0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577    -0.577     0.577]  kEn 0.000 nm 440.000
+     6 CPrimaryVertex::DescinputPhoton t0      0.700 pos [     -0.577     0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [     -0.577     0.577     0.577]  kEn 0.000 nm 440.000
+     7 CPrimaryVertex::DescinputPhoton t0      0.800 pos [      0.577     0.577     0.577]  numberOfParticle  1 pdgCode   20022 dir [      0.577     0.577     0.577]  kEn 0.000 nm 440.000
+
+    2021-06-09 03:38:32.668 INFO  [86305] [CManager::BeginOfGenstep@182]  gentype T num_photons 8
+
+    Program received signal SIGSEGV, Segmentation fault.
+    (gdb) bt
+    #0  0x00007fffedbe0ff8 in std::vector<int, std::allocator<int> >::size() const () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libEDMUtil.so
+    #1  0x00007fffd5f9b962 in NPYBase::getNumItems (this=0x0, ifr=0, ito=1) at /home/blyth/opticks/npy/NPYBase.cpp:538
+    #2  0x00007fffd600dfad in NPY<unsigned long long>::expand (this=0x0, extra_items=8) at /home/blyth/opticks/npy/NPY.cpp:492
+    #3  0x00007fffcdcc62ac in CWriter::expand (this=0x14c231040, gs_photons=8) at /home/blyth/opticks/cfg4/CWriter.cc:117
+    #4  0x00007fffcdcc6352 in CWriter::BeginOfGenstep (this=0x14c231040) at /home/blyth/opticks/cfg4/CWriter.cc:136
+    #5  0x00007fffcdcbb573 in CRecorder::BeginOfGenstep (this=0x14c230ec0) at /home/blyth/opticks/cfg4/CRecorder.cc:169
+    #6  0x00007fffcdce6cbf in CManager::BeginOfGenstep (this=0x14bd4c3c0, genstep_index=0, gentype=84 'T', num_photons=8, offset=0) at /home/blyth/opticks/cfg4/CManager.cc:187
+    #7  0x00007fffcdce68ee in CManager::BeginOfEventAction (this=0x14bd4c3c0, event=0x2a73100) at /home/blyth/opticks/cfg4/CManager.cc:141
+    #8  0x00007fffcdfaac26 in G4OpticksRecorder::BeginOfEventAction (this=0x252db30, event=0x2a73100) at /home/blyth/opticks/g4ok/G4OpticksRecorder.cc:86
+    #9  0x00007fffc05b5678 in G4OpticksAnaMgr::BeginOfEventAction (this=0x252da90, evt=0x2a73100) at ../src/G4OpticksAnaMgr.cc:31
+    #10 0x00007fffc1d3e2c8 in MgrOfAnaElem::BeginOfEventAction (this=0x7fffc1f49440 <MgrOfAnaElem::instance()::s_mgr>, evt=0x2a73100) at ../src/MgrOfAnaElem.cc:46
+    #11 0x00007fffc2584353 in LSExpEventAction::BeginOfEventAction (this=0x324b7b0, evt=0x2a73100) at ../src/LSExpEventAction.cc:66
+    #12 0x00007fffd0621875 in G4EventManager::DoProcessing(G4Event*) () from /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02/lib64/libG4event.so
+    #13 0x00007fffc27d6760 in G4SvcRunManager::SimulateEvent(int) () from /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Svc.so
+    #14 0x00007fffc1d36a3c in DetSimAlg::execute (this=0x2515510) at ../src/DetSimAlg.cc:112
+    #15 0x00007fffef13836d in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #16 0x00007fffef13d568 in TaskWatchDog::run() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+    #17 0x00007fffef137f49 in Task::run() () from /home/blyth/junotop/sniper/InstallArea/Linux-x86_64/lib/libSniperKernel.so
+
+
+
 
 "P" : OPTICKS_TOP defined and CMTEXTRATAGS=opticks
 ------------------------------------------------------
@@ -34,6 +141,10 @@ At which point do a fuller build::
     bash junoenv offline
     bash junoenv opticks touchbuild
 
+
+After updating the python::
+
+   P[blyth@localhost offline]$ ( cd Examples/Tutorial/cmt ; make )
 
 
 switching between CMTEXTRATAGS=opticks and not : doing a clean will often be needed when transitioning

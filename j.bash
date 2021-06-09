@@ -196,6 +196,31 @@ jfu(){ source $BASH_SOURCE ; }
 
 ################### NAVIGATING  ###################################
 
+jcv_(){ cat << EOC
+
+Crucial JUNO Opticks Classes
+-------------------------------
+
+jcv LSExpDetectorConstruction_Opticks
+
+    1. invokes G4Opticks::setEmbeddedCommandLineExtra(embedded_commandline_extra) using 
+       geospecific default argument : "--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3 --gdmlkludge"
+       which can be overridden with LSXDC_GEOSPECIFIC
+
+    2. passes geometry to G4Opticks for translation 
+
+
+
+jcv junoSD_PMT_v2
+
+jcv junoSD_PMT_v2_Opticks
+
+EOC
+}
+
+
+
+
 # -false to end sequence of ors 
 jcl(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
 jfi(){ local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
@@ -926,6 +951,26 @@ anamgr(){ cat << EOU
 EOU
 }
 
+
+tds3gun(){
+   : unsets ctrl evars that may be defined from other funcs
+   export OPTICKS_EVENT_PFX=tds3gun
+   unset INPUT_PHOTON_PATH
+
+   tds3
+}
+
+tds3ip(){
+   #local name="RandomSpherical10" 
+   local name="CubeCorners" 
+   local path="$HOME/.opticks/InputPhotons/${name}.npy"
+
+   export OPTICKS_EVENT_PFX=tds3ip
+   export INPUT_PHOTON_PATH=$path
+ 
+   tds3 
+}
+
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
    local evtmax=${EVTMAX:-2}
@@ -933,16 +978,22 @@ tds3(){
    local input_photon_path=${INPUT_PHOTON_PATH} 
 
    tds_ls
-   tds_ols 
+   tds_ctrl_ls 
 
-   local extra=${EXTRA}
+   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default with --nosave   
+   export OPTICKS_EMBEDDED_COMMANDLINE="dev"    # with --save 
+
+   local extra
    #extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
+   extra="--skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
+
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra" ]; then 
        export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
-       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
+       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
+   else
+       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : not defined  
    fi    
-
 
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
        tds- $opts opticks --input-photon-path ${input_photon_path} 
@@ -951,35 +1002,17 @@ tds3(){
    fi 
 }
 
-tds3gun(){
-   : quieten evars running with more  
-   tds_unset
-   tds_ounset
-   tds3
-}
-
-tds3ip(){
-
-   #local name="RandomSpherical10" 
-   local name="CubeCorners" 
-   local path="$HOME/.opticks/InputPhotons/${name}.npy"
-   export INPUT_PHOTON_PATH=$path
-   export OPTICKS_EVENT_PFX=tds3ip
-   export EXTRA="--align" 
-
-   tds_ols
- 
-   tds3 
-}
 
 tds_ctrl(){ cat << EOV
 INPUT_PHOTON_PATH
 OPTICKS_EVENT_PFX
+OPTICKS_EMBEDDED_COMMANDLINE
+OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
 EVTMAX
 EOV
 }
-tds_ols(){    VNAME=tds_ctrl tds_ls ; }
-tds_ounset(){ VNAME=tds_ctrl tds_unset ; }
+tds_ctrl_ls(){    VNAME=tds_ctrl tds_ls ; }
+tds_ctrl_unset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 
@@ -991,7 +1024,7 @@ G4OpticksRecorder
 CManager
 #CRecorder
 CGenstepCollector
-#CWriter
+CWriter
 #CTrackInfo
 #CCtx
 OpticksRun
