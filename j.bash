@@ -962,7 +962,8 @@ tds3gun(){
 
 tds3ip(){
    #local name="RandomSpherical10" 
-   local name="CubeCorners" 
+   #local name="CubeCorners" 
+   local name="CubeCorners10x10" 
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
 
    export OPTICKS_EVENT_PFX=tds3ip
