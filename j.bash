@@ -198,9 +198,33 @@ jfu(){ source $BASH_SOURCE ; }
 
 jcv_(){ cat << EOC
 
-Crucial JUNO Opticks Classes
+JUNO Opticks Classes
 -------------------------------
 
+Simulation/DetSimV2/PhysiSim
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* C + S genstep collection 
+
+jcv LocalG4Cerenkov1042
+jcv DsG4Scintillation
+jcv DsPhysConsOptical
+
+
+Simulation/DetSimV2/PMTSim
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* sensitive detector, calling G4Opticks::propagate, handling hits 
+
+jcv junoSD_PMT_v2
+jcv junoSD_PMT_v2_Opticks
+jcv PMTEfficiencyCheck
+jcv PMTSDMgr
+
+Simulation/DetSimV2/DetSimOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+jcv DetSim0Svc
 jcv LSExpDetectorConstruction_Opticks
 
     1. invokes G4Opticks::setEmbeddedCommandLineExtra(embedded_commandline_extra) using 
@@ -210,10 +234,19 @@ jcv LSExpDetectorConstruction_Opticks
     2. passes geometry to G4Opticks for translation 
 
 
+Simulation/GenTools
+~~~~~~~~~~~~~~~~~~~~~~~
 
-jcv junoSD_PMT_v2
+jcv GtOpticksTool
+ 
+    Input photons mutate 
 
-jcv junoSD_PMT_v2_Opticks
+
+Simulation/DetSimV2/AnalysisCode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+jcv G4OpticksAnaMgr
+
 
 EOC
 }
@@ -962,18 +995,20 @@ tds3gun(){
 
 tds3ip(){
    #local name="RandomSpherical10" 
-   #local name="CubeCorners" 
-   local name="CubeCorners10x10" 
+   local name="CubeCorners" 
+   #local name="CubeCorners10x10" 
+   #local name="CubeCorners100x100" 
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
 
    export OPTICKS_EVENT_PFX=tds3ip
    export INPUT_PHOTON_PATH=$path
  
-   tds3 
+   tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
 }
 
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
+   local args=$* 
    local evtmax=${EVTMAX:-2}
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
    local input_photon_path=${INPUT_PHOTON_PATH} 
@@ -987,6 +1022,7 @@ tds3(){
    local extra
    #extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
    extra="--skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
+   extra="$extra $args" 
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra" ]; then 
