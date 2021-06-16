@@ -248,6 +248,117 @@ Simulation/DetSimV2/AnalysisCode
 jcv G4OpticksAnaMgr
 
 
+
+JUNO Classes Particularly Pertinent to Opticks 
+--------------------------------------------------
+
+jcv tut_detsim
+jcv JUNODetSimModule
+
+
+
+
+
+jcv NNVTMCPPMTManager
+
+    243 void
+    244 NNVTMCPPMTManager::helper_make_solid()
+    245 {   
+    246     pmt_solid = m_pmtsolid_maker->GetSolid(GetName() + "_pmt_solid", 1E-3*mm);
+    247     
+    248     double inner_delta = -5*mm ;
+    249     if(!m_enable_optical_model)
+    250     {
+    251         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid");
+    252     }
+    253     else
+    254     {
+    255         // For the new PMT optical model. In fact, no impact on PMT geometry, just for safety
+    256         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
+    257     }
+    258     inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
+    259     
+
+    297 void
+    298 NNVTMCPPMTManager::helper_make_logical_volume()
+    299 {
+    /// thickness: 0.
+    300     body_log= new G4LogicalVolume
+    301         ( body_solid,
+    302           GlassMat,
+    303           GetName()+"_body_log" );
+    304 
+    /// thickness: 1E-3*mm
+    305     m_logical_pmt = new G4LogicalVolume
+    306         ( pmt_solid,
+    307           GlassMat,
+    308           GetName()+"_log" );
+    309 
+    310     body_log->SetSensitiveDetector(m_detector);
+    311 
+    312     inner1_log= new G4LogicalVolume
+    313         ( inner1_solid,
+    314           PMT_Vacuum,
+    315           GetName()+"_inner1_log" );
+    316     inner1_log->SetSensitiveDetector(m_detector);
+    317 
+    318     inner2_log= new G4LogicalVolume
+    319         ( inner2_solid,
+    320           PMT_Vacuum,
+    321           GetName()+"_inner2_log" );
+    322 
+
+
+
+    thickness  
+
+    * pmt_solid  : 1E-3*mm      // < this is asking for trouble 
+    * body_solid : 0. 
+
+
+jcv NNVT_MCPPMT_PMTSolid
+    my ascii-art diagram explaining the CSG modelling of the NNVT PMT Solid
+
+    G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
+    NG4VSolid* NVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) 
+
+
+jcv HamamatsuR12860PMTManager
+
+    239 void
+    240 HamamatsuR12860PMTManager::helper_make_solid()
+    241 {
+    242     pmt_solid = m_pmtsolid_maker->GetSolid(GetName() + "_pmt_solid", 1E-3*mm);
+    243     double inner_delta =  -5*mm ;
+    244     if(!m_enable_optical_model)
+    245     {
+    246         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid");
+    247     }
+    248     else
+    249     {
+    250         // For the new PMT optical model. In fact, no impact on PMT geometry, just for safety
+    251         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
+    252     }
+    253 
+    254     inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
+    255 
+
+    * again thickness delta of 1E-3*mm 
+
+
+
+jcv Hamamatsu_R12860_PMTSolid
+   
+    G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
+
+jcv LSExpDetectorConstruction
+
+    
+
+
+
+
+
 EOC
 }
 
@@ -995,15 +1106,22 @@ tds3gun(){
 
 tds3ip(){
    #local name="RandomSpherical10" 
-   local name="CubeCorners" 
+   #local name="CubeCorners" 
    #local name="CubeCorners10x10" 
    #local name="CubeCorners100x100" 
-   local path="$HOME/.opticks/InputPhotons/${name}.npy"
+   #local path="$HOME/.opticks/InputPhotons/${name}.npy"
+
+   local path=/tmp/check_innerwater_bulk_absorb.npy 
 
    export OPTICKS_EVENT_PFX=tds3ip
    export INPUT_PHOTON_PATH=$path
+   export INPUT_PHOTON_REPEAT=10
  
-   tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
+   #tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
+   #tds3 --dindex 0,1,2,3,4,5
+
+   tds3 
+
 }
 
 tds3(){
@@ -1012,6 +1130,7 @@ tds3(){
    local evtmax=${EVTMAX:-2}
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
    local input_photon_path=${INPUT_PHOTON_PATH} 
+   local input_photon_repeat=${INPUT_PHOTON_REPEAT} 
 
    tds_ls
    tds_ctrl_ls 
@@ -1033,7 +1152,7 @@ tds3(){
    fi    
 
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
-       tds- $opts opticks --input-photon-path ${input_photon_path} 
+       tds- $opts opticks --input-photon-path ${input_photon_path} --input-photon-repeat ${input_photon_repeat}
    else
        tds- $opts gun
    fi 

@@ -223,6 +223,9 @@ Detecting whether the lib is using Opticks symbols and linking to Opticks librar
 build tips
 --------------
 
+* connecting with "P" (rather than "O") has CMTEXTRATAGES=opticks set
+
+
 
 ::
 
@@ -249,9 +252,6 @@ build tips
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
-
-
-
 
 
 
