@@ -391,6 +391,8 @@ psi(){ js PMTSIM/src ; }
 td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
 jsdo(){ jcv junoSD_PMT_v2_Opticks ;  }
+jsc(){ jcv DsG4Scintillation ; }
+
 
 #jcvv(){ jcv NNVT_MCPPMT_PMTSolid Hamamatsu_R12860_PMTSolid ; }
 #jcvv(){ jcv Hamamatsu_R12860_PMTSolid ; }
@@ -1124,6 +1126,18 @@ tds3ip(){
 
 }
 
+
+tds-skipsolidname(){ echo $(tds-skipsolidname-) | tr " " "," ; }
+tds-skipsolidname-(){ cat << EON | grep -v ^#
+#NNVTMCPPMTsMask_virtual
+#HamamatsuR12860sMask_virtual
+mask_PMT_20inch_vetosMask_virtual
+NNVTMCPPMT_body_solid
+HamamatsuR12860_body_solid_1_9
+PMT_20inch_veto_body_solid_1_2
+EON
+}
+
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
    local args=$* 
@@ -1139,8 +1153,9 @@ tds3(){
    export OPTICKS_EMBEDDED_COMMANDLINE="dev"    # with --save 
 
    local extra
-   #extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
-   extra="--skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
+   #extra="--rngmax 100"
+   extra="--skipsolidname $(tds-skipsolidname) -e ~8, --rtx 1 --cvd 1"
+
    extra="$extra $args" 
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA

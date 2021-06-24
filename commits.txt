@@ -69,4 +69,33 @@ epsilon:offline blyth$
 
 
 
+epsilon:offline blyth$ svn ci -m "add --input-photon-repeat N/-N option to GtOpticksTool setting outer/inner repetition of the input photon array " Examples/Tutorial/python/Tutorial/JUNODetSimModule.py Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc Simulation/GenTools/src/GtOpticksTool.cc Simulation/GenTools/src/GtOpticksTool.h
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+Sending        Simulation/GenTools/src/GtOpticksTool.cc
+Sending        Simulation/GenTools/src/GtOpticksTool.h
+Transmitting file data ....done
+Committing transaction...
+Committed revision 4692.
+epsilon:offline blyth$ 
+
+
+epsilon:offline blyth$ svn ci -m "notify the G4OpticksRecorder of the de_cull decision from junoSD_PMT_v2::ProcessHits "
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+Transmitting file data .done
+Committing transaction...
+Committed revision 4693.
+epsilon:offline blyth$ 
+
+
+
+
+epsilon:offline blyth$ svn ci -m "add back the Opticks scintillation generation control, genstep collection and instrumentation that was removed in r4690 "
+Sending        Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+Transmitting file data .done
+Committing transaction...
+Committed revision 4698.
+epsilon:offline blyth$ 
+
+
 

@@ -232,18 +232,10 @@ build tips
     export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
 
 
-
-
-    booting "G4Opticks" is needed at start of every session as this package is NOT YET IN STANDARD SETUP
-    TODO: rename pkg to G4OpticksAnaMgr and move into 
-
-    jre ; CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/G4Opticks/cmt  ## G4OpticksAnaMgr passes G4 objects to G4OpticksRecorder/CManager
-
     jcv G4OpticksAnaMgr   ## CAUTION 2 OF THESE TEMPORARILY 
 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
-
 
 
 
