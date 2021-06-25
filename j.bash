@@ -1158,6 +1158,18 @@ tds3(){
 
    extra="$extra $args" 
 
+   local dbgseqhis=${DBGSEQHIS}
+   local dbgseqmat=${DBGSEQMAT}
+   
+   if [ -n "$dbgseqhis" ]; then
+      extra="$extra --dbgseqhis $dbgseqhis "
+   fi 
+
+   if [ -n "$dbgseqmat" ]; then
+      extra="$extra --dbgseqmat $dbgseqmat "
+   fi
+
+
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
    if [ -n "$extra" ]; then 
        export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
