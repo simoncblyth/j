@@ -1154,9 +1154,11 @@ tds3(){
 
    local extra
    #extra="--rngmax 100"
-   extra="--skipsolidname $(tds-skipsolidname) -e ~8, --rtx 1 --cvd 1"
-
+   extra="--skipsolidname $(tds-skipsolidname)"
+   #extra="$extra -e ~8,"  
+   extra="$extra --rtx 1 --cvd 1"
    extra="$extra $args" 
+
 
    local dbgseqhis=${DBGSEQHIS}
    local dbgseqmat=${DBGSEQMAT}
