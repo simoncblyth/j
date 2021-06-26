@@ -1190,12 +1190,12 @@ tds3(){
 
    local trgs=""
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
-       trgs="$args opticks --input-photon-path ${input_photon_path}"
+       trgs="$trgs opticks --input-photon-path ${input_photon_path}"
        if [ -n "${input_photon_repeat}" ]; then
-           trgs="$args --input-photon-repeat ${input_photon_repeat}"
+           trgs="$trgs --input-photon-repeat ${input_photon_repeat}"
        fi 
        if [ -n "${input_photon_wavelength}" ]; then
-           trgs="$args --input-photon-wavelength ${input_photon_wavelength}"
+           trgs="$trgs --input-photon-wavelength ${input_photon_wavelength}"
        fi 
    else
        trgs="$trgs gun"
