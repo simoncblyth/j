@@ -1121,6 +1121,7 @@ tds3ip(){
    export INPUT_PHOTON_REPEAT=10000  
    : 100k repeat falls foul of Geant4 big primary slowdown  
    export INPUT_PHOTON_WAVELENGTH=360,380,400,420,440,460,480
+   export EVTMAX=7
  
    #tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
    #tds3 --dindex 0,1,2,3,4,5
