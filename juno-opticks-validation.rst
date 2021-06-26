@@ -246,6 +246,10 @@ build tips
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
 
 
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt   ## setup geometry  
+
+
+
 
     jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
 

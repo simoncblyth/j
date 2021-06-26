@@ -1111,13 +1111,14 @@ tds3ip(){
    #local name="CubeCorners" 
    #local name="CubeCorners10x10" 
    #local name="CubeCorners100x100" 
-   #local path="$HOME/.opticks/InputPhotons/${name}.npy"
+   local name="InwardsCubeCorners17699"
 
-   local path=/tmp/check_innerwater_bulk_absorb.npy 
+   local path="$HOME/.opticks/InputPhotons/${name}.npy"
+   #local path=/tmp/check_innerwater_bulk_absorb.npy 
 
    export OPTICKS_EVENT_PFX=tds3ip
    export INPUT_PHOTON_PATH=$path
-   export INPUT_PHOTON_REPEAT=10
+   export INPUT_PHOTON_REPEAT=100000
  
    #tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
    #tds3 --dindex 0,1,2,3,4,5
