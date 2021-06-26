@@ -229,39 +229,30 @@ build tips
 
 ::
 
-    export CMTEXTRATAGS=opticks      ## bash junoenv sets this, but its not a standard pkg 
-
-
-    jcv G4OpticksAnaMgr   ## CAUTION 2 OF THESE TEMPORARILY 
-
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt           ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
-
-
+    export CMTEXTRATAGS=opticks      ##  no need with "P"
 
     epsilon:offline blyth$ svn.py put | grep PhysiSim | sh 
+
+
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt    ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
 
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
 
-
     CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt   ## setup geometry  
 
+    CMTEXTRATAGS=opticks jok-touchbuild- Examples/Tutorial/cmt                   ## python machinery needs to be installed
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt                 ## GtOpticksTool for running with input photons
 
 
 
-    jok-touchbuild- Examples/Tutorial/cmt    ## to install the python machinery 
-
-
-
-    when adding " -g " under CMTEXTTRATAGS opticks need to remember to touch the class are interested in having symbols for
-
-    O[blyth@localhost offline]$ touch Simulation/GenTools/src/GenTools.cc
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt   ## GtOpticksTool for running with input photons
 
     BP=GenTools::execute tds3
+
+    when adding " -g " under CMTEXTTRATAGS opticks need to remember to touch the class are interested in having symbols for
 
 
     BP=G4Track::SetUserInformation tds3

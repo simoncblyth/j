@@ -1118,7 +1118,9 @@ tds3ip(){
 
    export OPTICKS_EVENT_PFX=tds3ip
    export INPUT_PHOTON_PATH=$path
-   export INPUT_PHOTON_REPEAT=100000
+   export INPUT_PHOTON_REPEAT=10000  
+   : 100k repeat falls foul of Geant4 big primary slowdown  
+   export INPUT_PHOTON_WAVELENGTH=360,380,400,420,440,460,480
  
    #tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
    #tds3 --dindex 0,1,2,3,4,5
@@ -1141,11 +1143,11 @@ EON
 
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
+
+   local msg="=== $FUNCNAME :"
    local args=$* 
    local evtmax=${EVTMAX:-2}
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
-   local input_photon_path=${INPUT_PHOTON_PATH} 
-   local input_photon_repeat=${INPUT_PHOTON_REPEAT} 
 
    tds_ls
    tds_ctrl_ls 
@@ -1181,11 +1183,27 @@ tds3(){
        echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : not defined  
    fi    
 
+   local input_photon_path=${INPUT_PHOTON_PATH} 
+   local input_photon_repeat=${INPUT_PHOTON_REPEAT} 
+   local input_photon_wavelength=${INPUT_PHOTON_WAVELENGTH} 
+
+   local trgs=""
    if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
-       tds- $opts opticks --input-photon-path ${input_photon_path} --input-photon-repeat ${input_photon_repeat}
+       trgs="$args opticks --input-photon-path ${input_photon_path}"
+       if [ -n "${input_photon_repeat}" ]; then
+           trgs="$args --input-photon-repeat ${input_photon_repeat}"
+       fi 
+       if [ -n "${input_photon_wavelength}" ]; then
+           trgs="$args --input-photon-wavelength ${input_photon_wavelength}"
+       fi 
    else
-       tds- $opts gun
+       trgs="$trgs gun"
    fi 
+
+   echo $msg opts : $opts 
+   echo $msg trgs : $trgs 
+
+   tds- $opts $trgs
 }
 
 
