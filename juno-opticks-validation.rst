@@ -1,6 +1,58 @@
 juno-opticks-validation
 =========================
 
+build tips
+--------------
+
+* connecting with "P" (rather than "O") has CMTEXTRATAGES=opticks set
+
+::
+
+    export CMTEXTRATAGS=opticks      ##  no need with "P"
+
+    epsilon:offline blyth$ svn.py put | grep PhysiSim | sh 
+
+
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt    ## G4OpticksAnaMgr
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt   ## setup geometry  
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Examples/Tutorial/cmt                   ## python machinery needs to be installed
+
+    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt                 ## GtOpticksTool for running with input photons
+
+
+
+
+    BP=GenTools::execute tds3
+
+    when adding " -g " under CMTEXTTRATAGS opticks need to remember to touch the class are interested in having symbols for
+
+
+    BP=G4Track::SetUserInformation tds3
+
+
+
+::
+
+    O
+    jre
+    jok-g4o
+
+
+    O[blyth@localhost cmt]$ ls -l /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks*
+    lrwxrwxrwx. 1 blyth blyth 67 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so -> ../../../Simulation/DetSimV2/G4Opticks/Linux-x86_64/libG4Opticks.so
+    -rw-rw-r--. 1 blyth blyth 87 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so.cmtref
+    O[blyth@localhost cmt]$ date
+    Fri May 21 21:23:38 CST 2021
+
+
+
 
 update building a handful of pkgs will eventually fail
 ---------------------------------------------------------
@@ -217,60 +269,6 @@ Detecting whether the lib is using Opticks symbols and linking to Opticks librar
     O[blyth@localhost cmt]$ 
 
 
-
-
-
-build tips
---------------
-
-* connecting with "P" (rather than "O") has CMTEXTRATAGES=opticks set
-
-
-
-::
-
-    export CMTEXTRATAGS=opticks      ##  no need with "P"
-
-    epsilon:offline blyth$ svn.py put | grep PhysiSim | sh 
-
-
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/AnalysisCode/cmt    ## this was for dynamic_cast of TrackInfo in the InteresingAnaMgr before switched that off 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PhysiSim/cmt        ## added trackInfo to S + C 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/PMTSim/cmt          ## Initialize invoke setInputPhotons,  EndOfEvent 
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/DetSimV2/DetSimOptions/cmt   ## setup geometry  
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Examples/Tutorial/cmt                   ## python machinery needs to be installed
-
-    CMTEXTRATAGS=opticks jok-touchbuild- Simulation/GenTools/cmt                 ## GtOpticksTool for running with input photons
-
-
-
-
-    BP=GenTools::execute tds3
-
-    when adding " -g " under CMTEXTTRATAGS opticks need to remember to touch the class are interested in having symbols for
-
-
-    BP=G4Track::SetUserInformation tds3
-
-
-
-::
-
-    O
-    jre
-    jok-g4o
-
-
-    O[blyth@localhost cmt]$ ls -l /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks*
-    lrwxrwxrwx. 1 blyth blyth 67 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so -> ../../../Simulation/DetSimV2/G4Opticks/Linux-x86_64/libG4Opticks.so
-    -rw-rw-r--. 1 blyth blyth 87 May 21 21:20 /home/blyth/junotop/offline/InstallArea/Linux-x86_64/lib/libG4Opticks.so.cmtref
-    O[blyth@localhost cmt]$ date
-    Fri May 21 21:23:38 CST 2021
 
 
 tidy up : after moving the G4OpticksAnaMgr into AnalysisCode have 4 pkgs to remove

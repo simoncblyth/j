@@ -221,6 +221,13 @@ jcv junoSD_PMT_v2_Opticks
 jcv PMTEfficiencyCheck
 jcv PMTSDMgr
 
+
+Simulation/DetSimV2/AnalysisCode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+jcv G4OpticksAnaMgr      # top level passing to G4OpticksRecorder 
+
+
 Simulation/DetSimV2/DetSimOptions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -381,7 +388,7 @@ jgr(){ cd $JUNOTOP/offline ; jgr- $* ; : search files with the query string and 
 jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
 jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
  
-jt(){ cd $JUNOTOP ; } 
+jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
 jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
@@ -1098,10 +1105,27 @@ EOU
 }
 
 
+tds3mu(){
+   : unsets ctrl evars that may be defined from other funcs
+   export OPTICKS_EVENT_PFX=tds3mu
+   unset INPUT_PHOTON_PATH
+
+   local outdir="/tmp/G4OpticksAnaMgr" 
+   mkdir -p $outdir
+   export G4OpticksAnaMgr_outdir=$outdir
+
+   tds3 --particles mu- --momentums 215000 
+}
+
+
 tds3gun(){
    : unsets ctrl evars that may be defined from other funcs
    export OPTICKS_EVENT_PFX=tds3gun
    unset INPUT_PHOTON_PATH
+
+   local outdir="/tmp/G4OpticksAnaMgr" 
+   mkdir -p $outdir
+   export G4OpticksAnaMgr_outdir=$outdir
 
    tds3
 }
@@ -1120,14 +1144,11 @@ tds3ip(){
    export INPUT_PHOTON_PATH=$path
    export INPUT_PHOTON_REPEAT=10000  
    : 100k repeat falls foul of Geant4 big primary slowdown  
-   export INPUT_PHOTON_WAVELENGTH=360,380,400,420,440,460,480
+   #export INPUT_PHOTON_WAVELENGTH=360,380,400,420,440,460,480
+   export INPUT_PHOTON_WAVELENGTH=440
    export EVTMAX=7
- 
-   #tds3 --dbgseqhis 0x7ccccd   # "TO BT BT BT BT SD"
-   #tds3 --dindex 0,1,2,3,4,5
 
    tds3 
-
 }
 
 
@@ -1144,9 +1165,10 @@ EON
 
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
+   : tds3 args now passed along to tut_detsim.py not the embedded opticks as previously 
 
+   local args=$*     
    local msg="=== $FUNCNAME :"
-   local args=$* 
    local evtmax=${EVTMAX:-2}
    local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
 
@@ -1161,11 +1183,15 @@ tds3(){
    extra="--skipsolidname $(tds-skipsolidname)"
    #extra="$extra -e ~8,"  
    extra="$extra --rtx 1 --cvd 1"
-   extra="$extra $args" 
 
 
+   local dindex=${DINDEX}
    local dbgseqhis=${DBGSEQHIS}
    local dbgseqmat=${DBGSEQMAT}
+
+   if [ -n "$dindex" ]; then
+      extra="$extra --dindex $dindex "
+   fi 
    
    if [ -n "$dbgseqhis" ]; then
       extra="$extra --dbgseqhis $dbgseqhis "
@@ -1203,8 +1229,9 @@ tds3(){
 
    echo $msg opts : $opts 
    echo $msg trgs : $trgs 
+   echo $msg args : atrgs 
 
-   tds- $opts $trgs
+   tds- $opts $trgs $args
 }
 
 
