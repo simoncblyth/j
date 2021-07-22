@@ -15,6 +15,20 @@ Install Link
 
 * https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#install_offline_data
 
+
+Page for updating
+
+*  https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#Using_JunoENV
+
+
+jck
+-----
+
+* https://juno.ihep.ac.cn/trac/log/offline/trunk/Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc
+* https://juno.ihep.ac.cn/trac/browser/offline/trunk/Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc?annotate=blame
+* https://juno.ihep.ac.cn/trac/changeset/4540/offline
+
+
 Offline Trac Links
 ---------------------
 
@@ -28,6 +42,14 @@ Offline Trac Links
 * https://juno.ihep.ac.cn/trac/browser/cmtlibs#trunk
 
 * https://juno.ihep.ac.cn/trac/timeline
+
+
+Documentation Links
+-----------------------
+
+* https://juno.ihep.ac.cn/~offline/Doc/user-guide/geometry/management.html
+
+  Login with "juno" user works.
 
 
 CVMFS Anaconda
@@ -263,6 +285,39 @@ jcv tut_detsim
 jcv JUNODetSimModule
 
 
+jcv LSExpDetectorConstruction
+
+   top level that skips : setupCD_Sticks(cd_det);
+
+
+
+
+
+jcv StrutAcrylicConstruction
+
+   sStrut : Steel 1:G4Tubs
+
+jcv StrutBar2AcrylicConstruction
+
+   sStrut : lSteel2 
+
+jcv StrutBallheadAcrylicConstruction
+
+   sStrutBallhead : lSteel : G4Orb   
+
+jcv FastenerAcrylicConstruction
+
+   uni1 : union of 1:IonRing + 8:screw G4Tubs
+
+jcv UpperAcrylicConstruction
+
+   base_steel : lUpper : G4Polycone 
+
+jcv AdditionAcrylicConstruction
+
+   ~/opticks_refs/computing_csg_tree_boundaries_as_algebraic_expressions.pdf
+    
+
 
 
 
@@ -399,6 +454,9 @@ td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
 jsdo(){ jcv junoSD_PMT_v2_Opticks ;  }
 jsc(){ jcv DsG4Scintillation ; }
+jck(){ jcv G4Cerenkov_modified ; }
+jop(){ jcv DsPhysConsOptical ;  }
+jac(){ jcv AdditionAcrylicConstruction ; }
 
 
 #jcvv(){ jcv NNVT_MCPPMT_PMTSolid Hamamatsu_R12860_PMTSolid ; }
@@ -1105,6 +1163,31 @@ EOU
 }
 
 
+yuxiang()
+{
+   local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py 
+   gdb --args \
+       python $script \
+       --opticks-mode 1 \
+       --no-guide_tube \
+       --pmt20inch-polycone-neck \
+       --pmt20inch-simplify-csg \
+       --evtmax 2 \
+       --opticks-anamgr \
+       --no-anamgr-normal \
+       --no-anamgr-genevt \
+       --no-anamgr-edm-v2 \
+       --no-anamgr-grdm \
+       --no-anamgr-deposit \
+       --no-anamgr-deposit-tt \
+       --no-anamgr-interesting-process \
+       --no-anamgr-optical-parameter \
+       --no-anamgr-timer \
+       gun  
+}
+
+
+
 tds3mu(){
    : unsets ctrl evars that may be defined from other funcs
    export OPTICKS_EVENT_PFX=tds3mu
@@ -1182,8 +1265,11 @@ tds3(){
    #extra="--rngmax 100"
    extra="--skipsolidname $(tds-skipsolidname)"
    #extra="$extra -e ~8,"  
-   extra="$extra --rtx 1 --cvd 1"
+   extra="$extra --rtx 1"
 
+   case $USER in 
+      blyth) extra="$extra --cvd 1" ;;
+   esac 
 
    local dindex=${DINDEX}
    local dbgseqhis=${DBGSEQHIS}
