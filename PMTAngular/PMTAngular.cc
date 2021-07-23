@@ -27,7 +27,10 @@ struct PMTAngular
 
     double get_pmt_ce(const std::string &ce_mode, const std::string &volname, double theta, bool pmt_type, bool qe_type, int &ce_cat) const ;
     double get_pmt_ce(int pmtcat, double theta, int& ce_cat) const ;
+
     void   save_scan(const char* dir) const ;
+    void   save(TGraph* g, const char* dir, const char* name) const ;
+    void   save(const char* dir) const ;
 
 };
 
@@ -56,8 +59,8 @@ PMTAngular::PMTAngular()
   gCE_NNVTMCP = new TGraph(9, ce_angle_mcp, ce_NNVTMCP);
 
   double ce_NNVTMCP_HiQE[9] = {1.0, 1.0, 0.9772, 0.9723, 0.9699, 0.9697, 0.9452, 0.9103, 0.734};
-  gCE_NNVTMCP_HiQE = new TGraph(0, ce_angle_mcp, ce_NNVTMCP_HiQE);
-                         //   ^^^^^ IS THIS ZERO DELIBERATE ?
+  gCE_NNVTMCP_HiQE = new TGraph(9, ce_angle_mcp, ce_NNVTMCP_HiQE);
+                         //   ^^^^^ THAT WAS ZERO ? DELIBERATE ?
 }
 
 
@@ -226,10 +229,37 @@ void PMTAngular::save_scan(const char* dir) const
 }
 
 
+void PMTAngular::save(TGraph* g, const char* dir, const char* name) const 
+{
+    unsigned n = g->GetN(); 
+    NP* p = NP::Make<double>(n, 2); 
+    double* pp = p->values<double>(); 
+    for(unsigned i=0 ; i < n ; i++)
+    {
+        double x, y ; 
+        int rc = g->GetPoint(i, x, y ) ;
+        //std::cout << "rc " << rc << std::endl ;
+        assert( rc > -1 ); 
+        pp[i*2+0] = x ; 
+        pp[i*2+1] = y ; 
+    }
+    p->save(dir, name); 
+}
+
+void PMTAngular::save(const char* dir) const
+{
+    save(gCE_R12860, dir, "gCE_R12860.npy"); 
+    save(gCE_NNVTMCP, dir, "gCE_NNVTMCP.npy"); 
+    save(gCE_NNVTMCP_HiQE, dir, "gCE_NNVTMCP_HiQE.npy"); 
+
+    save_scan(dir); 
+}
+
+
 
 int main()
 {
     PMTAngular pa ; 
-    pa.save_scan("/tmp/PMTAngular"); 
+    pa.save("/tmp/PMTAngular"); 
     return 0 ; 
 }
