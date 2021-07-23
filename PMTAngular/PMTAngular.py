@@ -44,8 +44,8 @@ if __name__ == '__main__':
     title = "~/j/PMTAngular/PMTAngular.py"
     color = "rgbcmyk"
 
-    fig, ax = plt.subplots(figsize=[12.8,7.2])
-    fig.suptitle(title)
+    fig1, ax = plt.subplots(figsize=[12.8,7.2])
+    fig1.suptitle(title)
     for j,p in enumerate(t.ce):
         ax.plot(  t.theta, t.ce[j], label=t.ce_names[j],color=color[j]  ) 
         if j in t.ce_order:       
@@ -60,7 +60,8 @@ if __name__ == '__main__':
     pass
     ax.plot( [t.theta[0], t.theta[-1]], [1,1], linestyle="dotted", color="red" )
     ax.legend()
-    fig.show()
+    fig1.show()
+    fig1.savefig(os.path.join(t.FOLD, "PMTAngular_fig1.png"))
 
 
 
@@ -84,6 +85,7 @@ if __name__ == '__main__':
         pass
     pass
     fig2.show()
+    fig2.savefig(os.path.join(t.FOLD, "PMTAngular_fig2.png"))
 
 
 
