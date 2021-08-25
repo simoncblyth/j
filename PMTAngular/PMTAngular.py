@@ -18,6 +18,9 @@ class PMTAngular(object):
     def __init__(self):
         theta = np.load(os.path.join(self.FOLD, "theta.npy"))
         ce = np.load(os.path.join(self.FOLD, "ce.npy"))
+
+        
+
         ce_names = "kPMT_Unknown,kPMT_NNVT,kPMT_Hamamatsu,kPMT_HZC,kPMT_NNVT_HighQE".split(",")
         ce_order = [2,1,4]    # Ham, NNVT, NNVT_HighQE
         gce_names = ["gCE_R12860","gCE_NNVTMCP","gCE_NNVTMCP_HiQE"] 
@@ -52,7 +55,7 @@ if __name__ == '__main__':
             i = t.ce_order.index(j)
             cname = t.gce_names[i]
             gce = t.gce.get(cname, None)
-            if not gce is None:
+            if not gce is None and len(gce.shape)>1:
                 ax.scatter(  gce[:,0], gce[:,1], label=cname, color=color[j]  ) 
             pass 
             ax.axvspan(14, 35, color='grey', alpha=0.3, lw=0)

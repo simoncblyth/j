@@ -59,7 +59,7 @@ PMTAngular::PMTAngular()
   gCE_NNVTMCP = new TGraph(9, ce_angle_mcp, ce_NNVTMCP);
 
   double ce_NNVTMCP_HiQE[9] = {1.0, 1.0, 0.9772, 0.9723, 0.9699, 0.9697, 0.9452, 0.9103, 0.734};
-  gCE_NNVTMCP_HiQE = new TGraph(9, ce_angle_mcp, ce_NNVTMCP_HiQE);
+  gCE_NNVTMCP_HiQE = new TGraph(0, ce_angle_mcp, ce_NNVTMCP_HiQE);
                          //   ^^^^^ THAT WAS ZERO ? DELIBERATE ?
 }
 

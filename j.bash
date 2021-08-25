@@ -289,6 +289,16 @@ jcv LSExpDetectorConstruction
 
    top level that skips : setupCD_Sticks(cd_det);
 
+    +#ifdef WITH_G4OPTICKS
+    +#include "PLOG.hh"
+    +#endif
+
+
+    +#ifdef WITH_G4OPTICKS
+    +  LOG(fatal) << " OPTICKS DEBUGGING : SKIP LSExpDetectorConstruction::setupCD_Sticks " ; 
+    +#else
+       setupCD_Sticks(cd_det);
+    +#endif
 
 
 
