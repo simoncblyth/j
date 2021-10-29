@@ -34,8 +34,60 @@ struct PMTAngular
 
 };
 
+/**
+
+Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc
+
+epsilon:offline blyth$ svn log -l10 Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc
+------------------------------------------------------------------------
+r4936 | miaoyu | 2021-08-26 05:23:01 +0100 (Thu, 26 Aug 2021) | 1 line
+
+Fix bugs in gCE_NNVT
+------------------------------------------------------------------------
+r4927 | qianzhen | 2021-08-23 03:29:03 +0100 (Mon, 23 Aug 2021) | 1 line
+
+remove PmtParamSvc and PMT interfaces in ElecSimSvc
+------------------------------------------------------------------------
+r4866 | qianzhen | 2021-07-14 04:38:34 +0100 (Wed, 14 Jul 2021) | 1 line
+
+LSExpDetectorConstruction/PMT Pos: Local File mode -> Svc File mode
+------------------------------------------------------------------------
+r4770 | qianzhen | 2021-07-01 14:13:22 +0100 (Thu, 01 Jul 2021) | 1 line
+
+remove the functions about the number of PMT in PMTSimParamSvc. Please find it in the PMTParamSvc
+------------------------------------------------------------------------
+r4751 | qianzhen | 2021-07-01 03:36:16 +0100 (Thu, 01 Jul 2021) | 1 line
+
+updated the PMT Parameter Svc to new version & modified some relevant interfaces
+------------------------------------------------------------------------
+r4585 | lintao | 2021-05-21 16:39:04 +0100 (Fri, 21 May 2021) | 1 line
+
+WIP: update the CMakeLists.txt in the latest project. 
+------------------------------------------------------------------------
+r4463 | miaoyu | 2021-04-12 05:04:57 +0100 (Mon, 12 Apr 2021) | 1 line
+
+Add get_pmt_ce in PMTSimParamSvc, which is the same with the definition in SD
+------------------------------------------------------------------------
+r4451 | miaoyu | 2021-04-06 08:15:39 +0100 (Tue, 06 Apr 2021) | 1 line
+
+Keep the PMT Category Name the same with PMTParamSvc
+------------------------------------------------------------------------
+r4279 | miaoyu | 2021-01-06 03:22:24 +0000 (Wed, 06 Jan 2021) | 1 line
+
+Update Frontier
+------------------------------------------------------------------------
+r4095 | miaoyu | 2020-09-29 02:17:01 +0100 (Tue, 29 Sep 2020) | 1 line
+
+Update PMTSimParamSvc implementation
+------------------------------------------------------------------------
+
+
+
+**/
+
 PMTAngular::PMTAngular()
 {
+
   double tt_angle[9] = {0, 14, 30, 42.5, 55, 67, 77.5, 85, 90};
   double tt_ratio[9] = {0., 0., 0.2142, 4.5757, 6.2484, 9.1953, 8.9885, 7.87506618, 7.1328014};
   gTT_MCP = new TGraph(9, tt_angle, tt_ratio);
@@ -48,7 +100,7 @@ PMTAngular::PMTAngular()
   double ce_dynode[9] = {0.873, 0.873, 0.888, 0.896, 0.881, 0.9, 0.881, 0.627, 0.262};
   gCE_Dynode = new TGraph(9, ce_angle_dynode, ce_dynode);
 
-  double ce_angle_mcp[9] = {0, 14, 40, 42.5, 55, 67, 77.5, 85, 90};
+  double ce_angle_mcp[9] = {0, 14, 30, 42.5, 55, 67, 77.5, 85, 90};
   double ce_mcp[9]    = {0.900, 0.900, 0.845, 0.801, 0.775, 0.802, 0.802, 0.771, 0.660};
   gCE_MCP = new TGraph(9, ce_angle_mcp, ce_mcp);
 
@@ -59,8 +111,8 @@ PMTAngular::PMTAngular()
   gCE_NNVTMCP = new TGraph(9, ce_angle_mcp, ce_NNVTMCP);
 
   double ce_NNVTMCP_HiQE[9] = {1.0, 1.0, 0.9772, 0.9723, 0.9699, 0.9697, 0.9452, 0.9103, 0.734};
-  gCE_NNVTMCP_HiQE = new TGraph(0, ce_angle_mcp, ce_NNVTMCP_HiQE);
-                         //   ^^^^^ THAT WAS ZERO ? DELIBERATE ?
+  gCE_NNVTMCP_HiQE = new TGraph(9, ce_angle_mcp, ce_NNVTMCP_HiQE);
+
 }
 
 

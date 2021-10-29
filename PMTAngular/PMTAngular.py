@@ -9,8 +9,9 @@ PMTAngular::get_pmt_ce pmtcat  2 pmtidx 3 qe_type 0 pmt_type 0 ce_cat  100 ce   
 PMTAngular::get_pmt_ce pmtcat  3 pmtidx 4 qe_type 1 pmt_type 0 ce_cat    6 ce    0.00000 volname NNVTMCPPMT_PMT_20inch_body_phys
 
 """
-import os, numpy as np
+import os, logging, numpy as np
 import matplotlib.pyplot as plt
+log = logging.getLogger(__name__)
 
 class PMTAngular(object):
     FOLD = "/tmp/PMTAngular"
@@ -41,7 +42,7 @@ class PMTAngular(object):
 
 
 if __name__ == '__main__':
-
+    logging.basicConfig(level=logging.INFO)
     t = PMTAngular()
 
     title = "~/j/PMTAngular/PMTAngular.py"
@@ -64,7 +65,10 @@ if __name__ == '__main__':
     ax.plot( [t.theta[0], t.theta[-1]], [1,1], linestyle="dotted", color="red" )
     ax.legend()
     fig1.show()
-    fig1.savefig(os.path.join(t.FOLD, "PMTAngular_fig1.png"))
+
+    fig1path = os.path.join(t.FOLD, "PMTAngular_fig1.png") 
+    log.info(fig1path)
+    fig1.savefig(fig1path)
 
 
 
@@ -88,7 +92,9 @@ if __name__ == '__main__':
         pass
     pass
     fig2.show()
-    fig2.savefig(os.path.join(t.FOLD, "PMTAngular_fig2.png"))
+    fig2path = os.path.join(t.FOLD, "PMTAngular_fig2.png") 
+    log.info(fig2path)
+    fig2.savefig(fig2path)
 
 
 

@@ -328,6 +328,140 @@ jcv AdditionAcrylicConstruction
    ~/opticks_refs/computing_csg_tree_boundaries_as_algebraic_expressions.pdf
     
 
+   1. solidAddition_down polycone z: 5.7,0,-140  rmax:450,450,200  : the outer 
+   2. uni_acrylic1 : subtract the acrylic sphere 
+   3. uni_acrylic2 : subtract ring tubs z:[ -4.8, -35.2] r:[120,208]
+   4. uni_acrylic3 : subtract 8 rods 
+
+
+   0110         double RmaxNodes3[3];
+    111         ZNodes3[0] = 5.7*mm; RminNodes3[0] = 0*mm; RmaxNodes3[0] = 450.*mm;
+    112         ZNodes3[1] = 0.0*mm; RminNodes3[1] = 0*mm; RmaxNodes3[1] = 450.*mm;
+    113         ZNodes3[2] = -140.0*mm; RminNodes3[2] = 0*mm; RmaxNodes3[2] = 200.*mm;
+    114 
+    115         solidAddition_down = new G4Polycone("solidAddition_down",0.0*deg,360.0*deg,3,ZNodes3,RminNodes3,RmaxNodes3);
+
+                       np.array( [ 5.7, 0.0, -140.0 ] )    # polycone z-levels 
+
+
+    116 
+    117     }
+    118 
+    119 
+    120 //    solidAddition_down = new G4Tubs("solidAddition_down",0,199.67*mm,140*mm,0.0*deg,360.0*deg);
+    121 //    solidAddition_down = new G4Cons("solidAddition_down",0.*mm,450.*mm,0.*mm,200*mm,70.*mm,0.*deg,360.*deg);
+    122     solidAddition_up = new G4Sphere("solidAddition_up",0*mm,17820*mm,0.0*deg,360.0*deg,0.0*deg,180.*deg);
+    123 
+    124     uni_acrylic1 = new G4SubtractionSolid("uni_acrylic1",solidAddition_down,solidAddition_up,0,G4ThreeVector(0*mm,0*mm,+17820.0*mm));
+              "polycone-sagitta"
+
+    125 
+    126     solidAddition_up1 = new G4Tubs("solidAddition_up1",120*mm,208*mm,15.2*mm,0.0*deg,360.0*deg);
+                                                              rmin   rmax    hz
+
+                         15.2*0.01 = 0.152 
+
+                          np.array([15.2, -15.2])-20.  = array([ -4.8, -35.2])    ring tubs z-range
+
+                          zz = np.array([15.2, -15.2])*1.01 - 20.0     = array([ -4.648, -35.352])
+
+
+
+                    cx ; ISEL=0,1,2,3 ZZ=5.7,0.0,-140.0,-4.8,-35.2,-4.648,-35.352 ./cxs.sh py 
+
+                    cx ; ISEL=0,1,2,3 ZZ=-4.648,-4.8,-35.2,-35.352 SZ=5.0 LOOK=-140.,0.,-20 ZOOM=5 ./cxs.sh py 
+
+
+
+
+             recall that a cylinder with non-zero rmin is implemented as a CSG subtraction
+
+                   fullcyl - smallcyl  = fullcyl intersect !smallcyl
+
+             subtracting that may give spurious coincidence edge 
+
+
+             BUT : X4Solid::convertTubs_cylinder  does expand the hz for subtracted by 0.01 
+
+
+             opticks has excess of :  SI BT BT BT BT AB
+
+
+
+
+    127     uni_acrylic2 = new G4SubtractionSolid("uni_acrylic2",uni_acrylic1,solidAddition_up1,0,G4ThreeVector(0.*mm,0.*mm,-20*mm));
+
+                    
+
+    128     solidAddition_up2 = new G4Tubs("solidAddition_up2",0,14*mm,52.5*mm,0.0*deg,360.0*deg);
+               
+                rod that keeps getting subtracted              rmin/rmax/zheight?
+
+                          np.array([52.5, -52.5]) - 87.5 = array([ -35., -140.])    rods z-range 
+ 
+                   
+
+    129 
+    130     for(int i=0;i<8;i++)
+    131     {
+    132     uni_acrylic3 = new G4SubtractionSolid("uni_acrylic3",uni_acrylic2,solidAddition_up2,0,G4ThreeVector(164.*cos(i*pi/4)*mm,164.*sin(i*pi/4)*mm,-87.5));
+    133     uni_acrylic2 = uni_acrylic3;
+    134 
+    135     }
+
+
+
+    epsilon:offline blyth$ jgl uni1
+    ./Simulation/DetSimV2/CentralDetector/include/XJfixtureConstruction.hh
+    ./Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+    ./Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
+
+jcv FastenerAcrylicConstruction
+
+    179     // Update new acrylic nodes
+    180     // YuMiao
+    181     //
+    182 
+    183 
+    184     G4Tubs *IonRing = new G4Tubs("IonRing",123*mm,206.2*mm,7*mm,0.0*deg,360.0*deg);
+
+                   // np.array( [123.0, 206.2 ] )
+                   // np.array([7, -7]) 
+                   //     np.array([7, -7])  - 20  = np.array([-13, -27])
+
+
+    185     G4Tubs* screw = new G4Tubs("screw",0,13*mm,50.*mm,0.0*deg,360.0*deg);
+
+                   // np.array(  [0, 13.] )
+                   // np.array(  [50, -50] )
+
+    186     uni_Addition = IonRing;
+    187     for(int i=0;i<8;i++)
+    188     {
+    189         G4UnionSolid* uni1 = new G4UnionSolid("uni1",uni_Addition, screw, 0, G4ThreeVector(164.*cos(i*pi/4)*mm, 164.*sin(i*pi/4)*mm,-65.0*mm));
+    190         uni_Addition = uni1;
+
+                 //  np.array(  [50, -50] ) - 65  = np.array([ -15, -115])
+
+                 // observe  np.array( [ -35., -135. ] )    =    np.array([ -15, -115]) - 20.   
+
+
+                 // LOOK=-164,0,-85 ZOOM=4 ISEL=0,1,2 ./cxs.sh 
+
+
+    191     }
+    192 
+    193 
+    194       logicFasteners = new G4LogicalVolume(
+    195       uni_Addition,//solidFasteners, 
+    196       Steel,
+    197       "lFasteners",
+    198       0,
+    199       0,
+    200       0);
+    201 
+
+
 
 
 
@@ -860,9 +994,32 @@ Simulation/DetSimV2/G4OpticksBridge/cmt
 EOP
 }
 
+jok-cmtdirs-notes(){ cat << EON
+
+To update the list of dirs, use *jok-cmtdirs* after deleting the cache file::
+
+    O[blyth@localhost opticks]$ rm $HOME/.jokdirs
+    O[blyth@localhost opticks]$ jok-cmtdirs
+    Simulation/DetSimV2/PhysiSim/cmt
+    Simulation/GenTools/cmt
+    Simulation/DetSimV2/PMTSim/cmt
+    Simulation/DetSimV2/AnalysisCode/cmt
+    Simulation/DetSimV2/DetSimOptions/cmt
+
+Changes need to be manually included into $JUNOTOP/junoenv/junoenv-opticks.sh junoenv-opticks-touchbuild-cmtdirs::
+Update the build with::
+
+    O[blyth@localhost junoenv]$ bash junoenv opticks touchbuild
+    
+EON
+}
+
+
 jok-cmtdirs-eg(){ cat << EOX
 Simulation/DetSimV2/PhysiSim/cmt
+Simulation/GenTools/cmt
 Simulation/DetSimV2/PMTSim/cmt
+Simulation/DetSimV2/AnalysisCode/cmt
 Simulation/DetSimV2/DetSimOptions/cmt
 EOX
 }
@@ -1263,7 +1420,18 @@ tds3(){
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
-   local opts="--opticks-mode 3 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax $evtmax $(anamgr) " ;   
+
+   local opts="" 
+   opts="$opts --opticks-mode 3"   
+   opts="$opts --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg"
+   opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --evtmax $evtmax"
+   opts="$opts $(anamgr) "
+
+   if [ -n "$DEBUG_DISABLE_STICKS" ]; then
+       opts="$opts --debug-disable-sticks"
+   fi 
+
 
    tds_ls
    tds_ctrl_ls 
