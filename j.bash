@@ -1401,6 +1401,14 @@ tds3ip(){
    tds3 
 }
 
+tds3dbg()
+{
+   export X4PhysicalVolume=INFO
+   export OGeo=INFO   # see if GParts::close is getting called in OGeo::makeAnalyticGeometry
+   tds3
+}
+
+
 
 tds-skipsolidname(){ echo $(tds-skipsolidname-) | tr " " "," ; }
 tds-skipsolidname-(){ cat << EON | grep -v ^#
@@ -1424,7 +1432,7 @@ tds3(){
    local opts="" 
    opts="$opts --opticks-mode 3"   
    opts="$opts --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg"
-   opts="$opts --additionacrylic-simplify-csg"
+   #opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "
 
