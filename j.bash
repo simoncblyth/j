@@ -202,6 +202,7 @@ j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
 ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
 j1(){ ji ; vi $(ls -1t | head -1) ; } 
+j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; } 
 jr(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 
@@ -222,6 +223,84 @@ jcv_(){ cat << EOC
 
 JUNO Opticks Classes
 -------------------------------
+
+
+FastSimulationModel
+~~~~~~~~~~~~~~~~~~~~~~
+
+jcv junoPMTOpticalModel
+
+    class junoPMTOpticalModel : public G4VFastSimulationModel
+
+    epsilon:offline blyth$ jgl junoPMTOpticalModel.hh
+    ./Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+    ./Simulation/DetSimV2/PMTSim/src/MCP20inchPMTManager.cc       // NOT USED
+    ./Simulation/DetSimV2/PMTSim/src/R12860PMTManager.cc          // NOT USED
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+
+
+
+jcv MultiFilmModel
+jcv OpticalSystem 
+jcv Layer
+jcv Matrix
+jcv Material
+
+
+::
+
+    768 void
+    769 HamamatsuR12860PMTManager::helper_fast_sim()
+    770 {   
+    771     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
+    772     body_log->SetRegion(body_region);
+    773     body_region->AddRootLogicalVolume(body_log);
+    774     
+    775     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
+    776                                                                    body_phys, body_region);
+
+    712 void
+    713 NNVTMCPPMTManager::helper_fast_sim()
+    714 {
+    715     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
+    716     body_log->SetRegion(body_region);
+    717     body_region->AddRootLogicalVolume(body_log);
+    718 
+    719     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
+    720                                                                    body_phys, body_region);
+
+
+    021 junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
+     22     : G4VFastSimulationModel(modelName, envelope)
+     23 {
+     24     _photon_energy  = 0.;
+     25     _wavelength     = 0.;
+     ...
+     63     whereAmI        = OutOfRegion;
+     65     InitOpticalParameters(envelope_phys);
+     67     m_multi_film_model = new MultiFilmModel(4);
+     69 }
+
+
+    281 void junoPMTOpticalModel::InitOpticalParameters(G4VPhysicalVolume* envelope_phys)
+    282 {
+    283     G4LogicalVolume* envelope_log
+    284         = envelope_phys->GetLogicalVolume();
+    285     G4MaterialPropertiesTable* glass_pt
+    286         = envelope_log->GetMaterial()->GetMaterialPropertiesTable();
+    287 
+    288     _rindex_glass   = glass_pt->GetProperty("RINDEX");
+    289     _inner1_phys    = envelope_log->GetDaughter(0);
+    290     _inner1_solid   = _inner1_phys->GetLogicalVolume()->GetSolid();
+    291     _rindex_vacuum  = _inner1_phys->GetLogicalVolume()->GetMaterial()
+    292                                   ->GetMaterialPropertiesTable()->GetProperty("RINDEX");
+    293 
+    294     _inner2_phys    = envelope_log->GetDaughter(1);
+    295     _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
+    296 }
+
+
 
 Simulation/DetSimV2/PhysiSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -574,6 +653,32 @@ EOC
 # -false to end sequence of ors 
 jcl(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
 jfi(){ local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
+
+
+jcopy(){  
+   : copy classes into PWD 
+   local dst=$PWD
+   cd $JUNOTOP/offline
+   local rels=$(jcl $*)
+   local rel 
+   local name 
+   local path
+   local cmd
+
+   for rel in $rels 
+   do  
+       name=$(basename $rel)
+       path=$dst/$name
+       if [ ! -f "$path" ]; then 
+           cmd="cp $rel $path"
+           echo $cmd
+           eval $cmd 
+       else
+           echo path $path exists already 
+       fi  
+   done 
+}
+
 
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }

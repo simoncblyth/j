@@ -1190,9 +1190,7 @@ Added SCount counting occurrences of each lvIdx to start looking into why repeat
 
        1 pts Y  GPts.NumPt     5 lvIdx ( 116 114 112 113 115)
        2 pts Y  GPts.NumPt     7 lvIdx ( 104 98 99 103 102 100 101)
-
        3 pts Y  GPts.NumPt     7 lvIdx ( 111 105 106 110 109 107 108)
-
        4 pts Y  GPts.NumPt     4 lvIdx ( 123 127 124 125)
        5 pts Y  GPts.NumPt     1 lvIdx ( 93)
        6 pts Y  GPts.NumPt     1 lvIdx ( 94)
