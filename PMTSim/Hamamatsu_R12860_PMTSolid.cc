@@ -10,13 +10,16 @@
 #include "G4UnionSolid.hh"
 
 #include "ellipse_intersect_circle.hh"
+#include "ZSolids.hh"
+
 
 #include <cmath>
 using namespace CLHEP;
 
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
     :
-    m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true)
+    m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true), 
+    zs(new ZSolids)
 {
    G4cout 
        << "Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid"
@@ -164,6 +167,8 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					);
     // pmt_solid = solid_I;
 
+    zs->solids.push_back( {solid_I, 0., P_I_H, "", 0. } ); 
+
     G4VSolid* solid_II = new G4Tubs(
 					solidname+"_II",
 					0.0,
@@ -172,10 +177,12 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					0.*deg,
 					360.*deg
 					);
+
+
     G4cout << __FILE__ << ":" <<  __LINE__ << G4endl;
     // I+II
 
-    if( mode == ' ' || mode == 'H' )   // head mode 'H' doesnt care, as solid_I is returned  
+    if( mode == ' ' || mode == 'H' || mode == 'Z' )   // head mode 'H' doesnt care, as solid_I is returned  
     {
         pmt_solid = new G4UnionSolid(
 				 solidname+"_1_2",
@@ -184,6 +191,9 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-m2_h/2)
 				 );  
+
+        zs->solids.push_back( {solid_II, -m2_h/2, m2_h/2, "_1_2", -m2_h/2 } ); 
+
     }
     else if( mode == 'T' )   // tail mode 'T' starts from the thin equatorial cylinder
     {
@@ -207,6 +217,9 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                                    rInner,
                                    rOuter
                                    ); 
+
+
+
     }
 
 
@@ -226,6 +239,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-m2_h)
 				 );
+    zs->solids.push_back( {solid_III, -P_I_H, 0., "_1_3", -m2_h } ); 
 
 
     G4VSolid* solid_IV = NULL ; 
@@ -315,6 +329,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                                      ); 
 
             solid_IV = (G4VSolid*)_solid_IV ;
+            zs->solids.push_back( {solid_IV, zPlane[0], zPlane[1], "_1_4", -210.*mm+m4_h/2 } ); 
         }
     }
 
@@ -345,6 +360,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-210.*mm-m5_h/2)
 				 );
+    zs->solids.push_back( {solid_V, -m5_h/2, m5_h/2, "_1_5", -210.*mm-m5_h/2 }); 
 
 
     double P_VI_R = m6_r + thickness;
@@ -366,6 +382,10 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     				 G4ThreeVector(0,0,-275.*mm)
     				 );
 
+    zs->solids.push_back( {solid_VI, -m5_h/2, m5_h/2, "_1_6", -275.*mm } ); 
+
+
+
     G4VSolid* solid_VIII = new G4Tubs(
 				      solidname+"_VIII",
 				      0.0,
@@ -382,6 +402,10 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-420.*mm+m8_h/2)
 				 );
+
+    zs->solids.push_back( {solid_VIII, -m8_h/2, m8_h/2, "_1_8", -420.*mm+m8_h/2  } ); 
+
+
 
     // G4VSolid* solid_IX = new G4Tubs(
     // 				    solidname+"_IX",
@@ -414,15 +438,21 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm)
 				 );
 
+    zs->solids.push_back( {solid_IX, z_IX[0], z_IX[1], "_1_9", -420.*mm } ); 
 
-    G4VSolid* u_pmt_solid = pmt_solid ; 
 
+    double zcut = 0. ; 
+    G4VSolid* zpmt_solid = zs->makeUnionSolid(solidname, zcut );  
+
+
+
+    G4VSolid* u_pmt_solid = nullptr ; 
     switch(mode)
     {
-       case ' ':u_pmt_solid = pmt_solid ; break ;
-       case 'H':u_pmt_solid = solid_I   ; break ;
-       case 'T':u_pmt_solid = pmt_solid ; break ;
-       default: u_pmt_solid = NULL      ; break ;       
+       case ' ':u_pmt_solid = pmt_solid  ; break ;
+       case 'H':u_pmt_solid = solid_I    ; break ;
+       case 'T':u_pmt_solid = pmt_solid  ; break ;
+       case 'Z':u_pmt_solid = zpmt_solid ; break ;
     }
     
     if(u_pmt_solid == NULL)
@@ -434,6 +464,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
            ;
        assert(0); 
     }
+
 
     return u_pmt_solid;
 }

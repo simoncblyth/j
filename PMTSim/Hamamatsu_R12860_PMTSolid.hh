@@ -7,6 +7,8 @@
  */
 
 #include "globals.hh"
+
+struct ZSolids ; 
 class G4VSolid;
 
 class Hamamatsu_R12860_PMTSolid {
@@ -52,6 +54,8 @@ private:
     double m9_h;
 
     bool m_polycone_neck ; 
+
+    ZSolids* zs ; 
 
 };
 

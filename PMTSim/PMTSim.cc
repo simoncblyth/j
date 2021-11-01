@@ -15,10 +15,15 @@ G4LogicalVolume* PMTSim::GetLV(const char* name)  // static
     return lv ; 
 }
 
-G4VSolid* PMTSim::GetSolid(const char* name, double thickness, char mode) // static
+G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
     Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
-    std::cout << " pmtsolid_maker " << pmtsolid_maker << std::endl ; 
+    char mode = ' '; 
+    if(strcmp(name, "PMTSim_Z")==0) mode = 'Z' ; 
+
+    std::cout << "PMTSim::GetSolid name " << name << "  mode [" << mode << "]" << std::endl ; 
+
+    double thickness = 0. ; 
     G4String solidname = name ; 
     G4VSolid* solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
     return solid ; 
