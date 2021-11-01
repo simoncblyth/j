@@ -6,6 +6,8 @@ class G4VSolid ;
 
 struct ZSolid
 {
+    std::string type ; 
+
     G4VSolid*   solid ; 
 
     // local z-range of solid without any shifts applied, z1 > z0 
@@ -19,17 +21,34 @@ struct ZSolid
     double      zdelta ; 
 
     std::string desc() const ; 
-
+    bool is_ellipsoid() const ; 
+    bool is_polycone() const ; 
+    bool is_tubs() const ; 
 }; 
 
 struct ZSolids 
 {
     std::vector<ZSolid> solids ; 
 
-    G4VSolid* makeUnionSolid(const std::string& solidname, double zcut ) const ; 
-    double getAbsoluteZShift(unsigned idx) const ; 
+
+    enum { UNDEFINED, INCLUDE, STRADDLE, EXCLUDE } ; 
+    int classifyZCut( unsigned idx, double zcut );
+    unsigned classifyZCutCount( double zcut, int q_cls ); 
+
+    G4VSolid* makeUnionSolid(const std::string& solidname) const ; 
+    G4VSolid* makeUnionSolidZCut(const std::string& solidname, double zcut ) ;  // non-const because cuts straddle solids 
+
+    double getAbsoluteZ( unsigned idx, int type ) const ; 
+    double getAbsoluteZ0( unsigned idx) const ; 
+    double getAbsoluteZ1( unsigned idx) const ; 
 
     void dump(const char* msg) const ; 
+    void save(const char* path) const ; 
+
+    void applyZCut(             unsigned idx, double zcut); 
+    void applyZCut_G4Ellipsoid( unsigned idx, double zcut);
+    void applyZCut_G4Tubs(      unsigned idx, double zcut);
+    void applyZCut_G4Polycone(  unsigned idx, double zcut);
 }; 
 
 

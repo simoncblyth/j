@@ -29,6 +29,21 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
     return solid ; 
 }
 
+
+/*
+void PMTSim::MakeZCutSolids( std::vector<G4VSolid*>& solids )
+{
+    Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
+    std::vector<double> zcuts ; 
+    for(double zc=50. ; zc > -450. ; zc-= 50 )
+    {
+        zcuts.push_back(zc); 
+    } 
+}
+*/
+
+
+
  
 
 

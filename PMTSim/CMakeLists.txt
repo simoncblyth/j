@@ -37,7 +37,7 @@ target_include_directories(${name}
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(${name} PUBLIC Opticks::G4)
+target_link_libraries(${name} PUBLIC Opticks::G4 Opticks::SysRap)
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 

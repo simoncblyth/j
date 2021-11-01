@@ -3,7 +3,9 @@
 
 int main(int argc, char** argv)
 {
-    G4VSolid* solid = PMTSim::GetSolid() ; 
+    const char* name = "PMTSim_Z" ; 
+
+    G4VSolid* solid = PMTSim::GetSolid(name) ; 
     
     std::cout << " solid " << solid << std::endl ; 
 

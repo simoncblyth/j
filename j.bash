@@ -356,6 +356,19 @@ Simulation/DetSimV2/AnalysisCode
 jcv G4OpticksAnaMgr
 
 
+Opticks Integration Classes
+-----------------------------
+
+jgr _Opticks
+
+jcv junoSD_PMT_v2_Opticks
+    Invokes Opticks GPU optical photon simulation at the EndOfEvent
+    Hit handling, conversion 
+
+jcv LSExpDetectorConstruction_Opticks 
+    Setup function, geometry translation, collect efficiencies
+ 
+
 
 JUNO Classes Particularly Pertinent to Opticks 
 --------------------------------------------------
@@ -1508,7 +1521,8 @@ tds3ip(){
 
 tds3dbg()
 {
-   export X4PhysicalVolume=INFO
+   unset X4PhysicalVolume
+   #export X4PhysicalVolume=INFO
    export OGeo=INFO   # see if GParts::close is getting called in OGeo::makeAnalyticGeometry
    tds3
 }
