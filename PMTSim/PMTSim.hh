@@ -7,7 +7,8 @@ class G4LogicalVolume ;
 
 struct PMTSIM_API PMTSim
 {
-    static G4VSolid* GetSolid(const char* name="PMTSim"); 
+    static G4VSolid* GetSolid(     const char* name="PMTSim_Z"); 
+    static G4VSolid* GetZCutSolid( const char* name="PMTSim_Z", double zcut=-350. ); 
     static G4LogicalVolume* GetLV(const char* name); 
 
 };

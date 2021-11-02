@@ -18,6 +18,276 @@ the energy dependent part.  So that Opticks can reproduce the
 efficiency calculation done in ProcessHits. 
 
 
+
+Yuxiang
+---------
+
+Hi Yuxiang, 
+
+Thank you for the explanation.  
+I can see the advantage of handling the efficiency all in one place.
+ 
+To bring per-PMT QE and CE to the GPU will require use of some big 2D textures
+Fortunately even ancient GPUs like my laptops are able to handle 2D texture dimensions 
+sufficient for the ~45,612 JUNO sensors
+
+ 675      GGeo::getSensorBoundaryReport()
+ 676      boundary  30 b+1  31 sensor_count  12612 Pyrex/NNVTMCPPMT_PMT_20inch_photocathode_logsurf2/NNVTMCPPMT_PMT_20inch_photocathode_logsurf1/Vacuum
+ 677      boundary  33 b+1  34 sensor_count   5000 Pyrex/HamamatsuR12860_PMT_20inch_photocathode_logsurf2/HamamatsuR12860_PMT_20inch_photocathode_logsurf1/Vacuum
+ 678      boundary  35 b+1  36 sensor_count  25600 Pyrex/PMT_3inch_photocathode_logsurf2/PMT_3inch_photocathode_logsurf1/Vacuum
+ 679      boundary  40 b+1  41 sensor_count   2400 Pyrex/PMT_20inch_veto_photocathode_logsurf2/PMT_20inch_veto_photocathode_logsurf1/Vacuum
+ 680                           sensor_total  45612
+
+
+TITAN RTX/V  : Maximum Texture Dimension Size (x,y,z)         1D=(131072), 2D=(*131072*, 65536), 3D=(16384, 16384, 16384)
+Geforce 750M : Maximum Texture Dimension Size (x,y,z)         1D=(65536), 2D=(*65536*, 65536), 3D=(4096, 4096, 4096) 
+
+
+
+With the textures, the below code:
+ 
+ 457      if(m_use_pmtsimsvc){
+ 458         qe = m_enable_optical_model ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+ 459         ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+ 461      }
+
+Can be replaced via texture lookups using 2D QE and CE textures:
+
+    2D QE texture (pmtContiguousIndex, edep)
+    2D CE texture (pmtContiguousIndex, theta) 
+
+Where pmtContiguousIndex can be obtained from pmtID knowing the ranges of pmtIDs.  
+
+To enable Opticks to build textures it is necessary  
+to add some additional methods to PMTSimParSvc::
+
+     void     get_all_pmtID(std::vector<int>& pmtIDs ) const ; 
+     int      get_pmtContiguousIndex( int pmtID ) const ; 
+     int      get_pmtId_from_contiguousIndex( int pmtContiguousIndex ) const ;   
+
+The pmtContiguousIndex does not need to be totally contiguous but the 
+gaps between the sequences of Idx for different LPMT/veto/SPMT categories 
+should not be large because there is a texture dimension limit of 65,536
+
+Example (uncompiled and untested) guess implementations are below, 
+the real implementation will require some experimentation using the actual 
+pmtID to check can convert both ways and avoid overlapping of contiguousIdx 
+between types of PMTs.
+
+
+int get_pmtContiguousIndex(int pmtID ) const
+{
+    int contiguousIdx = -1 ;
+    if(pmtID<18000)           //  0:18000 for LPMT 
+    {
+        contiguousIdx = pmtID ;
+    }
+    else if( pmtID<300000 )    //  18000:22000  for vetoPMT   (space for 4000)  
+    {
+        contiguousIdx = 18000 + pmtID - vetoPMTidStart  ;  // hmm do not know where veto pmtID start
+    }
+    else if(pmtID>=300000)     //  22000:47600   for SPMT     (nominally 25600, but with headroom for more)
+    {
+        contiguousIdx = 18000 + 4000 + pmtID - 300000 ;
+    }
+
+    assert( contiguousIdx > -1 && contiguousIdx < 65536); 
+
+    int pmtID_check = get_pmtId_from_contiguousIndex( contiguousIdx ); 
+    assert(  pmtID_check == pmtID ); 
+
+    return contiguousIdx ;
+}
+
+int get_pmtId_from_contiguousIndex( int contiguousIdx ) const 
+{
+     int pmtId = -1 ; 
+     if( contiguousIdx < 18000 )
+     {
+          pmtId = contiguousIdx ; 
+     }
+     else if( contiguousIdx < 18000 + 4000 )
+     {
+          pmtId = contiguousIdx - 18000 + vetoPMTidStart  ; 
+     }
+     else if( contiguousIdx < 18000 + 4000 + 25600 )
+     {
+          pmtId = contiguousIdx - ( 18000 + 4000 ) + 3000000 ; 
+     }
+
+     int contiguousIdx_check = get_pmtContiguousIndex( pmtId ); 
+     assert( contiguousIdx_check == contiguousIdx ); 
+
+     return pmtId ; 
+}
+
+
+Using the above API will then allow to add another method that 
+collects all the QE data into a vector. 
+This data can then be copied into a GPU float texture.   
+
+// below is untested scratch code to illustrate how to collect 
+// QE data for all PMTs
+
+void getQEData(std::vector<double>& qe_data, double en0, double en1, unsigned num_edep  ) const 
+{
+    std::vector<int> all_pmtIDs ; 
+    get_all_pmtID( all_pmtIDs );  
+    std::sort( all_pmtIDs.begin(), all_pmtIDs.end() );  
+
+    int pmtId_first = all_pmtIDs.front() ; 
+    int pmtId_last  = all_pmtIDs.back() ; 
+    assert( pmtId_first == 0 );  
+                
+    int idx_first = get_pmtContiguousIndex(pmtId_first) ; 
+    int idx_last  = get_pmtContiguousIndex(pmtId_last) ;     
+    int num_idx = idx_last - idx_first + 1 ; 
+
+    assert( idx_first == 0 ) ; 
+    assert( num_idx == all_pmtIDs.size() );  
+
+    qe_data.clear();
+    qe_data.resize( num_idx*num_edep );  
+ 
+    double* qe_data_ = qe_data.data() ;   
+
+    for(unsigned i=0 ; i < all_pmtIDs.size() ; i++ )
+    {   
+       int pmtId = all_pmtIDs[i] ; 
+       int pmtContiguousIdx = get_pmtContiguousIndex(pmtId) ;   
+
+       for(unsigned j=0 ; j < num_edep ; j++)
+       {   
+           double efrac = double(j)/double(num_edep) ; 
+           double edep = en0 + (en1 - en0)*efrac ; 
+           double qe = get_pmtid_qe(pmtID,edep);
+
+           qe_data_[ pmtContiguousIdx*num_edep + j ] = qe ;    
+       }   
+    }   
+}
+
+
+
+The translation from pmtId to pmtContiguousIdx will 
+have to be used elsewhere so that all Opticks references to PMTs 
+use the contiguous index rather than the ordinary pmtID.  
+This way the GPU will have access to the energy dependent QE.
+
+A similar method can be used to collect the theta dependent CE data.
+
+void getCEData(std::vector<double>& ce_data, double th0, double th1, unsigned num_theta  ) const 
+
+2. Then I need to clear about some details of my va
+
+lidation of QE in order to answer your question about my QE validation result.
+
+I check QE and CE just in my local Offline sorfware and my trunk of local Offline is the latest version. In order to prove the equivalence of the two implementation which shows above, we modify some QE data type to make sure the data of two implementation is the same.
+
+...
+    
+then I modify the G4OpBoundaryProcess. I just design the API which get the efficiecy in order to know about the efficiency value which G4OpBoudaryProcess used and I didn't modify other code of G4OpBoundaryProcess . I don't understand why it is problematic like you said.
+
+
+
+When I do the QE compare, I run the script like the following: 
+
+#!/bin/bash
+
+python $TUTORIALROOT/share/tut_detsim.py --no-use-pmtsimsvc --disable-pmt-optical-model  --output det_sample.root --user-output det_sample_user.root --evtmax 1 gun --positions 0 0 0 --particles gamma --momentums 30000.0 --directions 0 0 -1
+I use the argument  --no-use-pmtsimsvc  so that Efficiency actually be register to the PMT volume and the Boundary Process can get the Efficiency. Thus the efficiency is not 1 !! and then in my validation code in junoSD_PMT_v2::ProcessHit.cc, I directly use PMTSimSvc which now is not under the control of *m_use_pmtsimsvc*.
+
+thus
+
+ int debug = 1 ;  
+    if(debug){
+      std::cout<<"   pmtid   =  "<< pmtID
+               << "  theta   = " <<  local_pos.theta()
+               <<"   pmtcat  = "<< m_PMTParamsvc->getPMTCategory(pmtID)
+               <<"   volname = " << volname << std::endl ;
+      double epsilon = 1e-10;
+      double qe_0= qe * (boundary_proc->GetTheEff());
+
+thus the qe_0 is not same as qe since in my run.sh script which shows above the efficiency is registered. These code are just in my local trunk of Offline.
+
+
+
+
+It is problematic because the check cannot be generally done, it needs
+significant code changes which makes it a once only check.
+
+But never mind we just have to rely on your check. 
+
+
+
+
+
+
+
+
+
+void getQEData(std::vector<double>& qe_data, double en0, double en1, unsigned num_edep  ) const 
+{
+    std::vector<int> all_pmtIDs ; 
+    get_all_pmtID( all_pmtIDs ); 
+    std::sort( all_pmtIDs.begin(), all_pmtIDs.end() ); 
+
+    int pmtId_first = all_pmtIDs.front() ; 
+    int pmtId_last  = all_pmtIDs.back() ; 
+    assert( pmtId_first == 0 ); 
+           
+    int idx_first = get_pmtContiguousIndex(pmtId_first) ; 
+    int idx_last  = get_pmtContiguousIndex(pmtId_last) ;          
+    int num_idx = idx_last - idx_first + 1 ; 
+
+    assert( idx_first == 0 ) ; 
+    assert( num_idx == all_pmtIDs.size() ); 
+
+    qe_data.clear();
+    qe_data.resize( num_idx*num_edep ); 
+    qe_data.fill(0.); 
+ 
+    double* qe_data_ = qe_data.data() ;  
+
+    for(unsigned i=0 ; i < all_pmtIDs.size() ; i++ )
+    {
+       int pmtId = all_pmtIDs[i] ; 
+       int pmtContiguousIdx = get_pmtContiguousIndex(pmtId) ;  
+
+       for(unsigned j=0 ; j < num_edep ; j++)
+       {
+           double efrac = double(j)/double(num_edep) ; 
+           double edep = en0 + (en1 - en0)*efrac ; 
+           double qe = get_pmtid_qe(pmtID,edep);
+
+           qe_data_[ pmtContiguousIdx*num_edep + j ] = qe ;     
+       }
+    }
+}
+
+
+
+int getPMTContiguousIndex(int pmtID ) const 
+{
+    int contiguousIdx = -1 ; 
+    if(pmtID<18000)
+    {
+        contiguousIdx = pmtID ; 
+    }
+    else if( pmtID<300000 )
+    { 
+        contiguousIdx = pmtID - 18000   
+    } 
+    else if(pmtID>=300000) 
+    {
+        contiguousIdx = 5000 + pmtID - 300000 ;   
+    }
+    return contiguousIdx ; 
+}
+
+
+
+
 Old Opticks Efficiency Collection
 -------------------------------------
 
@@ -506,7 +776,7 @@ jcv PMTSimParamSvc::
     1015     qe = vec->Value(energy);
     1016     return qe;  
     1017 }
-    1018 
+
     1019 double PMTSimParamSvc::get_pmtid_qe(int pmtid, double energy){
     1020 
     1021   int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid) ;
@@ -517,6 +787,104 @@ jcv PMTSimParamSvc::
     1026   assert(qe > 0 && qe < 1);
     1027   return qe;
     1028 }
+
+    1030 double PMTSimParamSvc::get_pmt_qe_scale(int pmtid){
+    1031       return get_real_qe_at420nm(pmtid)/get_shape_qe_at420nm(pmtid);
+    1032 }
+
+
+    1034 double PMTSimParamSvc::get_shape_qe_at420nm(int pmtid){
+    1035 
+    1036   int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid) ;
+    1037   assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    1038   double qe_shape_at420nm = -1 ;
+    1039   switch(pmtcat)
+    1040     {   //FIXME:KPMT_Unknown represent WP pmt,which use normal NNVTMCP ?
+    1041         case kPMT_Unknown:     { qe_shape_at420nm  = m_qeshape_at420nm_WP;
+    1042                                } ; break ;
+    1043         case kPMT_NNVT:        {
+    1044                                  qe_shape_at420nm =  m_qeshape_at420nm_NNVT_Normal ;
+    1045                                } ; break ;
+    1046         case kPMT_Hamamatsu:   {
+    1047                                  qe_shape_at420nm  = m_qeshape_at420nm_Hamamatsu ;
+    1048                                } ; break ;
+    1049         case kPMT_HZC:         {
+    1050                                  qe_shape_at420nm  = m_qeshape_at420nm_HZC;
+    1051                                } ; break ;
+    1052         case kPMT_NNVT_HighQE: {
+    1053                                  qe_shape_at420nm  = m_qeshape_at420nm_NNVT_HiQE ;
+    1054                                } ; break ;
+    1055    }
+    1056  
+    1057 
+    1058   assert(qe_shape_at420nm  >= 0);
+    1059   return qe_shape_at420nm ;
+    1060 }
+
+    1063 double PMTSimParamSvc::get_real_qe_at420nm(int pmtid){
+    1064    int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid) ;
+    1065    assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    1066    double qe_real_at420nm =-1 ;
+    1067    switch(pmtcat)
+    1068     {   //FIXME:KPMT_Unknown represent WP pmt,which use normal NNVTMCP ?
+    1069         case kPMT_Unknown:     { qe_real_at420nm = m_qereal_at420nm_WP;
+    1070                                } ; break ;
+    1071         case kPMT_NNVT:        {
+    1072                                  qe_real_at420nm =  get_pde(pmtid)/m_eff_ce_NNVT_Normal;
+    1073                                } ; break ;
+    1074         case kPMT_Hamamatsu:   {
+    1075                                  qe_real_at420nm = get_pde(pmtid)/m_eff_ce_Hamamatsu;
+    1076                                } ; break ;
+    1077         case kPMT_HZC:         {
+    1078                                  qe_real_at420nm =  pd_map_SPMT[pmtid].QE();
+    1079                                } ; break ;
+    1080         case kPMT_NNVT_HighQE: {
+    1081                                  qe_real_at420nm =  get_pde(pmtid)/m_eff_ce_NNVT_HiQE ;
+    1082                                } ; break ;
+    1083    }
+    1084    assert(qe_real_at420nm>0);
+    1085    return qe_real_at420nm;
+    1086 
+    1087 }
+
+    0844 double PMTSimParamSvc::get_pde(int pmtId)
+     845 {
+     846     // FIXME: potting scale factor, should it be placed here?
+     847     double scale_factor = 1.0;
+     848     if (m_map_pmt_category[pmtId] == kPMT_Hamamatsu ) {  // hamamatsu pmt
+     849         scale_factor = m_pde_scale_Hamamatsu;
+     850     } else if (m_map_pmt_category[pmtId] == kPMT_NNVT or m_map_pmt_category[pmtId] == kPMT_NNVT_HighQE) {
+     851         scale_factor = m_pde_scale_NNVT;
+     852     }
+     853     return pd_vector[pmtId].pde()*scale_factor /100.;
+     854 }
+
+    0073 /**
+      74 PMTParamSvc::getPMTCategory
+      75 ----------------------------
+      76 
+      77 WP PMTs (pmtID 30,000+) are not listed, so return category kPMT_Unknown -1 
+      78 
+      79 **/
+      80 int PMTParamSvc::getPMTCategory(int pmtID) const
+      81 {
+      82     //return m_pmt_categories.count(pmtID) == 1 ? m_pmt_categories.at(pmtID) : kPMT_Unknown  ; 
+      83     return isWP(pmtID) ? kPMT_Unknown : m_pmt_categories.at(pmtID) ;
+      84 }
+
+
+    1116 double PMTSimParamSvc::get_pmtid_ce(int pmtid , double theta) const{
+    1117 
+    1118      int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid);
+    1119      double ce = get_pmtcat_ce(pmtcat,theta);
+    1120      assert( ce > 0 );
+    1121      return  ce ;
+    1122 
+    1123 }
+
+
+
+
 
     1091 G4MaterialPropertyVector*  PMTSimParamSvc::get_pmtcat_qe_vs_energy(int pmtcat){
     1092    assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );

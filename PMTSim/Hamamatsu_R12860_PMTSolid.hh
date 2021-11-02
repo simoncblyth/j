@@ -17,9 +17,8 @@ class Hamamatsu_R12860_PMTSolid {
 public:
     Hamamatsu_R12860_PMTSolid();
 
-    G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
-
-    void MakeZCutSolids(const std::string& solidname, std::vector<G4VSolid*>& solids, const std::vector<double>& zcuts ) ; 
+    G4VSolid* GetSolid(    G4String solidname, double thickness=0.0, char mode=' ');
+    G4VSolid* GetZCutSolid(G4String solidname, double zcut, double thickness=0.0, char mode=' ');
 
 private:
 

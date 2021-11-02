@@ -469,14 +469,26 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 }
 
 
+/**
+Hamamatsu_R12860_PMTSolid::GetZCutSolid
+-----------------------------------------
 
-void Hamamatsu_R12860_PMTSolid::MakeZCutSolids(const std::string& solidname, std::vector<G4VSolid*>& solids, const std::vector<double>& zcuts )
+Returns the z > zcut (local frame) portion of the solid.
+
+The returned G4VSolid may be a single solid or
+a G4UnionSolid combination of multiple G4VSolid
+depending on the zcut value.
+
+This means that only relevant CSG constituents are 
+provided avoiding slow and pointless complicated CSG.
+
+**/
+
+G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
-    for(unsigned i=0 ; i < zcuts.size() ; i++)
-    {
-        double zcut = zcuts[i]; 
-        G4VSolid* solid = zs->makeUnionSolidZCut( solidname, zcut ); 
-        solids.push_back(solid); 
-    } 
+    G4VSolid* full = GetSolid(solidname, thickness, mode) ;  
+    assert( full );   // getting the full solid populates ZSolids vector 
+    G4VSolid* zcut_solid = zs->makeUnionSolidZCut(solidname, zcut);  
+    return zcut_solid ; 
 }
 
