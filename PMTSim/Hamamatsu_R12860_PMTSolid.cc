@@ -167,7 +167,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					);
     // pmt_solid = solid_I;
 
-    zs->solids.push_back( {"G4Ellipsoid", solid_I, 0., P_I_H, "", 0. } ); 
+    zs->solids.push_back( {solid_I, "", 0. } ); 
 
     G4VSolid* solid_II = new G4Tubs(
 					solidname+"_II",
@@ -192,7 +192,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-m2_h/2)
 				 );  
 
-        zs->solids.push_back( {"G4Tubs", solid_II, -m2_h/2, m2_h/2, "_1_2", -m2_h/2 } ); 
+        zs->solids.push_back( {solid_II, "_1_2", -m2_h/2 } ); 
 
     }
     else if( mode == 'T' )   // tail mode 'T' starts from the thin equatorial cylinder
@@ -239,7 +239,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-m2_h)
 				 );
-    zs->solids.push_back( {"G4Ellipsoid", solid_III, -P_I_H, 0., "_1_3", -m2_h } ); 
+    zs->solids.push_back( {solid_III, "_1_3", -m2_h } ); 
 
 
     G4VSolid* solid_IV = NULL ; 
@@ -329,7 +329,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                                      ); 
 
             solid_IV = (G4VSolid*)_solid_IV ;
-            zs->solids.push_back( {"G4Polycone", solid_IV, zPlane[0], zPlane[1], "_1_4", -210.*mm+m4_h/2 } ); 
+            zs->solids.push_back( {solid_IV, "_1_4", -210.*mm+m4_h/2 } ); 
         }
     }
 
@@ -360,7 +360,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-210.*mm-m5_h/2)
 				 );
-    zs->solids.push_back( {"G4Tubs",solid_V, -m5_h/2, m5_h/2, "_1_5", -210.*mm-m5_h/2 }); 
+    zs->solids.push_back( {solid_V, "_1_5", -210.*mm-m5_h/2 }); 
 
 
     double P_VI_R = m6_r + thickness;
@@ -382,7 +382,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     				 G4ThreeVector(0,0,-275.*mm)
     				 );
 
-    zs->solids.push_back( {"G4Ellipsoid", solid_VI, -90.*mm, 0., "_1_6", -275.*mm } ); 
+    zs->solids.push_back( {solid_VI, "_1_6", -275.*mm } ); 
 
 
 
@@ -403,7 +403,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm+m8_h/2)
 				 );
 
-    zs->solids.push_back( {"G4Tubs", solid_VIII, -m8_h/2, m8_h/2, "_1_8", -420.*mm+m8_h/2  } ); 
+    zs->solids.push_back( {solid_VIII, "_1_8", -420.*mm+m8_h/2  } ); 
 
 
 
@@ -438,7 +438,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm)
 				 );
 
-    zs->solids.push_back( {"G4Polycone", solid_IX, z_IX[0], z_IX[1], "_1_9", -420.*mm } ); 
+    zs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
 
     G4VSolid* zpmt_solid = zs->makeUnionSolid(solidname);  
@@ -486,8 +486,8 @@ provided avoiding slow and pointless complicated CSG.
 
 G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
-    G4VSolid* full = GetSolid(solidname, thickness, mode) ;  
-    assert( full );   // getting the full solid populates ZSolids vector 
+    G4VSolid* full = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
+    assert( full );  
     G4VSolid* zcut_solid = zs->makeUnionSolidZCut(solidname, zcut);  
     return zcut_solid ; 
 }

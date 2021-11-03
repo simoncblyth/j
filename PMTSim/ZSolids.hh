@@ -6,49 +6,49 @@ class G4VSolid ;
 
 struct ZSolid
 {
-    std::string type ; 
-
     G4VSolid*   solid ; 
+    std::string label ;    // label of the CSG combination  
+    double      zdelta ;   // z shift to be applied to the solid when in CSG combination 
 
-    // local z-range of solid without any shifts applied, z1 > z0 
-    double      z0 ;     
-    double      z1 ;    
 
-    // label of the CSG combination  
-    std::string label ; 
+    double z1() const ; 
+    double z0() const ; 
 
-    // z shift to be applied to the solid when in CSG combination 
-    double      zdelta ; 
+
+    enum { _G4Other, _G4Ellipsoid, _G4Tubs, _G4Polycone } ; 
+    static int         EntityType(    const G4VSolid* const solid) ; 
+    static const char* EntityTypeName(const G4VSolid* const solid) ; 
+
+    enum { UNDEFINED, INCLUDE, STRADDLE, EXCLUDE } ; 
+    int classifyZCut( double zcut ) const ;
+
+    void getZRange( double& z0, double& z1 ) const ; 
+    static void GetZRange( const G4Ellipsoid* const ellipsoid, double& z0, double& z1 );
+    static void GetZRange( const G4Tubs*      const tubs     , double& z0, double& z1 ); 
+    static void GetZRange( const G4Polycone*  const polycone , double& z0, double& z1 ); 
 
     std::string desc() const ; 
-    bool is_ellipsoid() const ; 
-    bool is_polycone() const ; 
-    bool is_tubs() const ; 
+
+    void applyZCut(             double zcut); 
+    void applyZCut_G4Ellipsoid( double zcut);
+    void applyZCut_G4Tubs(      double zcut);
+    void applyZCut_G4Polycone(  double zcut);
 }; 
+
+
 
 struct ZSolids 
 {
     std::vector<ZSolid> solids ; 
 
-
-    enum { UNDEFINED, INCLUDE, STRADDLE, EXCLUDE } ; 
-    int classifyZCut( unsigned idx, double zcut );
     unsigned classifyZCutCount( double zcut, int q_cls ); 
 
     G4VSolid* makeUnionSolid(const std::string& solidname) const ; 
     G4VSolid* makeUnionSolidZCut(const std::string& solidname, double zcut ) ;  // non-const because cuts straddle solids 
 
-    double getAbsoluteZ( unsigned idx, int type ) const ; 
-    double getAbsoluteZ0( unsigned idx) const ; 
-    double getAbsoluteZ1( unsigned idx) const ; 
-
     void dump(const char* msg) const ; 
     void save(const char* path) const ; 
 
-    void applyZCut(             unsigned idx, double zcut); 
-    void applyZCut_G4Ellipsoid( unsigned idx, double zcut);
-    void applyZCut_G4Tubs(      unsigned idx, double zcut);
-    void applyZCut_G4Polycone(  unsigned idx, double zcut);
 }; 
 
 
