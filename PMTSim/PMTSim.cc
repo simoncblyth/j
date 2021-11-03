@@ -25,9 +25,11 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     double thickness = 0. ; 
     G4String solidname = name ; 
-    G4VSolid* solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
+    //G4VSolid* solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
+    G4VSolid* solid = pmtsolid_maker->GetClonedSolid(solidname, thickness, mode);  
     return solid ; 
 }
+
 
 G4VSolid* PMTSim::GetZCutSolid( const char* name, double zcut ) // static
 {

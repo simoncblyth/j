@@ -14,10 +14,12 @@ struct ZSolid
     double z1() const ; 
     double z0() const ; 
 
-
-    enum { _G4Other, _G4Ellipsoid, _G4Tubs, _G4Polycone } ; 
+    enum { _G4Other, _G4Ellipsoid, _G4Tubs, _G4Polycone, _G4UnionSolid, _G4SubtractionSolid, _G4IntersectionSolid, _G4DisplacedSolid } ; 
     static int         EntityType(    const G4VSolid* const solid) ; 
     static const char* EntityTypeName(const G4VSolid* const solid) ; 
+    static bool        IsBooleanSolid(const G4VSolid* const solid) ;
+    static bool        IsDisplacedSolid(const G4VSolid* const solid) ;
+    static const G4VSolid* GetDisplacement( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* _solid  ) ; 
 
     enum { UNDEFINED, INCLUDE, STRADDLE, EXCLUDE } ; 
     int classifyZCut( double zcut ) const ;
@@ -33,22 +35,36 @@ struct ZSolid
     void applyZCut_G4Ellipsoid( double zcut);
     void applyZCut_G4Tubs(      double zcut);
     void applyZCut_G4Polycone(  double zcut);
+
+
+    static void      DumpTree( const char* msg, const G4VSolid* const solid, int depth ); 
+    static G4VSolid* DeepClone(   const G4VSolid* solid ); 
+    static G4VSolid* DeepClone_r( const G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ); 
 }; 
 
 
+
+/**
+ZSolids
+=========
+
+Currently the vector of ZSolid is manually collected.
+That should be avoidable by traversal of the CSG tree from the root. 
+Doing that would allow to eliminate ZSolids entirely and 
+allow to support CSG trees more complicated that current 
+sequence of unions. 
+
+**/
 
 struct ZSolids 
 {
     std::vector<ZSolid> solids ; 
 
     unsigned classifyZCutCount( double zcut, int q_cls ); 
-
     G4VSolid* makeUnionSolid(const std::string& solidname) const ; 
     G4VSolid* makeUnionSolidZCut(const std::string& solidname, double zcut ) ;  // non-const because cuts straddle solids 
-
     void dump(const char* msg) const ; 
     void save(const char* path) const ; 
-
 }; 
 
 

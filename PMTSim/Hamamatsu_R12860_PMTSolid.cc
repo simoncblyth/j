@@ -441,7 +441,11 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     zs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
 
+    ZSolid::DumpTree("pmt_solid", pmt_solid, 0 ); 
     G4VSolid* zpmt_solid = zs->makeUnionSolid(solidname);  
+
+    G4VSolid* pmt_solid_clone = ZSolid::DeepClone( pmt_solid );  
+    ZSolid::DumpTree("pmt_solid_clone", pmt_solid_clone, 0 ); 
 
 
 
@@ -491,4 +495,15 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcu
     G4VSolid* zcut_solid = zs->makeUnionSolidZCut(solidname, zcut);  
     return zcut_solid ; 
 }
+
+G4VSolid* Hamamatsu_R12860_PMTSolid::GetClonedSolid(G4String solidname, double thickness, char mode)
+{
+    G4VSolid* solid = GetSolid(solidname, thickness, mode) ;  
+    G4VSolid* clone = ZSolid::DeepClone(solid); 
+    return clone ; 
+} 
+
+
+
+
 

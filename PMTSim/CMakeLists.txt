@@ -3,7 +3,8 @@ set(name PMTSim)
 project(${name} VERSION 0.1.0)
 include(OpticksBuildOptions)
 
-find_package(G4 REQUIRED MODULE)
+find_package(G4    REQUIRED MODULE)
+find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
 
 set(SOURCES)
@@ -37,7 +38,7 @@ target_include_directories(${name}
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(${name} PUBLIC Opticks::G4 Opticks::SysRap)
+target_link_libraries(${name} PUBLIC Opticks::G4 CLHEP::CLHEP Opticks::SysRap)
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 

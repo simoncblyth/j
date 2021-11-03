@@ -1,5 +1,13 @@
 #!/bin/bash -l 
 
-JUNO_PMT20INCH_POLYCONE_NECK=ENABLED PMTSimTest 
+export JUNO_PMT20INCH_POLYCONE_NECK=ENABLED 
 
-ipython -i ZSolids.py 
+if [ "$(uname)" == "Darwin" ]; then
+   lldb__ PMTSimTest 
+else
+   gdb -r ex --args PMTSimTest 
+fi 
+
+#ipython -i ZSolids.py 
+
+

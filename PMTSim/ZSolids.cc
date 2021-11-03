@@ -4,9 +4,13 @@
 #include <iomanip>
 
 #include "G4UnionSolid.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4SubtractionSolid.hh"
+
 #include "G4Ellipsoid.hh"
 #include "G4Tubs.hh"
 #include "G4Polycone.hh"
+#include "G4RotationMatrix.hh"
 
 #include "ZSolids.hh"
 #include "NP.hh"
@@ -26,22 +30,239 @@ std::string ZSolid::desc() const
     return s ; 
 }
 
+/**
+ZSolid::EntityTypeName
+-----------------------
+
+Unexpectedly G4 returns EntityType by value rather than by reference
+so have to strdup to avoid corruption when the G4String goes out of scope. 
+
+**/
+
 const char* ZSolid::EntityTypeName(const G4VSolid* const solid)  
 {
     G4GeometryType type = solid->GetEntityType();  // G4GeometryType typedef for G4String
-    return type.c_str(); 
+    return strdup(type.c_str()); 
 }
 
 int ZSolid::EntityType(const G4VSolid* const solid)
 {
     const char* name = EntityTypeName(solid); 
     int type = _G4Other ; 
-    if( strcmp(name, "G4Ellipsoid") == 0 ) type = _G4Ellipsoid ; 
-    if( strcmp(name, "G4Tubs") == 0 )      type = _G4Tubs ; 
-    if( strcmp(name, "G4Polycone") == 0 )  type = _G4Polycone ; 
+    if( strcmp(name, "G4Ellipsoid") == 0 )         type = _G4Ellipsoid ; 
+    if( strcmp(name, "G4Tubs") == 0 )              type = _G4Tubs ; 
+    if( strcmp(name, "G4Polycone") == 0 )          type = _G4Polycone ; 
+    if( strcmp(name, "G4UnionSolid") == 0 )        type = _G4UnionSolid ; 
+    if( strcmp(name, "G4SubtractionSolid") == 0 )  type = _G4SubtractionSolid ; 
+    if( strcmp(name, "G4IntersectionSolid") == 0 ) type = _G4IntersectionSolid ; 
+    if( strcmp(name, "G4DisplacedSolid") == 0 )    type = _G4DisplacedSolid ; 
     return type ; 
 }
 
+bool ZSolid::IsBooleanSolid(const G4VSolid* const solid) // static
+{
+    return dynamic_cast<const G4BooleanSolid*>(solid) != nullptr ; 
+}
+
+bool ZSolid::IsDisplacedSolid(const G4VSolid* const solid) // static
+{
+    return dynamic_cast<const G4DisplacedSolid*>(solid) != nullptr ; 
+}
+
+
+/**
+ZSolid::DumpTree
+------------------
+ 
+Postorder traversal of CSG tree, eg::
+
+
+     type          G4Ellipsoid name           PMTSim_Z_I msg       left depth 7 tla (0 0 0) rot (1)
+     type               G4Tubs name          PMTSim_Z_II msg      right depth 7 tla (0 0 -2.5) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_2 msg       left depth 6 tla (0 0 0) rot (1)
+     type          G4Ellipsoid name         PMTSim_Z_III msg      right depth 6 tla (0 0 -5) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_3 msg       left depth 5 tla (0 0 0) rot (1)
+     type           G4Polycone name          PMTSim_Z_IV msg      right depth 5 tla (0 0 -179.216) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_4 msg       left depth 4 tla (0 0 0) rot (1)
+     type               G4Tubs name           PMTSim_Z_V msg      right depth 4 tla (0 0 -242.5) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_5 msg       left depth 3 tla (0 0 0) rot (1)
+     type          G4Ellipsoid name          PMTSim_Z_VI msg      right depth 3 tla (0 0 -275) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_6 msg       left depth 2 tla (0 0 0) rot (1)
+     type               G4Tubs name        PMTSim_Z_VIII msg      right depth 2 tla (0 0 -385) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_8 msg       left depth 1 tla (0 0 0) rot (1)
+     type           G4Polycone name          PMTSim_Z_IX msg      right depth 1 tla (0 0 -420) rot (1)
+     type         G4UnionSolid name         PMTSim_Z_1_9 msg  pmt_solid depth 0 tla (0 0 0) rot (1)
+
+
+Postorder traversal means that visit the children before the parents and start the visit at bottom left of the tree.
+NTreeAnalyse height 7 count 15::
+
+    .                                                   un    
+
+                                                  un          cy
+
+                                          un          cy        
+
+                                  un          zs                
+
+                          un          cy                        
+
+                  un          co                                
+
+          un          zs                                        
+                     (-5) 
+      zs      cy                                              
+             (-2.5)
+
+
+**/
+
+void ZSolid::DumpTree( const char* msg, const G4VSolid* const _solid, int depth  )  // static
+{
+    bool is_boolean = IsBooleanSolid(_solid) ; 
+    const G4VSolid* left  = is_boolean ? _solid->GetConstituentSolid(0) : nullptr ; 
+    const G4VSolid* right = is_boolean ? _solid->GetConstituentSolid(1) : nullptr ; 
+
+    if(left && right)
+    {
+        DumpTree("left",  left,  depth+1) ; 
+        DumpTree("right", right, depth+1) ; 
+    }
+
+    G4RotationMatrix rot ; 
+    G4ThreeVector tla(0., 0., 0. ); 
+    const G4VSolid* solid = GetDisplacement( &rot, &tla, _solid ); 
+
+    std::cout 
+        << " type " << std::setw(20) << EntityTypeName(solid) 
+        << " name " << std::setw(20) << solid->GetName() 
+        << " msg " << std::setw(10) << msg 
+        << " depth " << depth 
+        << " tla (" << tla.x() << " " << tla.y() << " " << tla.z() << ")" 
+        << std::endl
+        ; 
+}
+
+const G4VSolid* ZSolid::GetDisplacement( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* _solid  ) // static
+{
+    const G4DisplacedSolid* disp = dynamic_cast<const G4DisplacedSolid*>(_solid) ; 
+    if(disp)
+    {
+        if(rot) *rot = disp->GetFrameRotation();
+        if(rot) assert( rot->isIdentity() ); 
+        if(tla) *tla = disp->GetObjectTranslation();  
+    }
+    const G4VSolid* solid = disp ? disp->GetConstituentMovedSolid() : _solid  ;
+    return solid ; 
+}
+
+
+/**
+ZSolid::DeepClone
+-------------------
+
+Clones a CSG tree of solids, assuming that the tree is
+composed only of the limited set of primitives that are supported. 
+
+G4BooleanSolid copy ctor just steals constituent pointers so 
+it does not make an independent copy.  
+Unlike the primitive copy ctors (at least those looked at: G4Polycone, G4Tubs) 
+which appear to make properly independent copies 
+
+**/
+
+G4VSolid* ZSolid::DeepClone( const  G4VSolid* _solid )  // static 
+{
+    G4RotationMatrix rot ; 
+    G4ThreeVector tla ; 
+    int depth = 0 ; 
+    return DeepClone_r(_solid, depth, &rot, &tla );  
+}
+
+G4VSolid* ZSolid::DeepClone_r( const  G4VSolid* _solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla )  // static 
+{
+    G4VSolid* clone = nullptr ; 
+
+    const G4VSolid* solid = GetDisplacement( rot, tla, _solid ); 
+    int type = EntityType(solid); 
+    G4String name = solid->GetName() ; 
+
+    std::cout 
+        << "ZSolid::DeepClone"
+        << " type " << std::setw(20) << EntityTypeName(solid)
+        << " name " << std::setw(20) << name
+        << " depth " << std::setw(2) << depth
+        << " tla (" << tla->x() << " " << tla->y() << " " << tla->z() << ")" 
+        << std::endl 
+        ; 
+
+    if(IsBooleanSolid(solid))
+    {
+        const G4BooleanSolid* boolean= dynamic_cast<const G4BooleanSolid*>(solid) ; 
+        const G4VSolid* left  = boolean->GetConstituentSolid(0) ; 
+        const G4VSolid* right = boolean->GetConstituentSolid(1) ; 
+
+        G4RotationMatrix lrot, rrot ;  
+        G4ThreeVector    ltra, rtra ; 
+
+        G4VSolid* left_clone  = DeepClone_r(left,  depth+1, &lrot, &ltra ) ; 
+        G4VSolid* right_clone = DeepClone_r(right, depth+1, &rrot, &rtra ) ; 
+
+        assert( lrot.isIdentity() ); 
+        assert( rrot.isIdentity() ); 
+        assert( ltra.x() == 0. && ltra.y() == 0. && ltra.z() == 0. );  // not expecting transforms on the left
+
+        if( type == _G4UnionSolid )
+        {
+            clone = new G4UnionSolid(name, left_clone, right_clone, &rrot, rtra );   
+        }
+        else if( type == _G4SubtractionSolid )
+        {
+            clone = new G4SubtractionSolid(name, left_clone, right_clone, &rrot, rtra );   
+        }
+        else if( type == _G4IntersectionSolid )
+        {
+            clone = new G4IntersectionSolid(name, left_clone, right_clone, &rrot, rtra );   
+        }
+        else
+        {
+            std::cout 
+                << "ZSolid::DeepClone FATAL unimplemented boolean type " << EntityTypeName(solid) 
+                << std::endl 
+                ;
+            assert(0); 
+        }
+    }
+    else
+    {
+        if( type == _G4Ellipsoid )
+        {
+            const G4Ellipsoid* ellipsoid = dynamic_cast<const G4Ellipsoid*>(solid) ; 
+            clone = new G4Ellipsoid(*ellipsoid) ;
+        }
+        else if( type == _G4Tubs )
+        {
+            const G4Tubs* tubs = dynamic_cast<const G4Tubs*>(solid) ; 
+            clone = new G4Tubs(*tubs) ;  
+        }
+        else if( type == _G4Polycone )
+        {
+            const G4Polycone* polycone = dynamic_cast<const G4Polycone*>(solid) ; 
+            clone = new G4Polycone(*polycone) ;  
+        }
+        else
+        {
+            std::cout 
+                << "ZSolid::DeepClone FATAL unimplemented prim type " << EntityTypeName(solid) 
+                << std::endl 
+                ;
+            assert(0); 
+        } 
+    }
+    assert(clone);
+    clone->SetName(name+"_clone") ; 
+    return clone ; 
+}    
 
 /**
 ZSolid::classifyZCut
@@ -79,18 +300,6 @@ int ZSolid::classifyZCut( double zcut ) const
     return cls ; 
 }  
 
-
-void ZSolid::getZRange( double& z0, double& z1 ) const 
-{
-    switch(EntityType(solid))
-    {
-        case _G4Ellipsoid: GetZRange( dynamic_cast<G4Ellipsoid*>(solid), z0, z1 );  break ; 
-        case _G4Tubs:      GetZRange( dynamic_cast<G4Tubs*>(solid)    ,  z0, z1 );  break ; 
-        case _G4Polycone:  GetZRange( dynamic_cast<G4Polycone*>(solid),  z0, z1 );  break ; 
-        case _G4Other:    { std::cout << "ZSolid::getZRange FATAL : not implemented for entityType " << EntityTypeName(solid) << std::endl ; assert(0) ; } ; break ;  
-    }
-}
-
 double ZSolid::z0() const 
 {
     double z1r ; 
@@ -107,6 +316,16 @@ double ZSolid::z1() const
     return z1r ; 
 }
 
+void ZSolid::getZRange( double& z0, double& z1 ) const 
+{
+    switch(EntityType(solid))
+    {
+        case _G4Ellipsoid: GetZRange( dynamic_cast<G4Ellipsoid*>(solid), z0, z1 );  break ; 
+        case _G4Tubs:      GetZRange( dynamic_cast<G4Tubs*>(solid)    ,  z0, z1 );  break ; 
+        case _G4Polycone:  GetZRange( dynamic_cast<G4Polycone*>(solid),  z0, z1 );  break ; 
+        case _G4Other:    { std::cout << "ZSolid::getZRange FATAL : not implemented for entityType " << EntityTypeName(solid) << std::endl ; assert(0) ; } ; break ;  
+    }
+}
 
 void ZSolid::GetZRange( const G4Ellipsoid* const ellipsoid, double& _z0, double& _z1 )  // static 
 {
@@ -132,14 +351,6 @@ void ZSolid::GetZRange( const G4Polycone* const polycone, double& _z0, double& _
     _z1 = pars->Z_values[num_z-1] ; 
     _z0 = pars->Z_values[0] ;  
 }
-
-
-
-
-
-
-
-
 
 
 void ZSolid::applyZCut( double zcut )
@@ -273,9 +484,6 @@ void ZSolid::applyZCut_G4Tubs( double zcut )
     zdelta = new_zdelta ; 
 }
 
- 
-
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -283,10 +491,6 @@ void ZSolid::applyZCut_G4Tubs( double zcut )
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 
 void ZSolids::dump(const char* msg) const
