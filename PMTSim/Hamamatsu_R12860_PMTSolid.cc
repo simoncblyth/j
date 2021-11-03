@@ -441,12 +441,15 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     zs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
 
-    ZSolid::DumpTree("pmt_solid", pmt_solid, 0 ); 
+    ZSolid::DumpTree("pmt_solid", pmt_solid ); 
     G4VSolid* zpmt_solid = zs->makeUnionSolid(solidname);  
 
-    G4VSolid* pmt_solid_clone = ZSolid::DeepClone( pmt_solid );  
-    ZSolid::DumpTree("pmt_solid_clone", pmt_solid_clone, 0 ); 
 
+    std::map<const G4VSolid*,const G4VSolid*> parentmap ; 
+
+    G4VSolid* pmt_solid_clone = ZSolid::DeepClone( pmt_solid, &parentmap );  
+    ZSolid::DumpTree("pmt_solid_clone", pmt_solid_clone ); 
+    ZSolid::DumpUp(pmt_solid_clone, &parentmap ); 
 
 
     G4VSolid* u_pmt_solid = nullptr ; 

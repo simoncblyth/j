@@ -2,6 +2,7 @@
 
 class G4VSolid ; 
 #include <string>
+#include <map>
 #include <vector>
 
 struct ZSolid
@@ -9,7 +10,6 @@ struct ZSolid
     G4VSolid*   solid ; 
     std::string label ;    // label of the CSG combination  
     double      zdelta ;   // z shift to be applied to the solid when in CSG combination 
-
 
     double z1() const ; 
     double z0() const ; 
@@ -19,7 +19,9 @@ struct ZSolid
     static const char* EntityTypeName(const G4VSolid* const solid) ; 
     static bool        IsBooleanSolid(const G4VSolid* const solid) ;
     static bool        IsDisplacedSolid(const G4VSolid* const solid) ;
-    static const G4VSolid* GetDisplacement( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* _solid  ) ; 
+
+    static void GetDisplacedSolidTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4DisplacedSolid* disp ); 
+    static void RecursiveDisplacement( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node, std::map<const G4VSolid*,const G4VSolid*>* parentmap );  
 
     enum { UNDEFINED, INCLUDE, STRADDLE, EXCLUDE } ; 
     int classifyZCut( double zcut ) const ;
@@ -36,10 +38,17 @@ struct ZSolid
     void applyZCut_G4Tubs(      double zcut);
     void applyZCut_G4Polycone(  double zcut);
 
+    static void      DumpTree(   const char* msg, const G4VSolid* const solid); 
+    static void      DumpTree_r( const char* msg, const G4VSolid* const solid, int depth ); 
 
-    static void      DumpTree( const char* msg, const G4VSolid* const solid, int depth ); 
-    static G4VSolid* DeepClone(   const G4VSolid* solid ); 
-    static G4VSolid* DeepClone_r( const G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ); 
+    static void DumpUp(const G4VSolid* solid, std::map<const G4VSolid*,const G4VSolid*>* parentmap  ); 
+    static void DumpUp_r(const G4VSolid* solid, int depth, std::map<const G4VSolid*,const G4VSolid*>* parentmap );
+
+
+    static G4VSolid* DeepClone(   const G4VSolid* solid, std::map<const G4VSolid*,const G4VSolid*>* parentmap=nullptr ); 
+    static G4VSolid* DeepClone_r( const G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla, std::map<const G4VSolid*,const G4VSolid*>* parentmap ); 
+    static G4VSolid* BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla, std::map<const G4VSolid*,const G4VSolid*>* parentmap ); 
+    static G4VSolid* PrimitiveClone( const  G4VSolid* solid ); 
 }; 
 
 
