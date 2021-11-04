@@ -278,7 +278,7 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* _solid, int depth, G4RotationMatr
 
     G4VSolid* clone = IsBooleanSolid(solid) ? BooleanClone(solid, depth, rot, tla ) : PrimitiveClone(solid) ; 
     assert(clone);
-    clone->SetName(name+"_clone") ; 
+    //clone->SetName(name+"_clone") ; 
     return clone ; 
 }    
 

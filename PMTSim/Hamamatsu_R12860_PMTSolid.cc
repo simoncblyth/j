@@ -447,6 +447,9 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     G4VSolid* zpmt_solid = ozs->makeUnionSolid(solidname);  
 
 
+    //const char* name = solidname.c_str(); 
+    //ZSolid zs(pmt_solid); 
+    //G4VSolid* ret = strstr(name, "clone") ? zs.root : pmt_solid ; 
 
 
     G4VSolid* u_pmt_solid = nullptr ; 
@@ -491,14 +494,14 @@ provided avoiding slow and pointless complicated CSG.
 G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
     G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
+
     assert( pmt_solid );  
 
-    //G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
-    //ZSolid zs(pmt_solid); 
-    //return zcut_solid ; 
-    //return zs.root ;        // zs.root is deep cloned from the input solid
+    G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
 
-    return pmt_solid ;  
+    assert(0); 
+
+    return zcut_solid ;  
 }
 
 
