@@ -21,20 +21,24 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
     Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
     char mode = ' '; 
-    if(strcmp(name, "PMTSim_Z")==0) mode = 'Z' ; 
+    if(strstr(name, "PMTSim_Z")) mode = 'Z' ; 
 
-    std::cout << "PMTSim::GetSolid name " << name << "  mode [" << mode << "]" << std::endl ; 
-
-    std::vector<long> vals ; 
-    Extract( vals, name ); 
+    std::cout 
+         << "PMTSim::GetSolid name " << name 
+         << "  mode [" << mode << "]" 
+         << std::endl
+         ; 
 
     G4VSolid* solid = nullptr ; 
     double thickness = 0. ; 
     G4String solidname = name ; 
 
+    std::vector<long> vals ; 
+    Extract( vals, name ); 
+
     if(vals.size() > 0)
     {
-        double zcut = double(vals[0]); 
+        double zcut = vals[0] ; 
         std::cout << "PMTSim::GetSolid extracted zcut from name " << zcut << std::endl ; 
         solid = pmtsolid_maker->GetZCutSolid(solidname, zcut, thickness, mode);  
     }

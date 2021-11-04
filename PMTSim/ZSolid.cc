@@ -28,6 +28,7 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 
 void ZSolid::init()
 {
+    std::cout << "ZSolid::init" << std::endl ; 
     FillParentMap(root, &parentmap); 
     DumpTree(root, "ZSolid::init.DumpTree"); 
 }
