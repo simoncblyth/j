@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-struct ZSolids ; 
+struct OldZSolidList ; 
 class G4VSolid;
 
 class Hamamatsu_R12860_PMTSolid {
@@ -18,7 +18,6 @@ public:
     Hamamatsu_R12860_PMTSolid();
 
     G4VSolid* GetSolid(       G4String solidname, double thickness=0.0, char mode=' ');
-    G4VSolid* GetClonedSolid( G4String solidname, double thickness=0.0, char mode=' ');
     G4VSolid* GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
 
 private:
@@ -59,7 +58,7 @@ private:
 
     bool m_polycone_neck ; 
 
-    ZSolids* zs ; 
+    OldZSolidList* ozs ; 
 
 };
 

@@ -10,7 +10,10 @@
 #include "G4UnionSolid.hh"
 
 #include "ellipse_intersect_circle.hh"
-#include "ZSolids.hh"
+
+
+#include "OldZSolid.hh"
+#include "ZSolid.hh"
 
 
 #include <cmath>
@@ -19,7 +22,7 @@ using namespace CLHEP;
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
     :
     m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true), 
-    zs(new ZSolids)
+    ozs(new OldZSolidList)
 {
    G4cout 
        << "Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid"
@@ -167,7 +170,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					);
     // pmt_solid = solid_I;
 
-    zs->solids.push_back( {solid_I, "", 0. } ); 
+    ozs->solids.push_back( {solid_I, "", 0. } ); 
 
     G4VSolid* solid_II = new G4Tubs(
 					solidname+"_II",
@@ -192,7 +195,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-m2_h/2)
 				 );  
 
-        zs->solids.push_back( {solid_II, "_1_2", -m2_h/2 } ); 
+        ozs->solids.push_back( {solid_II, "_1_2", -m2_h/2 } ); 
 
     }
     else if( mode == 'T' )   // tail mode 'T' starts from the thin equatorial cylinder
@@ -239,7 +242,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-m2_h)
 				 );
-    zs->solids.push_back( {solid_III, "_1_3", -m2_h } ); 
+    ozs->solids.push_back( {solid_III, "_1_3", -m2_h } ); 
 
 
     G4VSolid* solid_IV = NULL ; 
@@ -329,7 +332,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                                      ); 
 
             solid_IV = (G4VSolid*)_solid_IV ;
-            zs->solids.push_back( {solid_IV, "_1_4", -210.*mm+m4_h/2 } ); 
+            ozs->solids.push_back( {solid_IV, "_1_4", -210.*mm+m4_h/2 } ); 
         }
     }
 
@@ -360,7 +363,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 0,
 				 G4ThreeVector(0,0,-210.*mm-m5_h/2)
 				 );
-    zs->solids.push_back( {solid_V, "_1_5", -210.*mm-m5_h/2 }); 
+    ozs->solids.push_back( {solid_V, "_1_5", -210.*mm-m5_h/2 }); 
 
 
     double P_VI_R = m6_r + thickness;
@@ -382,7 +385,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     				 G4ThreeVector(0,0,-275.*mm)
     				 );
 
-    zs->solids.push_back( {solid_VI, "_1_6", -275.*mm } ); 
+    ozs->solids.push_back( {solid_VI, "_1_6", -275.*mm } ); 
 
 
 
@@ -403,7 +406,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm+m8_h/2)
 				 );
 
-    zs->solids.push_back( {solid_VIII, "_1_8", -420.*mm+m8_h/2  } ); 
+    ozs->solids.push_back( {solid_VIII, "_1_8", -420.*mm+m8_h/2  } ); 
 
 
 
@@ -438,18 +441,12 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm)
 				 );
 
-    zs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
+    ozs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
 
-    ZSolid::DumpTree("pmt_solid", pmt_solid ); 
-    G4VSolid* zpmt_solid = zs->makeUnionSolid(solidname);  
+    G4VSolid* zpmt_solid = ozs->makeUnionSolid(solidname);  
 
 
-    std::map<const G4VSolid*,const G4VSolid*> parentmap ; 
-
-    G4VSolid* pmt_solid_clone = ZSolid::DeepClone( pmt_solid, &parentmap );  
-    ZSolid::DumpTree("pmt_solid_clone", pmt_solid_clone ); 
-    ZSolid::DumpUp(pmt_solid_clone, &parentmap ); 
 
 
     G4VSolid* u_pmt_solid = nullptr ; 
@@ -493,20 +490,16 @@ provided avoiding slow and pointless complicated CSG.
 
 G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
-    G4VSolid* full = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
-    assert( full );  
-    G4VSolid* zcut_solid = zs->makeUnionSolidZCut(solidname, zcut);  
-    return zcut_solid ; 
+    G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
+    assert( pmt_solid );  
+
+    G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
+
+    ZSolid zs(pmt_solid); 
+
+    //return zcut_solid ; 
+    return zs.root ;        // zs.root is deep cloned from the input solid
 }
-
-G4VSolid* Hamamatsu_R12860_PMTSolid::GetClonedSolid(G4String solidname, double thickness, char mode)
-{
-    G4VSolid* solid = GetSolid(solidname, thickness, mode) ;  
-    G4VSolid* clone = ZSolid::DeepClone(solid); 
-    return clone ; 
-} 
-
-
 
 
 

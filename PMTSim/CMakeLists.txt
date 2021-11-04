@@ -14,13 +14,15 @@ list(APPEND SOURCES
      PMTSim.cc
      Hamamatsu_R12860_PMTSolid.cc
      HamamatsuR12860PMTManager.cc 
-     ZSolids.cc
+     OldZSolid.cc
+     ZSolid.cc
 )
 
 list(APPEND HEADERS
      PMTSim.hh
      PMTSIM_API_EXPORT.hh
-     ZSolids.hh
+     OldZSolid.hh
+     ZSolid.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
