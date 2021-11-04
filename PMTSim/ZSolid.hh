@@ -24,8 +24,9 @@ ZSolid : CSG tree manipulations
 struct ZSolid   
 {
     // members
+    const G4VSolid* original ; 
+    G4VSolid*       root ;     // DeepClone of original, which should be identical to original AND fully independent 
 
-    G4VSolid*   root ; 
     std::map<const G4VSolid*, const G4VSolid*> parentmap ; 
 
 

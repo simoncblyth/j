@@ -493,12 +493,12 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcu
     G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
     assert( pmt_solid );  
 
-    G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
-
-    ZSolid zs(pmt_solid); 
-
+    //G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
+    //ZSolid zs(pmt_solid); 
     //return zcut_solid ; 
-    return zs.root ;        // zs.root is deep cloned from the input solid
+    //return zs.root ;        // zs.root is deep cloned from the input solid
+
+    return pmt_solid ;  
 }
 
 

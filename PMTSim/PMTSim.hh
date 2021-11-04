@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 class G4VSolid ; 
 class G4LogicalVolume ; 
 
@@ -8,9 +9,8 @@ class G4LogicalVolume ;
 struct PMTSIM_API PMTSim
 {
     static G4VSolid* GetSolid(     const char* name="PMTSim_Z"); 
-    static G4VSolid* GetZCutSolid( const char* name="PMTSim_Z", double zcut=-350. ); 
     static G4LogicalVolume* GetLV(const char* name); 
-
+    static void Extract( std::vector<long>& vals, const char* s ); 
 };
 
 

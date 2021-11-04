@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -23,23 +25,39 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     std::cout << "PMTSim::GetSolid name " << name << "  mode [" << mode << "]" << std::endl ; 
 
+    std::vector<long> vals ; 
+    Extract( vals, name ); 
+
+    G4VSolid* solid = nullptr ; 
     double thickness = 0. ; 
     G4String solidname = name ; 
-    G4VSolid* solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
+
+    if(vals.size() > 0)
+    {
+        double zcut = double(vals[0]); 
+        std::cout << "PMTSim::GetSolid extracted zcut from name " << zcut << std::endl ; 
+        solid = pmtsolid_maker->GetZCutSolid(solidname, zcut, thickness, mode);  
+    }
+    else
+    {
+        std::cout << "PMTSim::GetSolid without zcut " << std::endl ; 
+        solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
+    }
     return solid ; 
 }
 
 
-G4VSolid* PMTSim::GetZCutSolid( const char* name, double zcut ) // static
+void PMTSim::Extract( std::vector<long>& vals, const char* s )  // static
 {
-    Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
-    char mode = ' '; 
-    if(strcmp(name, "PMTSim_Z")==0) mode = 'Z' ; 
-
-    double thickness = 0. ; 
-    G4String solidname = name ; 
-    G4VSolid* solid = pmtsolid_maker->GetZCutSolid(solidname, zcut, thickness, mode);  
-    return solid ; 
+    char* s0 = strdup(s); 
+    char* p = s0 ; 
+    while (*p) 
+    {   
+        if( (*p >= '0' && *p <= '9') || *p == '+' || *p == '-') vals.push_back(strtol(p, &p, 10)) ; 
+        else p++ ;
+    }   
+    free(s0); 
 }
+
 
 

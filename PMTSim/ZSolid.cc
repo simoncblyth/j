@@ -18,9 +18,10 @@
 
 
 
-ZSolid::ZSolid(const G4VSolid* root_ ) 
+ZSolid::ZSolid(const G4VSolid* original_ ) 
     :
-    root(DeepClone(root_))
+    original(original_),
+    root(DeepClone(original_))
 {
     init(); 
 }
