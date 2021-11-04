@@ -444,31 +444,12 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     ozs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
 
-    G4VSolid* zpmt_solid = nullptr ; 
-    if( mode == 'Z' )
-    {
-        ZSolid* zs = new ZSolid(pmt_solid); 
-        if( strstr(solidname.c_str(), "clone") )
-        {
-            std::cout << " Z mode : clone in name ... return zs.root deepclone " << std::endl ;   
-            zpmt_solid = zs->root ; 
-        }
-        else
-        {
-            std::cout << " Z mode : ozs.makeUnionSolid  " << std::endl ;   
-            zpmt_solid = ozs->makeUnionSolid(solidname) ;  
-        }
-    }
-
-
-
     G4VSolid* u_pmt_solid = nullptr ; 
     switch(mode)
     {
        case ' ':u_pmt_solid = pmt_solid  ; break ;
        case 'H':u_pmt_solid = solid_I    ; break ;
        case 'T':u_pmt_solid = pmt_solid  ; break ;
-       case 'Z':u_pmt_solid = zpmt_solid ; break ;
     }
     if(u_pmt_solid == NULL) G4cout << "Hamamatsu_R12860_PMTSolid::GetSolid FATAL, mode: " << mode << G4endl ; 
     assert(u_pmt_solid); 
@@ -495,12 +476,18 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcu
 {
     G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
 
-    assert( pmt_solid );  
-
-    G4VSolid* zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
-
-    assert(0); 
-
+    G4VSolid* zcut_solid = nullptr ; 
+    if( strstr(solidname.c_str(), "clone") )
+    {
+        std::cout << "Hamamatsu_R12860_PMTSolid::GetZCutSolid clone in name ... " << std::endl ;   
+        zcut_solid = ZSolid::MakeZCut( pmt_solid, zcut); 
+    }
+    else
+    {
+        std::cout << " Z mode : ozs.makeUnionSolidZCut  " << std::endl ;   
+        //zcut_solid = ozs->makeUnionSolid(solidname) ;  
+        zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
+    }
     return zcut_solid ;  
 }
 
