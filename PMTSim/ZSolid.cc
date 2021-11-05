@@ -237,6 +237,34 @@ void ZSolid::classifyTree_r( const G4VSolid* node_, int depth, double zcut )
     }
 }
 
+
+
+int ZSolid::classifyMask(const G4VSolid* top) const 
+{
+    return classifyMask_r(top, 0); 
+}
+int ZSolid::classifyMask_r( const G4VSolid* node_, int depth ) const 
+{
+    int mask = 0 ; 
+    if(ZSolid::IsBooleanSolid(node_))
+    {
+        mask |= classifyMask_r( ZSolid::Left(node_) , depth+1 ) ; 
+        mask |= classifyMask_r( ZSolid::Right(node_), depth+1 ) ; 
+    }
+    else
+    {
+        const G4VSolid* node = Moved(nullptr, nullptr, node_ ); 
+        mask |= (*zclsmap)[node] ; 
+    }
+    return mask ; 
+}
+
+
+
+
+
+
+
 /**
 ZSolid::ClassifyZCut
 ------------------------
@@ -324,10 +352,12 @@ NTreeAnalyse height 7 count 15::
 
 With this tree structure cutting from the right is easy because can just change the root 
 
-So the steos are:
+So the steps are:
 
-1. classify the tree against the zcut 
-
+1. classify the nodes of the tree against the zcut 
+2. change STRADDLE node params and transforms according to the zcut
+   and set classification to INCLUDE
+3. edit the tree to remove the EXCLUDE nodes
 
 **/
 void ZSolid::cutTree(double zcut)
@@ -356,9 +386,38 @@ void ZSolid::cutTree_r( G4VSolid* node_, int depth, double zcut )
         if( zcls == STRADDLE )
         {
             ApplyZCut( node_, local_zcut ); 
+            (*zclsmap)[node] = INCLUDE  ; 
         } 
     }
 }
+
+
+
+void ZSolid::collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  )
+{
+    collectNodes_r(nodes, top, 0, query_zcls);  
+}
+
+void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  )
+{
+    if(ZSolid::IsBooleanSolid(node_))
+    {
+        collectNodes_r( nodes, ZSolid::Left(node_) , query_zcls, depth+1 ) ; 
+        collectNodes_r( nodes, ZSolid::Right(node_), query_zcls, depth+1 ) ; 
+    }
+    else
+    {
+        const G4VSolid* node = Moved(nullptr, nullptr, node_ ); 
+        int zcls = (*zclsmap)[node] ; 
+        if( zcls == query_zcls )
+        {
+            nodes.push_back(node) ;  // node_ ?
+        } 
+    }
+} 
+
+
+
 
 
 void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
@@ -373,13 +432,13 @@ void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
         case _G4Tubs:      ApplyZCut_G4Tubs(      node_ , local_zcut);  break ;  // cutting tubs requires changing the transform, hence node_
         case _G4Polycone:  ApplyZCut_G4Polycone(  node  , local_zcut);  break ; 
         default: 
-           { 
-               std::cout 
-                   << "ZSolid::ApplyZCut FATAL : not implemented for entityType " 
-                   << ZSolid::EntityTypeName(node) 
-                   << std::endl ; 
-                   assert(0) ; 
-           } ; break ;  
+            { 
+                std::cout 
+                    << "ZSolid::ApplyZCut FATAL : not implemented for entityType " 
+                    << ZSolid::EntityTypeName(node) 
+                    << std::endl ; 
+                assert(0) ; 
+            } ;
     }
 }
 

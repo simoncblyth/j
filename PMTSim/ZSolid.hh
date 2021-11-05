@@ -40,8 +40,14 @@ struct ZSolid
     void classifyTree( double zcut ); 
     void classifyTree_r( const G4VSolid* node_, int depth, double zcut ); 
 
+    int classifyMask(const G4VSolid* top) const ;
+    int classifyMask_r( const G4VSolid* node_, int depth ) const ;
+
     void cutTree(double zcut);
     void cutTree_r( G4VSolid* node_, int depth, double zcut ); 
+
+    void collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  );
+    void collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  );
 
 
     void dumpUp(const char* msg="ZSolid::dumpUp") const ; 
