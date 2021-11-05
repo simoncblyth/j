@@ -15,6 +15,7 @@ list(APPEND SOURCES
      Hamamatsu_R12860_PMTSolid.cc
      HamamatsuR12860PMTManager.cc 
      OldZSolid.cc
+     ZCanvas.cc
      ZSolid.cc
 )
 
@@ -22,6 +23,7 @@ list(APPEND HEADERS
      PMTSim.hh
      PMTSIM_API_EXPORT.hh
      OldZSolid.hh
+     ZCanvas.hh
      ZSolid.hh
 )
 

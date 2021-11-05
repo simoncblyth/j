@@ -19,26 +19,82 @@ ZSolid : CSG tree manipulations
 
 **/
 
+struct ZCanvas ; 
+
 struct ZSolid   
 {
+    // primary API
+    static G4VSolid* CreateZCutTree( const G4VSolid* original, double zcut ); 
+
     // members
     const G4VSolid* original ; 
     G4VSolid*       root ;     // DeepClone of original, which should be identical to original AND fully independent 
-    std::map<const G4VSolid*, const G4VSolid*>* parentmap ; 
-    std::map<const G4VSolid*, int>*             zclsmap ; 
+    const G4VSolid* candidate_root ; 
 
+    std::map<const G4VSolid*, const G4VSolid*>* parent_map ; 
 
-    static G4VSolid* MakeZCut( const G4VSolid* original, double zcut ); 
+    std::map<const G4VSolid*, int>*             in_map ; 
+    std::map<const G4VSolid*, int>*             rin_map ; 
+    std::map<const G4VSolid*, int>*             pre_map ; 
+    std::map<const G4VSolid*, int>*             rpre_map ; 
+    std::map<const G4VSolid*, int>*             post_map ; 
+    std::map<const G4VSolid*, int>*             rpost_map ; 
+
+    std::map<const G4VSolid*, int>*             zcls_map ; 
+    std::map<const G4VSolid*, int>*             depth_map ; 
+
+    unsigned width ; 
+    unsigned height ; 
+    ZCanvas* canvas ; 
+
+    std::vector<const G4VSolid*> inorder ; 
+    std::vector<const G4VSolid*> rinorder ; 
+    std::vector<const G4VSolid*> preorder ; 
+    std::vector<const G4VSolid*> rpreorder ; 
+    std::vector<const G4VSolid*> postorder ; 
+    std::vector<const G4VSolid*> rpostorder ; 
 
     // object methods
     ZSolid(const G4VSolid* root ); 
+
     void init(); 
+    void initTree();
+
+    void depth_r(     const G4VSolid* node, int depth);
+    void inorder_r(   const G4VSolid* node, int depth);
+    void rinorder_r(  const G4VSolid* node, int depth);
+    void preorder_r(  const G4VSolid* node, int depth);
+    void rpreorder_r( const G4VSolid* node, int depth);
+    void postorder_r( const G4VSolid* node, int depth);
+    void rpostorder_r(const G4VSolid* node, int depth);
+
+    int in(    const G4VSolid* node_) const ;
+    int rin(   const G4VSolid* node_) const ;
+    int pre(   const G4VSolid* node_) const ;
+    int rpre(  const G4VSolid* node_) const ;
+    int post(  const G4VSolid* node_) const ;
+    int rpost( const G4VSolid* node_) const ;
+
+    enum { IN, RIN, PRE, RPRE, POST, RPOST } ; 
+
+    static const char* IN_ ; 
+    static const char* RIN_ ;
+    static const char* PRE_ ; 
+    static const char* RPRE_ ;
+    static const char* POST_ ;
+    static const char* RPOST_ ;
+    static const char* OrderName(int mode);
+
+    int index( const G4VSolid* n, int mode ) const ; 
+
+    void fillParentMap(); 
+    void fillParentMap_r( const G4VSolid* solid ); 
 
     double getZ(const G4VSolid* node ) const ; 
     void   getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const ; 
 
-    void classifyTree( double zcut ); 
-    void classifyTree_r( const G4VSolid* node_, int depth, double zcut ); 
+    int classifyTree( double zcut ); 
+    int classifyTree_r( const G4VSolid* node_, int depth, double zcut ); 
 
     int classifyMask(const G4VSolid* top) const ;
     int classifyMask_r( const G4VSolid* node_, int depth ) const ;
@@ -46,9 +102,22 @@ struct ZSolid
     void cutTree(double zcut);
     void cutTree_r( G4VSolid* node_, int depth, double zcut ); 
 
+    void findCandidateRoot();
+    void findCandidateRoot_r(const G4VSolid* n, int depth);
+
     void collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  );
     void collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  );
 
+    void draw(const char* msg="ZSolid::draw"); 
+    void draw_r( const G4VSolid* n, int mode); 
+
+    int depth(const G4VSolid* node_) const ;
+    int zcls( const G4VSolid* node_, bool move) const ;
+
+    void set_zcls( const G4VSolid* node_, bool move, int zc ); 
+
+    int maxdepth() const  ;
+    static int Maxdepth_r( const G4VSolid* node_, int depth); 
 
     void dumpUp(const char* msg="ZSolid::dumpUp") const ; 
     void dumpUp_r(const G4VSolid* node, int depth) const ; 
@@ -81,7 +150,7 @@ struct ZSolid
     static const char* STRADDLE_ ; 
     static const char* EXCLUDE_; 
     static const char* ClassifyName( int zcls ); 
-
+    static const char* ClassifyMaskName( int zcls ); 
 
     // simple static convenience functions
     static int    ClassifyZCut( double az0, double az1, double zcut ); 
@@ -89,8 +158,9 @@ struct ZSolid
     // basic solid functions
     static int             EntityType(      const G4VSolid* solid) ; 
     static const char*     EntityTypeName(  const G4VSolid* solid) ; 
-    static bool            IsBooleanSolid(  const G4VSolid* solid) ;
-    static bool            IsDisplacedSolid(const G4VSolid* solid) ;
+    static const char*     EntityTag(       const G4VSolid* solid, bool move ) ; // move:true sees thru G4DisplacedSolid 
+    static bool            Boolean(         const G4VSolid* solid) ;
+    static bool            Displaced(       const G4VSolid* solid) ;
 
     // navigation
     static const G4VSolid* Left(  const G4VSolid* node) ;
@@ -115,16 +185,9 @@ struct ZSolid
     static void      CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ); 
     static G4VSolid* PrimitiveClone( const  G4VSolid* solid ); 
 
-    // recursive operations
-    typedef std::map<const G4VSolid*, const G4VSolid*> MSS ; 
-    static MSS* MakeParentMap( const G4VSolid* root ); 
-    static void FillParentMap_r( const G4VSolid* solid, MSS* parentmap ); 
-
     static void ApplyZCut(             G4VSolid* node, double local_zcut); 
     static void ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Tubs(      G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);
-
 }; 
-
 

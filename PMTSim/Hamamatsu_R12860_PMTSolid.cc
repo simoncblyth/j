@@ -486,7 +486,7 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcu
     else
     {
         std::cout << "Hamamatsu_R12860_PMTSolid::GetZCutSolid" << std::endl ;   
-        zcut_solid = ZSolid::MakeZCut( pmt_solid, zcut); 
+        zcut_solid = ZSolid::CreateZCutTree( pmt_solid, zcut); 
     }
 
     return zcut_solid ;  
