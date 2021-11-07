@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 
+#include "G4SolidStore.hh"
 #include "G4UnionSolid.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4SubtractionSolid.hh"
@@ -50,16 +51,25 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 
 void ZSolid::init()
 {
-    initTree(); 
-    dumpTree("ZSolid::init.dumpTree"); 
-    dumpUp("ZSolid::init.dumpUp"); 
+    instrumentTree(); 
+    width = inorder.size(); 
+    height = maxdepth() ; 
+    canvas = new ZCanvas(width, height);   // assume the tree will only be getting smaller
 }
 
-void ZSolid::initTree() 
+void ZSolid::dump(const char* msg) const 
 {
-    std::cout << "ZSolid::initTree" << std::endl ; 
-    fillParentMap(); 
+    dumpTree(msg); 
+    dumpUp(msg); 
+}
 
+void ZSolid::instrumentTree()
+{
+    parent_map->clear(); 
+    (*parent_map)[root] = nullptr ;  // root has no parent by definition
+    parent_r( root, 0 ); 
+
+    depth_map->clear(); 
     depth_r(root, 0 ); 
 
     inorder.clear();
@@ -79,37 +89,27 @@ void ZSolid::initTree()
 
     rpostorder.clear(); 
     rpostorder_r(root, 0 ); 
-
-    width = inorder.size(); 
-    height = maxdepth() ; 
-    canvas = new ZCanvas(width, height); 
 }
 
 
+
 /**
-ZSolid::fillParentMap
+ZSolid::parent_r
 -----------------------
 
 Note that the parent_map uses the G4DisplacedSolid (not the G4VSolid that it points to) 
 in order to have treewise access to the transform up the lineage. 
 
 **/
-
-void ZSolid::fillParentMap()
-{
-    (*parent_map)[root] = nullptr ;  // root has no parent by definition
-    fillParentMap_r( root ); 
-}
-
-void ZSolid::fillParentMap_r( const G4VSolid* node)
+void ZSolid::parent_r( const G4VSolid* node, int depth)
 {
     if(Boolean(node))
     {
         const G4VSolid* l = Left(node) ; 
         const G4VSolid* r = Right(node) ; 
 
-        fillParentMap_r( l );  
-        fillParentMap_r( r );  
+        parent_r( l, depth+1 );  
+        parent_r( r, depth+1 );  
 
         // postorder visit 
         (*parent_map)[l] = node ; 
@@ -191,6 +191,8 @@ void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
     rpostorder.push_back(node_) ; 
 }
 
+const G4VSolid* ZSolid::parent( const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
+int ZSolid::depth( const G4VSolid* node_) const { return (*depth_map)[node_] ; }
 int ZSolid::in(    const G4VSolid* node_) const { return (*in_map)[node_] ; }
 int ZSolid::rin(   const G4VSolid* node_) const { return (*rin_map)[node_] ; }
 int ZSolid::pre(   const G4VSolid* node_) const { return (*pre_map)[node_] ; }
@@ -198,51 +200,6 @@ int ZSolid::rpre(  const G4VSolid* node_) const { return (*rpre_map)[node_] ; }
 int ZSolid::post(  const G4VSolid* node_) const { return (*post_map)[node_] ; }
 int ZSolid::rpost( const G4VSolid* node_) const { return (*rpost_map)[node_] ; }
 
-int ZSolid::depth(const G4VSolid* node_) const { return (*depth_map)[node_] ; }
-
-int ZSolid::zcls( const G4VSolid* node_, bool move) const 
-{ 
-    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
-    return zcls_map->count(node) == 1 ? (*zcls_map)[node] : UNDEFINED ; 
-}
-
-void ZSolid::set_zcls( const G4VSolid* node_, bool move, int zc )
-{
-    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
-    (*zcls_map)[node] = zc  ;
-} 
-
-void ZSolid::draw(const char* msg) 
-{
-    canvas->clear();
-
-    int mode = RPRE ; 
-    std::cout << msg << std::endl ; 
-    std::cout << "OrderName " << OrderName(mode) << std::endl ; 
-
-    draw_r(root, mode);
-
-    canvas->print(); 
-}
-
-void ZSolid::draw_r( const G4VSolid* n, int mode )
-{
-    if( n == nullptr ) return ;
-    draw_r( Left(n),  mode );
-    draw_r( Right(n), mode );
-
-    int x = in(n) ;            // inorder index, aka "side", increasing from left to right 
-    int y = depth(n) ;         // increasing downwards
-    int idx = index(n, mode);  // index for presentation 
-
-    const char* tag = EntityTag(n, true) ; 
-    int zcl = zcls(n, true); 
-    const char* zcn = ClassifyMaskName(zcl) ; 
-
-    canvas->draw( x, y, tag, 0); 
-    canvas->draw( x, y, zcn, 1); 
-    canvas->draw( x, y, idx, 2); 
-}
 
 /**
 ZSolid::index
@@ -313,6 +270,56 @@ const char* ZSolid::OrderName(int mode) // static
     }
     return s ; 
 }
+
+
+
+
+
+
+int ZSolid::zcls( const G4VSolid* node_, bool move) const 
+{ 
+    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
+    return zcls_map->count(node) == 1 ? (*zcls_map)[node] : UNDEFINED ; 
+}
+
+void ZSolid::set_zcls( const G4VSolid* node_, bool move, int zc )
+{
+    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
+    (*zcls_map)[node] = zc  ;
+} 
+
+void ZSolid::draw(const char* msg) 
+{
+    canvas->clear();
+
+    int mode = RPRE ; 
+    std::cout << msg << std::endl ; 
+    std::cout << "OrderName " << OrderName(mode) << std::endl ; 
+
+    draw_r(root, mode);
+
+    canvas->print(); 
+}
+
+void ZSolid::draw_r( const G4VSolid* n, int mode )
+{
+    if( n == nullptr ) return ;
+    draw_r( Left(n),  mode );
+    draw_r( Right(n), mode );
+
+    int x = in(n) ;            // inorder index, aka "side", increasing from left to right 
+    int y = depth(n) ;         // increasing downwards
+    int idx = index(n, mode);  // index for presentation 
+
+    const char* tag = EntityTag(n, true) ; 
+    int zcl = zcls(n, true); 
+    const char* zcn = ClassifyMaskName(zcl) ; 
+
+    canvas->draw( x, y, tag, 0); 
+    canvas->draw( x, y, zcn, 1); 
+    canvas->draw( x, y, idx, 2); 
+}
+
 
 /**
 ZSolid::EntityTypeName
@@ -1178,10 +1185,9 @@ G4VSolid* ZSolid::DeepClone( const  G4VSolid* solid )  // static
 ZSolid::DeepClone_r
 --------------------
 
-G4DisplacedSolid is a wrapper for the for the right hand side of boolean constituent 
-of a boolean combination which serves the purpose of holding the transform. 
-The G4DisplacedSolid is automatically created by the G4BooleanSolid ctor when there is
-an associated transform.  
+G4DisplacedSolid is a wrapper for the right hand side boolean constituent 
+which serves the purpose of holding the transform. The G4DisplacedSolid 
+is automatically created by the G4BooleanSolid ctor when there is an associated transform.  
 
 The below *rot* and *tla* look at first glance like they are not used. 
 But look more closely, the recursive DeepClone_r calls within BooleanClone are using them 
@@ -1192,7 +1198,7 @@ transform from the child is needed when cloning the parent.
 
 G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatrix* rot, G4ThreeVector* tla )  // static 
 {
-    const G4VSolid* node = Moved( rot, tla, node_ ); 
+    const G4VSolid* node = Moved( rot, tla, node_ ); // if node_ isa G4DisplacedSolid node will not be and rot/tla will be set 
 
     if(false) std::cout 
         << "ZSolid::DeepClone_r(preorder visit)"
@@ -1207,6 +1213,17 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
     assert(clone);
     return clone ; 
 }    
+
+/**
+ZSolid::BooleanClone
+-----------------------
+
+The left and right G4VSolid outputs from DeepClone_r will not be G4DisplacedSolid because
+those get "dereferenced" by Moved and the rot/tla set.  This means that the information 
+from the G4DisplacedSolid is available. This approach is necessay as the G4DisplacedSolid
+is an "internal" object that the G4BooleanSolid ctor creates from the rot and tla ctor arguments. 
+
+**/
 
 G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
 {
@@ -1253,6 +1270,147 @@ void ZSolid::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, con
     const G4VSolid* right_check = rhs_disp->GetConstituentMovedSolid() ;
     assert( right_check == right );  
 }
+
+
+
+void ZSolid::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid ) // static
+{
+    int type = EntityType(solid); 
+    switch(type)
+    {
+        case _G4UnionSolid        : num_bytes = sizeof(G4UnionSolid)        ; break ; 
+        case _G4SubtractionSolid  : num_bytes = sizeof(G4SubtractionSolid)  ; break ; 
+        case _G4IntersectionSolid : num_bytes = sizeof(G4IntersectionSolid) ; break ; 
+    } 
+
+    *bytes = new char[num_bytes]; 
+    memcpy( *bytes, (char*) solid, num_bytes ); 
+}
+
+int ZSolid::CompareBytes( char* bytes0, char* bytes1, int num_bytes ) // static
+{
+    int mismatch = 0 ; 
+    for(int i=0 ; i < num_bytes ; i++ ) 
+    {   
+        if( bytes0[i] != bytes1[i] ) 
+        {   
+            printf("mismatch %5d : %3d : %3d  \n", i, int(bytes0[i]), int(bytes1[i]) ); 
+            mismatch++ ;   
+        }   
+    }   
+    printf("mismatch %d\n", mismatch); 
+    return mismatch ; 
+}
+
+/**
+ZSolid::PlacementNewDupe
+--------------------------
+
+Technical test that should do nothing and in the process
+demonstrate that can use placement new to replace a boolean solid 
+object with a bit perfect duplicate in the same memory address. 
+
+1. access and hold innards of the solid in local scope
+2. de-registers the solid from G4SolidStore
+3. placement new instantiate replacement object at the same memory address 
+   putting the pieces back together again 
+
+The motivation for this is that tree pruning needs to be able 
+to SetRight/SetLeft but G4BooleanSolid has no such methods. 
+So in order to workaround this can use placement new to construct 
+a duplicate object or one with some inputs changed.
+
+G4VSolid registers/deregisters with G4SolidStore in ctor/dtor.
+This means that using placement new to replace a solid causes memory 
+corruption with::
+
+    malloc: *** error for object 0x7f888c5084b0: pointer being freed was not allocated
+
+Avoided this problem by manually deregistering from G4SolidStore
+Although G4VSolid dtor deregisters it would be wrong to delete 
+as do not want to deallocate the memory, want to reuse it.
+
+When using the no transform ctor the dupe is a bit perfect match. 
+With the transform ctor see ~2 bytes different from fPtrSolidB.
+Revealed using dirty offsetof(G4UnionSolid, member) checks using:: 
+
+   #define private   public
+   #define protected public
+
+That is not a problem, just a little leak. 
+The reason is that the transform ctor allocates, so will normally get a different fPtrSolidB::
+
+     77 G4BooleanSolid::G4BooleanSolid( const G4String& pName,
+     78                                       G4VSolid* pSolidA ,
+     79                                       G4VSolid* pSolidB ,
+     80                                       G4RotationMatrix* rotMatrix,
+     81                                 const G4ThreeVector& transVector    ) :
+     82   G4VSolid(pName), fStatistics(1000000), fCubVolEpsilon(0.001),
+     83   fAreaAccuracy(-1.), fCubicVolume(-1.), fSurfaceArea(-1.),
+     84   fRebuildPolyhedron(false), fpPolyhedron(0), fPrimitivesSurfaceArea(0.),
+     85   createdDisplacedSolid(true)
+     86 {
+     87   fPtrSolidA = pSolidA ;
+     88   fPtrSolidB = new G4DisplacedSolid("placedB",pSolidB,rotMatrix,transVector) ;
+     89 }
+
+**/
+
+void ZSolid::PlacementNewDupe( G4VSolid* solid) // static
+{
+    G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(solid) ; 
+    assert( src ); 
+
+    G4String name = src->GetName() ; 
+    G4VSolid* left = src->GetConstituentSolid(0) ; 
+    G4VSolid* disp_right = src->GetConstituentSolid(1) ;  // may be G4DisplacedSolid
+
+    G4RotationMatrix rrot ; 
+    G4ThreeVector    rtla ; 
+    G4VSolid* right = Moved_( &rrot, &rtla, disp_right ); 
+    int type = EntityType(solid); 
+
+    G4SolidStore::GetInstance()->DeRegister(solid);
+
+    G4VSolid* dupe = nullptr ; 
+    switch(type)
+    {
+        case _G4UnionSolid        : dupe = new (solid) G4UnionSolid(        name, left, right, &rrot, rtla ) ; break ; 
+        case _G4SubtractionSolid  : dupe = new (solid) G4SubtractionSolid(  name, left, right, &rrot, rtla ) ; break ;
+        case _G4IntersectionSolid : dupe = new (solid) G4IntersectionSolid( name, left, right, &rrot, rtla ) ; break ; 
+    } 
+    assert( dupe == solid ); 
+} 
+
+/**
+ZSolid::PlacementNewSetRight
+------------------------------
+
+Hmm could use G4DisplacedSolid argument 
+
+**/
+
+void ZSolid::PlacementNewSetRight(  G4VSolid* solid, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla )
+{
+    G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(solid) ; 
+    assert( src ); 
+
+    int type = EntityType(src); 
+    G4String name = src->GetName() ; 
+    G4VSolid* left = src->GetConstituentSolid(0) ; 
+
+    G4VSolid* replacement = nullptr ; 
+    switch(type)
+    {
+        case _G4UnionSolid        : replacement = new (src) G4UnionSolid(        name, left, right, rrot, *rtla ) ; break ; 
+        case _G4SubtractionSolid  : replacement = new (src) G4SubtractionSolid(  name, left, right, rrot, *rtla ) ; break ;
+        case _G4IntersectionSolid : replacement = new (src) G4IntersectionSolid( name, left, right, rrot, *rtla ) ; break ; 
+    } 
+    assert( replacement == src ); 
+}
+
+
+
 
 
 G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static 

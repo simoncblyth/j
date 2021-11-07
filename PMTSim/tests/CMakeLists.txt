@@ -4,6 +4,8 @@ project(${name} VERSION 0.1.0)
 
 set(TEST_SOURCES
     PMTSimTest.cc
+    ZSolidTest.cc
+    G4UnionSolidOffsetsTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})

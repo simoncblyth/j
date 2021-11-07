@@ -13,6 +13,9 @@ class G4DisplacedSolid ;
 #include <map>
 #include <vector>
 
+
+#include "PMTSIM_API_EXPORT.hh"
+
 /**
 ZSolid : CSG tree manipulations  
 =================================
@@ -21,7 +24,7 @@ ZSolid : CSG tree manipulations
 
 struct ZCanvas ; 
 
-struct ZSolid   
+struct PMTSIM_API ZSolid   
 {
     // primary API
     static G4VSolid* CreateZCutTree( const G4VSolid* original, double zcut ); 
@@ -29,17 +32,16 @@ struct ZSolid
     // members
     const G4VSolid* original ; 
     G4VSolid*       root ;     // DeepClone of original, which should be identical to original AND fully independent 
+
     const G4VSolid* candidate_root ; 
 
     std::map<const G4VSolid*, const G4VSolid*>* parent_map ; 
-
     std::map<const G4VSolid*, int>*             in_map ; 
     std::map<const G4VSolid*, int>*             rin_map ; 
     std::map<const G4VSolid*, int>*             pre_map ; 
     std::map<const G4VSolid*, int>*             rpre_map ; 
     std::map<const G4VSolid*, int>*             post_map ; 
     std::map<const G4VSolid*, int>*             rpost_map ; 
-
     std::map<const G4VSolid*, int>*             zcls_map ; 
     std::map<const G4VSolid*, int>*             depth_map ; 
 
@@ -54,12 +56,16 @@ struct ZSolid
     std::vector<const G4VSolid*> postorder ; 
     std::vector<const G4VSolid*> rpostorder ; 
 
+
+
     // object methods
     ZSolid(const G4VSolid* root ); 
 
     void init(); 
-    void initTree();
+    void instrumentTree();
+    void dump(const char* msg="ZSolid::dump") const ; 
 
+    void parent_r(    const G4VSolid* node, int depth); 
     void depth_r(     const G4VSolid* node, int depth);
     void inorder_r(   const G4VSolid* node, int depth);
     void rinorder_r(  const G4VSolid* node, int depth);
@@ -68,12 +74,15 @@ struct ZSolid
     void postorder_r( const G4VSolid* node, int depth);
     void rpostorder_r(const G4VSolid* node, int depth);
 
+    const G4VSolid* parent( const G4VSolid* node_) const ;
+    int depth( const G4VSolid* node_) const ;
     int in(    const G4VSolid* node_) const ;
     int rin(   const G4VSolid* node_) const ;
     int pre(   const G4VSolid* node_) const ;
     int rpre(  const G4VSolid* node_) const ;
     int post(  const G4VSolid* node_) const ;
     int rpost( const G4VSolid* node_) const ;
+    int index( const G4VSolid* n, int mode ) const ; 
 
     enum { IN, RIN, PRE, RPRE, POST, RPOST } ; 
 
@@ -85,10 +94,7 @@ struct ZSolid
     static const char* RPOST_ ;
     static const char* OrderName(int mode);
 
-    int index( const G4VSolid* n, int mode ) const ; 
 
-    void fillParentMap(); 
-    void fillParentMap_r( const G4VSolid* solid ); 
 
     double getZ(const G4VSolid* node ) const ; 
     void   getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const ; 
@@ -111,9 +117,7 @@ struct ZSolid
     void draw(const char* msg="ZSolid::draw"); 
     void draw_r( const G4VSolid* n, int mode); 
 
-    int depth(const G4VSolid* node_) const ;
     int zcls( const G4VSolid* node_, bool move) const ;
-
     void set_zcls( const G4VSolid* node_, bool move, int zc ); 
 
     int maxdepth() const  ;
@@ -124,7 +128,6 @@ struct ZSolid
 
     void dumpTree(const char* msg="ZSolid::dumpTree" ) const ; 
     void dumpTree_r( const G4VSolid* node, int depth ) const ; 
-
 
     // enumerations
     enum { 
@@ -182,6 +185,14 @@ struct ZSolid
     static G4VSolid* DeepClone(    const G4VSolid* solid ); 
     static G4VSolid* DeepClone_r(  const G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ); 
     static G4VSolid* BooleanClone( const G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ); 
+
+
+    static void GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid );
+    static int CompareBytes( char* bytes0, char* bytes1, int num_bytes ); 
+    static void PlacementNewDupe( G4VSolid* solid); 
+    static void PlacementNewSetRight(  G4VSolid* solid, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla ); 
+
+
     static void      CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ); 
     static G4VSolid* PrimitiveClone( const  G4VSolid* solid ); 
 
