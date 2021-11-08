@@ -2,9 +2,6 @@
 #include <cstdio>
 #include <cassert>
 
-#define private public
-#define protected public
-
 #include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4IntersectionSolid.hh"

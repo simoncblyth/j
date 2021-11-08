@@ -1,3 +1,5 @@
+// ./G4UnionSolidOffsetsTest.sh 
+
 /**
 By observation (with clang anyhow) memory layout is opposite to inheritance order
 with the base-est class members first.::
@@ -12,11 +14,26 @@ with the base-est class members first.::
         fPMin
         fPMax
 
-
 Uses naughty defines in order for offsetof to work with private and protected members.
+
+Darwin works fine, Linux takes exception to the naughty defines.::
+
+    In file included from /opt/rh/devtoolset-8/root/usr/include/c++/8/complex:45,
+                     from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4Types.hh:67,
+                     from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4VSolid.hh:66,
+                     from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4DisplacedSolid.hh:47,
+                     from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4BooleanSolid.hh:43,
+                     from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4UnionSolid.hh:44,
+                     from /home/blyth/j/PMTSim/tests/G4UnionSolidOffsetsTest.cc:23:
+    /opt/rh/devtoolset-8/root/usr/include/c++/8/sstream:349:7: error: ‘struct std::basic_stringbuf<_CharT, _Traits, _Alloc>::__xfer_bufptrs’ redeclared with different access
+           struct __xfer_bufptrs
+           ^~~~~~
+
+Workaround this by including sstream prior to the naughty defines.
 
 **/
 
+#include <sstream>
 #define private public
 #define protected public
 
