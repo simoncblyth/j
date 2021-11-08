@@ -580,10 +580,10 @@ void ZSolid::draw_r( const G4VSolid* n, int mode )
     const char* zcn = ClassifyMaskName(zcl) ; 
     char mk = mkr(n); 
 
-    canvas->draw(   ix, iy, 0,  tag); 
-    canvas->draw(   ix, iy, 1,  zcn); 
-    canvas->draw(   ix, iy, 2,  idx); 
-    canvas->drawch( ix, iy, 3,  mk ); 
+    canvas->draw(   ix, iy, 0,0,  tag); 
+    canvas->draw(   ix, iy, 0,1,  zcn); 
+    canvas->draw(   ix, iy, 0,2,  idx); 
+    canvas->drawch( ix, iy, 0,3,  mk ); 
 }
 
 

@@ -4,8 +4,9 @@
 
 #include "ZCanvas.hh"
 
-ZCanvas::ZCanvas(unsigned width_, unsigned height_ )
+ZCanvas::ZCanvas(int width_, int height_ )
     :
+    verbose(getenv("VERBOSE")!=nullptr),
     xscale(8), 
     yscale(4),
     nx(0),
@@ -15,7 +16,7 @@ ZCanvas::ZCanvas(unsigned width_, unsigned height_ )
     resize(width_, height_); 
 }
 
-void ZCanvas::resize(unsigned width_, unsigned height_)
+void ZCanvas::resize(int width_, int height_)
 {
     width = width_ ; 
     height = height_ ; 
@@ -30,8 +31,8 @@ void ZCanvas::resize(unsigned width_, unsigned height_)
 
 void ZCanvas::clear()
 {
-    for(unsigned y=0 ; y < ny ; y++) for(unsigned x=0 ; x < nx ; x++)  c[y*nx+x] = ' ' ;   
-    for(unsigned y=0 ; y < ny ; y++) c[y*nx+nx-1] = '\n' ;   
+    for(int y=0 ; y < ny ; y++) for(int x=0 ; x < nx ; x++)  c[y*nx+x] = ' ' ;   
+    for(int y=0 ; y < ny ; y++) c[y*nx+nx-1] = '\n' ;   
     c[nx*ny] = '\0' ;  // string terminate 
 }
 

@@ -2,16 +2,17 @@
 
 struct ZCanvas
 {
-    unsigned width ; 
-    unsigned height ; 
-    unsigned xscale ; 
-    unsigned yscale ; 
-    unsigned nx ; 
-    unsigned ny ; 
+    bool verbose ; 
+    int width ; 
+    int height ; 
+    int xscale ; 
+    int yscale ; 
+    int nx ; 
+    int ny ; 
     char* c ; 
 
-    ZCanvas( unsigned width, unsigned height ); 
-    void resize(unsigned width, unsigned height); 
+    ZCanvas( int width, int height ); 
+    void resize(int width, int height); 
     void clear(); 
     void drawtest(); 
 
