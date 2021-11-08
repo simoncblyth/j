@@ -2,6 +2,8 @@
 
 struct ZCanvas
 {
+    unsigned width ; 
+    unsigned height ; 
     unsigned xscale ; 
     unsigned yscale ; 
     unsigned nx ; 
@@ -9,10 +11,14 @@ struct ZCanvas
     char* c ; 
 
     ZCanvas( unsigned width, unsigned height ); 
+    void resize(unsigned width, unsigned height); 
     void clear(); 
-    void draw(int ix, int iy, int val, int dy); 
-    void draw(int ix, int iy, const char* txt, int dy );
-    void _draw(int x, int y, const char* txt);      // 0,0 is at top left 
+    void drawtest(); 
+
+    void draw(  int ix, int iy, int dx, int dy, int val);
+    void drawch(int ix, int iy, int dx, int dy, char ch);
+    void draw(  int ix, int iy, int dx, int dy, const char* txt);
+    void _draw(  int x, int y,  int dx, int dy, const char* txt);      // 0,0 is at top left 
 
     void print(const char* msg=nullptr) const ; 
 };

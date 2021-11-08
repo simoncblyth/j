@@ -18,19 +18,19 @@
 #include "NP.hh"
 
 
-G4VSolid* ZSolid::CreateZCutTree( const G4VSolid* original, double zcut ) // static
+const G4VSolid* ZSolid::CreateZCutTree( const G4VSolid* original, double zcut ) // static
 {
     std::cout << "ZSolid::CreateZCutTree" << std::endl ; 
     ZSolid* zs = new ZSolid(original); 
-    zs->cutTree( zcut );  
+    zs->apply_cut( zcut );  
     return zs->root ; 
 }
 
 ZSolid::ZSolid(const G4VSolid* original_ ) 
     :
+    verbose(true),
     original(original_),
     root(DeepClone(original_)),
-    candidate_root(nullptr),
     parent_map(new std::map<const G4VSolid*, const G4VSolid*>),
 
     in_map(    new std::map<const G4VSolid*, int>),
@@ -42,9 +42,11 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 
     zcls_map(  new std::map<const G4VSolid*, int>),
     depth_map( new std::map<const G4VSolid*, int>),
+    mkr_map(   new std::map<const G4VSolid*, char>),
 
     width(0),
-    height(0) 
+    height(0), 
+    canvas(  new ZCanvas(width, height+1) )  // +1 as height 0 tree is still 1 node
 {
     init(); 
 }
@@ -52,9 +54,6 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 void ZSolid::init()
 {
     instrumentTree(); 
-    width = inorder.size(); 
-    height = maxdepth() ; 
-    canvas = new ZCanvas(width, height);   // assume the tree will only be getting smaller
 }
 
 void ZSolid::dump(const char* msg) const 
@@ -89,6 +88,10 @@ void ZSolid::instrumentTree()
 
     rpostorder.clear(); 
     rpostorder_r(root, 0 ); 
+
+    width = num_node(); 
+    height = maxdepth() ; 
+    canvas->resize( width, height+1 );    // +1 as height 0 tree is still one node
 }
 
 
@@ -97,8 +100,9 @@ void ZSolid::instrumentTree()
 ZSolid::parent_r
 -----------------------
 
-Note that the parent_map uses the G4DisplacedSolid (not the G4VSolid that it points to) 
-in order to have treewise access to the transform up the lineage. 
+Note that the parent_map uses the raw constituent G4DisplacedSolid 
+rather than the moved G4VSolid that it points to in order to have 
+treewise access to the transform up the lineage. 
 
 **/
 void ZSolid::parent_r( const G4VSolid* node, int depth)
@@ -192,6 +196,13 @@ void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
 }
 
 const G4VSolid* ZSolid::parent( const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
+      G4VSolid* ZSolid::parent_( const G4VSolid* node ) const 
+{ 
+   const G4VSolid* p = parent(node); 
+   return const_cast<G4VSolid*>(p) ; 
+}
+
+
 int ZSolid::depth( const G4VSolid* node_) const { return (*depth_map)[node_] ; }
 int ZSolid::in(    const G4VSolid* node_) const { return (*in_map)[node_] ; }
 int ZSolid::rin(   const G4VSolid* node_) const { return (*rin_map)[node_] ; }
@@ -204,6 +215,10 @@ int ZSolid::rpost( const G4VSolid* node_) const { return (*rpost_map)[node_] ; }
 /**
 ZSolid::index
 ---------------
+
+Returns the index of a node within various traversal orders, 
+obtained by lookups on the maps collected by instrumentTree.
+
 
 IN inorder
    left-to-right index (aka side) 
@@ -274,26 +289,266 @@ const char* ZSolid::OrderName(int mode) // static
 
 
 
+/**
+ZSolid::zcls
+--------------
 
+Returns zcls value associated with a node, when *move* is true any 
+G4DisplacedSolid *node_* are dereferenced to get to the moved solid *node* 
+within.
 
-int ZSolid::zcls( const G4VSolid* node_, bool move) const 
+Am veering towards using move:false as standard because can 
+always get the moved solid from the G4DisplacedSolid but not vice versa.
+Note that it is a technicality : either could work its just a case of
+which is most convenient. 
+
+**/
+
+int ZSolid::zcls( const G4VSolid* node_ ) const 
 { 
-    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
-    return zcls_map->count(node) == 1 ? (*zcls_map)[node] : UNDEFINED ; 
+    return zcls_map->count(node_) == 1 ? (*zcls_map)[node_] : UNDEFINED ; 
 }
 
-void ZSolid::set_zcls( const G4VSolid* node_, bool move, int zc )
+void ZSolid::set_zcls( const G4VSolid* node_, int zc )
 {
-    const G4VSolid* node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
-    (*zcls_map)[node] = zc  ;
+    (*zcls_map)[node_] = zc  ;
 } 
 
-void ZSolid::draw(const char* msg) 
+
+char ZSolid::mkr( const G4VSolid* node_) const 
+{ 
+    return mkr_map->count(node_) == 1 ? (*mkr_map)[node_] : ' ' ; 
+}
+void ZSolid::set_mkr( const G4VSolid* node_, char mk )
+{
+    (*mkr_map)[node_] = mk  ;
+} 
+
+
+
+
+
+bool ZSolid::is_exclude_include( const G4VSolid* node_) const 
+{
+    if(!Boolean(node_)) return false ; 
+    const G4VSolid* left_  = Left(node_); 
+    const G4VSolid* right_ = Right(node_); 
+    return zcls(left_) == EXCLUDE &&  zcls(right_) == INCLUDE ; 
+}
+
+bool ZSolid::is_include_exclude( const G4VSolid* node_) const 
+{
+    if(!Boolean(node_)) return false ; 
+    const G4VSolid* left_  = Left(node_); 
+    const G4VSolid* right_ = Right(node_); 
+    return zcls(left_) == INCLUDE &&  zcls(right_) == EXCLUDE ; 
+}
+
+bool ZSolid::is_crux( const G4VSolid* node_ ) const 
+{
+    if(!Boolean(node_)) return false ; 
+    const G4VSolid* left_  = Left(node_); 
+    const G4VSolid* right_ = Right(node_); 
+    bool exclude_include = zcls(left_) == EXCLUDE &&  zcls(right_) == INCLUDE ;
+    bool include_exclude = zcls(left_) == INCLUDE &&  zcls(right_) == EXCLUDE ; 
+    return exclude_include ^ include_exclude ;   // XOR one or other, not both 
+}
+
+
+
+int ZSolid::num_prim_r(const G4VSolid* n) const
+{   
+    if(!n) return 0 ; 
+    const G4VSolid* l = Left(n); 
+    const G4VSolid* r = Right(n); 
+    return ( l && r ) ? num_prim_r(l) + num_prim_r(r) : 1 ;
+}
+int ZSolid::num_prim() const 
+{
+    return num_prim_r(root); 
+}
+
+int ZSolid::num_node() const
+{
+    return num_node_r(root) ; 
+}
+int ZSolid::num_node_r(const G4VSolid* n) // static 
+{
+    int num = n ? 1 : 0 ;
+    if( n )
+    {
+        const G4VSolid* l = Left(n); 
+        const G4VSolid* r = Right(n); 
+
+        if( l && r )
+        {   
+            num += num_node_r( l );  
+            num += num_node_r( r );  
+        }   
+    }
+    return num ; 
+} 
+
+
+int ZSolid::num_node(int qcls) const
+{
+    return num_node_r(root, qcls) ; 
+}
+int ZSolid::num_node_r(const G4VSolid* n, int qcls) const 
+{
+    int zcl = zcls(n) ; 
+    /*
+    const char* zcn = ClassifyMaskName(zcl) ; 
+    std::cout 
+        << "ZSolid::num_node_r"
+        << " zcl " << zcl
+        << " zcn " << zcn
+        << " Desc " << Desc(n)
+        << std::endl
+        ;  
+    */
+
+    int num = ( n && zcl == qcls ) ? 1 : 0 ;
+    if( n )
+    {
+        const G4VSolid* l = Left(n); 
+        const G4VSolid* r = Right(n); 
+        if( l && r )
+        {   
+            num += num_node_r( l, qcls );  
+            num += num_node_r( r, qcls );  
+        }   
+    }
+    return num ; 
+} 
+
+const char* ZSolid::desc() const 
+{
+    int num_node_     = num_node(); 
+    int num_prim_     = num_prim(); 
+
+    int num_undefined = num_node(UNDEFINED);  
+    int num_exclude   = num_node(EXCLUDE);  
+    int num_include   = num_node(INCLUDE);  
+    int num_mixed     = num_node(MIXED);  
+
+    std::stringstream ss ; 
+    ss 
+       << " NODE:" << num_node_
+       << " PRIM:" << num_prim_
+       << " UNDEFINED:" << num_undefined
+       << " EXCLUDE:" << num_exclude
+       << " INCLUDE:" << num_include
+       << " MIXED:" << num_mixed
+       ; 
+     
+    std::string s = ss.str(); 
+    return strdup(s.c_str());
+}
+
+
+void ZSolid::prune(bool act)
+{
+    int num_include = num_node(INCLUDE) ;
+
+    if(verbose)
+    printf("ZSolid::prune num_include %d \n", num_include);
+
+    if( num_include == 0)
+    {
+        if(verbose)
+        printf("ZSolid::prune find zero remaining nodes : num_include %d, will set root to nullptr \n", num_include);
+
+        if(act)
+        {
+            if(verbose)
+            printf("ZSolid:::prune setting root to nullptr \n");
+
+            root = nullptr ;
+        }
+    }
+
+    if(crux.size() == 0 ) return ;
+    assert(crux.size() == 1) ;       // more than one crux node not expected
+
+    G4VSolid* x = crux[0] ;
+    prune(x, act);
+}
+
+void ZSolid::prune(G4VSolid* x, bool act)
+{
+    assert( x );
+    bool ie = is_include_exclude(x) ;
+    bool ei = is_exclude_include(x) ;
+    assert( ie ^ ei );                // XOR definition of crux node 
+
+    G4VSolid* survivor = ie ? Left_(x) : Right_(x) ;
+    assert( survivor );
+
+    set_mkr(survivor, 'S') ;
+
+    G4VSolid* p = parent_(x); 
+
+    if( p != nullptr )   // non-root prune
+    {
+        G4VSolid* p_left = Left_(p); 
+        G4VSolid* p_right = Right_(p); 
+
+        bool x_is_p_left  = x == p_left ; 
+        bool x_is_p_right = x == p_right ; 
+
+        set_mkr(p, 'P') ;
+
+        if(x_is_p_left)
+        {
+            if(act)
+            {
+                if(verbose)
+                printf("ZSolid:::prune SetLeft changing p.left to survivor \n");
+                SetLeft(p, survivor) ; 
+            }
+        }
+        else if(x_is_p_right)
+        {
+            if(act)
+            {
+                if(verbose)
+                printf("ZSolid:prune SetRight changing p.right to survivor  \n");
+                SetRight(p, survivor) ; 
+            }
+        }
+    }
+    else           // root prune
+    {
+        if( act )
+        {
+            if(verbose)
+            printf("ZSolid::prune changing root to survivor\n");
+            root = survivor ;
+        }
+    }
+
+    if(act)
+    {
+        instrumentTree();
+    }
+}
+
+
+
+
+
+
+
+
+void ZSolid::draw(const char* msg, int pass) 
 {
     canvas->clear();
 
     int mode = RPRE ; 
-    std::cout << msg << std::endl ; 
+    std::cout << msg << " [" << pass << "]" << std::endl ; 
+
+    std::cout << desc() << std::endl ; 
     std::cout << "OrderName " << OrderName(mode) << std::endl ; 
 
     draw_r(root, mode);
@@ -301,23 +556,34 @@ void ZSolid::draw(const char* msg)
     canvas->print(); 
 }
 
+/**
+ZSolid::draw_r
+----------------
+
+Recursively paints nodes of the tree onto the canvas
+using the *mode* traversal order to label the nodes
+
+**/
+
 void ZSolid::draw_r( const G4VSolid* n, int mode )
 {
     if( n == nullptr ) return ;
     draw_r( Left(n),  mode );
     draw_r( Right(n), mode );
 
-    int x = in(n) ;            // inorder index, aka "side", increasing from left to right 
-    int y = depth(n) ;         // increasing downwards
+    int ix = in(n) ;            // inorder index, aka "side", increasing from left to right 
+    int iy = depth(n) ;         // increasing downwards
     int idx = index(n, mode);  // index for presentation 
 
     const char* tag = EntityTag(n, true) ; 
-    int zcl = zcls(n, true); 
+    int zcl = zcls(n); 
     const char* zcn = ClassifyMaskName(zcl) ; 
+    char mk = mkr(n); 
 
-    canvas->draw( x, y, tag, 0); 
-    canvas->draw( x, y, zcn, 1); 
-    canvas->draw( x, y, idx, 2); 
+    canvas->draw(   ix, iy, 0,  tag); 
+    canvas->draw(   ix, iy, 1,  zcn); 
+    canvas->draw(   ix, iy, 2,  idx); 
+    canvas->drawch( ix, iy, 3,  mk ); 
 }
 
 
@@ -359,6 +625,22 @@ int ZSolid::EntityType(const G4VSolid* solid)   // static
     if( strcmp(name, "G4DisplacedSolid") == 0 )    type = _G4DisplacedSolid ; 
     return type ; 
 }
+
+
+std::string ZSolid::Desc(const G4VSolid* solid) // static
+{
+    std::stringstream ss ; 
+
+    ss << EntityTypeName(solid)
+       << " name " << solid->GetName()
+       << " bool " << Boolean(solid)
+       << " disp " << Displaced(solid)
+       ; 
+
+    std::string s = ss.str(); 
+    return s ; 
+}
+
 
 bool ZSolid::Boolean(const G4VSolid* solid) // static
 {
@@ -498,12 +780,14 @@ combination of the child classifications.
 
 int ZSolid::classifyTree(double zcut)  
 {
+    crux.clear(); 
     std::cout << "ZSolid::classifyTree against zcut " << zcut  << std::endl ; 
     int zc = classifyTree_r(root, 0, zcut); 
     return zc ; 
 }
 
-int ZSolid::classifyTree_r( const G4VSolid* node_, int depth, double zcut )
+
+int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
 {
     int zcl = 0 ; 
     int sid = in(node_);    // inorder 
@@ -511,11 +795,24 @@ int ZSolid::classifyTree_r( const G4VSolid* node_, int depth, double zcut )
 
     if(Boolean(node_))
     {
-        int left_zcl = classifyTree_r(Left(node_) , depth+1, zcut) ; 
-        int right_zcl = classifyTree_r(Right(node_), depth+1, zcut) ; 
+        int left_zcl = classifyTree_r(Left_(node_) , depth+1, zcut) ; 
+        int right_zcl = classifyTree_r(Right_(node_), depth+1, zcut) ; 
 
         zcl |= left_zcl ; 
         zcl |= right_zcl ; 
+
+
+        if(left_zcl == INCLUDE && right_zcl == EXCLUDE )
+        {
+            crux.push_back(node_); 
+            set_mkr( node_, 'X' ); 
+        }
+        else if(left_zcl == EXCLUDE && right_zcl == INCLUDE )
+        {
+            crux.push_back(node_); 
+            set_mkr( node_, 'Y' ); 
+        }
+
 
         if(false) std::cout 
             << "ZSolid::classifyTree_r" 
@@ -527,12 +824,13 @@ int ZSolid::classifyTree_r( const G4VSolid* node_, int depth, double zcut )
             << std::endl
             ;
 
-        set_zcls( node_ , true, zcl ); 
+        set_zcls( node_, zcl ); 
     }
     else
     {
+        // node_ is the raw one which may be 
         double zd = getZ(node_) ;  
-        const G4VSolid*  node = Moved(nullptr, nullptr, node_ ); 
+        G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
         if(CanZ(node))
         {
             double z0, z1 ; 
@@ -556,7 +854,7 @@ int ZSolid::classifyTree_r( const G4VSolid* node_, int depth, double zcut )
                 << std::endl
                 ;
 
-            set_zcls( node_ , true, zcl ); 
+            set_zcls( node_, zcl ); 
         }
     }
     return zcl ; 
@@ -576,7 +874,7 @@ int ZSolid::classifyMask_r( const G4VSolid* node_, int depth ) const
     }
     else
     {
-        mask |= zcls(node_, true) ; 
+        mask |= zcls(node_) ; 
     }
     return mask ; 
 }
@@ -649,117 +947,60 @@ const char* ZSolid::ClassifyMaskName( int zcl ) // static
 ZSolid::cutTree
 ------------------
 
-NTreeAnalyse height 7 count 15::
+See opticks/sysrap/tests/TreePruneTest.cc for 
+development of tree cutting and pruning.
 
-                                                     [un]    
-
-                                              un         [cy]  
-
-                                      un          cy        
-
-                              un          zs                
-
-                      un          cy                        
-
-              un          co                                
-
-      un          zs                                        
-
-  zs      cy                                                
-
-
-Could kludge cut unbalanced trees like the above simply by changing the root.
-But how to cut more generally such as with a balanced tree.
-
-When left and right child are EXCLUDED that exclusion 
-needs to spread upwards to the parent. 
-
-* classifyTree does this 
-
-When the right child of a union gets EXCLUDED [cy] need to 
-pullup the left child to replace the parent node.::
-
-
-           un                              un
-                                  
-                    un                              cy
-                                 -->               /
-               cy      [cy]                    ..         .. 
-
-
-More generally when the right subtree of a union *un* 
-is all excluded need to pullup the left subtree ^un^ to replace the *un*::
-
-
-                             (un)                            
-
-              un                             *un*            
-                                           ^ 
-      un              un             ^un^            [un]   
-
-  zs      cy      zs      co      cy      zs     [cy]    [cy]
-
-
-How to do that exactly ? 
-
-* get parent of *un* -> (un)
-* change right child of (un) from *un* to ^un^
-
-* BUT there is no G4BooleanSolid::SetConstituentSolid
-  so will need to use placement new to put a new
-  boolean object at the old memory address 
-
-  * see sysrap/tests/PlacementNewTest.cc
-
-
-When the right subtree of root is all excluded need to 
-do the same in principal : pullup the left subtree to replace root *un*.
-In practice this is simpler because can just change the root pointer::
-
-
-                             *un*                           
-
-             ^un^                            [un]           
-
-      un              un             [un]            [un]   
-
-  zs      cy      zs      co     [cy]    [zs]    [cy]    [cy]
-
-
-
-How to detect can just shift the root pointer ? 
-
-
-Hmm if exclusions were scattered all over would be easier to 
-just rebuild. 
- 
-
-So the steps are:
+Steps:
 
 1. classify the nodes of the tree against the zcut 
-2. change STRADDLE node params and transforms according to the zcut
-   and set classification to INCLUDE
-3. edit the tree to remove the EXCLUDE nodes
+2. change STRADDLE nodes params and transforms according to the zcut
+3. reclassify against the zcut, so STRADDLE nodes should become INCLUDE nodes
+
+4. edit the tree to remove the EXCLUDE nodes
 
 **/
-void ZSolid::cutTree(double zcut)
-{
-    std::cout << "ZSolid::cutTree " << zcut << std::endl ; 
-    classifyTree(zcut);  
-    //draw("[1] ZSolid::cutTree before cutTree_r  "); 
-    cutTree_r(root, 0, zcut); 
-    classifyTree(zcut);  
-    draw("[2] ZSolid::cutTree after cutTree_r and re-classify  "); 
 
-    findCandidateRoot(); 
+void ZSolid::apply_cut(double zcut)
+{
+    if(verbose)
+    printf("ZSolid::apply_cut %7.2f \n", zcut );
+
+    unsigned pass = 0 ;
+    unsigned maxpass = 10 ;
+
+    while( root != nullptr && zcls(root) != INCLUDE && pass < maxpass )
+    {
+        classifyTree(zcut);   // set n.cls n.mkr
+
+        cutTree_r(root, 0, zcut); 
+
+        classifyTree(zcut);   // set n.cls n.mkr
+
+        prune(false);
+
+        if(verbose)
+        draw("ZSolid::apply_cut before prune", pass );
+
+        prune(true);
+
+        classifyTree(zcut);
+        instrumentTree();
+
+        if(verbose)
+        draw("tree::apply_cut after prune and re-classify", pass );
+
+        pass++ ;
+    }
 }
 
-void ZSolid::cutTree_r( G4VSolid* node_, int depth, double zcut )
+
+
+void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
 {
     if(Boolean(node_))
     {
-        cutTree_r( ZSolid::Left_(node_) , depth+1, zcut ) ; 
-        cutTree_r( ZSolid::Right_(node_), depth+1, zcut ) ; 
+        cutTree_r( ZSolid::Left(node_) , depth+1, zcut ) ; 
+        cutTree_r( ZSolid::Right(node_), depth+1, zcut ) ; 
     }
     else
     {
@@ -767,67 +1008,20 @@ void ZSolid::cutTree_r( G4VSolid* node_, int depth, double zcut )
         double zdelta = getZ(node_) ; 
         double local_zcut = zcut - zdelta ; 
 
-        int zcl = zcls(node_, true );   
+        int zcl = zcls(node_);   
 
         if( zcl == STRADDLE )
         {
-            ApplyZCut( node_, local_zcut ); 
-
-            // instead of manually changing STRADDLE->INCLUDE, 
-            // now just redo tree classification so should see the status 
-            // change via the changed z range.
+            ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut ); 
         } 
     }
 }
 
-/**
-ZSolid::findCandidateRoot
----------------------------
-
-Reverse (right before left) preorder traversal, 
-which is exact opposite of postorder traversal. 
-It is effectively an "undo" of the postorder. 
-
-**/
-
-void ZSolid::findCandidateRoot()  
-{
-    candidate_root = nullptr ; 
-    findCandidateRoot_r( root, 0 ); 
-
-    
-
-}
-
-void ZSolid::findCandidateRoot_r(const G4VSolid* n, int depth)
-{
-    if(n == nullptr) return ; 
-    int zcl = zcls(n, true );   
 
 
-    const char* zcn = ClassifyMaskName(zcl) ; 
 
-    int post_idx = index(n, POST);  
-    int rpre_idx = index(n, RPRE);  
 
-    std::cout 
-        << "ZSolid::findCandidateRoot_r"
-        << " rpre_idx " << std::setw(3) << rpre_idx
-        << " post_idx " << std::setw(3) << post_idx
-        << " sum_idx " << std::setw(3) <<  (rpre_idx + post_idx)
-        << " zcn " << std::setw(5) << zcn 
-        << std::endl
-        ;
 
-    if( zcl == INCLUDE ) 
-    {
-        candidate_root = n ; 
-        return ; 
-    }
-
-    findCandidateRoot_r( Right(n), depth+1 );
-    findCandidateRoot_r( Left(n),  depth+1 );
-}
 
 
 
@@ -846,7 +1040,7 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
     }
     else
     {
-        int zcl = zcls(node_, true) ; 
+        int zcl = zcls(node_) ; 
         if( zcl == query_zcls )
         {
             nodes.push_back(node_) ; // node_ or node ?
@@ -1383,31 +1577,94 @@ void ZSolid::PlacementNewDupe( G4VSolid* solid) // static
 } 
 
 /**
-ZSolid::PlacementNewSetRight
-------------------------------
+ZSolid::SetRight
+-----------------
 
-Hmm could use G4DisplacedSolid argument 
+The right hand side CSG constituent of *node* is changed to the provided *right* G4VSolid, 
+with the transform rotation/translation applied to the *right* solid.
+Use nullptr for rrot or rtla when no rotation or translation is required.
+
+As there is no G4BooleanSolid::SetConstituentSolid method this sneakily replaces *node* with 
+another at the same memory addess (using placement new) with the *right* changed by re-construction.
+
+Note that it is not appropriate to use a G4DisplacedSolid argument for either
+*solid* or *right* as G4DisplacedSolid objects are internal implementation details of 
+G4BooleanSolid that automatically gets instanciated by the G4BooleanSolid ctors 
+with transform arguments. So that means that G4DisplacedSolid are not suitable inputs
+to G4BooleanSolid ctors. 
 
 **/
 
-void ZSolid::PlacementNewSetRight(  G4VSolid* solid, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla )
+void ZSolid::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla )
 {
-    G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(solid) ; 
+    assert( dynamic_cast<G4DisplacedSolid*>(node) == nullptr ) ; 
+    assert( dynamic_cast<G4DisplacedSolid*>(right) == nullptr ) ; 
+
+    G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(node) ; 
     assert( src ); 
 
     int type = EntityType(src); 
     G4String name = src->GetName() ; 
     G4VSolid* left = src->GetConstituentSolid(0) ; 
 
+    G4SolidStore::GetInstance()->DeRegister(src);
+
     G4VSolid* replacement = nullptr ; 
+
+    G4ThreeVector tlate(0.,0.,0.); 
+    if( rtla == nullptr ) rtla = &tlate ; 
     switch(type)
     {
         case _G4UnionSolid        : replacement = new (src) G4UnionSolid(        name, left, right, rrot, *rtla ) ; break ; 
         case _G4SubtractionSolid  : replacement = new (src) G4SubtractionSolid(  name, left, right, rrot, *rtla ) ; break ;
         case _G4IntersectionSolid : replacement = new (src) G4IntersectionSolid( name, left, right, rrot, *rtla ) ; break ; 
+    }
+    assert( replacement == src ); 
+}
+
+
+/**
+ZSolid::SetLeft
+-------------------
+
+The lefthand side constituent of *node* is changed to *left* 
+This is implemented using placement new trickery to replace the 
+*node* with another at the same memory address with changed *left*.
+
+**/
+
+void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static 
+{
+    assert( dynamic_cast<G4DisplacedSolid*>(node) == nullptr ) ; 
+    assert( dynamic_cast<G4DisplacedSolid*>(left) == nullptr ) ; 
+
+    G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(node) ; 
+    assert( src ); 
+
+    int type = EntityType(src); 
+    G4String name = src->GetName() ; 
+    G4VSolid* disp_right = src->GetConstituentSolid(1) ;  // may be G4DisplacedSolid
+
+    G4RotationMatrix rrot ; 
+    G4ThreeVector    rtla(0.,0.,0.) ; 
+    G4VSolid* right = Moved_( &rrot, &rtla, disp_right );  // if *right* isa G4DisplacedSolid get the moved solid inside and transforms
+ 
+    G4SolidStore::GetInstance()->DeRegister(src);
+
+    G4VSolid* replacement = nullptr ; 
+    switch(type)
+    {
+        case _G4UnionSolid        : replacement = new (src) G4UnionSolid(        name, left, right, &rrot, rtla ) ; break ; 
+        case _G4SubtractionSolid  : replacement = new (src) G4SubtractionSolid(  name, left, right, &rrot, rtla ) ; break ;
+        case _G4IntersectionSolid : replacement = new (src) G4IntersectionSolid( name, left, right, &rrot, rtla ) ; break ; 
     } 
     assert( replacement == src ); 
 }
+
+
+
+
+
 
 
 

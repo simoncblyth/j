@@ -10,6 +10,7 @@
 #include "G4IntersectionSolid.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4Tubs.hh"
+#include "G4Orb.hh"
 #include "ZSolid.hh"
 
 G4VSolid* make_tubs( const char* name, double rmax, double hz )
@@ -21,38 +22,23 @@ G4VSolid* make_tubs( const char* name, double rmax, double hz )
     return tubs ; 
 }
 
+G4VSolid* make_orb( const char* name, double rmax )
+{
+    return new G4Orb(name, rmax); 
+}
 
-/**
-
-Because the G4BooleanSolid ctor allocates fPtrSolidB 
-
-
-
- 95 G4BooleanSolid::G4BooleanSolid( const G4String& pName,
- 96                                       G4VSolid* pSolidA ,
- 97                                       G4VSolid* pSolidB ,
- 98                                 const G4Transform3D& transform    ) :
- 99   G4VSolid(pName), fStatistics(1000000), fCubVolEpsilon(0.001),
-100   fAreaAccuracy(-1.), fCubicVolume(-1.), fSurfaceArea(-1.),
-101   fRebuildPolyhedron(false), fpPolyhedron(0), fPrimitivesSurfaceArea(0.),
-102   createdDisplacedSolid(true)
-103 {
-104   fPtrSolidA = pSolidA ;
-105   fPtrSolidB = new G4DisplacedSolid("placedB",pSolidB,transform) ;
-106 }
-
-**/
-
-
-void test_PlacementNewDupe()
+G4VSolid* make_union()
 {
     G4VSolid* l = make_tubs("l", 100., 10.); 
     G4VSolid* r = make_tubs("r", 200., 10.); 
-
     G4ThreeVector tla(0,0,-10.) ; 
     G4VSolid* lr = new G4UnionSolid( "lr", l, r, 0, tla); 
-    //G4VSolid* lr = new G4UnionSolid( lr_name, l, r ); 
+    return lr ; 
+}
 
+void test_PlacementNewDupe()
+{
+    G4VSolid* lr = make_union(); 
 
     char* bytes0 = nullptr ; 
     int num_bytes0 ; 
@@ -73,16 +59,43 @@ void test_PlacementNewDupe()
     printf("num_bytes1 %d \n", num_bytes1); 
     assert( num_bytes0 == num_bytes1 ); 
     int mismatch = ZSolid::CompareBytes( bytes0, bytes1, num_bytes0 ); 
-    printf("mismatch %d\n", mismatch); 
+    printf("mismatch %d (expect a few different bytes from new G4DisplacedSolid inside ctor \n", mismatch); 
 }
 
+void test_SetRight()
+{
+    G4VSolid* lr = make_union(); 
+    G4VSolid* o  = make_orb("o", 100.); 
+    //G4cout << *lr ; 
+    ZSolid::SetRight( lr, o ); 
+    G4cout << *lr ; 
+}
 
+void test_SetRight_translate()
+{
+    G4VSolid* lr = make_union(); 
+    G4VSolid* o  = make_orb("o", 100.); 
+    //G4cout << *lr ; 
+    G4ThreeVector rtla(0.,0.,-1000.); 
+    ZSolid::SetRight( lr, o, nullptr, &rtla ); 
+    G4cout << *lr ; 
+}
+
+void test_SetLeft()
+{
+    G4VSolid* lr = make_union(); 
+    G4VSolid* o  = make_orb("o", 100.); 
+    ZSolid::SetLeft( lr, o ); 
+    G4cout << *lr ; 
+}
 
 int main(int argc, char** argv)
 {
-    //test_offsetof_G4UnionSolid(); 
-    test_PlacementNewDupe();   
-  
+    //test_PlacementNewDupe();   
+    //test_SetRight(); 
+    test_SetRight_translate(); 
+    //test_SetLeft(); 
+
     return 0 ; 
 }
 

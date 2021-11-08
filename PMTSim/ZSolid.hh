@@ -27,14 +27,14 @@ struct ZCanvas ;
 struct PMTSIM_API ZSolid   
 {
     // primary API
-    static G4VSolid* CreateZCutTree( const G4VSolid* original, double zcut ); 
+    static const G4VSolid* CreateZCutTree( const G4VSolid* original, double zcut ); 
 
     // members
+    bool            verbose ; 
     const G4VSolid* original ; 
-    G4VSolid*       root ;     // DeepClone of original, which should be identical to original AND fully independent 
+    G4VSolid* root ;     // DeepClone of original, which is identical to original AND fully independent from it 
 
-    const G4VSolid* candidate_root ; 
-
+    // maps populated by instrumentTree
     std::map<const G4VSolid*, const G4VSolid*>* parent_map ; 
     std::map<const G4VSolid*, int>*             in_map ; 
     std::map<const G4VSolid*, int>*             rin_map ; 
@@ -44,6 +44,7 @@ struct PMTSIM_API ZSolid
     std::map<const G4VSolid*, int>*             rpost_map ; 
     std::map<const G4VSolid*, int>*             zcls_map ; 
     std::map<const G4VSolid*, int>*             depth_map ; 
+    std::map<const G4VSolid*, char>*            mkr_map ; 
 
     unsigned width ; 
     unsigned height ; 
@@ -56,15 +57,15 @@ struct PMTSIM_API ZSolid
     std::vector<const G4VSolid*> postorder ; 
     std::vector<const G4VSolid*> rpostorder ; 
 
+    std::vector<G4VSolid*> crux ; 
 
 
     // object methods
     ZSolid(const G4VSolid* root ); 
 
     void init(); 
-    void instrumentTree();
-    void dump(const char* msg="ZSolid::dump") const ; 
 
+    void instrumentTree();
     void parent_r(    const G4VSolid* node, int depth); 
     void depth_r(     const G4VSolid* node, int depth);
     void inorder_r(   const G4VSolid* node, int depth);
@@ -75,6 +76,8 @@ struct PMTSIM_API ZSolid
     void rpostorder_r(const G4VSolid* node, int depth);
 
     const G4VSolid* parent( const G4VSolid* node_) const ;
+    G4VSolid*       parent_( const G4VSolid* node_) const ;
+
     int depth( const G4VSolid* node_) const ;
     int in(    const G4VSolid* node_) const ;
     int rin(   const G4VSolid* node_) const ;
@@ -100,28 +103,48 @@ struct PMTSIM_API ZSolid
     void   getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const ; 
 
     int classifyTree( double zcut ); 
-    int classifyTree_r( const G4VSolid* node_, int depth, double zcut ); 
+    int classifyTree_r( G4VSolid* node_, int depth, double zcut ); 
 
     int classifyMask(const G4VSolid* top) const ;
     int classifyMask_r( const G4VSolid* node_, int depth ) const ;
 
-    void cutTree(double zcut);
-    void cutTree_r( G4VSolid* node_, int depth, double zcut ); 
+    void apply_cut(double zcut);
+    void cutTree_r( const G4VSolid* node_, int depth, double zcut ); 
 
-    void findCandidateRoot();
-    void findCandidateRoot_r(const G4VSolid* n, int depth);
+    int zcls( const G4VSolid* node_ ) const ;   // formerly had move bool arg, now using move:false 
+    void set_zcls( const G4VSolid* node_, int zc ); 
+
+    char mkr( const G4VSolid* node_) const ;
+    void set_mkr( const G4VSolid* node_, char mk ); 
+
+
+    bool is_exclude_include( const G4VSolid* node_ ) const ;
+    bool is_include_exclude( const G4VSolid* node_ ) const ;
+    bool is_crux( const G4VSolid* node_ ) const ;
+
+    int num_prim() const ;
+    int num_prim_r(const G4VSolid* n) const;
+    int num_node() const; 
+    static int num_node_r(const G4VSolid* n);
+    int num_node(int qcls) const; 
+    int num_node_r(const G4VSolid* n, int qcls) const ;
+
+    const char* desc() const ; 
+
+    void prune(bool act); 
+    void prune(G4VSolid* x, bool act);
+
 
     void collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  );
     void collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  );
 
-    void draw(const char* msg="ZSolid::draw"); 
+    void draw(const char* msg="ZSolid::draw", int pass=-1); 
     void draw_r( const G4VSolid* n, int mode); 
-
-    int zcls( const G4VSolid* node_, bool move) const ;
-    void set_zcls( const G4VSolid* node_, bool move, int zc ); 
 
     int maxdepth() const  ;
     static int Maxdepth_r( const G4VSolid* node_, int depth); 
+
+    void dump(const char* msg="ZSolid::dump") const ; 
 
     void dumpUp(const char* msg="ZSolid::dumpUp") const ; 
     void dumpUp_r(const G4VSolid* node, int depth) const ; 
@@ -145,7 +168,8 @@ struct PMTSIM_API ZSolid
        UNDEFINED=0, 
          INCLUDE=1<<0, 
         STRADDLE=1<<1, 
-         EXCLUDE=1<<2 
+         EXCLUDE=1<<2, 
+         MIXED=INCLUDE|EXCLUDE
      }; 
 
     static const char* UNDEFINED_ ; 
@@ -164,15 +188,17 @@ struct PMTSIM_API ZSolid
     static const char*     EntityTag(       const G4VSolid* solid, bool move ) ; // move:true sees thru G4DisplacedSolid 
     static bool            Boolean(         const G4VSolid* solid) ;
     static bool            Displaced(       const G4VSolid* solid) ;
+    static std::string     Desc(const G4VSolid* solid); 
+
 
     // navigation
     static const G4VSolid* Left(  const G4VSolid* node) ;
-    static const G4VSolid* Right( const G4VSolid* node) ;
+    static const G4VSolid* Right( const G4VSolid* node) ;  // NB the G4VSolid returned might be a G4DisplacedSolid wrapping the G4VSolid 
     static const G4VSolid* Moved( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node) ;
 
     static       G4VSolid* Left_(       G4VSolid* node) ;
     static       G4VSolid* Right_(      G4VSolid* node) ;
-    static       G4VSolid* Moved_( G4RotationMatrix* rot, G4ThreeVector* tla,      G4VSolid* node) ;
+    static       G4VSolid* Moved_( G4RotationMatrix* rot, G4ThreeVector* tla, G4VSolid* node) ;
 
     // local node frame access 
     static void ZRange( double& z0, double& z1,  const G4VSolid* solid ) ; 
@@ -190,7 +216,8 @@ struct PMTSIM_API ZSolid
     static void GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid );
     static int CompareBytes( char* bytes0, char* bytes1, int num_bytes ); 
     static void PlacementNewDupe( G4VSolid* solid); 
-    static void PlacementNewSetRight(  G4VSolid* solid, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla ); 
+    static void SetLeft(  G4VSolid* node, G4VSolid* left);  
+    static void SetRight( G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot=nullptr, G4ThreeVector* rtla=nullptr ); 
 
 
     static void      CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ); 

@@ -17,7 +17,7 @@ G4LogicalVolume* PMTSim::GetLV(const char* name)  // static
     return lv ; 
 }
 
-G4VSolid* PMTSim::GetSolid(const char* name) // static
+const G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
     Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
 
@@ -34,7 +34,7 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
     std::vector<long> vals ; 
     Extract( vals, name ); 
 
-    G4VSolid* solid = nullptr ; 
+    const G4VSolid* solid = nullptr ; 
     if(vals.size() > 0)
     {
         double zcut = vals[0] ; 
@@ -43,7 +43,7 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
     }
     else
     {
-        std::cout << "PMTSim::GetSolid without zcut " << std::endl ; 
+        std::cout << "PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
         solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
     }
     return solid ; 

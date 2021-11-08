@@ -472,19 +472,21 @@ provided avoiding slow and pointless complicated CSG.
 
 **/
 
-G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
+const G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
-    G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ;  // getting the full solid populates ZSolids vector 
+    G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ; 
 
-    G4VSolid* zcut_solid = nullptr ; 
+    const G4VSolid* zcut_solid = nullptr ; 
     if( strstr(solidname.c_str(), "old") )
     {
+        // only way uses the ozs vector populated by above GetSolid
         std::cout << " Z mode : ozs.makeUnionSolidZCut  " << std::endl ;   
         zcut_solid = ozs->makeUnionSolidZCut(solidname, zcut);  
         //zcut_solid = ozs->makeUnionSolid(solidname) ;  
     }
     else
     {
+        // new way just directly uses the pmt_solid tree with no external vector of nodes needed
         std::cout << "Hamamatsu_R12860_PMTSolid::GetZCutSolid" << std::endl ;   
         zcut_solid = ZSolid::CreateZCutTree( pmt_solid, zcut); 
     }
