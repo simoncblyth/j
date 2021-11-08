@@ -2,12 +2,19 @@
 
 export JUNO_PMT20INCH_POLYCONE_NECK=ENABLED 
 
-if [ "$(uname)" == "Darwin" ]; then
-   #lldb__ PMTSimTest 
-   PMTSimTest 
+name=PMTSimTest
+which $name
+
+if [ -n "$DEBUG" ]; then
+    if [ "$(uname)" == "Darwin" ]; then
+        lldb__ $name
+    else
+        gdb -ex r --args $name
+    fi 
 else
-   gdb -r ex --args PMTSimTest 
-fi 
+    $name
+fi
+
 
 #ipython -i ZSolids.py 
 

@@ -24,13 +24,6 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
     G4String solidname = name ; 
     double thickness = 0. ; 
     char mode = ' '; 
-
-    std::cout 
-         << "PMTSim::GetSolid name " << name 
-         << "  mode [" << mode << "]" 
-         << std::endl
-         ; 
-
     std::vector<long> vals ; 
     Extract( vals, name ); 
 
@@ -38,13 +31,15 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
     if(vals.size() > 0)
     {
         double zcut = vals[0] ; 
-        std::cout << "PMTSim::GetSolid extracted zcut from name " << zcut << std::endl ; 
+        std::cout << "[ PMTSim::GetSolid extracted zcut " << zcut << " from name " << name  << " mode" << mode << std::endl ; 
         solid = pmtsolid_maker->GetZCutSolid(solidname, zcut, thickness, mode);  
+        std::cout << "] PMTSim::GetSolid extracted zcut " << zcut << " from name " << name << " mode " << mode << std::endl ; 
     }
     else
     {
-        std::cout << "PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
+        std::cout << "[ PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
         solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
+        std::cout << "] PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
     }
     return solid ; 
 }
@@ -61,6 +56,4 @@ void PMTSim::Extract( std::vector<long>& vals, const char* s )  // static
     }   
     free(s0); 
 }
-
-
 

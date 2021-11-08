@@ -20,9 +20,11 @@
 
 const G4VSolid* ZSolid::CreateZCutTree( const G4VSolid* original, double zcut ) // static
 {
-    std::cout << "ZSolid::CreateZCutTree" << std::endl ; 
+    std::cout << "[ ZSolid::CreateZCutTree zcut " << zcut << std::endl ; 
     ZSolid* zs = new ZSolid(original); 
     zs->apply_cut( zcut );  
+    //zs->dump("ZSolid::CreateZCutTree"); 
+    std::cout << "] ZSolid::CreateZCutTree" << std::endl ; 
     return zs->root ; 
 }
 
@@ -46,7 +48,9 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 
     width(0),
     height(0), 
-    canvas(  new ZCanvas(width, height+1) )  // +1 as height 0 tree is still 1 node
+    extra_width(1),    // for annotations to the right 
+    extra_height(1+1), // +1 as height zero tree is still one node, +1 for annotation  
+    canvas(  new ZCanvas(width+extra_width, height+extra_height, 8, 5) )  
 {
     init(); 
 }
@@ -89,10 +93,26 @@ void ZSolid::instrumentTree()
     rpostorder.clear(); 
     rpostorder_r(root, 0 ); 
 
+    names.clear(); 
+    collectNames_r( root, 0 ); 
+    nameprefix = CommonPrefix(names); 
+
     width = num_node(); 
     height = maxdepth() ; 
-    canvas->resize( width, height+1 );    // +1 as height 0 tree is still one node
+    canvas->resize( width+extra_width, height+extra_height );    
 }
+
+
+std::string ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
+{
+    std::vector<std::string> aa(a); 
+    std::sort( aa.begin(), aa.end() );  
+    const std::string& s1 = aa[0] ; 
+    const std::string& s2 = aa[aa.size()-1] ; 
+    for(unsigned i=0 ; i < s1.size() ; i++) if( s1[i] != s2[i] ) return s1.substr(0,i) ; 
+    return s1 ; 
+} 
+
 
 
 
@@ -325,9 +345,6 @@ void ZSolid::set_mkr( const G4VSolid* node_, char mk )
 } 
 
 
-
-
-
 bool ZSolid::is_exclude_include( const G4VSolid* node_) const 
 {
     if(!Boolean(node_)) return false ; 
@@ -536,11 +553,6 @@ void ZSolid::prune(G4VSolid* x, bool act)
 
 
 
-
-
-
-
-
 void ZSolid::draw(const char* msg, int pass) 
 {
     canvas->clear();
@@ -553,7 +565,26 @@ void ZSolid::draw(const char* msg, int pass)
 
     draw_r(root, mode);
 
+    canvas->draw(   -1, -1, 0,0,  "zdelta" ); 
+    canvas->draw(   -1, -1, 0,1,  "z1" ); 
+    canvas->draw(   -1, -1, 0,2,  "z0" ); 
+    canvas->draw(   -1, -1, 0,3,  "az1" ); 
+    canvas->draw(   -1, -1, 0,4,  "az0" ); 
+
     canvas->print(); 
+
+    std::cout << "nameprefix " << nameprefix << std::endl ; 
+    for(unsigned i=0 ; i < names.size() ; i++ ) 
+    {
+        const std::string& name = names[i] ; 
+        std::cout 
+            << std::setw(20) << name
+            << " : " 
+            << std::setw(20) << name.substr(nameprefix.size())  
+            << std::endl 
+            ;
+    } 
+
 }
 
 /**
@@ -584,6 +615,22 @@ void ZSolid::draw_r( const G4VSolid* n, int mode )
     canvas->draw(   ix, iy, 0,1,  zcn); 
     canvas->draw(   ix, iy, 0,2,  idx); 
     canvas->drawch( ix, iy, 0,3,  mk ); 
+
+
+    const G4VSolid*  node = Moved(nullptr, nullptr, n ); 
+    if(ZSolid::CanZ(node))
+    {
+        double zdelta = getZ(n) ;  
+        double z0, z1 ; 
+        ZRange(z0, z1, node);  
+
+        canvas->draw(   ix, -1, 0,0,  zdelta ); 
+        canvas->draw(   ix, -1, 0,1,  z1 ); 
+        canvas->draw(   ix, -1, 0,2,  z0 ); 
+        canvas->draw(   ix, -1, 0,3,  z1+zdelta ); 
+        canvas->draw(   ix, -1, 0,4,  z0+zdelta ); 
+    }
+
 }
 
 
@@ -993,6 +1040,15 @@ void ZSolid::apply_cut(double zcut)
     }
 }
 
+void ZSolid::collectNames_r( const G4VSolid* n_, int depth )
+{
+    if(n_ == nullptr) return ; 
+    const G4VSolid* n = Moved(nullptr, nullptr, n_) ;  
+    collectNames_r(Left(n),  depth+1); 
+    collectNames_r(Right(n), depth+1); 
+    G4String name = n->GetName(); 
+    names.push_back(name);  
+}
 
 
 void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )

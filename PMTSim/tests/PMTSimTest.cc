@@ -17,13 +17,9 @@ int main(int argc, char** argv)
     for(unsigned i=0 ; i < names.size() ; i++)
     {
         const char* name = names[i] ; 
+        std::cout << "[ PMTSimTest" << " name " << name << std::endl ; 
         const G4VSolid* solid = PMTSim::GetSolid(name) ; 
-        std::cout 
-            << "PMTSimTest"
-            << " name " << name 
-            << " solid " << solid 
-            << std::endl
-            ; 
+        std::cout << "] PMTSimTest" << " name " << name << " solid " << solid << std::endl ; 
     } 
     return 0 ; 
 }

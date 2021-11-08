@@ -48,6 +48,8 @@ struct PMTSIM_API ZSolid
 
     unsigned width ; 
     unsigned height ; 
+    unsigned extra_width ; 
+    unsigned extra_height ; 
     ZCanvas* canvas ; 
 
     std::vector<const G4VSolid*> inorder ; 
@@ -58,7 +60,8 @@ struct PMTSIM_API ZSolid
     std::vector<const G4VSolid*> rpostorder ; 
 
     std::vector<G4VSolid*> crux ; 
-
+    std::vector<std::string> names ; 
+    std::string nameprefix ; 
 
     // object methods
     ZSolid(const G4VSolid* root ); 
@@ -110,6 +113,8 @@ struct PMTSIM_API ZSolid
 
     void apply_cut(double zcut);
     void cutTree_r( const G4VSolid* node_, int depth, double zcut ); 
+    void collectNames_r( const G4VSolid* n, int depth ); 
+
 
     int zcls( const G4VSolid* node_ ) const ;   // formerly had move bool arg, now using move:false 
     void set_zcls( const G4VSolid* node_, int zc ); 
@@ -227,5 +232,8 @@ struct PMTSIM_API ZSolid
     static void ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Tubs(      G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);
+
+    static std::string CommonPrefix(const std::vector<std::string>& a); 
+
 }; 
 

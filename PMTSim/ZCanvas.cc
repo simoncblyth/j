@@ -5,11 +5,11 @@
 
 #include "ZCanvas.hh"
 
-ZCanvas::ZCanvas(int width_, int height_ )
+ZCanvas::ZCanvas(int width_, int height_, int xscale_, int yscale_ )
     :
     verbose(getenv("VERBOSE")!=nullptr),
-    xscale(8), 
-    yscale(4),
+    xscale(xscale_), 
+    yscale(yscale_),
     nx(0),
     ny(0),
     c(nullptr)
@@ -52,8 +52,23 @@ void ZCanvas::drawtest()
 
 void ZCanvas::draw(int ix, int iy, int dx, int dy, int val)
 {
-    char tmp[10] ;
-    int rc = sprintf(tmp, "%d", val );
+    char tmp[8] ;
+    int rc = snprintf(tmp, 8,"%d", val );
+    assert( rc == int(strlen(tmp)) );
+    _draw(ix, iy, dx, dy, tmp); 
+}
+
+void ZCanvas::draw(int ix, int iy, int dx, int dy, float val )
+{
+    char tmp[8] ;
+    int rc = snprintf(tmp, 8, "%-6.1f", val );
+    assert( rc == int(strlen(tmp)) );
+    _draw(ix, iy, dx, dy, tmp); 
+}
+void ZCanvas::draw(int ix, int iy, int dx, int dy, double val)
+{
+    char tmp[8] ;
+    int rc = snprintf(tmp, 8, "%-6.1f", val );
     assert( rc == int(strlen(tmp)) );
     _draw(ix, iy, dx, dy, tmp); 
 }
@@ -72,6 +87,9 @@ void ZCanvas::draw(int ix, int iy, int dx, int dy, const char* txt)
 
 void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)  
 {
+    if( ix < 0 ) ix += width ; 
+    if( iy < 0 ) iy += height ; 
+
     assert( ix < width  );  
     assert( iy < height  );  
     assert( dx < xscale );  
