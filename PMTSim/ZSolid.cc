@@ -20,11 +20,11 @@
 
 const G4VSolid* ZSolid::CreateZCutTree( const G4VSolid* original, double zcut ) // static
 {
-    std::cout << "[ ZSolid::CreateZCutTree zcut " << zcut << std::endl ; 
+    std::cout << "[ ZSolid::CreateZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
     ZSolid* zs = new ZSolid(original); 
     zs->apply_cut( zcut );  
     //zs->dump("ZSolid::CreateZCutTree"); 
-    std::cout << "] ZSolid::CreateZCutTree" << std::endl ; 
+    std::cout << "] ZSolid::CreateZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
     return zs->root ; 
 }
 
@@ -94,7 +94,7 @@ void ZSolid::instrumentTree()
     rpostorder_r(root, 0 ); 
 
     names.clear(); 
-    collectNames_r( root, 0 ); 
+    collectNames_inorder_r( root, 0 ); 
     nameprefix = CommonPrefix(names); 
 
     width = num_node(); 
@@ -492,16 +492,21 @@ void ZSolid::prune(bool act)
     prune(x, act);
 }
 
+/**
+ZSolid::prune
+-----------------
+
+**/
+
 void ZSolid::prune(G4VSolid* x, bool act)
 {
     assert( x );
-    bool ie = is_include_exclude(x) ;
-    bool ei = is_exclude_include(x) ;
-    assert( ie ^ ei );                // XOR definition of crux node 
+    bool ie = is_include_exclude(x) ;  // include left, exclude right
+    bool ei = is_exclude_include(x) ;  // exclude left, include rigth 
+    assert( ie ^ ei );                 // XOR definition of crux node 
 
     G4VSolid* survivor = ie ? Left_(x) : Right_(x) ;
     assert( survivor );
-
     set_mkr(survivor, 'S') ;
 
     G4VSolid* p = parent_(x); 
@@ -539,8 +544,11 @@ void ZSolid::prune(G4VSolid* x, bool act)
     {
         if( act )
         {
+
+            G4String root_name = root->GetName(); 
+            G4String survivor_name = survivor->GetName() ; 
             if(verbose)
-            printf("ZSolid::prune changing root to survivor\n");
+            printf("ZSolid::prune changing root %s to survivor %s \n", root_name.c_str(), survivor_name.c_str() );
             root = survivor ;
         }
     }
@@ -557,7 +565,8 @@ void ZSolid::draw(const char* msg, int pass)
 {
     canvas->clear();
 
-    int mode = RPRE ; 
+    //int mode = RPRE ; 
+    int mode = IN ; 
     std::cout << msg << " [" << pass << "]" << std::endl ; 
 
     std::cout << desc() << std::endl ; 
@@ -566,25 +575,20 @@ void ZSolid::draw(const char* msg, int pass)
     draw_r(root, mode);
 
     canvas->draw(   -1, -1, 0,0,  "zdelta" ); 
-    canvas->draw(   -1, -1, 0,1,  "z1" ); 
-    canvas->draw(   -1, -1, 0,2,  "z0" ); 
-    canvas->draw(   -1, -1, 0,3,  "az1" ); 
-    canvas->draw(   -1, -1, 0,4,  "az0" ); 
+    canvas->draw(   -1, -1, 0,1,  "az1" ); 
+    canvas->draw(   -1, -1, 0,2,  "az0" ); 
 
-    canvas->print(); 
 
     std::cout << "nameprefix " << nameprefix << std::endl ; 
     for(unsigned i=0 ; i < names.size() ; i++ ) 
     {
         const std::string& name = names[i] ; 
-        std::cout 
-            << std::setw(20) << name
-            << " : " 
-            << std::setw(20) << name.substr(nameprefix.size())  
-            << std::endl 
-            ;
+        std::string nam = name.substr(nameprefix.size()); 
+        //std::cout << std::setw(20) << name << " : " << std::setw(20) << nam << std::endl ;
+        canvas->draw(  i,  -1, 0,4, nam.c_str() ); 
     } 
 
+    canvas->print(); 
 }
 
 /**
@@ -625,12 +629,9 @@ void ZSolid::draw_r( const G4VSolid* n, int mode )
         ZRange(z0, z1, node);  
 
         canvas->draw(   ix, -1, 0,0,  zdelta ); 
-        canvas->draw(   ix, -1, 0,1,  z1 ); 
-        canvas->draw(   ix, -1, 0,2,  z0 ); 
-        canvas->draw(   ix, -1, 0,3,  z1+zdelta ); 
-        canvas->draw(   ix, -1, 0,4,  z0+zdelta ); 
+        canvas->draw(   ix, -1, 0,1,  z1+zdelta ); 
+        canvas->draw(   ix, -1, 0,2,  z0+zdelta ); 
     }
-
 }
 
 
@@ -1040,14 +1041,16 @@ void ZSolid::apply_cut(double zcut)
     }
 }
 
-void ZSolid::collectNames_r( const G4VSolid* n_, int depth )
+void ZSolid::collectNames_inorder_r( const G4VSolid* n_, int depth )
 {
     if(n_ == nullptr) return ; 
     const G4VSolid* n = Moved(nullptr, nullptr, n_) ;  
-    collectNames_r(Left(n),  depth+1); 
-    collectNames_r(Right(n), depth+1); 
+    collectNames_inorder_r(Left(n),  depth+1); 
+
     G4String name = n->GetName(); 
     names.push_back(name);  
+
+    collectNames_inorder_r(Right(n), depth+1); 
 }
 
 

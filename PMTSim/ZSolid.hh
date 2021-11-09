@@ -113,7 +113,7 @@ struct PMTSIM_API ZSolid
 
     void apply_cut(double zcut);
     void cutTree_r( const G4VSolid* node_, int depth, double zcut ); 
-    void collectNames_r( const G4VSolid* n, int depth ); 
+    void collectNames_inorder_r( const G4VSolid* n, int depth ); 
 
 
     int zcls( const G4VSolid* node_ ) const ;   // formerly had move bool arg, now using move:false 
