@@ -3,6 +3,8 @@ set(name PMTSim)
 project(${name} VERSION 0.1.0)
 include(OpticksBuildOptions)
 
+set(COMPONENTS system program_options filesystem regex )
+find_package(Boost REQUIRED COMPONENTS ${COMPONENTS} )
 find_package(G4    REQUIRED MODULE)
 find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
@@ -17,6 +19,7 @@ list(APPEND SOURCES
      OldZSolid.cc
      ZCanvas.cc
      ZSolid.cc
+     Material.cc
 )
 
 list(APPEND HEADERS
@@ -25,6 +28,7 @@ list(APPEND HEADERS
      OldZSolid.hh
      ZCanvas.hh
      ZSolid.hh
+     Material.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
@@ -42,7 +46,14 @@ target_include_directories(${name}
            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(${name} PUBLIC Opticks::G4 CLHEP::CLHEP Opticks::SysRap)
+target_link_libraries(${name} PUBLIC 
+   Opticks::G4 
+   CLHEP::CLHEP 
+   Opticks::SysRap
+   Boost::system
+   Boost::program_options
+   Boost::filesystem
+)
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 

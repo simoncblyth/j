@@ -12,6 +12,10 @@
 #include "ellipse_intersect_circle.hh"
 
 
+#ifdef STANDALONE
+#include <iomanip>
+#endif
+
 #include "OldZSolid.hh"
 #include "ZSolid.hh"
 
@@ -181,8 +185,18 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					360.*deg
 					);
 
+#ifdef STANDALONE
+    std::cout 
+        << " Hamamatsu_R12860_PMTSolid::GetSolid"
+        << " solidname " << std::setw(20) << solidname 
+        << " thickness " << std::setw(10) << std::fixed << std::setprecision(4) << thickness 
+        << " mode " << mode 
+        << std::endl 
+        ;
+#else
+    G4cout << __FILE__ << ":" <<  __LINE__ << G4endl ; 
+#endif
 
-    G4cout << __FILE__ << ":" <<  __LINE__ << G4endl;
     // I+II
 
     if( mode == ' ' || mode == 'H' || mode == 'Z' )   // head mode 'H' doesnt care, as solid_I is returned  

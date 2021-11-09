@@ -9,6 +9,7 @@
  */
 
 #ifdef STANDALONE
+#include "PMTSIM_API_EXPORT.hh"
 #include "globals.hh"
 class G4LogicalVolume ; 
 #include "G4ThreeVector.hh"
@@ -29,7 +30,7 @@ class G4Tubs;
 class Hamamatsu_R12860_PMTSolid;
 
 #ifdef STANDALONE
-class HamamatsuR12860PMTManager {
+class PMTSIM_API HamamatsuR12860PMTManager {
 #else
 class HamamatsuR12860PMTManager: public IPMTElement,
                                  public ToolBase {
