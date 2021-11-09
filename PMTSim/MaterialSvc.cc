@@ -9,18 +9,42 @@
 #include "G4SystemOfUnits.hh"
 #include "utils.hh"
 
-#include "Material.hh"
+#include "MaterialSvc.hh"
+
+
+bool MaterialSvc::Get(const std::string& param, vec_d2d& props)
+{  
+    const std::string path = GetPath( param.c_str() );
+    return get_implv1(path, props); 
+}
+
+bool MaterialSvc::Get(const std::string& param, vec_s2d& props)
+{
+    const std::string path = GetPath( param.c_str() );
+    return get_implv1(path, props);
+}
+
+bool MaterialSvc::Get(const std::string& param, map_s2d& props)
+{
+    vec_s2d vec_props;
+    const std::string path = GetPath( param.c_str() );
+    bool st = get_implv1(path, vec_props);
+    for (vec_s2d::iterator it = vec_props.begin(); it != vec_props.end(); ++it) props[it->get<0>()] = it->get<1>(); 
+    return st; 
+}
+
+
 
 
 /**
-Material::GetPath
+MaterialSvc::GetPath
 -------------------
 
 Mimmick MCParamsFileSvc::GetPath 
 
 **/
 
-const char* Material::GetPath(const char* propPath) // static
+const char* MaterialSvc::GetPath(const char* propPath) // static
 {
     char* n = strdup(propPath); 
     for(unsigned i=0 ; i < strlen(n) ; i++) if(n[i] == '.') n[i] = '/' ; 
@@ -34,7 +58,7 @@ const char* Material::GetPath(const char* propPath) // static
 }
 
 
-G4MaterialPropertyVector* Material::GetMPV(const char* path, bool dump)  // static
+G4MaterialPropertyVector* MaterialSvc::GetMPV(const char* path, bool dump)  // static
 {
     typedef boost::tuple<double, double> elem_d2d; // double, double
     typedef std::vector<elem_d2d> vec_d2d;
@@ -70,7 +94,7 @@ G4MaterialPropertyVector* Material::GetMPV(const char* path, bool dump)  // stat
 
 
 /**
-Material::AddProperty
+MaterialSvc::AddProperty
 -----------------------
 
 After::
@@ -79,7 +103,7 @@ After::
 
 **/
 
-void Material::AddProperty(G4MaterialPropertiesTable* MPT, const char* propName, const char* propPath) // static
+void MaterialSvc::AddProperty(G4MaterialPropertiesTable* MPT, const char* propName, const char* propPath) // static
 {
     const char* path = GetPath(propPath); 
     bool dump = false ; 

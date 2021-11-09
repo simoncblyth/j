@@ -8,7 +8,7 @@ do
     rel=${path/$pfx\/}
     rel=${rel//\//.} 
     echo $rel
-    MaterialTest $rel 
+    MaterialSvcTest $rel 
 done
 
 

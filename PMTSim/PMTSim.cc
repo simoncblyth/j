@@ -1,6 +1,7 @@
-#include <iostream>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -8,7 +9,7 @@
 
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
-
+#include "DetectorConstruction.hh"
 #include "PMTSim.hh"
 
 G4LogicalVolume* PMTSim::GetLV(const char* name)  // static
@@ -22,6 +23,9 @@ G4LogicalVolume* PMTSim::GetLV(const char* name)  // static
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 {
+    DetectorConstruction* dc = new DetectorConstruction ;   // creates many G4Material and G4OpticalSurface  
+    assert( dc ); 
+
     G4LogicalVolume* lv = GetLV(name); 
 
     G4String pName = lv->GetName(); 

@@ -7,7 +7,8 @@ set(TEST_SOURCES
     ZSolidTest.cc
     G4UnionSolidOffsetsTest.cc
     HamamatsuR12860PMTManagerTest.cc
-    MaterialTest.cc
+    MaterialSvcTest.cc
+    DetectorConstructionTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})

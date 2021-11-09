@@ -19,7 +19,8 @@ list(APPEND SOURCES
      OldZSolid.cc
      ZCanvas.cc
      ZSolid.cc
-     Material.cc
+     MaterialSvc.cc
+     DetectorConstruction.cc
 )
 
 list(APPEND HEADERS
@@ -28,7 +29,8 @@ list(APPEND HEADERS
      OldZSolid.hh
      ZCanvas.hh
      ZSolid.hh
-     Material.hh
+     MaterialSvc.hh
+     DetectorConstruction.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
