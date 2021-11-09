@@ -103,7 +103,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     m_fast_cover = false ; 
     m_cover_mat_str="Water" ; 
     m_enable_optical_model=false ; 
-    m_useRealSurface = true ;  
+    m_useRealSurface = getenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE") == NULL ? true : false  ;  
 #else
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
