@@ -49,6 +49,13 @@ public:
     (const G4String& plabel // label -- subvolume names are derived from this
     );
     ~HamamatsuR12860PMTManager();
+
+#ifdef STANDALONE
+    G4LogicalVolume* getLV(const char* name);
+    G4PVPlacement*   getPV(const char* name);
+    G4VSolid*        getSolid(const char* name); 
+#endif
+
 private:
     void init();
 

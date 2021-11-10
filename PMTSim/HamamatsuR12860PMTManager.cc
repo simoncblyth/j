@@ -48,6 +48,69 @@ HamamatsuR12860PMTManager::getLV() {
     return m_logical_pmt;
 }
 
+
+
+#ifdef STANDALONE
+G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
+{
+    if(!m_logical_pmt) init();
+    G4VSolid* so = nullptr ; 
+    if(strcmp(name, "pmt_solid") == 0 ) so = pmt_solid ; 
+    if(strcmp(name, "body_solid") == 0 ) so = body_solid ; 
+    if(strcmp(name, "inner_solid") == 0 ) so = inner_solid ; 
+    if(strcmp(name, "inner1_solid") == 0 ) so = inner1_solid ; 
+    if(strcmp(name, "inner2_solid") == 0 ) so = inner2_solid ; 
+    if(strcmp(name, "dynode_solid") == 0 ) so = dynode_solid ; 
+    return so ; 
+}
+
+G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
+{
+    if(!m_logical_pmt) init();
+    G4LogicalVolume* lv = nullptr ;  
+    if(strcmp(name, "logical_pmt") == 0 ) lv = m_logical_pmt ; 
+    if(strcmp(name, "body_log") == 0 )    lv = body_log ; 
+    if(strcmp(name, "inner1_log") == 0 )  lv = inner1_log ; 
+    if(strcmp(name, "inner2_log") == 0 )  lv = inner2_log ; 
+
+    if(strcmp(name, "dynode_log") == 0 )  lv = dynode_log ; 
+    if(strcmp(name, "logical_cover") == 0 ) lv = m_logical_cover ; 
+    return lv ; 
+}
+
+G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
+{
+    if(!m_logical_pmt) init();
+    G4PVPlacement* pv = nullptr ; 
+    if(strcmp(name, "body_phys") == 0 )   pv = body_phys ; 
+    if(strcmp(name, "inner1_phys") == 0 ) pv = inner1_phys ; 
+    if(strcmp(name, "inner2_phys") == 0 ) pv = inner2_phys ; 
+    if(strcmp(name, "dynode_phys") == 0 ) pv = dynode_phys ; 
+    return pv ; 
+}
+
+/**
+
+
+   PV            LV                SOLID          MATERIAL         MOTHER
+
+
+                 m_logical_pmt     pmt_solid      GlassMat
+
+   body_phys     body_log          body_solid     GlassMat        m_logical_pmt
+                      
+   inner1_phys   inner1_log        inner1_solid   PMT_Vacuum      body_phys
+
+   inner2_phys   inner2_log        inner2_solid   PMT_Vacuum      body_phys
+
+**/
+
+
+#endif
+
+
+
+
 G4double
 HamamatsuR12860PMTManager::GetPMTRadius() {
     if (!getLV()) {
@@ -404,6 +467,22 @@ HamamatsuR12860PMTManager::helper_make_solid()
 
 }
 
+/**
+
+   LV                SOLID          MATERIAL
+
+
+   m_logical_pmt     pmt_solid      GlassMat
+
+   body_log          body_solid     GlassMat 
+
+   inner1_log        inner1_solid   PMT_Vacuum
+
+   inner2_log        inner2_solid   PMT_Vacuum
+
+**/
+
+
 void
 HamamatsuR12860PMTManager::helper_make_logical_volume()
 {
@@ -438,6 +517,24 @@ HamamatsuR12860PMTManager::helper_make_logical_volume()
           */
 
 }
+
+
+
+/**
+
+
+   PV            LV                SOLID          MATERIAL         MOTHER
+
+
+                 m_logical_pmt     pmt_solid      GlassMat
+
+   body_phys     body_log          body_solid     GlassMat        m_logical_pmt
+                      
+   inner1_phys   inner1_log        inner1_solid   PMT_Vacuum      body_phys
+
+   inner2_phys   inner2_log        inner2_solid   PMT_Vacuum      body_phys
+
+**/
 
 void
 HamamatsuR12860PMTManager::helper_make_physical_volume()

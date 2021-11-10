@@ -12,22 +12,49 @@
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
 
-G4LogicalVolume* PMTSim::GetLV(const char* name)  // static
+
+PMTSim::PMTSim(const char* name)
+    :
+    dc(new DetectorConstruction),
+    ham(new HamamatsuR12860PMTManager(name))
 {
-    HamamatsuR12860PMTManager* mgr = new HamamatsuR12860PMTManager(name) ; 
-    std::cout << "PMTSim::GetLV mgr " << mgr << std::endl ; 
-    G4LogicalVolume* lv = mgr->getLV(); 
-    std::cout << "PMTSim::GetLV lv " << lv << std::endl ; 
-    return lv ; 
+}
+G4LogicalVolume* PMTSim::getLV(const char* name)  
+{
+    return ham->getLV(name) ; 
+}
+G4VPhysicalVolume* PMTSim::getPV(const char* name) 
+{
+    return ham->getPV(name) ; 
+}
+const G4VSolid* PMTSim::getSolid(const char* name) 
+{
+    return ham->getSolid(name) ;  
 }
 
-G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
+
+const G4VSolid* PMTSim::getSolidPfx(const char* name) 
 {
-    DetectorConstruction* dc = new DetectorConstruction ;   // creates many G4Material and G4OpticalSurface  
-    assert( dc ); 
+    const char* pfx = "Ham_" ; 
+    bool starts_with_pfx = strstr( name, pfx ) != nullptr ; 
+    const char* rel = starts_with_pfx ? name + strlen(pfx) : name ; 
 
-    G4LogicalVolume* lv = GetLV(name); 
+    const G4VSolid* solid = ham->getSolid(rel) ;  
 
+    std::cout 
+         << "PMTSim::getSolid"
+         << " name " << name
+         << " rel " << rel 
+         << " solid " << solid 
+         << std::endl 
+         ; 
+
+    return solid ;  
+}
+
+
+G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
+{
     G4String pName = lv->GetName(); 
     pName += "_phys " ; 
 
@@ -38,11 +65,12 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
     G4int pCopyNo = 0 ; 
 
     G4VPhysicalVolume* pv = new G4PVPlacement(pRot, tlate, lv, pName, pMotherLogical, pMany_unused, pCopyNo ); 
-    std::cout << "PMTSim::GetPV pv " << pv << std::endl ; 
+    std::cout << "PMTSim::WrapLV pv " << pv << std::endl ; 
     return pv ; 
 }
 
-const G4VSolid* PMTSim::GetSolid(const char* name) // static
+
+const G4VSolid* PMTSim::GetMakerSolid(const char* name) // static
 {
     Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
 
@@ -68,8 +96,6 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
     }
     return solid ; 
 }
-
-
 
 
 /**
