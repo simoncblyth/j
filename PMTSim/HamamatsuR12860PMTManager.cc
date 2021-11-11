@@ -50,17 +50,50 @@ HamamatsuR12860PMTManager::getLV() {
 
 
 
+
+
 #ifdef STANDALONE
-G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
+void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as getSolid may init
+{
+    std::vector<const char*> names = {
+        "pmt_solid",
+        "body_solid",
+        "inner_solid",
+        "inner1_solid",
+        "inner2_solid",
+        "dynode_solid"
+    };
+
+    std::cout << "HamamatsuR12860PMTManager::dump" << std::endl ; 
+    for(unsigned i=0 ; i < names.size() ; i++)
+    {
+        const char* name = names[i]; 
+        const G4VSolid* solid = getSolid(name) ;  
+        std::cout 
+            << " name " << std::setw(20) << name
+            << " solid " << std::setw(20) << solid
+            << std::endl 
+            ;
+    }
+    m_pmtsolid_maker->dump(msg); 
+}
+
+const G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {
     if(!m_logical_pmt) init();
-    G4VSolid* so = nullptr ; 
+    const G4VSolid* so = nullptr ; 
     if(strcmp(name, "pmt_solid") == 0 ) so = pmt_solid ; 
     if(strcmp(name, "body_solid") == 0 ) so = body_solid ; 
     if(strcmp(name, "inner_solid") == 0 ) so = inner_solid ; 
     if(strcmp(name, "inner1_solid") == 0 ) so = inner1_solid ; 
     if(strcmp(name, "inner2_solid") == 0 ) so = inner2_solid ; 
     if(strcmp(name, "dynode_solid") == 0 ) so = dynode_solid ; 
+
+    if( so == nullptr )
+    {
+        so = m_pmtsolid_maker->getInternalSolid(name); 
+    }
+
     return so ; 
 }
 

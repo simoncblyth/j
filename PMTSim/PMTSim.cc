@@ -13,6 +13,20 @@
 #include "PMTSim.hh"
 
 
+const G4VSolid* PMTSim::GetSolid(const char* name) // static
+{
+    PMTSim* ps = new PMTSim ; 
+    const G4VSolid* solid = ps->getSolid(name); 
+    if( solid == nullptr )
+    {
+        std::cout << "PMTSim::GetSolid failed for name " << name << std::endl ;  
+    }
+    ps->ham->dump("PMTSim::GetSolid"); 
+    return solid ; 
+}
+
+
+
 PMTSim::PMTSim(const char* name)
     :
     dc(new DetectorConstruction),

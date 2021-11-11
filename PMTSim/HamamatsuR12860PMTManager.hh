@@ -51,9 +51,10 @@ public:
     ~HamamatsuR12860PMTManager();
 
 #ifdef STANDALONE
+    void dump(const char* msg="HamamatsuR12860PMTManager::dump") ; 
     G4LogicalVolume* getLV(const char* name);
     G4PVPlacement*   getPV(const char* name);
-    G4VSolid*        getSolid(const char* name); 
+    const G4VSolid*  getSolid(const char* name); 
 #endif
 
 private:

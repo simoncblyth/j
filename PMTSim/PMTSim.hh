@@ -12,6 +12,8 @@ class HamamatsuR12860PMTManager ;
 
 struct PMTSIM_API PMTSim
 {
+    static const G4VSolid* GetSolid(const char* name); 
+
     DetectorConstruction* dc ;   
     HamamatsuR12860PMTManager* ham ; 
 

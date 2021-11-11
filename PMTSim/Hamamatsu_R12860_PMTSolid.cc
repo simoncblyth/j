@@ -26,8 +26,27 @@ using namespace CLHEP;
 
 const G4VSolid* Hamamatsu_R12860_PMTSolid::getInternalSolid(const char* name) const 
 {
-    return m_solid_map->count(name) == 1 ? m_solid_map->at(name) : nullptr ; 
+    return m_solid_map.count(name) == 1 ? m_solid_map.at(name) : nullptr ; 
 }
+
+void Hamamatsu_R12860_PMTSolid::dump(const char* msg) const 
+{
+    std::cout << msg << std::endl ; 
+
+    typedef std::map<std::string, const G4VSolid*>  MSS ; 
+    for(MSS::const_iterator it=m_solid_map.begin() ; it != m_solid_map.end() ; it++)
+    {
+        const std::string& name = it->first ; 
+        const G4VSolid*  solid = it->second ; 
+        std::cout
+            << " name " << std::setw(15) << name
+            << " solid " << std::setw(15) << solid
+            << std::endl
+            ;
+              
+    }
+}
+
 
 
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
@@ -289,6 +308,10 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                          0.0*deg,
                          360.0*deg
                          );
+
+
+        m_solid_map["IV_tube"] = solid_IV_tube ; 
+
         G4VSolid* solid_IV_torus = new G4Torus(
                            solidname+"_IV_torus",
                            0.*mm,
@@ -296,6 +319,9 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                            m4_torus_r+m4_r_2, // swept radius
                            0.0*deg,
                            360.0*deg);
+
+        m_solid_map["IV_torus"] = solid_IV_torus ; 
+
         G4VSolid* _solid_IV = new G4SubtractionSolid(
                             solidname+"_IV",
                             solid_IV_tube,
@@ -303,6 +329,8 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                             0,
                             G4ThreeVector(0,0,-m4_h/2)
                             );
+
+        m_solid_map["IV"] = _solid_IV ; 
 
         solid_IV = _solid_IV ;
     }

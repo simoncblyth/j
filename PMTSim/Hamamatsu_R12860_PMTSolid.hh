@@ -23,6 +23,7 @@ public:
 
 
     const G4VSolid* getInternalSolid(const char* name) const ; 
+    void dump(const char* msg="Hamamatsu_R12860_PMTSolid::dump") const ; 
 
 private:
 
