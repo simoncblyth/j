@@ -21,7 +21,15 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
     {
         std::cout << "PMTSim::GetSolid failed for name " << name << std::endl ;  
     }
-    ps->ham->dump("PMTSim::GetSolid"); 
+    ps->ham->dump("PMTSim::GetSolid");
+
+    std::cout 
+        << "PMTSim::GetSolid"
+        << " name " << name 
+        << " solid " << solid
+        << std::endl 
+        ;
+ 
     return solid ; 
 }
 

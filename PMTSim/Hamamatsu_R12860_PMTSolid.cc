@@ -200,6 +200,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					);
     // pmt_solid = solid_I;
 
+    if(mode == ' ')
     m_solid_map["I"] = solid_I ; 
 
 
@@ -214,6 +215,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					360.*deg
 					);
 
+    if(mode == ' ')
     m_solid_map["II"] = solid_II ; 
 
 
@@ -244,6 +246,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 
         ozs->solids.push_back( {solid_II, "_1_2", -m2_h/2 } ); 
 
+        if(mode == ' ')
         m_solid_map["1_2"] = pmt_solid ; 
 
     }
@@ -283,6 +286,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					  -P_I_H,
 					  0);
 
+    if(mode == ' ')
     m_solid_map["III"] = solid_III ; 
 
     // +III
@@ -295,6 +299,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 );
     ozs->solids.push_back( {solid_III, "_1_3", -m2_h } ); 
 
+    if(mode == ' ')
     m_solid_map["1_3"] = pmt_solid ; 
 
     G4VSolid* solid_IV = NULL ; 
@@ -310,6 +315,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                          );
 
 
+        if(mode == ' ')
         m_solid_map["IV_tube"] = solid_IV_tube ; 
 
         G4VSolid* solid_IV_torus = new G4Torus(
@@ -320,6 +326,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                            0.0*deg,
                            360.0*deg);
 
+        if(mode == ' ')
         m_solid_map["IV_torus"] = solid_IV_torus ; 
 
         G4VSolid* _solid_IV = new G4SubtractionSolid(
@@ -330,6 +337,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
                             G4ThreeVector(0,0,-m4_h/2)
                             );
 
+        if(mode == ' ')
         m_solid_map["IV"] = _solid_IV ; 
 
         solid_IV = _solid_IV ;
@@ -395,6 +403,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
             solid_IV = (G4VSolid*)_solid_IV ;
             ozs->solids.push_back( {solid_IV, "_1_4", -210.*mm+m4_h/2 } ); 
 
+            if(mode == ' ')
             m_solid_map["IV"] = _solid_IV  ; 
         }
     }
@@ -410,6 +419,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-210.*mm+m4_h/2)
 				 );
 
+    if(mode == ' ')
     m_solid_map["1_4"] = pmt_solid  ; 
 
 
@@ -422,6 +432,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				   360.0*deg
 				   );
 
+    if(mode == ' ')
     m_solid_map["V"] = solid_V  ; 
 
 
@@ -434,6 +445,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-210.*mm-m5_h/2)
 				 );
     ozs->solids.push_back( {solid_V, "_1_5", -210.*mm-m5_h/2 }); 
+    if(mode == ' ')
     m_solid_map["1_5"] = pmt_solid  ; 
 
 
@@ -447,6 +459,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					 -90.*mm,
 					 0);
 
+    if(mode == ' ')
     m_solid_map["VI"] = solid_VI  ; 
 
     // +VI
@@ -459,6 +472,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
     				 );
 
     ozs->solids.push_back( {solid_VI, "_1_6", -275.*mm } ); 
+    if(mode == ' ')
     m_solid_map["1_6"] = pmt_solid  ; 
 
 
@@ -471,6 +485,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				      0.0*deg,
 				      360.0*deg
 				      );
+    if(mode == ' ')
     m_solid_map["VIII"] = solid_VIII  ;
  
     // +VIII
@@ -484,6 +499,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 
     ozs->solids.push_back( {solid_VIII, "_1_8", -420.*mm+m8_h/2  } ); 
 
+    if(mode == ' ')
     m_solid_map["1_8"] = pmt_solid  ;
 
 
@@ -508,6 +524,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					r_IX
 					);
 
+    if(mode == ' ')
     m_solid_map["IX"] = solid_IX  ;
 
     // +VIII
@@ -521,6 +538,7 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 
     ozs->solids.push_back( {solid_IX, "_1_9", -420.*mm } ); 
 
+    if(mode == ' ')
     m_solid_map["1_9"] = pmt_solid ;
 
 
