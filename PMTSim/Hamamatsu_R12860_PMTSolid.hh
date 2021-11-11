@@ -9,6 +9,7 @@
 #include "globals.hh"
 #include <string>
 #include <vector>
+#include <map>
 
 struct OldZSolidList ; 
 class G4VSolid;
@@ -19,6 +20,9 @@ public:
 
     G4VSolid* GetSolid(       G4String solidname, double thickness=0.0, char mode=' ');
     const G4VSolid* GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
+
+
+    const G4VSolid* getInternalSolid(const char* name) const ; 
 
 private:
 
@@ -59,6 +63,7 @@ private:
     bool m_polycone_neck ; 
 
     OldZSolidList* ozs ; 
+    std::map<std::string, const G4VSolid*> m_solid_map ; 
 
 };
 
