@@ -1,7 +1,6 @@
 #!/bin/bash -l 
 
-export JUNO_PMT20INCH_POLYCONE_NECK=ENABLED 
-
+# setenv done in the executable
 name=PMTSimTest
 which $name
 
@@ -15,7 +14,4 @@ else
     $name
 fi
 
-
 #ipython -i ZSolids.py 
-
-

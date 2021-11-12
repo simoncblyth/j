@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -9,6 +10,10 @@
 
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
+#include "G4SolidStore.hh"
+#include "G4DisplacedSolid.hh"
+#include "G4Material.hh"
+
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
 
@@ -33,6 +38,37 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
     return solid ; 
 }
 
+G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
+{
+    PMTSim* ps = new PMTSim ; 
+    G4VPhysicalVolume* pv = ps->getPV(name); 
+    Traverse(pv); 
+    DumpSolids(); 
+    return pv ; 
+}
+
+void PMTSim::DumpSolids() // static
+{
+    G4SolidStore* store = G4SolidStore::GetInstance() ; 
+    std::cout << "PMTSim::DumpSolids G4SolidStore.size " << store->size() << std::endl ; 
+    for( unsigned i=0 ; i < store->size() ; i++)
+    {
+        G4VSolid* solid = (*store)[i] ; 
+
+        G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(solid) ; 
+        G4VSolid* moved = disp ? disp->GetConstituentMovedSolid() : nullptr ; 
+
+        std::cout 
+            << " i " << std::setw(5) << i 
+            << " solid.name " 
+            << std::setw(30) << solid->GetName()
+            << " moved.name " 
+            << std::setw(30) << ( moved ? moved->GetName() : "-" )
+            << std::endl
+            ; 
+    }
+}
+
 
 
 PMTSim::PMTSim(const char* name)
@@ -47,11 +83,40 @@ G4LogicalVolume* PMTSim::getLV(const char* name)
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
-    return ham->getPV(name) ; 
+    G4VPhysicalVolume* pv = ham->getPV(name) ; 
+    return pv ; 
 }
 const G4VSolid* PMTSim::getSolid(const char* name) 
 {
     return ham->getSolid(name) ;  
+}
+
+void PMTSim::Traverse(const G4VPhysicalVolume* const pv) // static
+{
+    Traverse_r( pv, 0 ); 
+}
+
+void PMTSim::Traverse_r(const G4VPhysicalVolume* const pv, int depth) // static
+{
+    const G4LogicalVolume* lv = pv->GetLogicalVolume() ;
+    const G4VSolid* const so = lv->GetSolid();
+    const G4Material* const mt = lv->GetMaterial() ;
+
+    std::cout 
+        << "PMTSim::Traverse_r"
+        << " depth " << std::setw(2) << depth 
+        << " pv " << std::setw(20) << pv->GetName()
+        << " lv " << std::setw(20) << lv->GetName()
+        << " so " << std::setw(20) << so->GetName()
+        << " mt " << std::setw(20) << mt->GetName()
+        << std::endl
+        ;
+
+    for (size_t i=0 ; i < size_t(lv->GetNoDaughters()) ;i++ ) 
+    {
+        const G4VPhysicalVolume* const daughter_pv = lv->GetDaughter(i);
+        Traverse_r( daughter_pv, depth+1 );
+    } 
 }
 
 

@@ -91,15 +91,26 @@ void test_GetSolid(const char* name)
     assert( solid ); 
 }
 
+void test_GetPV(const char* name)
+{
+    const G4VPhysicalVolume* pv = PMTSim::GetPV(name); 
+    std::cout << " name " << name << " pv " << pv << std::endl ; 
+    assert( pv ); 
+}
+
+
+
 
 int main(int argc, char** argv)
 {
+    setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1); 
     setenv("JUNO_PMT20INCH_SIMPLIFY_CSG","ENABLED",1);
     setenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE", "ENABLED", 1); 
 
-    const char* name = argc > 1 ? argv[1] : "body_solid" ; 
+    const char* name = argc > 1 ? argv[1] : "body_phys" ; 
 
-    test_GetSolid(name); 
+    //test_GetSolid(name); 
+    test_GetPV(name); 
  
     //PMTSim ps ; 
     //test_GetMakerSolid(&ps); 

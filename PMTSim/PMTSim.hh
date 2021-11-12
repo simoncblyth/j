@@ -13,11 +13,16 @@ class HamamatsuR12860PMTManager ;
 struct PMTSIM_API PMTSim
 {
     static const G4VSolid* GetSolid(const char* name); 
+    static G4VPhysicalVolume* GetPV(const char* name); 
+
+    static void Traverse(const G4VPhysicalVolume* const pv); 
+    static void Traverse_r(const G4VPhysicalVolume* const pv, int depth); 
+    static void DumpSolids(); 
 
     DetectorConstruction* dc ;   
     HamamatsuR12860PMTManager* ham ; 
 
-    PMTSim(const char* name="PMTSim"); 
+    PMTSim(const char* name=""); 
 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
