@@ -154,7 +154,7 @@ private:
     //      Tyvek  |
     //     19.629m
     bool m_useRealSurface;
-
+    bool m_plus_dynode ; 
 
 };
 

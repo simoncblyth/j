@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1); 
     setenv("JUNO_PMT20INCH_SIMPLIFY_CSG","ENABLED",1);
     setenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE", "ENABLED", 1); 
+    setenv("JUNO_PMT20INCH_PLUS_DYNODE", "ENABLED", 1); 
 
     const char* name = argc > 1 ? argv[1] : "body_phys" ; 
 

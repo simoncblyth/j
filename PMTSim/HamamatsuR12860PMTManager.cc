@@ -193,7 +193,8 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       GlassMat(NULL), PMT_Vacuum(NULL), DynodeMat(NULL),
       MaskMat(NULL), m_detector(NULL),
       m_logical_cover(NULL), m_cover_mat(NULL),
-      m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true)
+      m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
+      m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true)
 {
 #ifdef STANDALONE
     m_fast_cover = false ; 
@@ -368,7 +369,7 @@ ConstructPMT_UsingTorusStack()
   ////////////////////////////////////////////////////////////////
   // MAKE DYNODE VOLUMES
   ////////////////////////////////////////////////////////////////
-  if(m_enable_optical_model)
+  if(m_enable_optical_model || m_plus_dynode)
   {
     helper_make_dynode_volume();
   }
