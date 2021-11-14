@@ -6,6 +6,8 @@
  * -- Tao Lin, 2017/06/09
  */
 
+#include "PMTSIM_API_EXPORT.hh"
+
 #include "globals.hh"
 #include <string>
 #include <vector>
@@ -14,12 +16,12 @@
 struct OldZSolidList ; 
 class G4VSolid;
 
-class Hamamatsu_R12860_PMTSolid {
+class PMTSIM_API Hamamatsu_R12860_PMTSolid {
 public:
     Hamamatsu_R12860_PMTSolid();
 
     G4VSolid* GetSolid(       G4String solidname, double thickness=0.0, char mode=' ');
-    const G4VSolid* GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
+    const G4VSolid* Old_GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
 
 
     const G4VSolid* getInternalSolid(const char* name) const ; 

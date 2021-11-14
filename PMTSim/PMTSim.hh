@@ -12,6 +12,8 @@ class HamamatsuR12860PMTManager ;
 
 struct PMTSIM_API PMTSim
 {
+    static G4VSolid* MakerSolid(); 
+
     static const G4VSolid* GetSolid(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name); 
 

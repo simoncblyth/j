@@ -9,6 +9,7 @@ set(TEST_SOURCES
     HamamatsuR12860PMTManagerTest.cc
     MaterialSvcTest.cc
     DetectorConstructionTest.cc
+    PMTSolidTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})

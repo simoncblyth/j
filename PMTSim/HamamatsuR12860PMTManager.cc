@@ -22,6 +22,10 @@
 #include "G4SDManager.hh"
 #include "G4Polycone.hh"
 
+#include "G4SolidStore.hh"
+#include "ZSolid.hh"
+
+
 #ifdef STANDALONE
 #define LogInfo  std::cout 
 #define LogError std::cerr 
@@ -94,6 +98,12 @@ const G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
         so = m_pmtsolid_maker->getInternalSolid(name); 
     }
 
+    if( so == nullptr )
+    {
+        G4SolidStore* store = G4SolidStore::GetInstance(); 
+        G4bool verbose = false ; 
+        so = store->GetSolid(name, verbose); 
+    }
     return so ; 
 }
 
@@ -194,7 +204,8 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       MaskMat(NULL), m_detector(NULL),
       m_logical_cover(NULL), m_cover_mat(NULL),
       m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
-      m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true)
+      m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true),
+      m_pmt_equator_to_bottom(0.)
 {
 #ifdef STANDALONE
     m_fast_cover = false ; 
@@ -269,6 +280,20 @@ HamamatsuR12860PMTManager::init_material() {
      }
 }
 
+/**
+
+   r = 254 + 10 = 264
+
+   radInnerWaterRealSurface
+
+
+
+       
+
+
+
+**/
+
 void
 HamamatsuR12860PMTManager::init_variables() {
     m_pmt_r = 254.*mm;
@@ -283,15 +308,31 @@ HamamatsuR12860PMTManager::init_variables() {
         double pmt_eq_to_bottom = sqrt(radInnerWaterRealSurface*radInnerWaterRealSurface
                                        -r*r) - 19.434*m; // at z equator
 
+
         // then, subtract the thickness of mask
         pmt_eq_to_bottom -= 10.*mm;
+
+        m_pmt_equator_to_bottom = pmt_eq_to_bottom ; 
 
         double pmt_h = pmt_eq_to_bottom + m_z_equator ;
         LogInfo << "Option RealSurface is enabled in Central Detector. "
                 << " Reduce the m_pmt_h from "
                 << m_pmt_h << " to " << pmt_h
                 << std::endl;
+
+
+        std::cout 
+           << " radInnerWaterRealSurface " << radInnerWaterRealSurface
+           << " r " << r 
+           << " pmt_eq_to_bottom  " << pmt_eq_to_bottom 
+           << " orig m_pmt_h " << m_pmt_h
+           << " new m_pmt_h " << pmt_h  
+           << " m_pmt_equator_to_bottom  " << m_pmt_equator_to_bottom 
+           << std::endl 
+           ;
+
         m_pmt_h = pmt_h;
+
     }
 
 
@@ -409,6 +450,11 @@ HamamatsuR12860PMTManager::helper_make_solid()
         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
     }
 
+
+    ZSolid::Draw(body_solid, "body_solid"); 
+
+
+
     inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
 
     G4double helper_sep_tube_r = m_pmt_r;
@@ -438,8 +484,27 @@ HamamatsuR12860PMTManager::helper_make_solid()
 
     // Reduce the size when real surface is enabled.
     // Tao Lin, 09 Aug 2021
-    if (m_useRealSurface) {
-        LogInfo << "Cut the tail of PMT. " << std::endl;
+    if (m_useRealSurface ) {
+        LogInfo << "Cut the tail of PMT " << std::endl;
+
+        {
+            double zcut = -m_pmt_equator_to_bottom ; 
+            std::cout << "ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
+
+            G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree( body_solid, zcut, false ); 
+            body_solid_zcut->SetName("body_solid_zcut"); 
+
+            /*
+            G4VSolid* inner2_solid_zcut = ZSolid::ApplyZCutTree( inner2_solid, zcut, false ); 
+            inner2_solid_zcut->SetName("inner2_solid_zcut"); 
+
+            G4VSolid* pmt_solid_zcut = ZSolid::ApplyZCutTree( pmt_solid, zcut, false ); 
+            pmt_solid_zcut->SetName("pmt_solid_zcut");
+
+            */
+
+        }
+
 
         // inner2 
         const double tail_height = m_pmt_h - m_z_equator;
@@ -488,7 +553,6 @@ HamamatsuR12860PMTManager::helper_make_solid()
 
                                         
     }
-
 
 
     // dynode volume

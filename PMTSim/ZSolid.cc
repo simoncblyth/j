@@ -18,19 +18,25 @@
 #include "NP.hh"
 
 
-const G4VSolid* ZSolid::CreateZCutTree( const G4VSolid* original, double zcut ) // static
+G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ) // static
 {
-    std::cout << "[ ZSolid::CreateZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
-    ZSolid* zs = new ZSolid(original); 
+    std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
+    ZSolid* zs = new ZSolid(original, verbose ); 
     zs->apply_cut( zcut );  
-    //zs->dump("ZSolid::CreateZCutTree"); 
-    std::cout << "] ZSolid::CreateZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
+    //zs->dump("ZSolid::ApplyZCutTree"); 
+    std::cout << "] ZSolid::ApplyZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
     return zs->root ; 
 }
 
-ZSolid::ZSolid(const G4VSolid* original_ ) 
+void ZSolid::Draw(const G4VSolid* original, const char* msg ) // static
+{
+    ZSolid* zs = new ZSolid(original, false); 
+    zs->draw(msg);
+}
+
+ZSolid::ZSolid(const G4VSolid* original_, bool verbose_ ) 
     :
-    verbose(true),
+    verbose(verbose_),
     original(original_),
     root(DeepClone(original_)),
     parent_map(new std::map<const G4VSolid*, const G4VSolid*>),
@@ -112,9 +118,6 @@ std::string ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
     for(unsigned i=0 ; i < s1.size() ; i++) if( s1[i] != s2[i] ) return s1.substr(0,i) ; 
     return s1 ; 
 } 
-
-
-
 
 /**
 ZSolid::parent_r
@@ -215,13 +218,8 @@ void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
     rpostorder.push_back(node_) ; 
 }
 
-const G4VSolid* ZSolid::parent( const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
-      G4VSolid* ZSolid::parent_( const G4VSolid* node ) const 
-{ 
-   const G4VSolid* p = parent(node); 
-   return const_cast<G4VSolid*>(p) ; 
-}
-
+const G4VSolid* ZSolid::parent(  const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
+G4VSolid*       ZSolid::parent_( const G4VSolid* node ) const { const G4VSolid* p = parent(node); return const_cast<G4VSolid*>(p) ; }
 
 int ZSolid::depth( const G4VSolid* node_) const { return (*depth_map)[node_] ; }
 int ZSolid::in(    const G4VSolid* node_) const { return (*in_map)[node_] ; }
@@ -230,7 +228,6 @@ int ZSolid::pre(   const G4VSolid* node_) const { return (*pre_map)[node_] ; }
 int ZSolid::rpre(  const G4VSolid* node_) const { return (*rpre_map)[node_] ; }
 int ZSolid::post(  const G4VSolid* node_) const { return (*post_map)[node_] ; }
 int ZSolid::rpost( const G4VSolid* node_) const { return (*rpost_map)[node_] ; }
-
 
 /**
 ZSolid::index
@@ -306,9 +303,6 @@ const char* ZSolid::OrderName(int mode) // static
     return s ; 
 }
 
-
-
-
 /**
 ZSolid::zcls
 --------------
@@ -334,16 +328,15 @@ void ZSolid::set_zcls( const G4VSolid* node_, int zc )
     (*zcls_map)[node_] = zc  ;
 } 
 
-
 char ZSolid::mkr( const G4VSolid* node_) const 
 { 
     return mkr_map->count(node_) == 1 ? (*mkr_map)[node_] : ' ' ; 
 }
+
 void ZSolid::set_mkr( const G4VSolid* node_, char mk )
 {
     (*mkr_map)[node_] = mk  ;
 } 
-
 
 bool ZSolid::is_exclude_include( const G4VSolid* node_) const 
 {
@@ -371,8 +364,6 @@ bool ZSolid::is_crux( const G4VSolid* node_ ) const
     return exclude_include ^ include_exclude ;   // XOR one or other, not both 
 }
 
-
-
 int ZSolid::num_prim_r(const G4VSolid* n) const
 {   
     if(!n) return 0 ; 
@@ -380,6 +371,7 @@ int ZSolid::num_prim_r(const G4VSolid* n) const
     const G4VSolid* r = Right(n); 
     return ( l && r ) ? num_prim_r(l) + num_prim_r(r) : 1 ;
 }
+
 int ZSolid::num_prim() const 
 {
     return num_prim_r(root); 
@@ -389,6 +381,7 @@ int ZSolid::num_node() const
 {
     return num_node_r(root) ; 
 }
+
 int ZSolid::num_node_r(const G4VSolid* n) // static 
 {
     int num = n ? 1 : 0 ;
@@ -405,7 +398,6 @@ int ZSolid::num_node_r(const G4VSolid* n) // static
     }
     return num ; 
 } 
-
 
 int ZSolid::num_node(int qcls) const
 {
@@ -462,7 +454,6 @@ const char* ZSolid::desc() const
     std::string s = ss.str(); 
     return strdup(s.c_str());
 }
-
 
 void ZSolid::prune(bool act)
 {
@@ -559,8 +550,6 @@ void ZSolid::prune(G4VSolid* x, bool act)
     }
 }
 
-
-
 void ZSolid::draw(const char* msg, int pass) 
 {
     canvas->clear();
@@ -575,9 +564,8 @@ void ZSolid::draw(const char* msg, int pass)
     draw_r(root, mode);
 
     canvas->draw(   -1, -1, 0,0,  "zdelta" ); 
-    canvas->draw(   -1, -1, 0,1,  "az1" ); 
-    canvas->draw(   -1, -1, 0,2,  "az0" ); 
-
+    canvas->draw(   -1, -1, 0,2,  "az1" ); 
+    canvas->draw(   -1, -1, 0,3,  "az0" ); 
 
     std::cout << "nameprefix " << nameprefix << std::endl ; 
     for(unsigned i=0 ; i < names.size() ; i++ ) 
@@ -587,7 +575,6 @@ void ZSolid::draw(const char* msg, int pass)
         //std::cout << std::setw(20) << name << " : " << std::setw(20) << nam << std::endl ;
         canvas->draw(  i,  -1, 0,4, nam.c_str() ); 
     } 
-
     canvas->print(); 
 }
 
@@ -629,8 +616,8 @@ void ZSolid::draw_r( const G4VSolid* n, int mode )
         ZRange(z0, z1, node);  
 
         canvas->draw(   ix, -1, 0,0,  zdelta ); 
-        canvas->draw(   ix, -1, 0,1,  z1+zdelta ); 
-        canvas->draw(   ix, -1, 0,2,  z0+zdelta ); 
+        canvas->draw(   ix, -1, 0,2,  z1+zdelta ); 
+        canvas->draw(   ix, -1, 0,3,  z0+zdelta ); 
     }
 }
 
@@ -674,7 +661,6 @@ int ZSolid::EntityType(const G4VSolid* solid)   // static
     return type ; 
 }
 
-
 std::string ZSolid::Desc(const G4VSolid* solid) // static
 {
     std::stringstream ss ; 
@@ -688,7 +674,6 @@ std::string ZSolid::Desc(const G4VSolid* solid) // static
     std::string s = ss.str(); 
     return s ; 
 }
-
 
 bool ZSolid::Boolean(const G4VSolid* solid) // static
 {
@@ -861,7 +846,6 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
             set_mkr( node_, 'Y' ); 
         }
 
-
         if(false) std::cout 
             << "ZSolid::classifyTree_r" 
             << " sid " << std::setw(2) << sid
@@ -876,7 +860,7 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
     }
     else
     {
-        // node_ is the raw one which may be 
+        // node_ is the raw one which may be G4DisplacedSolid
         double zd = getZ(node_) ;  
         G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
         if(CanZ(node))
@@ -1053,7 +1037,6 @@ void ZSolid::collectNames_inorder_r( const G4VSolid* n_, int depth )
     collectNames_inorder_r(Right(n), depth+1); 
 }
 
-
 void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
 {
     if(Boolean(node_))
@@ -1076,15 +1059,6 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
     }
 }
 
-
-
-
-
-
-
-
-
-
 void ZSolid::collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  )
 {
     collectNodes_r(nodes, top, 0, query_zcls);  
@@ -1106,10 +1080,6 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
         } 
     }
 } 
-
-
-
-
 
 void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 {
@@ -1313,7 +1283,6 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
     disp->SetObjectTranslation( objTran ); 
 }
 
-
 /**
 ZSolid::dumpUp
 ----------------
@@ -1408,9 +1377,6 @@ void ZSolid::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const 
         count += 1 ; 
     }     
 }
-
-
-
 
 /**
 ZSolid::DeepClone
@@ -1523,8 +1489,6 @@ void ZSolid::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, con
     const G4VSolid* right_check = rhs_disp->GetConstituentMovedSolid() ;
     assert( right_check == right );  
 }
-
-
 
 void ZSolid::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid ) // static
 {
@@ -1719,15 +1683,6 @@ void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static
     } 
     assert( replacement == src ); 
 }
-
-
-
-
-
-
-
-
-
 
 G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static 
 {

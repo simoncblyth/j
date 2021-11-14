@@ -556,8 +556,10 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 
 
 /**
-Hamamatsu_R12860_PMTSolid::GetZCutSolid
------------------------------------------
+Hamamatsu_R12860_PMTSolid::Old_GetZCutSolid
+---------------------------------------------
+
+With ZSolid is makes more sense to do this at the level of the Manager. 
 
 Returns the z > zcut (local frame) portion of the solid.
 
@@ -568,9 +570,11 @@ depending on the zcut value.
 This means that only relevant CSG constituents are 
 provided avoiding slow and pointless complicated CSG.
 
+
+
 **/
 
-const G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
+const G4VSolid* Hamamatsu_R12860_PMTSolid::Old_GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
     G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ; 
 
@@ -586,7 +590,7 @@ const G4VSolid* Hamamatsu_R12860_PMTSolid::GetZCutSolid(G4String solidname, doub
     {
         // new way just directly uses the pmt_solid tree with no external vector of nodes needed
         std::cout << "Hamamatsu_R12860_PMTSolid::GetZCutSolid" << std::endl ;   
-        zcut_solid = ZSolid::CreateZCutTree( pmt_solid, zcut); 
+        zcut_solid = ZSolid::ApplyZCutTree( pmt_solid, zcut, false); 
     }
 
     return zcut_solid ;  

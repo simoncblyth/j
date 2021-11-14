@@ -16,6 +16,49 @@
 
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
+#include "ZSolid.hh"
+
+
+double atof_(char* s_val)
+{
+    std::istringstream iss(s_val);
+    double d ; 
+    iss >> d ;   
+    return d ; 
+}
+
+double getenvdouble(const char* key, double fallback)
+{
+    char* s_val = getenv(key);
+    return s_val ? atof_(s_val) : fallback ; 
+}
+
+
+
+G4VSolid* PMTSim::MakerSolid()  // static
+{
+    setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1); 
+
+    Hamamatsu_R12860_PMTSolid* maker = new Hamamatsu_R12860_PMTSolid();
+
+    G4VSolid* body_solid = maker->GetSolid("_body_solid"); 
+
+    ZSolid::Draw(body_solid, "body_solid");   
+
+    double zcut = getenvdouble("ZCUT", -400. );  
+
+    std::cout << " zcut " << zcut << std::endl ; 
+
+    if(zcut < -500.0 ) return body_solid ; 
+
+    G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree(body_solid, zcut, false );  
+
+    ZSolid::Draw(body_solid_zcut, "body_solid_zcut");   
+
+    return body_solid_zcut ; 
+}
+
+
 
 
 const G4VSolid* PMTSim::GetSolid(const char* name) // static
@@ -34,6 +77,8 @@ const G4VSolid* PMTSim::GetSolid(const char* name) // static
         << " solid " << solid
         << std::endl 
         ;
+
+    if(solid == nullptr) DumpSolids(); 
  
     return solid ; 
 }
@@ -172,7 +217,7 @@ const G4VSolid* PMTSim::GetMakerSolid(const char* name) // static
     {
         double zcut = vals[0] ; 
         std::cout << "[ PMTSim::GetSolid extracted zcut " << zcut << " from name " << name  << " mode" << mode << std::endl ; 
-        solid = pmtsolid_maker->GetZCutSolid(solidname, zcut, thickness, mode);  
+        solid = pmtsolid_maker->Old_GetZCutSolid(solidname, zcut, thickness, mode);  
         std::cout << "] PMTSim::GetSolid extracted zcut " << zcut << " from name " << name << " mode " << mode << std::endl ; 
     }
     else

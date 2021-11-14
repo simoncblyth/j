@@ -27,7 +27,8 @@ struct ZCanvas ;
 struct PMTSIM_API ZSolid   
 {
     // primary API
-    static const G4VSolid* CreateZCutTree( const G4VSolid* original, double zcut ); 
+    static G4VSolid* ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ); 
+    static void Draw(const G4VSolid* original, const char* msg="ZSolid::Draw" ); 
 
     // members
     bool            verbose ; 
@@ -64,7 +65,7 @@ struct PMTSIM_API ZSolid
     std::string nameprefix ; 
 
     // object methods
-    ZSolid(const G4VSolid* root ); 
+    ZSolid(const G4VSolid* root, bool verbose_ ); 
 
     void init(); 
 
