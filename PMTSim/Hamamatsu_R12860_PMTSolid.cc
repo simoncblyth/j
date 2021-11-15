@@ -24,7 +24,7 @@
 using namespace CLHEP;
 
 
-const G4VSolid* Hamamatsu_R12860_PMTSolid::getInternalSolid(const char* name) const 
+G4VSolid* Hamamatsu_R12860_PMTSolid::getInternalSolid(const char* name) const 
 {
     return m_solid_map.count(name) == 1 ? m_solid_map.at(name) : nullptr ; 
 }
@@ -33,11 +33,11 @@ void Hamamatsu_R12860_PMTSolid::dump(const char* msg) const
 {
     std::cout << msg << std::endl ; 
 
-    typedef std::map<std::string, const G4VSolid*>  MSS ; 
+    typedef std::map<std::string, G4VSolid*>  MSS ; 
     for(MSS::const_iterator it=m_solid_map.begin() ; it != m_solid_map.end() ; it++)
     {
         const std::string& name = it->first ; 
-        const G4VSolid*  solid = it->second ; 
+        G4VSolid*  solid = it->second ; 
         std::cout
             << " name " << std::setw(15) << name
             << " solid " << std::setw(15) << solid
@@ -574,11 +574,11 @@ provided avoiding slow and pointless complicated CSG.
 
 **/
 
-const G4VSolid* Hamamatsu_R12860_PMTSolid::Old_GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
+G4VSolid* Hamamatsu_R12860_PMTSolid::Old_GetZCutSolid(G4String solidname, double zcut, double thickness, char mode)
 {
     G4VSolid* pmt_solid = GetSolid(solidname, thickness, mode) ; 
 
-    const G4VSolid* zcut_solid = nullptr ; 
+    G4VSolid* zcut_solid = nullptr ; 
     if( strstr(solidname.c_str(), "old") )
     {
         // only way uses the ozs vector populated by above GetSolid

@@ -863,7 +863,9 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
         // node_ is the raw one which may be G4DisplacedSolid
         double zd = getZ(node_) ;  
         G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
-        if(CanZ(node))
+        bool can_z = CanZ(node) ; 
+        assert(can_z); 
+        if(can_z)
         {
             double z0, z1 ; 
             ZRange(z0, z1, node);  
@@ -873,7 +875,7 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
 
             zcl = ClassifyZCut( az0, az1, zcut ); 
 
-            if(false) std::cout 
+            if(true) std::cout 
                 << "ZSolid::classifyTree_r"
                 << " sid " << std::setw(2) << sid
                 << " pos " << std::setw(2) << pos
@@ -997,6 +999,8 @@ void ZSolid::apply_cut(double zcut)
     if(verbose)
     printf("ZSolid::apply_cut %7.2f \n", zcut );
 
+    Draw(root, "ZSolid::apply_cut root before cut"); 
+
     unsigned pass = 0 ;
     unsigned maxpass = 10 ;
 
@@ -1051,9 +1055,17 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
         double local_zcut = zcut - zdelta ; 
 
         int zcl = zcls(node_);   
-
         if( zcl == STRADDLE )
         {
+            std::cout 
+                << "ZSolid::cutTree_r"
+                << " depth " << std::setw(2) << depth
+                << " zdelta " << std::fixed << std::setw(10) << std::setprecision(4) << zdelta 
+                << " zcut " << std::fixed << std::setw(10) << std::setprecision(4) << zcut
+                << " local_zcut " << std::fixed << std::setw(10) << std::setprecision(4) << local_zcut
+                << std::endl
+                ;
+
             ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut ); 
         } 
     }
@@ -1084,22 +1096,22 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
 void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 {
     G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
-
     std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
-
     switch(EntityType(node))
     {
         case _G4Ellipsoid: ApplyZCut_G4Ellipsoid( node  , local_zcut);  break ; 
-        case _G4Tubs:      ApplyZCut_G4Tubs(      node_ , local_zcut);  break ;  // cutting tubs requires changing the transform, hence node_
+        //case _G4Tubs:      ApplyZCut_G4Tubs_old(      node_ , local_zcut);  break ; // cutting tubs requires changing the transform, hence node_
+        case _G4Tubs:      ApplyZCut_G4Tubs(      node  , local_zcut);  break ; // try promoting the tubs to G4Polycone
         case _G4Polycone:  ApplyZCut_G4Polycone(  node  , local_zcut);  break ; 
         default: 
-            { 
-                std::cout 
-                    << "ZSolid::ApplyZCut FATAL : not implemented for entityType " 
-                    << EntityTypeName(node) 
-                    << std::endl ; 
-                assert(0) ; 
-            } ;
+        { 
+            std::cout 
+                << "ZSolid::ApplyZCut FATAL : not implemented for entityType " 
+                << EntityTypeName(node) 
+                << std::endl 
+                ; 
+            assert(0) ; 
+        } ;
     }
 }
 
@@ -1140,7 +1152,6 @@ void ZSolid::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
     ellipsoid->SetZCuts( new_z0, new_z1 ); 
 }
 
-
 /**
 ZSolid::ApplyZCut_G4Polycone
 ------------------------------
@@ -1150,9 +1161,14 @@ to support more that 2 would need to delve
 into the r-z details which should be straightforward, 
 just it is not yet implemented. 
 
+SMOKING GUN : CHANGING OriginalParameters looks like
+its working when just look at Opticks results but the 
+change does not get thru to Geant4 
+
+
 **/
 
-void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
+void ZSolid::ApplyZCut_G4Polycone_NotWorking( G4VSolid* node, double local_zcut)
 {  
     G4Polycone* polycone = dynamic_cast<G4Polycone*>(node) ;  
     assert(polycone); 
@@ -1169,101 +1185,64 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
     assert( num_z == 2 );    // simplifying assumption 
     pars->Z_values[0] = local_zcut ;   // get into polycone local frame
 
-    polycone->SetOriginalParameters(pars); // not necessary, its a pointer 
+    polycone->SetOriginalParameters(pars); // OOPS : SEEMS Geant4 IGNORES
 }
 
 
 /**
-ZSolid::ApplyZCut_G4Tubs
-----------------------------
+ZSolid::ApplyZCut_G4Polycone
+------------------------------
 
-Cutting G4Tubs::
-
-
-     zd+hz  +---------+               +---------+     new_zd + new_hz
-            |         |               |         |  
-            |         |               |         |
-            |         |               |         |
-            |         |             __|_________|__   new_zd
-            |         |               |         |
-     zd   --|---------|--             |         |
-            |         |               |         |
-            |         |               |         |
-         .  | . . . . | . .zcut . . . +---------+ . . new_zd - new_hz  . . . . . .
-            |         | 
-            |         |
-    zd-hz   +---------+ 
-
-
-     cut position
-
-          zcut = new_zd - new_hz 
-          new_zd = zcut + new_hz  
-
-
-     original height:  2*hz                         
-      
-     cut height :     
-
-          loc_zcut = zcut - zd 
-
-          2*new_hz = 2*hz - (zcut-(zd-hz)) 
-
-                   = 2*hz - ( zcut - zd + hz )
-
-                   = 2*hz -  zcut + zd - hz 
-
-                   = hz + zd - zcut 
-
-                   = hz - (zcut - zd)             
-
-                   = hz - loc_zcut 
-
-
-                                    hz + zd - zcut
-                        new_hz =  -----------------
-                                         2
-
-                                    hz - loc_zcut 
-                        new_hz =  --------------------      new_hz( loc_zcut:-hz ) = hz     unchanged
-                                          2                 new_hz( loc_zcut:0   ) = hz/2   halved
-                                                            new_hz( loc_zcut:+hz ) =  0     made to disappear 
-
-
-       +hz  +---------+               +---------+     zoff + new_hz
-            |         |               |         |  
-            |         |               |         |
-            |         |               |         |
-            |         |             __|_________|__   zoff 
-            |         |               |         |
-        0 --|---------|- . . . . . . . . . . . . . . . 0 
-            |         |               |         |
-            |         |               |         |
-   loc_zcut | . . . . | . . . . .  .  +---------+ . . zoff - new_hz  . . . . . .
-            |         | 
-            |         |
-      -hz   +---------+. . . . . . . . . . . . 
-
-
-            loc_zcut = zoff - new_hz
-
-                zoff = loc_zcut + new_hz 
-
-                     = loc_zcut +  (hz - loc_zcut)/2
-
-                     =  2*loc_zcut + (hz - loc_zcut)
-                        ------------------------------
-                                   2
-
-               zoff  =  loc_zcut + hz                   zoff( loc_zcut:-hz ) = 0      unchanged
-                        ---------------                 zoff( loc_zcut:0   ) = hz/2   
-                              2                         zoff( loc_zcut:+hz ) = hz     makes sense, 
-                                                                                      think about just before it disappears
+Use placement new to replace the polycone using the ctor again 
+with different params so Geant4 cannot ignore 
 
 **/
 
+void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
+{  
+    G4Polycone* polycone = dynamic_cast<G4Polycone*>(node) ;  
+    assert(polycone); 
 
-void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
+    G4PolyconeHistorical* pars = polycone->GetOriginalParameters(); 
+
+    unsigned num_z = pars->Num_z_planes ; 
+    G4double* zp = new G4double[num_z] ; 
+    G4double* ri = new G4double[num_z] ; 
+    G4double* ro = new G4double[num_z] ; 
+
+    for(unsigned i=0 ; i < num_z ; i++)
+    {
+        zp[i] = pars->Z_values[i] ; 
+        ri[i] = pars->Rmin[i]; 
+        ro[i] = pars->Rmax[i]; 
+    }
+
+    for(unsigned i=1 ; i < num_z ; i++)
+    {
+        double z0 = zp[i-1] ; 
+        double z1 = zp[i] ; 
+        assert( z1 > z0 );   
+    }
+
+    assert( num_z == 2 );  // simplifying assumption 
+    zp[0] = local_zcut ;      
+
+    G4String name = polycone->GetName() ; 
+    G4double startPhi = polycone->GetStartPhi() ;  
+    G4double endPhi = polycone->GetEndPhi() ; 
+
+    G4SolidStore::GetInstance()->DeRegister(polycone);  // avoids G4SolidStore segv at cleanup
+
+    // placement new 
+    G4Polycone* polycone_replacement = new (polycone) G4Polycone( name, startPhi, endPhi, num_z, zp, ri, ro ); 
+    assert( polycone_replacement == polycone ); 
+
+}
+
+
+
+
+void ZSolid::ApplyZCut_G4Tubs_old( G4VSolid* node_ , double local_zcut )
 { 
     G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
     G4Tubs* tubs = dynamic_cast<G4Tubs*>(node) ;  
@@ -1282,6 +1261,28 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
     objTran.setZ( objTran.z() + zoffset ); 
     disp->SetObjectTranslation( objTran ); 
 }
+
+/**
+ZSolid::ApplyZCut_G4Tubs
+--------------------------
+
+Try avoiding the complexities of changing the shift by 
+replacing the G4Tubs with a G4Polycone which does not 
+need to be symmetrically addressed. 
+
+**/
+
+void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
+{ 
+    G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
+    G4Tubs* tubs = dynamic_cast<G4Tubs*>(node) ;  
+    assert(tubs); 
+
+    assert(0 && "G4Tubs should have been promoted to G4Polycone at clone stage, how did you get here ?") ; 
+}
+
+
+
 
 /**
 ZSolid::dumpUp
@@ -1328,7 +1329,6 @@ void ZSolid::dumpUp_r(const G4VSolid* node, int depth) const
             ; 
    }
 }
-
 
 /**
 ZSolid::getTreeTransform
@@ -1645,7 +1645,6 @@ void ZSolid::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot,
     assert( replacement == src ); 
 }
 
-
 /**
 ZSolid::SetLeft
 -------------------
@@ -1684,6 +1683,7 @@ void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static
     assert( replacement == src ); 
 }
 
+
 G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static 
 {
     G4VSolid* clone = nullptr ; 
@@ -1693,10 +1693,14 @@ G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static
         const G4Ellipsoid* ellipsoid = dynamic_cast<const G4Ellipsoid*>(solid) ; 
         clone = new G4Ellipsoid(*ellipsoid) ;
     }
-    else if( type == _G4Tubs )
+    else if( type == _G4Tubs && PROMOTE_TUBS_TO_POLYCONE == false)
     {
         const G4Tubs* tubs = dynamic_cast<const G4Tubs*>(solid) ; 
         clone = new G4Tubs(*tubs) ;  
+    }
+    else if( type == _G4Tubs && PROMOTE_TUBS_TO_POLYCONE == true)
+    {
+        clone = PromoteTubsToPolycone( solid );  
     }
     else if( type == _G4Polycone )
     {
@@ -1713,6 +1717,41 @@ G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static
     } 
     return clone ; 
 }
+
+const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = true ; 
+
+G4VSolid* ZSolid::PromoteTubsToPolycone( const G4VSolid* solid ) // static
+{
+    const G4Tubs* tubs = dynamic_cast<const G4Tubs*>(solid) ; 
+    assert(tubs); 
+
+    G4String name = tubs->GetName(); 
+    double dz = tubs->GetDz(); 
+    double rmin = tubs->GetRMin(); 
+    double rmax = tubs->GetRMax(); 
+    double sphi = tubs->GetSPhi(); 
+    double dphi = tubs->GetDPhi(); 
+ 
+    G4int numZPlanes = 2 ; 
+    G4double zPlane[] = { -dz    , dz } ;   
+    G4double rInner[] = {  rmin  , rmin   } ;   
+    G4double rOuter[] = {  rmax  , rmax } ;    
+
+    G4Polycone* polycone = new G4Polycone(
+                               name,
+                               sphi,
+                               dphi,
+                               numZPlanes,
+                               zPlane,
+                               rInner,
+                               rOuter
+                               );  
+
+    G4VSolid* clone = polycone ; 
+    return clone ; 
+}
+
+
 
 double ZSolid::getZ( const G4VSolid* node ) const
 {
@@ -1764,4 +1803,107 @@ void ZSolid::GetZRange( const G4Polycone* const polycone, double& _z0, double& _
     _z1 = pars->Z_values[num_z-1] ; 
     _z0 = pars->Z_values[0] ;  
 }
+
+/**
+ZSolid::ApplyZCut_G4Tubs
+----------------------------
+
+
+When cutting the tubs shrinks but the displacement 
+is insufficient to prevent movement of the upper end. 
+
+WORKAROUND IS TO PROMOTE G4Tubs to G4Polycone at the clone stage 
+avoiding the issue as G4Polycone is simpler because there is no need 
+to change offsets because it does not need to be symmetrically 
+described like G4Tubs.
+
+
+THIS MATHS (OR IMPLEMENTATION) HAS A PROBLEM ... 
+
+Cutting G4Tubs::
+
+
+     zd+hz  +---------+               +---------+     new_zd + new_hz
+            |         |               |         |  
+            |         |               |         |
+            |         |               |         |
+            |         |             __|_________|__   new_zd
+            |         |               |         |
+     zd   --|---------|--             |         |
+            |         |               |         |
+            |         |               |         |
+         .  | . . . . | . .zcut . . . +---------+ . . new_zd - new_hz  . . . . . .
+            |         | 
+            |         |
+    zd-hz   +---------+ 
+
+
+     cut position
+
+          zcut = new_zd - new_hz 
+          new_zd = zcut + new_hz  
+
+
+     original height:  2*hz                         
+      
+     cut height :     
+
+          loc_zcut = zcut - zd 
+
+          2*new_hz = 2*hz - (zcut-(zd-hz)) 
+
+                   = 2*hz - ( zcut - zd + hz )
+
+                   = 2*hz -  zcut + zd - hz 
+
+                   = hz + zd - zcut 
+
+                   = hz - (zcut - zd)             
+
+                   = hz - loc_zcut 
+
+
+                                    hz + zd - zcut
+                        new_hz =  -----------------
+                                         2
+
+                                    hz - loc_zcut 
+                        new_hz =  --------------------      new_hz( loc_zcut:-hz ) = hz     unchanged
+                                          2                 new_hz( loc_zcut:0   ) = hz/2   halved
+                                                            new_hz( loc_zcut:+hz ) =  0     made to disappear 
+
+
+       +hz  +---------+               +---------+     zoff + new_hz
+            |         |               |         |  
+            |         |               |         |
+            |         |               |         |
+            |         |             __|_________|__   zoff 
+            |         |               |         |
+        0 --|---------|- . . . . . . . . . . . . . . . 0 
+            |         |               |         |
+            |         |               |         |
+   loc_zcut | . . . . | . . . . .  .  +---------+ . . zoff - new_hz  . . . . . .
+            |         | 
+            |         |
+      -hz   +---------+. . . . . . . . . . . . 
+
+
+            loc_zcut = zoff - new_hz
+
+                zoff = loc_zcut + new_hz 
+
+                     = loc_zcut +  (hz - loc_zcut)/2
+
+                     =  2*loc_zcut + (hz - loc_zcut)
+                        ------------------------------
+                                   2
+
+               zoff  =  loc_zcut + hz                   zoff( loc_zcut:-hz ) = 0      unchanged
+                        ---------------                 zoff( loc_zcut:0   ) = hz/2   
+                              2                         zoff( loc_zcut:+hz ) = hz     makes sense, 
+                                                                                      think about just before it disappears
+
+**/
+
+
 

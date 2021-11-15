@@ -21,10 +21,10 @@ public:
     Hamamatsu_R12860_PMTSolid();
 
     G4VSolid* GetSolid(       G4String solidname, double thickness=0.0, char mode=' ');
-    const G4VSolid* Old_GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
+    G4VSolid* Old_GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
 
 
-    const G4VSolid* getInternalSolid(const char* name) const ; 
+    G4VSolid* getInternalSolid(const char* name) const ; 
     void dump(const char* msg="Hamamatsu_R12860_PMTSolid::dump") const ; 
 
 private:
@@ -66,7 +66,7 @@ private:
     bool m_polycone_neck ; 
 
     OldZSolidList* ozs ; 
-    std::map<std::string, const G4VSolid*> m_solid_map ; 
+    std::map<std::string, G4VSolid*> m_solid_map ; 
 
 };
 

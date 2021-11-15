@@ -82,10 +82,10 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
     m_pmtsolid_maker->dump(msg); 
 }
 
-const G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
+G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {
     if(!m_logical_pmt) init();
-    const G4VSolid* so = nullptr ; 
+    G4VSolid* so = nullptr ; 
     if(strcmp(name, "pmt_solid") == 0 ) so = pmt_solid ; 
     if(strcmp(name, "body_solid") == 0 ) so = body_solid ; 
     if(strcmp(name, "inner_solid") == 0 ) so = inner_solid ; 

@@ -10,6 +10,7 @@ set(TEST_SOURCES
     MaterialSvcTest.cc
     DetectorConstructionTest.cc
     PMTSolidTest.cc
+    GetSolidTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})

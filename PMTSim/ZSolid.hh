@@ -228,11 +228,15 @@ struct PMTSIM_API ZSolid
 
     static void      CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ); 
     static G4VSolid* PrimitiveClone( const  G4VSolid* solid ); 
+    static G4VSolid* PromoteTubsToPolycone( const G4VSolid* solid ); 
+    static const bool PROMOTE_TUBS_TO_POLYCONE ; 
 
     static void ApplyZCut(             G4VSolid* node, double local_zcut); 
     static void ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Tubs(      G4VSolid* node, double local_zcut);
+    static void ApplyZCut_G4Tubs_old(  G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);
+    static void ApplyZCut_G4Polycone_NotWorking(  G4VSolid* node, double local_zcut);
 
     static std::string CommonPrefix(const std::vector<std::string>& a); 
 
