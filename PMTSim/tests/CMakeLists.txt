@@ -11,6 +11,7 @@ set(TEST_SOURCES
     DetectorConstructionTest.cc
     PMTSolidTest.cc
     GetSolidTest.cc
+    GetPVTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})

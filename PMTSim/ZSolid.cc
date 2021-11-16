@@ -1196,6 +1196,18 @@ ZSolid::ApplyZCut_G4Polycone
 Use placement new to replace the polycone using the ctor again 
 with different params so Geant4 cannot ignore 
 
+Note that the radii is modified according to the cut, in 
+order to cut without changing shape other than the cut.::
+
+                                     
+                                      .  (z1,r1)
+                               .
+                         .   
+                   .
+             .      (zc,rc)
+       +    
+     (z0,r0)
+
 **/
 
 void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
@@ -1225,7 +1237,16 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
     }
 
     assert( num_z == 2 );  // simplifying assumption 
-    zp[0] = local_zcut ;      
+
+    double zfrac = (local_zcut - zp[0])/(zp[1] - zp[0]) ;
+ 
+    double ri_zcut = ri[0] + zfrac*( ri[1] - ri[0] ) ;   
+    double ro_zcut = ro[0] + zfrac*( ro[1] - ro[0] ) ; 
+
+    zp[0] = local_zcut ;   
+    ri[0] = ri_zcut ; 
+    ro[0] = ro_zcut ; 
+   
 
     G4String name = polycone->GetName() ; 
     G4double startPhi = polycone->GetStartPhi() ;  

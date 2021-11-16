@@ -1,6 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <string>
+#include <array>
+
+struct NP ; 
 class G4VSolid ; 
 class G4LogicalVolume ; 
 class G4VPhysicalVolume ; 
@@ -26,9 +30,16 @@ struct PMTSIM_API PMTSim
     static G4VSolid* Old_GetMakerSolid(const char* name); 
 
     static G4VPhysicalVolume* GetPV(const char* name); 
+    static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
 
-    static void Traverse(const G4VPhysicalVolume* const pv); 
-    static void Traverse_r(const G4VPhysicalVolume* const pv, int depth); 
+    static void SaveTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* path ); 
+    static void SaveTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* fold, const char* name ); 
+    static NP* MakeArray( std::vector<double>* tr, std::vector<G4VSolid*>* solids ); 
+    static void DumpTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* msg ); 
+
+    static void Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr, std::vector<G4VSolid*>* names ); 
+    static void Traverse_r(const G4VPhysicalVolume* const pv, int depth, std::vector<double>* tr, std::vector<G4VSolid*>* names); 
+    static void GetObjectTransform(std::array<double, 16>& a, const G4VPhysicalVolume* const pv); 
     static void DumpSolids(); 
 
     DetectorConstruction* dc ;   
