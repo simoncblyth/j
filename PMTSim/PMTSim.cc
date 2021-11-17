@@ -295,25 +295,41 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
         double* ro = new double[num] ; 
         G4VSolid** so = new G4VSolid*[num] ; 
 
-        for(unsigned i=0 ; i < num ; i++ ) dz[i] = 25. ;  //double(200 - i*10); 
-        for(unsigned i=0 ; i < num ; i++ ) ri[i] = 0. ; 
-        for(unsigned i=0 ; i < num ; i++ ) ro[i] = 25. ; // double(200 - i*10); 
-        for(unsigned i=0 ; i < num ; i++ ) so[i] = nullptr ; 
+        for(unsigned i=0 ; i < num ; i++ ) 
+        {
+            dz[i] = 25. ;  //double(200 - i*10); 
+            ri[i] = 0. ; 
+            ro[i] = 25. ; // double(200 - i*10); 
+            so[i] = nullptr ; 
+        }
+        double sep = 20. ; 
+        double startPhi = 0.00*deg ; 
+        double totPhi = 360.00*deg ; 
+ 
 
         G4VSolid* combination = nullptr ;  
-        double sep = 20. ; 
 
-        so[0] = new G4Tubs( itoa_("so%d",0), ri[0], ro[0], dz[0],  0.00*deg, 360.00*deg ); 
+        so[0] = new G4Tubs( itoa_("so%d",0), ri[0], ro[0], dz[0],  startPhi, totPhi ); 
         combination = so[0] ; 
+
+        std::cout 
+            << "PMTSim::GetDebugSolid"  
+            << " name " << name
+            << " num " << num
+            << std::endl 
+            ;
 
         for(unsigned i=1 ; i < num ; i++) 
         {
-            so[i] = new G4Tubs( itoa_("so%d",1), ri[i], ro[i], dz[i], 0.00*deg, 360.00*deg ); 
+            so[i] = new G4Tubs( itoa_("so%d",1), ri[i], ro[i], dz[i], startPhi, totPhi ); 
+
             double delta = 0. ; 
-            for(unsigned j=0 ; j < i ; j++) delta += (( j == i - 1 ) ? dz[j] : 2*dz[j] ); 
-            // TODO: not quite separating the first two uniformly 
-            combination = new G4UnionSolid( ijtoa_("so%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,-(delta+i*sep)) ) ;     
+            for(unsigned j=0 ; j <= i ; j++) delta +=  (( j == 0 || j == i ) ? dz[j] : 2*dz[j] ) ;
+            double zshift = -(delta+i*sep) ; 
+                 
+            combination = new G4UnionSolid( ijtoa_("so%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,zshift) ) ;     
         }
+            // TODO: not quite separating the first two uniformly 
 
         solid = combination ; 
     }
@@ -506,6 +522,7 @@ void PMTSim::init(const char* name)
 {
     std::stringstream coutbuf;
     std::stringstream cerrbuf;
+
     {   
         cout_redirect out_(coutbuf.rdbuf());
         cerr_redirect err_(cerrbuf.rdbuf());
@@ -520,14 +537,10 @@ void PMTSim::init(const char* name)
     std::string err = cerrbuf.str(); 
 
     std::cout << "PMTSim::init captured cout " << std::setw(6) << out.size() << " set VERBOSE to see it " << std::endl  ;   
-
-    if(verbose)
-    std::cout << "[" << std::endl << out << "]" << std::endl  ;   
+    if(verbose) std::cout << "[" << std::endl << out << "]" << std::endl  ;   
 
     std::cout << "PMTSim::init captured cerr " << std::setw(6) << err.size() << " set VERBOSE to see it " <<  std::endl ; 
-
-    if(verbose)
-    std::cout << "[" << std::endl << err << "]" << std::endl  ;   
+    if(verbose) std::cout << "[" << std::endl << err << "]" << std::endl  ;   
 }
 
 
