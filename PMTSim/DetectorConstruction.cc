@@ -20,7 +20,9 @@ DetectorConstruction::DetectorConstruction()
    m_LS_optical_model(""),
    m_use_pmtsimsvc(true)
 {
+   std::cout << "[ DetectorConstruction::DetectorConstruction " << std::endl ; 
    DefineMaterials();
+   std::cout << "] DetectorConstruction::DetectorConstruction " << std::endl ; 
 }
 
 void DetectorConstruction::DefineMaterials()

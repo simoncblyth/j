@@ -27,6 +27,40 @@
 #include "ZSolid.hh"
 
 
+#include <iostream>
+#include <streambuf>
+
+struct cout_redirect {
+    cout_redirect( std::streambuf * new_buffer ) 
+        : old( std::cout.rdbuf( new_buffer ) ) 
+    { } 
+
+    ~cout_redirect( ) { 
+        std::cout.rdbuf( old );
+    }   
+
+private:
+    std::streambuf * old;
+};
+
+
+struct cerr_redirect {
+    cerr_redirect( std::streambuf * new_buffer ) 
+        : old( std::cerr.rdbuf( new_buffer ) ) 
+    { } 
+
+    ~cerr_redirect( ) { 
+        std::cerr.rdbuf( old );
+    }   
+
+private:
+    std::streambuf * old;
+};
+
+
+
+
+
 double atof_(const char* s_val)
 {
     std::istringstream iss(s_val);
@@ -56,8 +90,11 @@ value at the end of the name it is extracted.
 
 G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
+    PMTSim::SetEnvironmentSwitches(name);  
+
     const char* s_zcut = strstr(name, "zcut") ; 
     double zcut = s_zcut == nullptr ? 999. : atof_(s_zcut+strlen("zcut")) ; 
+
     std::cout 
         << "PMTSim::GetSolid " << name 
         << " zcut " << std::setw(10) << std::fixed << std::setprecision(4) << zcut 
@@ -74,6 +111,56 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     return solid ; 
 }
+
+
+void PMTSim::SetEnvironmentSwitches(const char* name)  // static
+{
+    std::vector<std::string> tagkeys = {
+       "_pcnk:JUNO_PMT20INCH_POLYCONE_NECK" , 
+       "_scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
+       "_nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
+       "_pdyn:JUNO_PMT20INCH_PLUS_DYNODE" } ; 
+
+    for(unsigned i=0 ; i < tagkeys.size() ; i++)
+    {
+        const std::string& tagkey = tagkeys[i] ; 
+
+        std::string tag_ = tagkey.substr(0,5); 
+        std::string key_ = tagkey.substr(6); 
+        const char* tag = tag_.c_str(); 
+        const char* key = key_.c_str(); 
+
+        bool found = strstr(name, tag) != nullptr ; 
+        std::cout 
+            << " PMTSim::SetEnvironment "
+            << " name " << std::setw(30) << name 
+            << " tag [" << tag << "] "
+            << " found " << found 
+            << " key [" << key << "] "
+            << std::endl
+            ;
+        if(found)
+        {
+            setenv(key, "ENABLED", 1 ); 
+        }
+        else
+        {
+            unsetenv(key); 
+        }
+    }
+}
+
+
+/**
+PMTSim::GetSolid_
+-------------------
+
+Unlike PMTSim::GetSolid this does not act on zcut specifications in names.
+Also it does not run the environment setup. 
+
+**/
+
+
 
 G4VSolid* PMTSim::GetSolid_(const char* name) // static 
 {
@@ -275,25 +362,24 @@ G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
 
 G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 {
-    std::cout << "PMTSim::GetManagerSolid " << name << std::endl ;      
+    std::cout << "[ PMTSim::GetManagerSolid " << name << std::endl ;      
 
+    std::cout << "[ PMTSim::GetManagerSolid PMTSim::PMTSim " << name << std::endl ;      
     PMTSim* ps = new PMTSim ; 
+    std::cout << "] PMTSim::GetManagerSolid PMTSim::PMTSim " << name << std::endl ;      
+
+    std::cout << "[ PMTSim::GetManagerSolid PMTSim::getSolid " << name << std::endl ;      
     G4VSolid* solid = ps->getSolid(name); 
+    std::cout << "] PMTSim::GetManagerSolid PMTSim::getSolid " << name << " solid " << solid << std::endl ;      
+
     if( solid == nullptr )
     {
-        std::cout << "PMTSim::GetSolid failed for name " << name << std::endl ;  
+        std::cout << "PMTSim::GetManagerSolid failed for name " << name << std::endl ;  
+        ps->ham->dump("PMTSim::GetManagerSolid");
+        DumpSolids(); 
     }
-    ps->ham->dump("PMTSim::GetSolid");
-
-    std::cout 
-        << "PMTSim::GetSolid"
-        << " name " << name 
-        << " solid " << solid
-        << std::endl 
-        ;
-
-    if(solid == nullptr) DumpSolids(); 
  
+    std::cout << "] PMTSim::GetManagerSolid " << name << std::endl ;      
     return solid ; 
 }
 
@@ -303,6 +389,8 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 {
+    PMTSim::SetEnvironmentSwitches(name);  
+
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
     Traverse(pv, nullptr, nullptr); 
@@ -312,6 +400,8 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
 {
+    PMTSim::SetEnvironmentSwitches(name);  
+
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
     Traverse(pv, tr, solids); 
@@ -405,10 +495,42 @@ void PMTSim::DumpSolids() // static
 
 PMTSim::PMTSim(const char* name)
     :
-    dc(new DetectorConstruction),
-    ham(new HamamatsuR12860PMTManager(name))
+    verbose(getenv("VERBOSE")!=nullptr),
+    dc(nullptr),
+    ham(nullptr)
 {
+    init(name); 
 }
+
+void PMTSim::init(const char* name)
+{
+    std::stringstream coutbuf;
+    std::stringstream cerrbuf;
+    {   
+        cout_redirect out_(coutbuf.rdbuf());
+        cerr_redirect err_(cerrbuf.rdbuf());
+    
+        dc = new DetectorConstruction ; 
+        ham = new HamamatsuR12860PMTManager(name) ; 
+    
+        // dtors of the redirect structs reset back to standard cout/cerr streams  
+    }    
+
+    std::string out = coutbuf.str(); 
+    std::string err = cerrbuf.str(); 
+
+    std::cout << "PMTSim::init captured cout " << std::setw(6) << out.size() << " set VERBOSE to see it " << std::endl  ;   
+
+    if(verbose)
+    std::cout << "[" << std::endl << out << "]" << std::endl  ;   
+
+    std::cout << "PMTSim::init captured cerr " << std::setw(6) << err.size() << " set VERBOSE to see it " <<  std::endl ; 
+
+    if(verbose)
+    std::cout << "[" << std::endl << err << "]" << std::endl  ;   
+}
+
+
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
     return ham->getLV(name) ; 

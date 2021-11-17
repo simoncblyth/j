@@ -82,16 +82,28 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
     m_pmtsolid_maker->dump(msg); 
 }
 
+
+bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
+{
+    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ; 
+}
+
 G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {
-    if(!m_logical_pmt) init();
+    if(!m_logical_pmt) 
+    {
+        std::cout << "[ HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
+        init();
+        std::cout << "] HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
+    }
+
     G4VSolid* so = nullptr ; 
-    if(strcmp(name, "pmt_solid") == 0 ) so = pmt_solid ; 
-    if(strcmp(name, "body_solid") == 0 ) so = body_solid ; 
-    if(strcmp(name, "inner_solid") == 0 ) so = inner_solid ; 
-    if(strcmp(name, "inner1_solid") == 0 ) so = inner1_solid ; 
-    if(strcmp(name, "inner2_solid") == 0 ) so = inner2_solid ; 
-    if(strcmp(name, "dynode_solid") == 0 ) so = dynode_solid ; 
+    if(StartsWithPrefix(name, "pmt_solid"))    so = pmt_solid ; 
+    if(StartsWithPrefix(name, "body_solid"))   so = body_solid ; 
+    if(StartsWithPrefix(name, "inner_solid"))  so = inner_solid ; 
+    if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ; 
+    if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ; 
+    if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ; 
 
     if( so == nullptr )
     {
@@ -111,13 +123,13 @@ G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();
     G4LogicalVolume* lv = nullptr ;  
-    if(strcmp(name, "logical_pmt") == 0 ) lv = m_logical_pmt ; 
-    if(strcmp(name, "body_log") == 0 )    lv = body_log ; 
-    if(strcmp(name, "inner1_log") == 0 )  lv = inner1_log ; 
-    if(strcmp(name, "inner2_log") == 0 )  lv = inner2_log ; 
+    if(StartsWithPrefix(name, "logical_pmt")) lv = m_logical_pmt ; 
+    if(StartsWithPrefix(name, "body_log"))    lv = body_log ; 
+    if(StartsWithPrefix(name, "inner1_log"))  lv = inner1_log ; 
+    if(StartsWithPrefix(name, "inner2_log"))  lv = inner2_log ; 
 
-    if(strcmp(name, "dynode_log") == 0 )  lv = dynode_log ; 
-    if(strcmp(name, "logical_cover") == 0 ) lv = m_logical_cover ; 
+    if(StartsWithPrefix(name, "dynode_log"))  lv = dynode_log ; 
+    if(StartsWithPrefix(name, "logical_cover")) lv = m_logical_cover ; 
     return lv ; 
 }
 
@@ -125,10 +137,10 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
 {
     if(!m_logical_pmt) init();
     G4PVPlacement* pv = nullptr ; 
-    if(strcmp(name, "body_phys") == 0 )   pv = body_phys ; 
-    if(strcmp(name, "inner1_phys") == 0 ) pv = inner1_phys ; 
-    if(strcmp(name, "inner2_phys") == 0 ) pv = inner2_phys ; 
-    if(strcmp(name, "dynode_phys") == 0 ) pv = dynode_phys ; 
+    if(StartsWithPrefix(name, "body_phys"))   pv = body_phys ; 
+    if(StartsWithPrefix(name, "inner1_phys")) pv = inner1_phys ; 
+    if(StartsWithPrefix(name, "inner2_phys")) pv = inner2_phys ; 
+    if(StartsWithPrefix(name, "dynode_phys")) pv = dynode_phys ; 
     return pv ; 
 }
 
@@ -451,7 +463,7 @@ HamamatsuR12860PMTManager::helper_make_solid()
     }
 
 
-    ZSolid::Draw(body_solid, "body_solid"); 
+    //ZSolid::Draw(body_solid, "body_solid"); 
 
 
 
@@ -488,13 +500,13 @@ HamamatsuR12860PMTManager::helper_make_solid()
         LogInfo << "Cut the tail of PMT " << std::endl;
 
         {
+            /*
             double zcut = -m_pmt_equator_to_bottom ; 
             std::cout << "ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
 
             G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree( body_solid, zcut, false ); 
             body_solid_zcut->SetName("body_solid_zcut"); 
 
-            /*
             G4VSolid* inner2_solid_zcut = ZSolid::ApplyZCutTree( inner2_solid, zcut, false ); 
             inner2_solid_zcut->SetName("inner2_solid_zcut"); 
 
@@ -510,7 +522,7 @@ HamamatsuR12860PMTManager::helper_make_solid()
         const double tail_height = m_pmt_h - m_z_equator;
         const double tail_half_height = tail_height / 2;
         const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
-        G4VSolid* cut_tail_solid = new G4Tubs("CutTail_HamaPMT_Solid",
+        G4VSolid* cut_tail_solid = new G4Tubs( GetName() + "_CutTail_HamaPMT_Solid",
                                               0.,
                                               helper_sep_tube_r+1E-9*mm,
                                               tail_half_height,
@@ -525,7 +537,13 @@ HamamatsuR12860PMTManager::helper_make_solid()
         const double pmt_height = m_pmt_h;
         const double pmt_half_height = pmt_height / 2;
         const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
-        G4VSolid* cut_pmt_solid = new G4Tubs("CutPMT_HamaPMT_Solid",
+
+        std::cout 
+           << " GetName " << GetName()
+           << std::endl 
+           ;
+
+        G4VSolid* cut_pmt_solid = new G4Tubs( GetName() + "_CutPMT_HamaPMT_Solid",
                                               0.,
                                               helper_sep_tube_r+1E-9*mm,
                                               pmt_half_height,
@@ -540,12 +558,12 @@ HamamatsuR12860PMTManager::helper_make_solid()
         const double body_height = m_pmt_h;
         const double body_half_height = body_height / 2;
         const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
-        G4VSolid* cut_body_solid = new G4Tubs("CutBody_HamaPMT_Solid",
+        G4VSolid* cut_body_solid = new G4Tubs( GetName() + "_body_solid_intubs",
                                               0.,
                                               helper_sep_tube_r+1E-9*mm,
                                               body_half_height,
                                               0., 360.*degree);
-        body_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
+        body_solid = new G4IntersectionSolid( GetName() + "_body_solid_cut",
                                                 body_solid,
                                                 cut_body_solid,
                                                 NULL,

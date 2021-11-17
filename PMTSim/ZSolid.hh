@@ -4,6 +4,7 @@ class G4VSolid ;
 class G4Ellipsoid ; 
 class G4Tubs ; 
 class G4Polycone ; 
+class G4Torus ; 
 class G4DisplacedSolid ; 
 
 #include "G4RotationMatrix.hh" 
@@ -33,7 +34,9 @@ struct PMTSIM_API ZSolid
     // members
     bool            verbose ; 
     const G4VSolid* original ; 
-    G4VSolid* root ;     // DeepClone of original, which is identical to original AND fully independent from it 
+    G4VSolid*       root ;     // DeepClone of original, which is identical to original AND fully independent from it 
+    bool            edited ;   // false, until root changed  or tree pruned
+  
 
     // maps populated by instrumentTree
     std::map<const G4VSolid*, const G4VSolid*>* parent_map ; 
@@ -131,9 +134,10 @@ struct PMTSIM_API ZSolid
     int num_prim() const ;
     int num_prim_r(const G4VSolid* n) const;
     int num_node() const; 
-    static int num_node_r(const G4VSolid* n);
-    int num_node(int qcls) const; 
-    int num_node_r(const G4VSolid* n, int qcls) const ;
+    static int NumNode_r(const G4VSolid* n, int depth );
+
+    int num_node_select(int qcls) const; 
+    int num_node_select_r(const G4VSolid* n, int qcls) const ;
 
     const char* desc() const ; 
 
@@ -164,6 +168,7 @@ struct PMTSIM_API ZSolid
         _G4Ellipsoid, 
         _G4Tubs, 
         _G4Polycone, 
+        _G4Torus, 
         _G4UnionSolid, 
         _G4SubtractionSolid, 
         _G4IntersectionSolid, 
@@ -200,10 +205,12 @@ struct PMTSIM_API ZSolid
     // navigation
     static const G4VSolid* Left(  const G4VSolid* node) ;
     static const G4VSolid* Right( const G4VSolid* node) ;  // NB the G4VSolid returned might be a G4DisplacedSolid wrapping the G4VSolid 
+    static const G4VSolid* Moved( const G4VSolid* node) ;
     static const G4VSolid* Moved( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node) ;
 
     static       G4VSolid* Left_(       G4VSolid* node) ;
     static       G4VSolid* Right_(      G4VSolid* node) ;
+    static       G4VSolid* Moved_(      G4VSolid* node) ;
     static       G4VSolid* Moved_( G4RotationMatrix* rot, G4ThreeVector* tla, G4VSolid* node) ;
 
     // local node frame access 
@@ -212,6 +219,7 @@ struct PMTSIM_API ZSolid
     static void GetZRange( const G4Ellipsoid* const ellipsoid, double& z0, double& z1 );
     static void GetZRange( const G4Tubs*      const tubs     , double& z0, double& z1 ); 
     static void GetZRange( const G4Polycone*  const polycone , double& z0, double& z1 ); 
+    static void GetZRange( const G4Torus*     const torus,     double& z0, double& z1 ); 
 
     // tree cloning methods
     static G4VSolid* DeepClone(    const G4VSolid* solid ); 

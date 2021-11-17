@@ -16,6 +16,8 @@ class HamamatsuR12860PMTManager ;
 
 struct PMTSIM_API PMTSim
 {
+    static void SetEnvironmentSwitches(const char* name); 
+
     static G4VSolid* GetSolid(const char* name); 
 
     static G4VSolid* GetSolid_(const char* name); 
@@ -42,10 +44,12 @@ struct PMTSIM_API PMTSim
     static void GetObjectTransform(std::array<double, 16>& a, const G4VPhysicalVolume* const pv); 
     static void DumpSolids(); 
 
+    bool verbose ; 
     DetectorConstruction* dc ;   
     HamamatsuR12860PMTManager* ham ; 
 
     PMTSim(const char* name=""); 
+    void init(const char* name); 
 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;

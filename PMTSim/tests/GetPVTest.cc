@@ -26,7 +26,7 @@ int main(int argc, char** argv)
     G4VPhysicalVolume* pv = PMTSim::GetPV(name, tr, so );
     assert(pv); 
 
-    PMTSim::DumpTransforms(tr, ss, "PMTSim::DumpTransforms"); 
+    PMTSim::DumpTransforms(tr, so, "PMTSim::DumpTransforms"); 
  
     int create_dirs = 1 ; // 1:filepath
     const char* path = SPath::Resolve("$TMP/PMTSim/GetPVTest/transforms.npy", create_dirs ); 

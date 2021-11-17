@@ -90,6 +90,9 @@ void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)
     if( ix < 0 ) ix += width ; 
     if( iy < 0 ) iy += height ; 
 
+    if( ix >= width )  printf("ZCanvas::_draw FATAL ix>=width  ix %d width %d \n", ix, width ); 
+    if( iy >= height ) printf("ZCanvas::_draw FATAL iy>=height iy %d height %d \n", iy, height ); 
+
     assert( ix < width  );  
     assert( iy < height  );  
     assert( dx < xscale );  
@@ -126,6 +129,10 @@ void ZCanvas::print(const char* msg) const
         printf("\n%s",c);
 }
 
-
-
+const char* ZCanvas::desc() const 
+{
+    char msg[200] ; 
+    snprintf(msg, 200, "ZCanvas::desc width %d height %d xscale %d yscale %d nx %d ny %d", width, height, xscale, yscale, nx, ny ); 
+    return strdup(msg); 
+}
 

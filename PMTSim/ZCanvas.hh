@@ -24,6 +24,8 @@ struct ZCanvas
     void _draw(  int x, int y,  int dx, int dy, const char* txt);      // 0,0 is at top left 
 
     void print(const char* msg=nullptr) const ; 
+    const char* desc() const ; 
+
 };
 
 
