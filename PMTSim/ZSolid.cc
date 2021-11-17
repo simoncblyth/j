@@ -1221,13 +1221,12 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
 
 void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 {
-    G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
+    G4VSolid* node = Moved_(node_ ); 
     std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
     switch(EntityType(node))
     {
         case _G4Ellipsoid: ApplyZCut_G4Ellipsoid( node  , local_zcut);  break ; 
-        //case _G4Tubs:      ApplyZCut_G4Tubs_old(      node_ , local_zcut);  break ; // cutting tubs requires changing the transform, hence node_
-        case _G4Tubs:      ApplyZCut_G4Tubs(      node  , local_zcut);  break ; // try promoting the tubs to G4Polycone
+        case _G4Tubs:      ApplyZCut_G4Tubs(      node_ , local_zcut);  break ; // cutting tubs requires changing transform, hence node_
         case _G4Polycone:  ApplyZCut_G4Polycone(  node  , local_zcut);  break ; 
         default: 
         { 
@@ -1389,43 +1388,68 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
 
 
 
-void ZSolid::ApplyZCut_G4Tubs_old( G4VSolid* node_ , double local_zcut )
-{ 
-    G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
-    G4Tubs* tubs = dynamic_cast<G4Tubs*>(node) ;  
-    assert(tubs); 
-
-    double hz = tubs->GetZHalfLength() ; 
-    double new_hz = (hz - local_zcut)/2. ;  
-    tubs->SetZHalfLength(new_hz);  
-
-    double zoffset = (local_zcut + hz)/2. ; 
-
-    G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(node_) ; 
-    assert( disp ); // transform must be associated as must change offset to cut G4Tubs
-
-    G4ThreeVector objTran = disp->GetObjectTranslation() ; 
-    objTran.setZ( objTran.z() + zoffset ); 
-    disp->SetObjectTranslation( objTran ); 
-}
-
 /**
 ZSolid::ApplyZCut_G4Tubs
 --------------------------
 
-Try avoiding the complexities of changing the shift by 
-replacing the G4Tubs with a G4Polycone which does not 
-need to be symmetrically addressed. 
+* SEE THE TAIL OF THIS FILE FOR A DERIVATION OF new_hz AND zoffset 
 
+G4Tubs is more difficult to cut than G4Polycone because it is 
+symmetrically defined, so cutting requires shifting too. 
+Replacing all G4Tubs with G4Polycone at the initial clone stage
+avoids using this method at all. 
+
+BUT if you prefer not to promote all G4Tubs to G4Polycone 
+it is also possible to cut G4Tubs by changing the 
+G4DisplacedSolid transforms appropriately. 
+
+Initially tried using G4DisplacedSolid::SetObjectTranslation
+but looking at the implementation that only changes one
+of the two transforms held by the object. Hence used 
+placement new yet again to rerun the ctor, after deregistering 
+the disp solid from G4SolidStore.
+
+NOTE THAT THE G4Tubs MUST HAVE AN ASSOCIATED TRANSFORM (EVEN IDENTITY MATRIX)
+FOR THIS TO WORK : SO ALWAYS USE THE G4BooleanSolid ctor with rot and tla
+  
 **/
 
 void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
 { 
-    G4VSolid* node = Moved_(nullptr, nullptr, node_ ); 
+    if( PROMOTE_TUBS_TO_POLYCONE )
+        assert(0 && "All G4Tubs should have been promoted to G4Polycone at clone stage, how did you get here ?") ; 
+
+    G4RotationMatrix node_rot ; 
+    G4ThreeVector    node_tla(0., 0., 0. ); 
+    G4VSolid*  node = Moved_(&node_rot, &node_tla, node_ ); 
+
     G4Tubs* tubs = dynamic_cast<G4Tubs*>(node) ;  
     assert(tubs); 
+    G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(node_) ; 
+    assert( disp ); // transform must be associated as must change offset to cut G4Tubs
 
-    assert(0 && "G4Tubs should have been promoted to G4Polycone at clone stage, how did you get here ?") ; 
+    double hz = tubs->GetZHalfLength() ; 
+    double new_hz  = (hz - local_zcut)/2. ;  
+    double zoffset = (hz + local_zcut)/2. ; 
+
+    tubs->SetZHalfLength(new_hz);  
+    node_tla.setZ( node_tla.z() + zoffset ); 
+
+    std::cout 
+        << "ZSolid::ApplyZCut_G4Tubs"
+        << " hz " << hz
+        << " local_zcut " << local_zcut
+        << " new_hz " << new_hz
+        << " zoffset " << zoffset 
+        << std::endl 
+        ;
+
+    G4String disp_name = disp->GetName() ; 
+    //disp->CleanTransformations() ; // needed ? perhaps avoids small leak 
+    G4SolidStore::GetInstance()->DeRegister(disp);  // avoids G4SolidStore segv at cleanup
+
+    G4DisplacedSolid* disp2 = new (disp) G4DisplacedSolid(disp_name, node, &node_rot, node_tla );  
+    assert( disp2 == disp ); 
 }
 
 
@@ -1870,7 +1894,8 @@ G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static
     return clone ; 
 }
 
-const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = true ; 
+//const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = true ; 
+const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = false ; 
 
 G4VSolid* ZSolid::PromoteTubsToPolycone( const G4VSolid* solid ) // static
 {
@@ -1966,22 +1991,15 @@ void ZSolid::GetZRange( const G4Torus* const torus, double& _z0, double& _z1 )  
 
 
 
-
 /**
 ZSolid::ApplyZCut_G4Tubs
 ----------------------------
 
+An alternative to using this is to promote all G4Tubs to G4Polycone at the clone stage,  
+avoiding the need to change boolean displacements as G4Polycone is not symmetrically defined. 
 
-When cutting the tubs shrinks but the displacement 
-is insufficient to prevent movement of the upper end. 
-
-WORKAROUND IS TO PROMOTE G4Tubs to G4Polycone at the clone stage 
-avoiding the issue as G4Polycone is simpler because there is no need 
-to change offsets because it does not need to be symmetrically 
-described like G4Tubs.
-
-
-THIS MATHS (OR IMPLEMENTATION) HAS A PROBLEM ... 
+* INITIALLY HAD PROBLEM WITH THE IMPLEMENTATION : CHANGING OFFSETS DID NOT WORK
+* SOLVED WITH PLACEMENT NEW APPLIED TO THE G4DisplacedSolid 
 
 Cutting G4Tubs::
 
@@ -2036,6 +2054,10 @@ Cutting G4Tubs::
                                                             new_hz( loc_zcut:+hz ) =  0     made to disappear 
 
 
+
+Simpler way to derive the same thing, is to use the initial local frame::
+
+
        +hz  +---------+               +---------+     zoff + new_hz
             |         |               |         |  
             |         |               |         |
@@ -2049,6 +2071,7 @@ Cutting G4Tubs::
             |         | 
             |         |
       -hz   +---------+. . . . . . . . . . . . 
+
 
 
             loc_zcut = zoff - new_hz
@@ -2066,7 +2089,28 @@ Cutting G4Tubs::
                               2                         zoff( loc_zcut:+hz ) = hz     makes sense, 
                                                                                       think about just before it disappears
 
+
+Simpler way,  notice the top and bottom line equations, add or subtract and rearrange::
+
+            hz       = zoff + new_hz
+
+            loc_zcut = zoff - new_hz
+
+
+      Add them:
+
+            hz + loc_zcut = 2*zoff 
+
+                   zoff =  hz + loc_zcut
+                           --------------
+                                 2 
+      Subtract them:
+
+               hz - loc_zcut = 2*new_hz
+
+                   new_hz = hz - loc_zcut 
+                            ---------------
+                                 2
+
 **/
-
-
 

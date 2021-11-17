@@ -293,13 +293,14 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
         double* dz = new double[num] ; 
         double* ri = new double[num] ; 
         double* ro = new double[num] ; 
+        double* zs = new double[num] ; 
         G4VSolid** so = new G4VSolid*[num] ; 
 
         for(unsigned i=0 ; i < num ; i++ ) 
         {
-            dz[i] = 25. ;  //double(200 - i*10); 
+            dz[i] = 25. ;  
             ri[i] = 0. ; 
-            ro[i] = 25. ; // double(200 - i*10); 
+            ro[i] = 25. ; 
             so[i] = nullptr ; 
         }
         double sep = 20. ; 
@@ -309,7 +310,9 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
 
         G4VSolid* combination = nullptr ;  
 
-        so[0] = new G4Tubs( itoa_("so%d",0), ri[0], ro[0], dz[0],  startPhi, totPhi ); 
+        so[0] = new G4Tubs( itoa_("so_%d",0), ri[0], ro[0], dz[0],  startPhi, totPhi ); 
+        zs[0] = 0. ; 
+
         combination = so[0] ; 
 
         std::cout 
@@ -321,15 +324,19 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
 
         for(unsigned i=1 ; i < num ; i++) 
         {
-            so[i] = new G4Tubs( itoa_("so%d",1), ri[i], ro[i], dz[i], startPhi, totPhi ); 
+            so[i] = new G4Tubs( itoa_("so_%d",i), ri[i], ro[i], dz[i], startPhi, totPhi ); 
 
             double delta = 0. ; 
-            for(unsigned j=0 ; j <= i ; j++) delta +=  (( j == 0 || j == i ) ? dz[j] : 2*dz[j] ) ;
-            double zshift = -(delta+i*sep) ; 
+            for(unsigned j=0 ; j <= i ; j++) delta += dz[j]*(( j == 0 || j == i ) ? 1. : 2. ) ;
+
+            zs[i] = -(delta+i*sep) ; 
                  
-            combination = new G4UnionSolid( ijtoa_("so%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,zshift) ) ;     
+            combination = new G4UnionSolid( ijtoa_("so_%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,zs[i] )) ;     
         }
-            // TODO: not quite separating the first two uniformly 
+
+        std::cout << "zz=" ; 
+        for(unsigned i=0 ; i < num ; i++ ) std::cout << int(zs[i]) << "," ;  
+        std::cout << std::endl  ; 
 
         solid = combination ; 
     }
@@ -338,15 +345,15 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
 
 char* PMTSim::itoa_( const char* fmt, int i ) // static
 {
-    char s[10];
-    snprintf(s, 10, fmt, i );   
+    char s[16];
+    snprintf(s, 16, fmt, i );   
     return strdup(s); 
 }
 
 char* PMTSim::ijtoa_( const char* fmt, int i, int j ) // static
 {
-    char s[10];
-    snprintf(s, 10, fmt, i, j );   
+    char s[16];
+    snprintf(s, 16, fmt, i, j );   
     return strdup(s); 
 }
 
