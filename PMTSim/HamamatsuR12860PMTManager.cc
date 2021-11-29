@@ -79,7 +79,6 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
             << std::endl 
             ;
     }
-    m_pmtsolid_maker->dump(msg); 
 }
 
 
@@ -104,11 +103,6 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
     if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ; 
     if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ; 
     if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ; 
-
-    if( so == nullptr )
-    {
-        so = m_pmtsolid_maker->getInternalSolid(name); 
-    }
 
     if( so == nullptr )
     {

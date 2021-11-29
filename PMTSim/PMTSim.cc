@@ -634,7 +634,7 @@ G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
     return pv ; 
 }
 
-
+/*
 G4VSolid* PMTSim::Old_GetMakerSolid(const char* name) // static
 {
     Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
@@ -661,6 +661,8 @@ G4VSolid* PMTSim::Old_GetMakerSolid(const char* name) // static
     }
     return solid ; 
 }
+*/
+
 
 
 /**

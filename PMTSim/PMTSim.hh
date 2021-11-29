@@ -29,7 +29,7 @@ struct PMTSIM_API PMTSim
     static char* itoa_( const char* fmt, int i ); 
     static char* ijtoa_( const char* fmt, int i, int j ); 
     static bool StartsWithPrefix(const char* name, const char* prefix) ; 
-    static G4VSolid* Old_GetMakerSolid(const char* name); 
+    //static G4VSolid* Old_GetMakerSolid(const char* name); 
 
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 

@@ -6,26 +6,19 @@
  * -- Tao Lin, 2017/06/09
  */
 
-#include "PMTSIM_API_EXPORT.hh"
-
 #include "globals.hh"
-#include <string>
-#include <vector>
-#include <map>
-
-struct OldZSolidList ; 
 class G4VSolid;
 
+#ifdef STANDALONE
+#include "PMTSIM_API_EXPORT.hh"
 class PMTSIM_API Hamamatsu_R12860_PMTSolid {
+#else
+class Hamamatsu_R12860_PMTSolid {
+#endif
 public:
     Hamamatsu_R12860_PMTSolid();
 
-    G4VSolid* GetSolid(       G4String solidname, double thickness=0.0, char mode=' ');
-    G4VSolid* Old_GetZCutSolid(   G4String solidname, double zcut, double thickness=0.0, char mode=' ');
-
-
-    G4VSolid* getInternalSolid(const char* name) const ; 
-    void dump(const char* msg="Hamamatsu_R12860_PMTSolid::dump") const ; 
+    G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
 
 private:
 
@@ -64,9 +57,6 @@ private:
     double m9_h;
 
     bool m_polycone_neck ; 
-
-    OldZSolidList* ozs ; 
-    std::map<std::string, G4VSolid*> m_solid_map ; 
 
 };
 
