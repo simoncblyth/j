@@ -105,7 +105,8 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     if(s_zcut != nullptr)
     {
-        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, true );  
+        bool verbose = getenv("PMTSim_GetSolid") != nullptr ; 
+        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, verbose );  
         solid = zcut_solid ; 
     }
 
@@ -132,7 +133,7 @@ void PMTSim::SetEnvironmentSwitches(const char* name)  // static
 
         bool found = strstr(name, tag) != nullptr ; 
         std::cout 
-            << " PMTSim::SetEnvironment "
+            << "PMTSim::SetEnvironment"
             << " name " << std::setw(30) << name 
             << " tag [" << tag << "] "
             << " found " << found 

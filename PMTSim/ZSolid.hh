@@ -126,7 +126,8 @@ struct PMTSIM_API ZSolid
     char mkr( const G4VSolid* node_) const ;
     void set_mkr( const G4VSolid* node_, char mk ); 
 
-
+    bool is_include( const G4VSolid* node_ ) const ; 
+    bool is_exclude( const G4VSolid* node_ ) const ; 
     bool is_exclude_include( const G4VSolid* node_ ) const ;
     bool is_include_exclude( const G4VSolid* node_ ) const ;
     bool is_crux( const G4VSolid* node_ ) const ;
@@ -141,8 +142,8 @@ struct PMTSIM_API ZSolid
 
     const char* desc() const ; 
 
-    void prune(bool act); 
-    void prune(G4VSolid* x, bool act);
+    void prune(bool act, int pass); 
+    void prune_crux(G4VSolid* x, bool act, int pass);
 
 
     void collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  );
@@ -239,7 +240,7 @@ struct PMTSIM_API ZSolid
     static G4VSolid* PromoteTubsToPolycone( const G4VSolid* solid ); 
     static const bool PROMOTE_TUBS_TO_POLYCONE ; 
 
-    static void ApplyZCut(             G4VSolid* node, double local_zcut); 
+    static void ApplyZCut(             G4VSolid* node, double local_zcut, bool verbose); 
     static void ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Tubs(      G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);

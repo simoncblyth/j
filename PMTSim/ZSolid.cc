@@ -22,10 +22,14 @@
 
 G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ) // static
 {
+    if(verbose)
     std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
+
     ZSolid* zs = new ZSolid(original, verbose ); 
     zs->apply_cut( zcut );  
     //zs->dump("ZSolid::ApplyZCutTree"); 
+
+    if(verbose)
     std::cout << "] ZSolid::ApplyZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
     return zs->root ; 
 }
@@ -406,12 +410,22 @@ void ZSolid::set_mkr( const G4VSolid* node_, char mk )
     (*mkr_map)[node_] = mk  ;
 } 
 
+
+bool ZSolid::is_include( const G4VSolid* node_) const 
+{
+    return zcls(node_) == INCLUDE ; 
+}
+bool ZSolid::is_exclude( const G4VSolid* node_) const 
+{
+    return zcls(node_) == EXCLUDE ; 
+}
+
 bool ZSolid::is_exclude_include( const G4VSolid* node_) const 
 {
     if(!Boolean(node_)) return false ; 
     const G4VSolid* left_  = Left(node_); 
     const G4VSolid* right_ = Right(node_); 
-    return zcls(left_) == EXCLUDE &&  zcls(right_) == INCLUDE ; 
+    return is_exclude(left_) &&  is_include(right_) ; 
 }
 
 bool ZSolid::is_include_exclude( const G4VSolid* node_) const 
@@ -419,7 +433,7 @@ bool ZSolid::is_include_exclude( const G4VSolid* node_) const
     if(!Boolean(node_)) return false ; 
     const G4VSolid* left_  = Left(node_); 
     const G4VSolid* right_ = Right(node_); 
-    return zcls(left_) == INCLUDE &&  zcls(right_) == EXCLUDE ; 
+    return is_include(left_) &&  is_exclude(right_) ; 
 }
 
 bool ZSolid::is_crux( const G4VSolid* node_ ) const 
@@ -546,22 +560,22 @@ const char* ZSolid::desc() const
     return strdup(s.c_str());
 }
 
-void ZSolid::prune(bool act)
+void ZSolid::prune(bool act, int pass)
 {
     int num_include = num_node_select(INCLUDE) ;
 
     if(verbose)
-    printf("ZSolid::prune num_include %d \n", num_include);
+    printf("ZSolid::prune act:%d pass:%d num_include %d \n", act, pass, num_include);
 
     if( num_include == 0)
     {
         if(verbose)
-        printf("ZSolid::prune find zero remaining nodes : num_include %d, will set root to nullptr \n", num_include);
+        printf("ZSolid::prune act:%d pass:%d find zero remaining nodes : num_include %d, will set root to nullptr \n", act, pass, num_include);
 
         if(act)
         {
             if(verbose)
-            printf("ZSolid:::prune setting root to nullptr \n");
+            printf("ZSolid:::prune act:%d pass:%d setting root to nullptr \n", act, pass);
 
             root = nullptr ;
             edited = true ; 
@@ -572,20 +586,20 @@ void ZSolid::prune(bool act)
     assert(crux.size() == 1) ;       // more than one crux node not expected
 
     G4VSolid* x = crux[0] ;
-    prune(x, act);
+    prune_crux(x, act, pass);
 }
 
 /**
-ZSolid::prune
------------------
+ZSolid::prune_crux
+-------------------
 
 **/
 
-void ZSolid::prune(G4VSolid* x, bool act)
+void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
 {
     assert( x );
     bool ie = is_include_exclude(x) ;  // include left, exclude right
-    bool ei = is_exclude_include(x) ;  // exclude left, include rigth 
+    bool ei = is_exclude_include(x) ;  // exclude left, include right 
     assert( ie ^ ei );                 // XOR definition of crux node 
 
     G4VSolid* survivor = ie ? Left_(x) : Right_(x) ;
@@ -593,6 +607,13 @@ void ZSolid::prune(G4VSolid* x, bool act)
     set_mkr(survivor, 'S') ;
 
     G4VSolid* p = parent_(x); 
+
+    if(!is_include(p)) // hmm problems with this will not be apparent with the maximally unbalanced trees 
+    {
+        if(verbose) 
+        printf("ZSolid::prune_crux act:%d pass:%d parent disqualified as not INCLUDE : handle as root of the new tree\n", act, pass) ; 
+        p = nullptr ;    // as *p* is just local variable are changing it even when act=false 
+    }
 
     if( p != nullptr )   // non-root prune
     {
@@ -609,7 +630,7 @@ void ZSolid::prune(G4VSolid* x, bool act)
             if(act)
             {
                 if(verbose)
-                printf("ZSolid:::prune SetLeft changing p.left to survivor \n");
+                printf("ZSolid:::prune_crux act:%d pass:%d SetLeft changing p.left to survivor \n", act, pass);
                 SetLeft(p, survivor) ; 
                 edited = true ; 
             }
@@ -619,7 +640,7 @@ void ZSolid::prune(G4VSolid* x, bool act)
             if(act)
             {
                 if(verbose)
-                printf("ZSolid:prune SetRight changing p.right to survivor  \n");
+                printf("ZSolid:prune_crux act:%d pass:%d SetRight changing p.right to survivor  \n", act, pass);
                 SetRight(p, survivor) ; 
                 edited = true ; 
             }
@@ -633,7 +654,7 @@ void ZSolid::prune(G4VSolid* x, bool act)
             G4String root_name = root->GetName(); 
             G4String survivor_name = survivor->GetName() ; 
             if(verbose)
-            printf("ZSolid::prune changing root %s to survivor %s \n", root_name.c_str(), survivor_name.c_str() );
+            printf("ZSolid::prune_crux act:%d pass:%d changing root %s to survivor %s \n", act, pass, root_name.c_str(), survivor_name.c_str() );
             root = survivor ;
             edited = true ; 
         }
@@ -708,7 +729,7 @@ void ZSolid::draw_r( const G4VSolid* node_, int mode )
     int idx = index(node_, mode);  // index for presentation 
 
     const char* tag = EntityTag(node, true) ; 
-    int zcl = zcls(node_);                   // HMM node_ or node ? 
+    int zcl = zcls(node_);                 
     const char* zcn = ClassifyMaskName(zcl) ; 
     char mk = mkr(node); 
 
@@ -940,7 +961,7 @@ combination of the child classifications.
 int ZSolid::classifyTree(double zcut)  
 {
     crux.clear(); 
-    std::cout << "ZSolid::classifyTree against zcut " << zcut  << std::endl ; 
+    if(verbose) std::cout << "ZSolid::classifyTree against zcut " << zcut  << std::endl ; 
     int zc = classifyTree_r(root, 0, zcut); 
     return zc ; 
 }
@@ -1001,7 +1022,7 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
 
             zcl = ClassifyZCut( az0, az1, zcut ); 
 
-            if(true) std::cout 
+            if(verbose) std::cout 
                 << "ZSolid::classifyTree_r"
                 << " sid " << std::setw(2) << sid
                 << " pos " << std::setw(2) << pos
@@ -1104,18 +1125,17 @@ const char* ZSolid::ClassifyMaskName( int zcl ) // static
 }
 
 /**
-ZSolid::cutTree
+ZSolid::apply_cut
 ------------------
 
-See opticks/sysrap/tests/TreePruneTest.cc for 
-development of tree cutting and pruning.
+See opticks/sysrap/tests/TreePruneTest.cc and opticks/sysrap/tests/tree.sh
+for development of tree cutting and pruning.
 
 Steps:
 
 1. classify the nodes of the tree against the zcut 
 2. change STRADDLE nodes params and transforms according to the zcut
 3. reclassify against the zcut, so STRADDLE nodes should become INCLUDE nodes
-
 4. edit the tree to remove the EXCLUDE nodes
 
 **/
@@ -1125,6 +1145,7 @@ void ZSolid::apply_cut(double zcut)
     if(verbose)
     printf("ZSolid::apply_cut %7.2f \n", zcut );
 
+    if(verbose)
     Draw(root, "ZSolid::apply_cut root before cut"); 
 
     unsigned pass = 0 ;
@@ -1138,12 +1159,12 @@ void ZSolid::apply_cut(double zcut)
 
         classifyTree(zcut);   // set n.cls n.mkr
 
-        prune(false);
+        prune(false, pass);
 
         if(verbose)
         draw("ZSolid::apply_cut before prune", pass );
 
-        prune(true);
+        prune(true, pass);
 
         classifyTree(zcut);
         instrumentTree();
@@ -1183,7 +1204,7 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
         int zcl = zcls(node_);   
         if( zcl == STRADDLE )
         {
-            std::cout 
+            if(verbose) std::cout 
                 << "ZSolid::cutTree_r"
                 << " depth " << std::setw(2) << depth
                 << " zdelta " << std::fixed << std::setw(10) << std::setprecision(4) << zdelta 
@@ -1192,7 +1213,7 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
                 << std::endl
                 ;
 
-            ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut ); 
+            ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut, verbose ); 
         } 
     }
 }
@@ -1219,10 +1240,10 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
     }
 } 
 
-void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
+void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut, bool verbose ) // static
 {
     G4VSolid* node = Moved_(node_ ); 
-    std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
+    if(verbose) std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
     switch(EntityType(node))
     {
         case _G4Ellipsoid: ApplyZCut_G4Ellipsoid( node  , local_zcut);  break ; 

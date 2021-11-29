@@ -59,7 +59,7 @@ void OldZSolid::applyZCut( double zcut )
 
     double local_zcut = zcut - zdelta ;     
 
-    ZSolid::ApplyZCut( solid, local_zcut ); 
+    ZSolid::ApplyZCut( solid, local_zcut, true ); 
 }
 
 
