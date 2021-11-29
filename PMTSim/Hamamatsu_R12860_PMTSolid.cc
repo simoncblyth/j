@@ -16,7 +16,7 @@ using namespace CLHEP;
 
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
     :
-    m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true)
+    m_polycone_neck(true)  // was formerly optional controlled by internal envvar JUNO_PMT20INCH_POLYCONE_NECK
 {
    G4cout 
        << "Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid"
