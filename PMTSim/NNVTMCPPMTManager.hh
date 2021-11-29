@@ -1,12 +1,13 @@
-#ifndef HamamatsuR12860PMTManager_hh
-#define HamamatsuR12860PMTManager_hh
+#ifndef NNVTMCPPMTManager_hh
+#define NNVTMCPPMTManager_hh
 
 /*
- * This is the implementation of Hamamatsu R12860.
+ * This is the implementation of NNVT MCP-PMT.
  * See JUNO-doc-XXX.
  *
  * -- Tao Lin, 2017/05/29
  */
+
 
 #ifdef STANDALONE
 #else
@@ -16,25 +17,28 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 #endif
 
-#include "globals.hh"
-#include "G4ThreeVector.hh"
 
-class G4LogicalVolume ; 
 class G4OpticalSurface;
 class G4Material;
 class G4VSensitiveDetector;
 class G4PVPlacement;
 class G4VSolid;
 class G4Tubs;
+class G4LogicalVolume ; 
 
-class Hamamatsu_R12860_PMTSolid;
+#include "G4ThreeVector.hh"
+#include "globals.hh"
+
+class NNVT_MCPPMT_PMTSolid;
+
 
 #ifdef STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API HamamatsuR12860PMTManager {
+class PMTSIM_API NNVTMCPPMTManager {
 #else
-class HamamatsuR12860PMTManager: public IPMTElement,
-                                 public ToolBase {
+
+class NNVTMCPPMTManager: public IPMTElement,
+                         public ToolBase {
 #endif
 public:
     // Interface
@@ -46,17 +50,10 @@ public:
 
 public:
     // Constructor
-    HamamatsuR12860PMTManager
+    NNVTMCPPMTManager
     (const G4String& plabel // label -- subvolume names are derived from this
     );
-    ~HamamatsuR12860PMTManager();
-
-    void dump(const char* msg="HamamatsuR12860PMTManager::dump") ; 
-    G4LogicalVolume* getLV(const char* name);
-    G4PVPlacement*   getPV(const char* name);
-    G4VSolid*        getSolid(const char* name); 
-    static bool StartsWithPrefix(const char* name, const char* prefix); 
-
+    ~NNVTMCPPMTManager();
 private:
     void init();
 
@@ -65,19 +62,14 @@ private:
     void init_mirror_surface();
     void init_pmt();
 
-    void obsolete_inner_cut();
-    void obsolete_tail_cut(); 
-
-
-    void init_fast_cover();
-
     G4String GetName() { return m_label;}
 
+    void ConstructPMT_UsingTorusStack();
 private:
     G4String m_label;
 
     /* solid maker */
-    Hamamatsu_R12860_PMTSolid* m_pmtsolid_maker;
+    NNVT_MCPPMT_PMTSolid* m_pmtsolid_maker;
     /* solid related */
     void helper_make_solid();
     // * pmt solid (a little big than body solid)
@@ -89,11 +81,6 @@ private:
     G4VSolid* inner_solid;
     G4VSolid* inner1_solid;
     G4VSolid* inner2_solid;
-
-    G4VSolid* uncut_pmt_solid; 
-    G4VSolid* uncut_body_solid;
-    G4VSolid* uncut_inner2_solid;
-
     G4Tubs* dynode_solid;
     G4double hh_dynode;
     G4double z_dynode;
@@ -109,15 +96,17 @@ private:
     G4PVPlacement* inner1_phys;
     G4PVPlacement* inner2_phys;
     G4PVPlacement* dynode_phys;
-    /* pmtparamsvc */
+
 #ifdef STANDALONE
 #else
+    /* pmtparamsvc */
     IPMTParamSvc* m_pmt_param_svc;
     /* pmtsimparamsvc */
     IPMTSimParamSvc* m_pmt_sim_param_svc;
+    /* mcp volumes */
 #endif
-    /* dynode volumes */
-    void helper_make_dynode_volume();
+
+    void helper_make_mcp_volume();
     /* optical surface */
     void helper_make_optical_surface();
     /* fast simulation */
@@ -139,12 +128,15 @@ private:
 private:
     // Cover Related
     G4LogicalVolume* m_logical_cover;
-
     G4Material* m_cover_mat;
-    bool m_simplify_csg ; 
+
+    bool m_simplify_csg; 
     bool m_fast_cover;
     bool m_enable_optical_model;
     std::string m_cover_mat_str;
+
+    void init_fast_cover();
+
 private:
     G4double m_z_equator;
     G4double m_pmt_r;
@@ -163,8 +155,7 @@ private:
     //      Tyvek  |
     //     19.629m
     bool m_useRealSurface;
-    bool m_plus_dynode ; 
-    G4double m_pmt_equator_to_bottom ; 
+
 };
 
 #endif

@@ -11,6 +11,7 @@ class G4VPhysicalVolume ;
 
 struct DetectorConstruction ; 
 class HamamatsuR12860PMTManager ; 
+class NNVTMCPPMTManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
 
@@ -29,7 +30,6 @@ struct PMTSIM_API PMTSim
     static char* itoa_( const char* fmt, int i ); 
     static char* ijtoa_( const char* fmt, int i, int j ); 
     static bool StartsWithPrefix(const char* name, const char* prefix) ; 
-    //static G4VSolid* Old_GetMakerSolid(const char* name); 
 
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
@@ -45,8 +45,9 @@ struct PMTSIM_API PMTSim
     static void DumpSolids(); 
 
     bool verbose ; 
-    DetectorConstruction* dc ;   
-    HamamatsuR12860PMTManager* ham ; 
+    DetectorConstruction*      m_dc ;   
+    HamamatsuR12860PMTManager* m_hama ; 
+    NNVTMCPPMTManager*         m_nnvt ; 
 
     PMTSim(const char* name=""); 
     void init(const char* name); 
@@ -54,7 +55,6 @@ struct PMTSIM_API PMTSim
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
     G4VSolid*           getSolid(const char* name) ;
-
 
     static G4VPhysicalVolume*   WrapLV(G4LogicalVolume* lv) ;
     static void Extract( std::vector<long>& vals, const char* s ); 

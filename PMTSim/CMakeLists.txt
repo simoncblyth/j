@@ -14,8 +14,13 @@ set(HEADERS)
 
 list(APPEND SOURCES
      PMTSim.cc
+
      Hamamatsu_R12860_PMTSolid.cc
      HamamatsuR12860PMTManager.cc 
+
+     NNVT_MCPPMT_PMTSolid.cc
+     NNVTMCPPMTManager.cc
+
      OldZSolid.cc
      ZCanvas.cc
      ZSolid.cc

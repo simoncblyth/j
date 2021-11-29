@@ -11,6 +11,9 @@
 #include "HamamatsuR12860PMTManager.hh"
 #include "Hamamatsu_R12860_PMTSolid.hh"
 
+#include "NNVTMCPPMTManager.hh"
+#include "NNVT_MCPPMT_PMTSolid.hh"
+
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SolidStore.hh"
@@ -160,8 +163,6 @@ Unlike PMTSim::GetSolid this does not act on zcut specifications in names.
 Also it does not run the environment setup. 
 
 **/
-
-
 
 G4VSolid* PMTSim::GetSolid_(const char* name) // static 
 {
@@ -373,6 +374,9 @@ PMTSim::GetMakerSolid
 ----------------------
 
 "Maker" solids come from the Hamamatsu_R12860_PMTSolid with no manager involved. 
+
+Hmm nnvt/hama generalize
+
 **/
 
 G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
@@ -399,16 +403,13 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
     if( solid == nullptr )
     {
         std::cout << "PMTSim::GetManagerSolid failed for name " << name << std::endl ;  
-        ps->ham->dump("PMTSim::GetManagerSolid");
+        ps->m_hama->dump("PMTSim::GetManagerSolid.m_hama");
         DumpSolids(); 
     }
  
     std::cout << "] PMTSim::GetManagerSolid " << name << std::endl ;      
     return solid ; 
 }
-
-
-
 
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
@@ -490,9 +491,6 @@ void PMTSim::DumpTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* so
     }
 }
  
-
-
-
 void PMTSim::DumpSolids() // static
 {
     G4SolidStore* store = G4SolidStore::GetInstance() ; 
@@ -520,11 +518,24 @@ void PMTSim::DumpSolids() // static
 PMTSim::PMTSim(const char* name)
     :
     verbose(getenv("VERBOSE")!=nullptr),
-    dc(nullptr),
-    ham(nullptr)
+    m_dc(nullptr),
+    m_hama(nullptr),
+    m_nnvt(nullptr)
 {
     init(name); 
 }
+
+/**
+PMTSim::init
+---------------
+
+Instanciates residents with cout+cerr redirected to avoid the noise
+
+1. m_dc(DetectorConstruction)
+2. m_hama(HamamatsuR12860PMTManager)
+3. m_nnvt(NNVTMCPPMTManager)
+
+**/
 
 void PMTSim::init(const char* name)
 {
@@ -535,8 +546,9 @@ void PMTSim::init(const char* name)
         cout_redirect out_(coutbuf.rdbuf());
         cerr_redirect err_(cerrbuf.rdbuf());
     
-        dc = new DetectorConstruction ; 
-        ham = new HamamatsuR12860PMTManager(name) ; 
+        m_dc = new DetectorConstruction ; 
+        m_hama = new HamamatsuR12860PMTManager(name) ; 
+        m_nnvt = new NNVTMCPPMTManager(name) ; 
     
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
@@ -551,20 +563,26 @@ void PMTSim::init(const char* name)
     if(verbose) std::cout << "[" << std::endl << err << "]" << std::endl  ;   
 }
 
+/**
+Hmm need to effect the split between Hama and NNVT : maybe simply hama_ nnvt_ prefix 
+and skipping ahead by the prefix to avoid internal naming changes 
+**/
 
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
-    return ham->getLV(name) ; 
+    return m_hama->getLV(name) ; 
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
-    G4VPhysicalVolume* pv = ham->getPV(name) ; 
-    return pv ; 
+    return m_hama->getPV(name) ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
-    return ham->getSolid(name) ;  
+    return m_hama->getSolid(name) ;  
 }
+
+
+
 
 void PMTSim::Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr , std::vector<G4VSolid*>* solids ) // static
 {
@@ -633,36 +651,6 @@ G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
     std::cout << "PMTSim::WrapLV pv " << pv << std::endl ; 
     return pv ; 
 }
-
-/*
-G4VSolid* PMTSim::Old_GetMakerSolid(const char* name) // static
-{
-    Hamamatsu_R12860_PMTSolid* pmtsolid_maker = new Hamamatsu_R12860_PMTSolid(); 
-
-    G4String solidname = name ; 
-    double thickness = 0. ; 
-    char mode = ' '; 
-    std::vector<long> vals ; 
-    Extract( vals, name ); 
-
-    G4VSolid* solid = nullptr ; 
-    if(vals.size() > 0)
-    {
-        double zcut = vals[0] ; 
-        std::cout << "[ PMTSim::GetSolid extracted zcut " << zcut << " from name " << name  << " mode" << mode << std::endl ; 
-        solid = pmtsolid_maker->Old_GetZCutSolid(solidname, zcut, thickness, mode);  
-        std::cout << "] PMTSim::GetSolid extracted zcut " << zcut << " from name " << name << " mode " << mode << std::endl ; 
-    }
-    else
-    {
-        std::cout << "[ PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
-        solid = pmtsolid_maker->GetSolid(solidname, thickness, mode);  
-        std::cout << "] PMTSim::GetSolid without zcut (as no zcut value extracted from name) " << name << std::endl ; 
-    }
-    return solid ; 
-}
-*/
-
 
 
 /**

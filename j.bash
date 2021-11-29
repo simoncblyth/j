@@ -21,6 +21,13 @@ Page for updating
 *  https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#Using_JunoENV
 
 
+HedgeDoc pages
+------------------------------
+
+* GPU related works
+* https://jupyter.ihep.ac.cn/GUrbwIBnRjeNypgn6BPg-w?edit
+
+
 jck
 -----
 
@@ -671,26 +678,51 @@ jfi(){ local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ; find .
 jcopy(){  
    : copy classes into PWD 
    local dst=$PWD
-   cd $JUNOTOP/offline
+   local src=$JUNOTOP/offline
+   cd $src
    local rels=$(jcl $*)
    local rel 
    local name 
    local path
    local cmd
+   local spath
 
    for rel in $rels 
    do  
        name=$(basename $rel)
        path=$dst/$name
+
        if [ ! -f "$path" ]; then 
            cmd="cp $rel $path"
            echo $cmd
            eval $cmd 
-       else
-           echo path $path exists already 
        fi  
    done 
 }
+
+jdiff(){
+   local dst=$PWD
+   local src=$JUNOTOP/offline
+   cd $src
+   local rels=$(jcl $*)
+   local rel 
+   local name 
+   local path
+   local cmd
+   local spath
+
+   for rel in $rels 
+   do  
+       name=$(basename $rel)
+       path=$dst/$name
+       spath=$src/$rel
+       if [ -f "$path" -a -f "$spath" ]; then 
+           cmd="diff $spath $path"
+           echo $cmd
+       fi  
+   done 
+}
+
 
 
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }

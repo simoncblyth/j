@@ -56,63 +56,6 @@ HamamatsuR12860PMTManager::getLV() {
 
 
 
-#ifdef STANDALONE
-void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as getSolid may init
-{
-    std::vector<const char*> names = {
-        "pmt_solid",
-        "body_solid",
-        "inner_solid",
-        "inner1_solid",
-        "inner2_solid",
-        "dynode_solid"
-    };
-
-    std::cout << "HamamatsuR12860PMTManager::dump" << std::endl ; 
-    for(unsigned i=0 ; i < names.size() ; i++)
-    {
-        const char* name = names[i]; 
-        const G4VSolid* solid = getSolid(name) ;  
-        std::cout 
-            << " name " << std::setw(20) << name
-            << " solid " << std::setw(20) << solid
-            << std::endl 
-            ;
-    }
-}
-
-
-bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
-{
-    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ; 
-}
-
-G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
-{
-    if(!m_logical_pmt) 
-    {
-        std::cout << "[ HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
-        init();
-        std::cout << "] HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
-    }
-
-    G4VSolid* so = nullptr ; 
-    if(StartsWithPrefix(name, "pmt_solid"))    so = pmt_solid ; 
-    if(StartsWithPrefix(name, "body_solid"))   so = body_solid ; 
-    if(StartsWithPrefix(name, "inner_solid"))  so = inner_solid ; 
-    if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ; 
-    if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ; 
-    if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ; 
-
-    if( so == nullptr )
-    {
-        G4SolidStore* store = G4SolidStore::GetInstance(); 
-        G4bool verbose = false ; 
-        so = store->GetSolid(name, verbose); 
-    }
-    return so ; 
-}
-
 G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();
@@ -155,7 +98,6 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
 **/
 
 
-#endif
 
 
 
@@ -384,196 +326,211 @@ HamamatsuR12860PMTManager::init_mirror_surface() {
 
 }
 
-void
-HamamatsuR12860PMTManager::init_pmt() {
-    // Refer to dyw_PMT_LogicalVolume.cc
-    //
-
-    ConstructPMT_UsingTorusStack ();
-
-}
-
-void
-HamamatsuR12860PMTManager::
-ConstructPMT_UsingTorusStack()
+void HamamatsuR12860PMTManager::init_pmt() 
 {
-  ////////////////////////////////////////////////////////////////
-  // MAKE SOLIDS
-  ////
   helper_make_solid();  
-
-  ////////////////////////////////////////////////////////////////
-  // MAKE LOGICAL VOLUMES (add materials)
-  ////
   helper_make_logical_volume();
   
-  ////////////////////////////////////////////////////////////////
-  // MAKE PHYSICAL VOLUMES (place logical volumes)
-  ////
   // TODO: face of tube 100 um from front of cylinder
   helper_make_physical_volume();
 
-  ////////////////////////////////////////////////////////////////
-  // MAKE DYNODE VOLUMES
-  ////////////////////////////////////////////////////////////////
   if(m_enable_optical_model || m_plus_dynode)
   {
-    helper_make_dynode_volume();
+      helper_make_dynode_volume();
   }
 
-  ////////////////////////////////////////////////////////////////
-  // Attach optical surfaces to borders
-  ////
   helper_make_optical_surface();
 
-  ////////////////////////////////////////////////////////////////
-  // FastSimulationModel
-  ////
   if(m_enable_optical_model)
   {
-    helper_fast_sim();
+      helper_fast_sim();
   }
   
-  ////////////////////////////////////////////////////////////////
-  // Set colors and visibility
-  ////
   helper_vis_attr();
 }
 
-void 
-HamamatsuR12860PMTManager::helper_make_solid() 
+void HamamatsuR12860PMTManager::helper_make_solid() 
 {
-    pmt_solid = m_pmtsolid_maker->GetSolid(GetName() + "_pmt_solid", 1E-3*mm);
+
+    double pmt_delta = 1E-3*mm ; 
     double inner_delta =  -5*mm ;  
-    if(!m_enable_optical_model)
+    double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ; 
+
+    double zcut = -m_pmt_equator_to_bottom ; 
+
+    // TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+
+    Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ; 
+    pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
+    body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
+    inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');
+    inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
+    inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
+
+    uncut_pmt_solid = pmt_solid ; 
+    uncut_body_solid = body_solid ; 
+    uncut_inner2_solid = inner2_solid ; 
+
+    // Reduce the size when real surface is enabled.
+    // Tao Lin, 09 Aug 2021
+    if (m_useRealSurface ) 
     {
-        body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid");
+        LogInfo << "Cut the tail of PMT " << std::endl;
+
+        std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
+        bool verbose = true ; 
+        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , zcut + pmt_delta   , verbose );
+        body_solid   = ZSolid::ApplyZCutTree( body_solid  , zcut + body_delta  , verbose );
+        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, zcut + inner_delta , verbose );
+
+        std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
-    else
+}
+
+
+void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as getSolid may init
+{
+    std::vector<const char*> names = {
+        "pmt_solid",
+        "body_solid",
+        "inner_solid",
+        "inner1_solid",
+        "inner2_solid",
+        "dynode_solid",
+        "uncut_pmt_solid",
+        "uncut_body_solid",
+        "uncut_inner2_solid"
+    };
+
+    std::cout << "HamamatsuR12860PMTManager::dump" << std::endl ; 
+    for(unsigned i=0 ; i < names.size() ; i++)
     {
-        // For the new PMT optical model. 
-        // In fact, no impact on PMT geometry, just for safety
-        body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
+        const char* name = names[i]; 
+        const G4VSolid* solid = getSolid(name) ;  
+        std::cout 
+            << " name " << std::setw(20) << name
+            << " solid " << std::setw(20) << solid
+            << std::endl 
+            ;
+    }
+}
+
+
+bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
+{
+    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ; 
+}
+
+G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
+{
+    if(!m_logical_pmt) 
+    {
+        std::cout << "[ HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
+        init();
+        std::cout << "] HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
     }
 
+    G4VSolid* so = nullptr ; 
+    if(StartsWithPrefix(name, "pmt_solid"))    so = pmt_solid ; 
+    if(StartsWithPrefix(name, "body_solid"))   so = body_solid ; 
+    if(StartsWithPrefix(name, "inner_solid"))  so = inner_solid ; 
+    if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ; 
+    if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ; 
+    if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ; 
 
-    //ZSolid::Draw(body_solid, "body_solid"); 
+    if(StartsWithPrefix(name, "uncut_pmt_solid"))    so = uncut_pmt_solid ; 
+    if(StartsWithPrefix(name, "uncut_body_solid"))   so = uncut_body_solid ; 
+    if(StartsWithPrefix(name, "uncut_inner2_solid")) so = uncut_inner2_solid ; 
+
+    if( so == nullptr )
+    {
+        G4SolidStore* store = G4SolidStore::GetInstance(); 
+        G4bool verbose = false ; 
+        so = store->GetSolid(name, verbose); 
+    }
+    return so ; 
+}
 
 
 
-    inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
+
+
+void HamamatsuR12860PMTManager::obsolete_inner_cut()
+{
+    assert(0); 
 
     G4double helper_sep_tube_r = m_pmt_r;
     G4double helper_sep_tube_h = m_z_equator;
     G4double helper_sep_tube_hh = helper_sep_tube_h/2;
 
-    // TODO: check the UNIT?
+    G4VSolid * pInnerSep = new G4Tubs("Inner_Separator",
+            0.,
+            helper_sep_tube_r+1E-9*mm,
+            helper_sep_tube_hh+1E-9*mm,
+            0.,360.*degree);
+    G4ThreeVector innerSepDispl(0.,0.,helper_sep_tube_hh-1E-9*mm);
+    inner1_solid = new G4IntersectionSolid( GetName()
+            + "_inner1_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
+    inner2_solid = new G4SubtractionSolid( GetName()
+            + "_inner2_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
+}
 
-    if(m_simplify_csg == false)
-    {
-        G4VSolid * pInnerSep = new G4Tubs("Inner_Separator",
-                0.,
-                helper_sep_tube_r+1E-9*mm,
-                helper_sep_tube_hh+1E-9*mm,
-                0.,360.*degree);
-        G4ThreeVector innerSepDispl(0.,0.,helper_sep_tube_hh-1E-9*mm);
-        inner1_solid = new G4IntersectionSolid( GetName()
-                + "_inner1_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
-        inner2_solid = new G4SubtractionSolid( GetName()
-                + "_inner2_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
-    }
-    else
-    {
-        inner1_solid = m_pmtsolid_maker->GetSolid(GetName()+"_inner1_solid", inner_delta, 'H');
-        inner2_solid = m_pmtsolid_maker->GetSolid(GetName()+"_inner2_solid", inner_delta, 'T');
-    }
+void HamamatsuR12860PMTManager::obsolete_tail_cut()
+{
+    assert(0); 
+    // inner2 
+    G4double helper_sep_tube_r = m_pmt_r;
+    const double tail_height = m_pmt_h - m_z_equator;
+    const double tail_half_height = tail_height / 2;
+    const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
+    G4VSolid* cut_tail_solid = new G4Tubs( GetName() + "_CutTail_HamaPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          tail_half_height,
+                                          0., 360.*degree);
+    inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
+                                            inner2_solid,
+                                            cut_tail_solid,
+                                            NULL,
+                                            cut_tail_displacement);
 
-    // Reduce the size when real surface is enabled.
-    // Tao Lin, 09 Aug 2021
-    if (m_useRealSurface ) {
-        LogInfo << "Cut the tail of PMT " << std::endl;
+    // pmt solid
+    const double pmt_height = m_pmt_h;
+    const double pmt_half_height = pmt_height / 2;
+    const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
 
-        {
-            /*
-            double zcut = -m_pmt_equator_to_bottom ; 
-            std::cout << "ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
+    std::cout 
+       << " GetName " << GetName()
+       << std::endl 
+       ;
 
-            G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree( body_solid, zcut, false ); 
-            body_solid_zcut->SetName("body_solid_zcut"); 
+    G4VSolid* cut_pmt_solid = new G4Tubs( GetName() + "_CutPMT_HamaPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          pmt_half_height,
+                                          0., 360.*degree);
+    pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
+                                            pmt_solid,
+                                            cut_pmt_solid,
+                                            NULL,
+                                            cut_pmt_displacement);
 
-            G4VSolid* inner2_solid_zcut = ZSolid::ApplyZCutTree( inner2_solid, zcut, false ); 
-            inner2_solid_zcut->SetName("inner2_solid_zcut"); 
-
-            G4VSolid* pmt_solid_zcut = ZSolid::ApplyZCutTree( pmt_solid, zcut, false ); 
-            pmt_solid_zcut->SetName("pmt_solid_zcut");
-
-            */
-
-        }
-
-
-        // inner2 
-        const double tail_height = m_pmt_h - m_z_equator;
-        const double tail_half_height = tail_height / 2;
-        const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
-        G4VSolid* cut_tail_solid = new G4Tubs( GetName() + "_CutTail_HamaPMT_Solid",
-                                              0.,
-                                              helper_sep_tube_r+1E-9*mm,
-                                              tail_half_height,
-                                              0., 360.*degree);
-        inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
-                                                inner2_solid,
-                                                cut_tail_solid,
-                                                NULL,
-                                                cut_tail_displacement);
-
-        // pmt solid
-        const double pmt_height = m_pmt_h;
-        const double pmt_half_height = pmt_height / 2;
-        const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
-
-        std::cout 
-           << " GetName " << GetName()
-           << std::endl 
-           ;
-
-        G4VSolid* cut_pmt_solid = new G4Tubs( GetName() + "_CutPMT_HamaPMT_Solid",
-                                              0.,
-                                              helper_sep_tube_r+1E-9*mm,
-                                              pmt_half_height,
-                                              0., 360.*degree);
-        pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
-                                                pmt_solid,
-                                                cut_pmt_solid,
-                                                NULL,
-                                                cut_pmt_displacement);
-
-        // body solid
-        const double body_height = m_pmt_h;
-        const double body_half_height = body_height / 2;
-        const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
-        G4VSolid* cut_body_solid = new G4Tubs( GetName() + "_body_solid_intubs",
-                                              0.,
-                                              helper_sep_tube_r+1E-9*mm,
-                                              body_half_height,
-                                              0., 360.*degree);
-        body_solid = new G4IntersectionSolid( GetName() + "_body_solid_cut",
-                                                body_solid,
-                                                cut_body_solid,
-                                                NULL,
-                                                cut_body_displacement);
-
-                                        
-    }
+    // body solid
+    const double body_height = m_pmt_h;
+    const double body_half_height = body_height / 2;
+    const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
+    G4VSolid* cut_body_solid = new G4Tubs( GetName() + "_body_solid_intubs",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          body_half_height,
+                                          0., 360.*degree);
+    body_solid = new G4IntersectionSolid( GetName() + "_body_solid_cut",
+                                            body_solid,
+                                            cut_body_solid,
+                                            NULL,
+                                            cut_body_displacement);
 
 
-    // dynode volume
-    //hh_dynode= (this->z_dynode - z_lowest_dynode)/2.0;
-    //dynode_solid= new G4Tubs
-    //    ( GetName()+"_dynode_solid",
-    //      0.0, r_dynode,          // solid cylinder (fixme?)
-    //      hh_dynode,              // half height of cylinder
-    //      0., 2.*M_PI );          // cylinder complete in phi
 
 }
 
