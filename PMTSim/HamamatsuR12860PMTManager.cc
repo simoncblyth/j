@@ -424,6 +424,10 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
 }
 
 
+bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
+{
+    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;   
+}
 
 G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {

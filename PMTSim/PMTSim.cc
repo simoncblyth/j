@@ -388,17 +388,25 @@ char* PMTSim::ijtoa_( const char* fmt, int i, int j ) // static
 PMTSim::GetMakerSolid
 ----------------------
 
-"Maker" solids come from the Hamamatsu_R12860_PMTSolid with no manager involved. 
-
-Hmm nnvt/hama generalize
+"Maker" solids come directly from the makers with no manager instanciated.
+NB this is using the original old GetSolid interface where the name does not choose 
+between types of solid but rather just supplies the prefix to the set of solids created.
 
 **/
 
 G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
 {
-    setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1); 
+    setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1);
+
+
+
+
+ 
     Hamamatsu_R12860_PMTSolid* maker = new Hamamatsu_R12860_PMTSolid();
-    G4VSolid* solid = maker->GetSolid(name); 
+
+    G4VSolid* solid = maker->GetSolid(name);    
+
+
     return solid ; 
 }
 
@@ -599,8 +607,8 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
 IGeomStandalone* PMTSim::getManager(const char* name)
 {
     IGeomStandalone* mgr = nullptr ;   
-    if(IGeomStandalone::StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
-    if(IGeomStandalone::StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
+    if(StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
+    if(StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
     if(mgr == nullptr)
     {
         std::cerr

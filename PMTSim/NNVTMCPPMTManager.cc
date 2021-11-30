@@ -344,6 +344,10 @@ void NNVTMCPPMTManager::helper_make_solid()
 }
 
 
+bool NNVTMCPPMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
+{
+    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;    
+}
 
 G4VSolid* NNVTMCPPMTManager::getSolid(const char* name)
 {
