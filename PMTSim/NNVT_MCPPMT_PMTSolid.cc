@@ -105,10 +105,12 @@ with a single cone.
 
 #include <cmath>
 using namespace CLHEP;
+
 NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid()
     : 
     m_R(254.*mm), m_H(570.*mm), m_Htop(184.*mm), 
-    m_Hbtm(172.50*mm), m_Rbtm(50.*mm), m_Rtorus(43.*mm)
+    m_Hbtm(172.50*mm), m_Rbtm(50.*mm), m_Rtorus(43.*mm),
+    m_obsolete_torus_neck(getenv("JUNO_PMT20INCH_OBSOLETE_TORUS_NECK") == nullptr ? false : true)
 {
     m_Heq2torus = m_H - m_Htop - m_Hbtm;                       // EM : equator to torus midline
     m_theta = atan((m_Rbtm+m_Rtorus)/(m_Heq2torus));           // MET : angle of axial triangle connecting center of bulb E, torus center T and point on axis M   
@@ -246,13 +248,32 @@ G4VSolid* NNVT_MCPPMT_PMTSolid::construct_head(G4String solidname,
   return head;
 }
 
-G4VSolid*
-NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
+G4VSolid* NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
+                                     double Rtubetorus, 
+                                     double Htubetorus,
+                                     double Rtorus,     
+                                     double Rbtm, 
+                                     char mode) const 
+{
+    G4VSolid* neck = nullptr ; 
+    if( m_obsolete_torus_neck == false )
+    {
+        neck = construct_polycone_neck( solidname, Rtubetorus, Htubetorus, Rtorus, Rbtm, mode ) ; 
+    }
+    else
+    {   
+        neck = construct_obsolete_torus_neck( solidname, Rtubetorus, Htubetorus, Rtorus, Rbtm, mode ) ;
+    }
+    return neck ; 
+}
+
+G4VSolid* NNVT_MCPPMT_PMTSolid::construct_polycone_neck(G4String solidname,
                                      double Rtubetorus, 
                                      double Htubetorus,
                                      double Rtorus,     // swipe
                                      double Rbtm, // the r at bottom
-                                     char mode) const {
+                                     char mode) const 
+{
     G4VSolid* neck = nullptr ;
     G4double phiStart = 0.00*deg ; 
     G4double phiTotal = 360.00*deg ;
@@ -273,10 +294,9 @@ NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
 
     neck = (G4VSolid*)neck_ ; 
     return neck ;
-}
+} 
 
-
-G4VSolid* NNVT_MCPPMT_PMTSolid::obsolete_construct_torus_neck(G4String solidname,
+G4VSolid* NNVT_MCPPMT_PMTSolid::construct_obsolete_torus_neck(G4String solidname,
                                      double Rtubetorus, 
                                      double Htubetorus,
                                      double Rtorus,     // swipe

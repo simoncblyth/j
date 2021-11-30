@@ -48,12 +48,9 @@ public:
     G4ThreeVector GetPosInPMT();
 
 public:
-    // Constructor
-    NNVTMCPPMTManager
-    (const G4String& plabel // label -- subvolume names are derived from this
-    );
+    NNVTMCPPMTManager(const G4String& plabel );
     ~NNVTMCPPMTManager();
-
+    std::string desc() const ; 
 public:
     // debug interface
     G4LogicalVolume* getLV(const char* name);
@@ -64,7 +61,6 @@ public:
 
 private:
     void init();
-
     void init_material();
     void init_variables();
     void init_mirror_surface();
@@ -78,11 +74,11 @@ private:
 private:
     G4String m_label;
 
-    /* solid maker */
     NNVT_MCPPMT_PMTSolid* m_pmtsolid_maker;
-    /* solid related */
     void helper_make_solid();
-    // * pmt solid (a little big than body solid)
+    void helper_make_solid_profligate_tail_cut(); 
+
+    // * pmt solid (a little bigger than body solid)
     //   * body solid
     //     + inner1
     //     + inner2
@@ -99,14 +95,16 @@ private:
     G4Tubs* dynode_solid;
     G4double hh_dynode;
     G4double z_dynode;
-    /* logical volumes */
+
     void helper_make_logical_volume();
+
     G4LogicalVolume* body_log;
     G4LogicalVolume* inner1_log;
     G4LogicalVolume* inner2_log;
     G4LogicalVolume* dynode_log;
-    /* physical volumes */
+
     void helper_make_physical_volume();
+
     G4PVPlacement* body_phys;
     G4PVPlacement* inner1_phys;
     G4PVPlacement* inner2_phys;
@@ -114,19 +112,13 @@ private:
 
 #ifdef STANDALONE
 #else
-    /* pmtparamsvc */
     IPMTParamSvc* m_pmt_param_svc;
-    /* pmtsimparamsvc */
     IPMTSimParamSvc* m_pmt_sim_param_svc;
-    /* mcp volumes */
 #endif
 
     void helper_make_mcp_volume();
-    /* optical surface */
     void helper_make_optical_surface();
-    /* fast simulation */
     void helper_fast_sim();
-    /* visual attribute */
     void helper_vis_attr();
 private:
     G4LogicalVolume* m_logical_pmt;
@@ -171,6 +163,7 @@ private:
     //     19.629m
     bool m_useRealSurface;
     bool m_plus_dynode ;
+    bool m_profligate_tail_cut ; 
     G4double m_pmt_equator_to_bottom ;
 
 

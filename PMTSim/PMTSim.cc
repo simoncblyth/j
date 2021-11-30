@@ -95,7 +95,10 @@ void PMTSim::SetEnvironmentSwitches(const char* name)  // static
     std::vector<std::string> tagkeys = {
        "_scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
        "_nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
-       "_pdyn:JUNO_PMT20INCH_PLUS_DYNODE" } ; 
+       "_pdyn:JUNO_PMT20INCH_PLUS_DYNODE",
+       "_prtc:JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT",
+       "_obto:JUNO_PMT20INCH_OBSOLETE_TORUS_NECK"
+      } ; 
 
     for(unsigned i=0 ; i < tagkeys.size() ; i++)
     {
@@ -633,6 +636,16 @@ void PMTSim::init()
         std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
         std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
     }
+
+    std::cout 
+        << "PMTSim::init"
+        << std::endl
+        << " m_hama.desc " << m_hama->desc() 
+        << std::endl
+        << " m_nnvt.desc " << m_nnvt->desc() 
+        << std::endl
+        ;
+
 }
 
 

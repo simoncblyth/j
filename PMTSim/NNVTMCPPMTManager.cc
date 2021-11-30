@@ -1,6 +1,9 @@
 
-#include <NNVTMCPPMTManager.hh>
-#include <NNVT_MCPPMT_PMTSolid.hh>
+#include <iostream>
+#include <iomanip>
+
+#include "NNVTMCPPMTManager.hh"
+#include "NNVT_MCPPMT_PMTSolid.hh"
 
 #include "G4LogicalVolume.hh"
 #include "G4Material.hh"
@@ -39,12 +42,9 @@ using namespace CLHEP;
 DECLARE_TOOL(NNVTMCPPMTManager);
 #endif
 
-// Interface
-G4LogicalVolume* 
-NNVTMCPPMTManager::getLV() {
-    if (!m_logical_pmt) {
-        init();
-    }
+G4LogicalVolume* NNVTMCPPMTManager::getLV() 
+{
+    if(!m_logical_pmt) init();
     return m_logical_pmt;
 }
 
@@ -73,40 +73,32 @@ G4PVPlacement* NNVTMCPPMTManager::getPV(const char* name)
     return pv ;
 }
 
-
-
-
-G4double
-NNVTMCPPMTManager::GetPMTRadius() {
+G4double NNVTMCPPMTManager::GetPMTRadius() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_pmt_r;
 }
 
-G4double
-NNVTMCPPMTManager::GetPMTHeight() {
+G4double NNVTMCPPMTManager::GetPMTHeight() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_pmt_h;
 }
 
-G4double
-NNVTMCPPMTManager::GetZEquator() {
+G4double NNVTMCPPMTManager::GetZEquator() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_z_equator;
 }
 
-G4ThreeVector
-NNVTMCPPMTManager::GetPosInPMT() {
+G4ThreeVector NNVTMCPPMTManager::GetPosInPMT() {
     G4ThreeVector rndm_pos;
     return rndm_pos;
 }
 
-// Constructor
 NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     : 
 #ifdef STANDALONE
@@ -126,6 +118,7 @@ NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
       m_logical_cover(NULL), m_cover_mat(NULL),
       m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
       m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true),
+      m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
       m_pmt_equator_to_bottom(0.)
 {
 #ifdef STANDALONE
@@ -137,40 +130,43 @@ NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
     declProp("UsePMTOpticalModel", m_enable_optical_model=false);
-
     declProp("UseRealSurface", m_useRealSurface=true);
-
 #endif
-
-    G4cout 
-         << "NNVTMCPPMTManager::NNVTMCPPMTManager"
-         << " m_simplify_csg " << m_simplify_csg
-         << ( m_simplify_csg ? " --pmt20inch-simplify-csg ENABLED " : " " )
-         << G4endl 
-         ;
 
 }
 
-NNVTMCPPMTManager::~NNVTMCPPMTManager() {
+std::string NNVTMCPPMTManager::desc() const 
+{
+    std::stringstream ss ; 
+    ss 
+         << std::setw(30) << "NNVTMCPPMTManager"
+         << " m_simplify_csg "   << ( m_simplify_csg   ? "Y" : "N" )
+         << " m_plus_dynode "    << ( m_plus_dynode    ? "Y" : "N" )
+         << " m_useRealSurface " << ( m_useRealSurface ? "Y" : "N" )
+         << " m_profligate_tail_cut " << ( m_profligate_tail_cut ? "Y" : "N" )
+         ;
+    std::string s = ss.str(); 
+    return s ; 
+}
+
+
+NNVTMCPPMTManager::~NNVTMCPPMTManager() 
+{
     if (m_pmtsolid_maker) {
         delete m_pmtsolid_maker;
     }
 }
     
 
-// Helper Methods
-void
-NNVTMCPPMTManager::init() {
-
+void NNVTMCPPMTManager::init() 
+{
 #ifdef STANDALONE
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
     assert(m_detector);
 #endif
-    // construct
     init_material();
-    // * construct a mirror surface
     init_variables();
     init_mirror_surface();
     init_pmt();
@@ -180,9 +176,8 @@ NNVTMCPPMTManager::init() {
     }
 }
 
-void
-NNVTMCPPMTManager::init_material() {
-
+void NNVTMCPPMTManager::init_material() 
+{
      GlassMat = G4Material::GetMaterial("Pyrex");
      PMT_Vacuum = G4Material::GetMaterial("Vacuum"); 
      DynodeMat = G4Material::GetMaterial("Steel");
@@ -198,8 +193,8 @@ NNVTMCPPMTManager::init_material() {
      }
 }
 
-void
-NNVTMCPPMTManager::init_variables() {
+void NNVTMCPPMTManager::init_variables() 
+{
     m_pmt_r = 254.*mm;
     m_pmt_h = 570.*mm;
     m_z_equator = 184.*mm; // From top to equator
@@ -238,8 +233,8 @@ NNVTMCPPMTManager::init_variables() {
 
 }
 
-void
-NNVTMCPPMTManager::init_mirror_surface() {
+void NNVTMCPPMTManager::init_mirror_surface() 
+{
     if ( m_mirror_opsurf == NULL ) {
         // construct a static mirror surface with idealized properties
         m_mirror_opsurf =  new G4OpticalSurface(GetName()+"_Mirror_opsurf");
@@ -270,21 +265,21 @@ NNVTMCPPMTManager::init_mirror_surface() {
 
 void NNVTMCPPMTManager::init_pmt()
 {
-  helper_make_solid();  
-  helper_make_logical_volume();
-  helper_make_physical_volume();
+    helper_make_solid();  
+    helper_make_logical_volume();
+    helper_make_physical_volume();
 
-  if(m_enable_optical_model || m_plus_dynode)
-  {
-      helper_make_mcp_volume();
-  }
-  helper_make_optical_surface();
+    if(m_enable_optical_model || m_plus_dynode)
+    {
+        helper_make_mcp_volume();
+    }
+    helper_make_optical_surface();
 
-  if(m_enable_optical_model)
-  {
-      helper_fast_sim();
-  }
-  helper_vis_attr();
+    if(m_enable_optical_model)
+    {
+        helper_fast_sim();
+    }
+    helper_vis_attr();
 }
 
 /**
@@ -318,10 +313,9 @@ void NNVTMCPPMTManager::helper_make_solid()
     uncut_body_solid = body_solid ; 
     uncut_inner2_solid = inner2_solid ; 
 
-    if (m_useRealSurface) {
-        LogInfo << "Cut the tail of PMT. " << std::endl;
-
-       std::cout 
+    if (m_useRealSurface && m_profligate_tail_cut == false) 
+    {
+        std::cout 
             << "[ ZSolid::ApplyZCutTree"
             << " zcut " << std::setw(10) << std::fixed << std::setprecision(3) << zcut 
             << " pmt_delta " << std::setw(10) << std::fixed << std::setprecision(3) << pmt_delta 
@@ -339,8 +333,69 @@ void NNVTMCPPMTManager::helper_make_solid()
 
         std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
-
+    else if (m_useRealSurface && m_profligate_tail_cut == true)
+    {
+        helper_make_solid_profligate_tail_cut() ; 
+    } 
 }
+
+
+
+
+void NNVTMCPPMTManager::helper_make_solid_profligate_tail_cut()
+{
+    std::cout << "NNVTMCPPMTManager::helper_make_solid_profligate_tail_cut" << std::endl ; 
+    // inner2 
+    G4double helper_sep_tube_r = m_pmt_r;
+    const double tail_height = m_pmt_h - m_z_equator;
+    const double tail_half_height = tail_height / 2;
+    const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
+    G4VSolid* cut_tail_solid = new G4Tubs("CutTail_NNVTMCPPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          tail_half_height,
+                                          0., 360.*degree);
+    inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
+                                            inner2_solid,
+                                            cut_tail_solid,
+                                            NULL,
+                                            cut_tail_displacement);
+
+    // pmt solid
+    const double pmt_height = m_pmt_h;
+    const double pmt_half_height = pmt_height / 2;
+    const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
+    G4VSolid* cut_pmt_solid = new G4Tubs("CutPMT_NNVTMCPPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          pmt_half_height,
+                                          0., 360.*degree);
+    pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
+                                            pmt_solid,
+                                            cut_pmt_solid,
+                                            NULL,
+                                            cut_pmt_displacement);
+
+    // body solid
+    const double body_height = m_pmt_h;
+    const double body_half_height = body_height / 2;
+    const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
+    G4VSolid* cut_body_solid = new G4Tubs("CutBody_NNVTMCPPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          body_half_height,
+                                          0., 360.*degree);
+    body_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
+                                            body_solid,
+                                            cut_body_solid,
+                                            NULL,
+                                            cut_body_displacement);
+}
+ 
+
+
+
+
 
 
 bool NNVTMCPPMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
@@ -391,55 +446,7 @@ void NNVTMCPPMTManager::obsolete_inner_cut()
             + "_inner2_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
 }
 
-void NNVTMCPPMTManager::obsolete_tail_cut()
-{
-    // inner2 
-    G4double helper_sep_tube_r = m_pmt_r;
-    const double tail_height = m_pmt_h - m_z_equator;
-    const double tail_half_height = tail_height / 2;
-    const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
-    G4VSolid* cut_tail_solid = new G4Tubs("CutTail_NNVTMCPPMT_Solid",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          tail_half_height,
-                                          0., 360.*degree);
-    inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
-                                            inner2_solid,
-                                            cut_tail_solid,
-                                            NULL,
-                                            cut_tail_displacement);
 
-    // pmt solid
-    const double pmt_height = m_pmt_h;
-    const double pmt_half_height = pmt_height / 2;
-    const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
-    G4VSolid* cut_pmt_solid = new G4Tubs("CutPMT_NNVTMCPPMT_Solid",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          pmt_half_height,
-                                          0., 360.*degree);
-    pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
-                                            pmt_solid,
-                                            cut_pmt_solid,
-                                            NULL,
-                                            cut_pmt_displacement);
-
-    // body solid
-    const double body_height = m_pmt_h;
-    const double body_half_height = body_height / 2;
-    const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
-    G4VSolid* cut_body_solid = new G4Tubs("CutBody_NNVTMCPPMT_Solid",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          body_half_height,
-                                          0., 360.*degree);
-    body_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
-                                            body_solid,
-                                            cut_body_solid,
-                                            NULL,
-                                            cut_body_displacement);
-}
- 
 
 
 void NNVTMCPPMTManager::helper_make_logical_volume()

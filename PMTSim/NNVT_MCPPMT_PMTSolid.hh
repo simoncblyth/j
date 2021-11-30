@@ -72,6 +72,8 @@ private:
   double m_Htubetorus;
   double m_Rtubetorus;
 
+  bool m_obsolete_torus_neck ;  
+
 private:
   // in order to avoid updating the members, add const in the methods. 
   G4VSolid* construct_head(G4String solidname, 
@@ -86,7 +88,14 @@ private:
                            double Rbtm, // the r at bottom
                            char mode) const;
 
-  G4VSolid* obsolete_construct_torus_neck(G4String solidname,
+  G4VSolid* construct_polycone_neck(G4String solidname,
+                           double Rtubetorus, 
+                           double Htubetorus,
+                           double Rtorus,     // swipe
+                           double Rbtm, // the r at bottom
+                           char mode) const;
+
+  G4VSolid* construct_obsolete_torus_neck(G4String solidname,
                            double Rtubetorus, 
                            double Htubetorus,
                            double Rtorus,     // swipe

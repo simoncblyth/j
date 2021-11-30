@@ -44,48 +44,41 @@ public:
     G4double GetPMTHeight();
     G4double GetZEquator();
     G4ThreeVector GetPosInPMT();
-
 public:
-    // Constructor
-    HamamatsuR12860PMTManager
-    (const G4String& plabel // label -- subvolume names are derived from this
-    );
+    HamamatsuR12860PMTManager(const G4String& plabel);
     ~HamamatsuR12860PMTManager();
-
 public:
     // debug interface
+    std::string desc() const ; 
     void dump(const char* msg="HamamatsuR12860PMTManager::dump") ; 
     G4LogicalVolume* getLV(const char* name);
     G4PVPlacement*   getPV(const char* name);
     G4VSolid*        getSolid(const char* name); 
     static bool StartsWithPrefix(const char* name, const char* prefix); 
+    G4String GetName() { return m_label;}
 private:
     void init();
-
     void init_material();
     void init_variables();
     void init_mirror_surface();
     void init_pmt();
-
-    void obsolete_inner_cut();
-    void obsolete_tail_cut(); 
-
-
     void init_fast_cover();
 
-    G4String GetName() { return m_label;}
+private:
+    void helper_make_solid();
+    void helper_make_solid_profligate_tail_cut(); 
+    void obsolete_inner_cut();
 
 private:
     G4String m_label;
-
-    /* solid maker */
     Hamamatsu_R12860_PMTSolid* m_pmtsolid_maker;
-    /* solid related */
-    void helper_make_solid();
-    // * pmt solid (a little big than body solid)
+
+
+    // * pmt solid (a little bigger than body solid)
     //   * body solid
     //     + inner1
     //     + inner2
+
     G4VSolid* pmt_solid; 
     G4VSolid* body_solid;
     G4VSolid* inner_solid;
@@ -99,32 +92,28 @@ private:
     G4Tubs* dynode_solid;
     G4double hh_dynode;
     G4double z_dynode;
-    /* logical volumes */
+
     void helper_make_logical_volume();
+
     G4LogicalVolume* body_log;
     G4LogicalVolume* inner1_log;
     G4LogicalVolume* inner2_log;
     G4LogicalVolume* dynode_log;
-    /* physical volumes */
+
     void helper_make_physical_volume();
     G4PVPlacement* body_phys;
     G4PVPlacement* inner1_phys;
     G4PVPlacement* inner2_phys;
     G4PVPlacement* dynode_phys;
-    /* pmtparamsvc */
+
 #ifdef STANDALONE
 #else
     IPMTParamSvc* m_pmt_param_svc;
-    /* pmtsimparamsvc */
     IPMTSimParamSvc* m_pmt_sim_param_svc;
 #endif
-    /* dynode volumes */
     void helper_make_dynode_volume();
-    /* optical surface */
     void helper_make_optical_surface();
-    /* fast simulation */
     void helper_fast_sim();
-    /* visual attribute */
     void helper_vis_attr();
 private:
     G4LogicalVolume* m_logical_pmt;
@@ -166,7 +155,10 @@ private:
     //     19.629m
     bool m_useRealSurface;
     bool m_plus_dynode ; 
+    bool m_profligate_tail_cut ; 
     G4double m_pmt_equator_to_bottom ; 
+
 };
+
 
 #endif

@@ -22,7 +22,7 @@ public:
 
 private:
     G4VSolid* construct_polycone_neck(G4String solidname, double P_I_R, double P_I_H, double thickness ); 
-    G4VSolid* obsolete_construct_torus_neck(G4String solidname, double thickness ); 
+    G4VSolid* construct_obsolete_torus_neck(G4String solidname, double thickness ); 
 
 
     // Hamamatsu R12860 is divided into following part:
@@ -58,6 +58,8 @@ private:
     double m8_h;
     double m9_r;
     double m9_h;
+
+    bool m_obsolete_torus_neck ; 
 
 };
 

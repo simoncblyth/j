@@ -15,6 +15,8 @@
 using namespace CLHEP;
 
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
+    :
+    m_obsolete_torus_neck(getenv("JUNO_PMT20INCH_OBSOLETE_TORUS_NECK") == nullptr ? false : true)
 {
    G4cout 
        << "Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid"
@@ -141,8 +143,7 @@ need to subtract off the neck offset from the z to get back into the neck frame.
 
 
 
-G4VSolid*
-Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char mode)
+G4VSolid* Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char mode)
 {
     G4VSolid* pmt_solid = NULL;
 
@@ -222,8 +223,16 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 );
 
 
-    G4VSolid* solid_IV = construct_polycone_neck( solidname, P_I_R, P_I_H, thickness ); 
-    //G4VSolid* solid_IV = obsolete_construct_torus_neck( solidname, thickness ); 
+    G4VSolid* solid_IV = nullptr ; 
+    if( m_obsolete_torus_neck )
+    {   
+        solid_IV = construct_obsolete_torus_neck( solidname, thickness ); 
+    }
+    else
+    {
+        solid_IV = construct_polycone_neck( solidname, P_I_R, P_I_H, thickness ); 
+    }
+
 
     // +IV
     pmt_solid = new G4UnionSolid(
@@ -405,7 +414,7 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::construct_polycone_neck(G4String solidname,
 }
 
 
-G4VSolid* Hamamatsu_R12860_PMTSolid::obsolete_construct_torus_neck(G4String solidname, double thickness )
+G4VSolid* Hamamatsu_R12860_PMTSolid::construct_obsolete_torus_neck(G4String solidname, double thickness )
 {
     G4VSolid* solid_IV_tube = new G4Tubs(
                      solidname+"_IV_tube",

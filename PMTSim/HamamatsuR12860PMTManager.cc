@@ -1,39 +1,30 @@
-#ifdef STANDALONE
-#else
-#include <boost/python.hpp>
-#endif
-#include <HamamatsuR12860PMTManager.hh>
-#include <Hamamatsu_R12860_PMTSolid.hh>
-
-#ifdef STANDALONE
-#else
-#include "junoPMTOpticalModel.hh"
-#endif
-
-#include "G4LogicalVolume.hh"
-#include "G4Material.hh"
-#include "G4Tubs.hh"
-#include "G4IntersectionSolid.hh" // for boolean solids
-#include "G4SubtractionSolid.hh" // for boolean solids
-#include "G4PVPlacement.hh"
-#include "G4VisAttributes.hh" // for G4VisAttributes::Invisible
-#include "G4OpticalSurface.hh"
-#include "G4LogicalBorderSurface.hh"
-#include "G4SDManager.hh"
-#include "G4Polycone.hh"
-
-#include "ZSolid.hh"
-
 
 #ifdef STANDALONE
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #else
+#include <boost/python.hpp>
+#include "junoPMTOpticalModel.hh"
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperLog.h"
 #include "SniperKernel/ToolFactory.h"
 #endif
 
+#include "G4LogicalVolume.hh"
+#include "G4Material.hh"
+#include "G4Tubs.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4PVPlacement.hh"
+#include "G4VisAttributes.hh"
+#include "G4OpticalSurface.hh"
+#include "G4LogicalBorderSurface.hh"
+#include "G4SDManager.hh"
+#include "G4Polycone.hh"
+
+#include "HamamatsuR12860PMTManager.hh"
+#include "Hamamatsu_R12860_PMTSolid.hh"
+#include "ZSolid.hh"
 
 using namespace CLHEP;
 
@@ -42,18 +33,11 @@ using namespace CLHEP;
 DECLARE_TOOL(HamamatsuR12860PMTManager);
 #endif
 
-// Interface
-G4LogicalVolume* 
-HamamatsuR12860PMTManager::getLV() {
-    if (!m_logical_pmt) {
-        init();
-    }
+G4LogicalVolume* HamamatsuR12860PMTManager::getLV() 
+{
+    if(!m_logical_pmt) init();
     return m_logical_pmt;
 }
-
-
-
-
 
 G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
@@ -101,32 +85,28 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
 
 
 
-G4double
-HamamatsuR12860PMTManager::GetPMTRadius() {
+G4double HamamatsuR12860PMTManager::GetPMTRadius() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_pmt_r;
 }
 
-G4double
-HamamatsuR12860PMTManager::GetPMTHeight() {
+G4double HamamatsuR12860PMTManager::GetPMTHeight() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_pmt_h;
 }
 
-G4double
-HamamatsuR12860PMTManager::GetZEquator() {
+G4double HamamatsuR12860PMTManager::GetZEquator() {
     if (!getLV()) {
         LogError << "Can't initialize PMT." << std::endl;;
     }
     return m_z_equator;
 }
 
-G4ThreeVector
-HamamatsuR12860PMTManager::GetPosInPMT() {
+G4ThreeVector HamamatsuR12860PMTManager::GetPosInPMT() {
     G4ThreeVector rndm_pos;
     return rndm_pos;
 }
@@ -152,6 +132,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       m_logical_cover(NULL), m_cover_mat(NULL),
       m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
       m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true),
+      m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
       m_pmt_equator_to_bottom(0.)
 {
 #ifdef STANDALONE
@@ -163,20 +144,28 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
     declProp("UsePMTOpticalModel", m_enable_optical_model=false);
-
     declProp("UseRealSurface", m_useRealSurface=true);
 #endif
+}
 
-    // NB output from here gets redirected by j/PMTSim as too much noisy code 
-    G4cout 
-         << "HamamatsuR12860PMTManager::HamamatsuR12860PMTManager"
+std::string HamamatsuR12860PMTManager::desc() const 
+{
+    std::stringstream ss ; 
+    ss
+         << std::setw(30) << "HamamatsuR12860PMTManager"
          << " m_simplify_csg "   << ( m_simplify_csg   ? "Y" : "N" )
          << " m_plus_dynode "    << ( m_plus_dynode    ? "Y" : "N" )
          << " m_useRealSurface " << ( m_useRealSurface ? "Y" : "N" )
-         << G4endl 
+         << " m_profligate_tail_cut " << ( m_profligate_tail_cut ? "Y" : "N" )
          ;
 
+    std::string s = ss.str(); 
+    return s ; 
 }
+
+
+
+
 
 HamamatsuR12860PMTManager::~HamamatsuR12860PMTManager() {
     if (m_pmtsolid_maker) {
@@ -186,17 +175,14 @@ HamamatsuR12860PMTManager::~HamamatsuR12860PMTManager() {
     
 
 // Helper Methods
-void
-HamamatsuR12860PMTManager::init() {
+void HamamatsuR12860PMTManager::init() {
 #ifdef STANDALONE
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
     assert(m_detector);
 #endif
-    // construct
     init_material();
-    // * construct a mirror surface
     init_variables();
     init_mirror_surface();
     init_pmt();
@@ -267,19 +253,7 @@ void HamamatsuR12860PMTManager::init_variables() {
            ;
 
         m_pmt_h = pmt_h;
-
     }
-
-
-    LogInfo 
-#ifdef STANDALONE
-#else
-         << " scope:tag/objName " << scope() << tag() << "/" << objName() 
-#endif
-         << " GetName() " << GetName()
-         <<  std::endl
-         ;
-
     m_pmtsolid_maker = new Hamamatsu_R12860_PMTSolid();
 }
 
@@ -347,6 +321,14 @@ void HamamatsuR12860PMTManager::init_pmt()
   helper_vis_attr();
 }
 
+/**
+HamamatsuR12860PMTManager::helper_make_solid
+----------------------------------------------
+
+Tail cutting when real surface is enabled was first implemented by Tao Lin, 09 Aug 2021
+
+**/
+
 void HamamatsuR12860PMTManager::helper_make_solid() 
 {
     double pmt_delta = 1E-3*mm ; 
@@ -366,12 +348,8 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     uncut_body_solid = body_solid ; 
     uncut_inner2_solid = inner2_solid ; 
 
-    // Reduce the size when real surface is enabled.
-    // Tao Lin, 09 Aug 2021
-    if (m_useRealSurface ) 
+    if (m_useRealSurface && m_profligate_tail_cut == false ) 
     {
-        LogInfo << "Cut the tail of PMT " << std::endl;
-
         std::cout 
             << "[ ZSolid::ApplyZCutTree"
             << " zcut " << std::setw(10) << std::fixed << std::setprecision(3) << zcut 
@@ -390,7 +368,83 @@ void HamamatsuR12860PMTManager::helper_make_solid()
 
         std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
+    else if (m_useRealSurface && m_profligate_tail_cut == true )
+    {
+         helper_make_solid_profligate_tail_cut();
+    } 
 }
+
+/**
+HamamatsuR12860PMTManager::helper_make_solid_profligate_tail_cut
+------------------------------------------------------------------
+
+"Cutting" PMT via G4IntersectionSolid actually increases the CSG nodes
+to model the geometry and forces every single intersect onto the solid to 
+traverse many useless "cutaway" nodes despite there being no interest in 
+finding the intersects with them.  Although this approach is easy to do 
+it is incredibly inefficient as it means that you get to pay for the price 
+of the convenience of solid definition easily many millions of times per event. 
+
+This contrasts with the above approach that uses ZSolid::ApplyZCutTree that 
+actually cuts the CSG tree, leading to a significant simplification.
+
+**/
+
+void HamamatsuR12860PMTManager::helper_make_solid_profligate_tail_cut()
+{
+    // inner2 
+    std::cout << "HamamatsuR12860PMTManager::helper_make_solid_profligate_tail_cut" << std::endl ; 
+
+    G4double helper_sep_tube_r = m_pmt_r;
+    const double tail_height = m_pmt_h - m_z_equator;
+    const double tail_half_height = tail_height / 2;
+    const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
+    G4VSolid* cut_tail_solid = new G4Tubs( GetName() + "_CutTail_HamaPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          tail_half_height,
+                                          0., 360.*degree);
+    inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
+                                            inner2_solid,
+                                            cut_tail_solid,
+                                            NULL,
+                                            cut_tail_displacement);
+
+    // pmt solid
+    const double pmt_height = m_pmt_h;
+    const double pmt_half_height = pmt_height / 2;
+    const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
+
+    G4VSolid* cut_pmt_solid = new G4Tubs( GetName() + "_CutPMT_HamaPMT_Solid",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          pmt_half_height,
+                                          0., 360.*degree);
+    pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
+                                            pmt_solid,
+                                            cut_pmt_solid,
+                                            NULL,
+                                            cut_pmt_displacement);
+
+    // body solid
+    const double body_height = m_pmt_h;
+    const double body_half_height = body_height / 2;
+    const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
+    G4VSolid* cut_body_solid = new G4Tubs( GetName() + "_body_solid_intubs",
+                                          0.,
+                                          helper_sep_tube_r+1E-9*mm,
+                                          body_half_height,
+                                          0., 360.*degree);
+    body_solid = new G4IntersectionSolid( GetName() + "_body_solid_cut",
+                                            body_solid,
+                                            cut_body_solid,
+                                            NULL,
+                                            cut_body_displacement);
+
+
+
+}
+
 
 
 void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as getSolid may init
@@ -425,6 +479,7 @@ bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* p
 {
     return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;   
 }
+
 
 G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {
@@ -474,65 +529,6 @@ void HamamatsuR12860PMTManager::obsolete_inner_cut()
             + "_inner2_solid", inner_solid, pInnerSep, NULL, innerSepDispl);
 }
 
-void HamamatsuR12860PMTManager::obsolete_tail_cut()
-{
-    assert(0); 
-    // inner2 
-    G4double helper_sep_tube_r = m_pmt_r;
-    const double tail_height = m_pmt_h - m_z_equator;
-    const double tail_half_height = tail_height / 2;
-    const G4ThreeVector cut_tail_displacement(0., 0., -tail_half_height);
-    G4VSolid* cut_tail_solid = new G4Tubs( GetName() + "_CutTail_HamaPMT_Solid",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          tail_half_height,
-                                          0., 360.*degree);
-    inner2_solid = new G4IntersectionSolid( GetName() + "_inner2_tail_solid",
-                                            inner2_solid,
-                                            cut_tail_solid,
-                                            NULL,
-                                            cut_tail_displacement);
-
-    // pmt solid
-    const double pmt_height = m_pmt_h;
-    const double pmt_half_height = pmt_height / 2;
-    const G4ThreeVector cut_pmt_displacement(0., 0., m_z_equator-pmt_half_height);
-
-    std::cout 
-       << " GetName " << GetName()
-       << std::endl 
-       ;
-
-    G4VSolid* cut_pmt_solid = new G4Tubs( GetName() + "_CutPMT_HamaPMT_Solid",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          pmt_half_height,
-                                          0., 360.*degree);
-    pmt_solid = new G4IntersectionSolid( GetName() + "_pmt_cut_solid",
-                                            pmt_solid,
-                                            cut_pmt_solid,
-                                            NULL,
-                                            cut_pmt_displacement);
-
-    // body solid
-    const double body_height = m_pmt_h;
-    const double body_half_height = body_height / 2;
-    const G4ThreeVector cut_body_displacement(0., 0., m_z_equator-pmt_half_height);
-    G4VSolid* cut_body_solid = new G4Tubs( GetName() + "_body_solid_intubs",
-                                          0.,
-                                          helper_sep_tube_r+1E-9*mm,
-                                          body_half_height,
-                                          0., 360.*degree);
-    body_solid = new G4IntersectionSolid( GetName() + "_body_solid_cut",
-                                            body_solid,
-                                            cut_body_solid,
-                                            NULL,
-                                            cut_body_displacement);
-
-
-
-}
-
 /**
 
    LV                SOLID          MATERIAL
@@ -574,13 +570,6 @@ HamamatsuR12860PMTManager::helper_make_logical_volume()
         ( inner2_solid,
           PMT_Vacuum,
           GetName()+"_inner2_log" );
-
-    /*
-    dynode_log= new G4LogicalVolume
-        ( dynode_solid,
-          Dynode_mat,
-          GetName()+"_dynode_log" );
-          */
 
 }
 
