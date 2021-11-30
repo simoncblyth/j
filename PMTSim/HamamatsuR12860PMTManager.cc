@@ -22,7 +22,6 @@
 #include "G4SDManager.hh"
 #include "G4Polycone.hh"
 
-#include "G4SolidStore.hh"
 #include "ZSolid.hh"
 
 
@@ -168,10 +167,12 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     declProp("UseRealSurface", m_useRealSurface=true);
 #endif
 
+    // NB output from here gets redirected by j/PMTSim as too much noisy code 
     G4cout 
          << "HamamatsuR12860PMTManager::HamamatsuR12860PMTManager"
-         << " m_simplify_csg " << m_simplify_csg
-         << ( m_simplify_csg ? " --pmt20inch-simplify-csg ENABLED " : " " )
+         << " m_simplify_csg "   << ( m_simplify_csg   ? "Y" : "N" )
+         << " m_plus_dynode "    << ( m_plus_dynode    ? "Y" : "N" )
+         << " m_useRealSurface " << ( m_useRealSurface ? "Y" : "N" )
          << G4endl 
          ;
 
@@ -228,22 +229,8 @@ HamamatsuR12860PMTManager::init_material() {
      }
 }
 
-/**
 
-   r = 254 + 10 = 264
-
-   radInnerWaterRealSurface
-
-
-
-       
-
-
-
-**/
-
-void
-HamamatsuR12860PMTManager::init_variables() {
+void HamamatsuR12860PMTManager::init_variables() {
     m_pmt_r = 254.*mm;
     m_pmt_h = 640.*mm;
     m_z_equator = 190.*mm; // From top to equator
@@ -323,15 +310,26 @@ HamamatsuR12860PMTManager::init_mirror_surface() {
         m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
 
     }
-
 }
+
+/**
+HamamatsuR12860PMTManager::init_pmt
+------------------------------------
+
+* dynode geometry serves no purpose with the old optical model when  *m_enable_optical_model=false*
+
+* *m_plus_dynode* adds the dynode geometry even when *m_enable_optical_model* is false, this is
+  for debugging only : such as to check if the dynode geometry fits inside the cut PMT 
+
+* TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+* ancient TODO: face of tube 100 um from front of cylinder
+
+**/
 
 void HamamatsuR12860PMTManager::init_pmt() 
 {
   helper_make_solid();  
   helper_make_logical_volume();
-  
-  // TODO: face of tube 100 um from front of cylinder
   helper_make_physical_volume();
 
   if(m_enable_optical_model || m_plus_dynode)
@@ -354,14 +352,13 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     double pmt_delta = 1E-3*mm ; 
     double inner_delta =  -5*mm ;  
     double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ; 
-    // TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
 
     double zcut = m_pmt_equator_to_bottom ; 
 
     Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ; 
     pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
     body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
-    inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');
+    inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');  // no longer used
     inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
     inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
 
@@ -450,12 +447,6 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
     if(StartsWithPrefix(name, "uncut_body_solid"))   so = uncut_body_solid ; 
     if(StartsWithPrefix(name, "uncut_inner2_solid")) so = uncut_inner2_solid ; 
 
-    if( so == nullptr )
-    {
-        G4SolidStore* store = G4SolidStore::GetInstance(); 
-        G4bool verbose = false ; 
-        so = store->GetSolid(name, verbose); 
-    }
     return so ; 
 }
 
@@ -611,8 +602,7 @@ HamamatsuR12860PMTManager::helper_make_logical_volume()
 
 **/
 
-void
-HamamatsuR12860PMTManager::helper_make_physical_volume()
+void HamamatsuR12860PMTManager::helper_make_physical_volume()
 {
     
     G4ThreeVector equatorTranslation(0.,0.,m_z_equator);
@@ -645,21 +635,17 @@ HamamatsuR12860PMTManager::helper_make_physical_volume()
           body_phys,           // the mother volume
           false,               // no boolean ops
           0 );                 // copy number
-    /*
-    // place dynode in stem/back
-    dynode_phys = new G4PVPlacement
-        ( 0,
-          G4ThreeVector(0.0, 0.0, this->z_dynode - hh_dynode),
-          GetName()+"_dynode_phys",
-          dynode_log,
-          inner2_phys,
-          false,
-          0 );
-          */
 }
 
-void
-HamamatsuR12860PMTManager::helper_make_dynode_volume()
+/**
+HamamatsuR12860PMTManager::helper_make_dynode_volume
+------------------------------------------------------
+
+Creates solids, logical volumes and physical volumes placing them within *inner2_log* 
+
+**/
+
+void HamamatsuR12860PMTManager::helper_make_dynode_volume()
 {
     G4double thickness  = 1.*mm;
 

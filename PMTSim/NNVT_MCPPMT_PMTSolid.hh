@@ -74,14 +74,6 @@ private:
   double m_Rtubetorus;
 
 private:
-  double m_z_lower; // this is an variable to decide solid 1, solid 1+2 or solid 1+2+3
-
-  // below are three sea-level at head/neck, neck/tail, tail
-  // from zequator
-  double m_z_lower_head;
-  double m_z_lower_neck;
-  double m_z_lower_tail;
-
   // in order to avoid updating the members, add const in the methods. 
   G4VSolid* construct_head(G4String solidname, 
                            double R,      // R of ellipsoid

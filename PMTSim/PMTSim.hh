@@ -50,6 +50,7 @@ struct PMTSIM_API PMTSim
 
     static void Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr, std::vector<G4VSolid*>* names ); 
     static void Traverse_r(const G4VPhysicalVolume* const pv, int depth, std::vector<double>* tr, std::vector<G4VSolid*>* names); 
+    static bool IsIdentityRotation(const std::array<double, 16>& a, double epsilon ) ; 
     static void GetObjectTransform(std::array<double, 16>& a, const G4VPhysicalVolume* const pv); 
     static void DumpSolids(); 
 

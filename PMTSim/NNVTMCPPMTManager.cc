@@ -14,8 +14,6 @@
 #include "G4Polycone.hh"
 #include "G4SDManager.hh"
 
-
-#include "G4SolidStore.hh"
 #include "ZSolid.hh"
 
 #ifdef STANDALONE
@@ -275,7 +273,8 @@ void NNVTMCPPMTManager::init_pmt()
   helper_make_solid();  
   helper_make_logical_volume();
   helper_make_physical_volume();
-  if(m_enable_optical_model)
+
+  if(m_enable_optical_model || m_plus_dynode)
   {
       helper_make_mcp_volume();
   }
@@ -370,15 +369,8 @@ G4VSolid* NNVTMCPPMTManager::getSolid(const char* name)
     if(StartsWithPrefix(name, "uncut_body_solid"))   so = uncut_body_solid ;
     if(StartsWithPrefix(name, "uncut_inner2_solid")) so = uncut_inner2_solid ;
 
-    if( so == nullptr )
-    {
-        G4SolidStore* store = G4SolidStore::GetInstance();
-        G4bool verbose = false ;
-        so = store->GetSolid(name, verbose);
-    }
     return so ;
 }
-
 
 
 void NNVTMCPPMTManager::obsolete_inner_cut()

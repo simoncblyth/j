@@ -79,53 +79,15 @@ double getenvdouble(const char* key, double fallback)
 }
 
 /**
-PMTSim::GetSolid
--------------------
+PMTSim::SetEnvironmentSwitches
+---------------------------------
 
-Example names::
+Sets switches depending of the content of the name string. 
 
-   maker_body_solid_zcut-183.2246
-
-When the name is of form "maker_body_solid_zcut-183.2246" with cut 
-value at the end of the name it is extracted.
+NB are in process of removing the need for POLYCONE_NECK and SIMPLIFY_CSG switches, 
+the others NOT_USE_REAL_SURFACE and PLUS_DYNODE are for debugging and can remain.
 
 **/
-
-G4VSolid* PMTSim::GetSolid(const char* name) // static
-{
-    PMTSim::SetEnvironmentSwitches(name);  
-
-    const char* s_zcut = strstr(name, "zcut") ; 
-    double zcut = s_zcut == nullptr ? 999. : atof_(s_zcut+strlen("zcut")) ; 
-
-    std::cout 
-        << "PMTSim::GetSolid"
-        << " name " << name  
-        << " zcut " << std::setw(10) << std::fixed << std::setprecision(4) << zcut 
-        << std::endl 
-        ;
-
-    G4VSolid* solid = GetSolid_(name); 
-
-    if( solid == nullptr )
-    {
-        std::cout 
-            << "PMTSim::GetSolid"
-            << " FAILED " 
-            << " name " << name  
-            << std::endl 
-            ;
-    }
-    else if( s_zcut != nullptr )
-    {
-        bool verbose = getenv("PMTSim_GetSolid") != nullptr ; 
-        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, verbose );  
-        solid = zcut_solid ; 
-    }
-
-    return solid ; 
-}
-
 
 void PMTSim::SetEnvironmentSwitches(const char* name)  // static
 {
@@ -164,13 +126,63 @@ void PMTSim::SetEnvironmentSwitches(const char* name)  // static
     }
 }
 
+/**
+PMTSim::GetSolid
+-------------------
+
+Example names::
+
+   maker_body_solid_zcut-183.2246
+
+When the name is of form "maker_body_solid_zcut-183.2246" with cut 
+value at the end of the name it is extracted.
+
+**/
+
+G4VSolid* PMTSim::GetSolid(const char* name) // static
+{
+    PMTSim::SetEnvironmentSwitches(name);  
+
+    G4VSolid* solid = GetSolid_(name); 
+
+    if( solid == nullptr )
+    {
+        std::cout 
+            << "PMTSim::GetSolid"
+            << " FAILED " 
+            << " name " << name  
+            << std::endl 
+            ;
+    }
+
+    const char* s_zcut = strstr(name, "zcut") ; 
+    double zcut = s_zcut == nullptr ? 999. : atof_(s_zcut+strlen("zcut")) ; 
+
+    std::cout 
+        << "PMTSim::GetSolid"
+        << " name " << name  
+        << " zcut " << std::setw(10) << std::fixed << std::setprecision(4) << zcut 
+        << std::endl 
+        ;
+
+    if( solid != nullptr && s_zcut != nullptr )
+    {
+        bool verbose = getenv("PMTSim_GetSolid") != nullptr ; 
+        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, verbose );  
+        solid = zcut_solid ; 
+    }
+
+    return solid ; 
+}
+
 
 /**
 PMTSim::GetSolid_
 -------------------
 
 Unlike PMTSim::GetSolid this does not act on zcut specifications in names.
-Also it does not run the environment setup. 
+Also it does not run the environment setup. Instead the environment setup 
+is done by the GetSolid caller of this. 
 
 **/
 
@@ -189,6 +201,14 @@ G4VSolid* PMTSim::GetSolid_(const char* name) // static
     {
         solid = GetManagerSolid(name) ;
     }
+
+
+    if( solid == nullptr )
+    {    
+        G4SolidStore* store = G4SolidStore::GetInstance(); 
+        G4bool verbose = false ; 
+        solid = store->GetSolid(name, verbose); 
+    }    
 
     if( solid == nullptr )
     {
@@ -388,9 +408,16 @@ char* PMTSim::ijtoa_( const char* fmt, int i, int j ) // static
 PMTSim::GetMakerSolid
 ----------------------
 
-"Maker" solids come directly from the makers with no manager instanciated.
+This is invoked when the name contains "maker" resulting in direct
+access to solids from the makers with no manager instanciated.
+Example names::
+
+    hama_maker
+    nnvt_maker
+
 NB this is using the original old GetSolid interface where the name does not choose 
-between types of solid but rather just supplies the prefix to the set of solids created.
+between types of solid but rather just supplies the prefix to the fixed tree 
+of solids created.
 
 **/
 
@@ -398,15 +425,32 @@ G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
 {
     setenv("JUNO_PMT20INCH_POLYCONE_NECK","ENABLED",1);
 
+    bool hama = StartsWithPrefix(name, HAMA); 
+    bool nnvt = StartsWithPrefix(name, NNVT); 
+    bool expect = hama ^ nnvt ; 
 
+    if(!expect)
+    {
+        std::cout 
+            << "PMTSim::GetMakerSolid"
+            << " FATAL UNEXPECTED PREFIX "
+            << " name " << name 
+            << std::endl 
+            ;
+    }
+    assert( expect ); 
 
-
- 
-    Hamamatsu_R12860_PMTSolid* maker = new Hamamatsu_R12860_PMTSolid();
-
-    G4VSolid* solid = maker->GetSolid(name);    
-
-
+    G4VSolid* solid = nullptr ; 
+    if(hama) 
+    {
+        Hamamatsu_R12860_PMTSolid* maker = new Hamamatsu_R12860_PMTSolid();
+        solid = maker->GetSolid(name);    
+    } 
+    else if( nnvt )
+    { 
+        NNVT_MCPPMT_PMTSolid* maker = new NNVT_MCPPMT_PMTSolid() ; 
+        solid = maker->GetSolid(name);    
+    }
     return solid ; 
 }
 
@@ -436,8 +480,10 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
+
     Traverse(pv, nullptr, nullptr); 
-    DumpSolids(); 
+    //DumpSolids(); 
+
     return pv ; 
 }
 
@@ -447,8 +493,10 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std:
 
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
+
     Traverse(pv, tr, solids); 
-    DumpSolids(); 
+    //DumpSolids(); 
+
     return pv ; 
 }
 
@@ -499,7 +547,7 @@ void PMTSim::DumpTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* so
         std::cout 
             << std::setw(5) << i 
             << " : " 
-            << std::setw(20) << soname 
+            << std::setw(25) << soname 
             ;
 
         std::cout << " tr ( " ; 
@@ -592,9 +640,9 @@ Hmm need to effect the split between Hama and NNVT : maybe simply hama_ nnvt_ pr
 and skipping ahead by the prefix to avoid internal naming changes 
 **/
 
-const char* PMTSim::PREFIX = "01234" ;   // all prefix must have same length 
-const char* PMTSim::HAMA   = "hama_" ; 
-const char* PMTSim::NNVT   = "nnvt_" ; 
+const char* PMTSim::PREFIX = "0123" ;   // all prefix must have same length 
+const char* PMTSim::HAMA   = "hama" ; 
+const char* PMTSim::NNVT   = "nnvt" ; 
 
 
 bool PMTSim::HasManagerPrefix( const char* name ) // static
@@ -624,21 +672,34 @@ IGeomStandalone* PMTSim::getManager(const char* name)
 
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
-    return getManager(name)->getLV(name + strlen(PREFIX)) ; 
+    return getManager(name)->getLV(name + strlen(PREFIX) + 1) ;  // +1 for _  
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
-    return getManager(name)->getPV(name + strlen(PREFIX)) ; 
+    return getManager(name)->getPV(name + strlen(PREFIX) + 1) ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
-    return getManager(name)->getSolid(name + strlen(PREFIX)) ;  
+    return getManager(name)->getSolid(name + strlen(PREFIX) + 1) ;  
 }
 
 
 void PMTSim::Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr , std::vector<G4VSolid*>* solids ) // static
 {
     Traverse_r( pv, 0, tr, solids); 
+}
+
+bool PMTSim::IsIdentityRotation(const std::array<double, 16>& a, double epsilon )
+{
+    unsigned not_identity=0 ; 
+    for(unsigned i=0 ; i < 3 ; i++) 
+    for(unsigned j=0 ; j < 3 ; j++)
+    {
+        unsigned idx = i*4 + j ; 
+        double expect = i == j ? 1. : 0. ; 
+        if( std::abs( a[idx] - expect) > epsilon ) not_identity += 1 ; 
+    } 
+    return not_identity == 0 ; 
 }
 
 void PMTSim::Traverse_r(const G4VPhysicalVolume* const pv, int depth, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
@@ -656,14 +717,16 @@ void PMTSim::Traverse_r(const G4VPhysicalVolume* const pv, int depth, std::vecto
     std::cout 
         << "PMTSim::Traverse_r"
         << " depth " << std::setw(2) << depth 
-        << " pv " << std::setw(20) << pv->GetName()
-        << " lv " << std::setw(20) << lv->GetName()
-        << " so " << std::setw(20) << so->GetName()
-        << " mt " << std::setw(20) << mt->GetName()
+        << " pv " << std::setw(22) << pv->GetName()
+        << " lv " << std::setw(22) << lv->GetName()
+        << " so " << std::setw(22) << so->GetName()
+        << " mt " << std::setw(15) << mt->GetName()
         ;
 
+    bool identity_rot = IsIdentityRotation( a, 1e-6 ); 
     std::cout << " tr ( " ; 
-    for(unsigned i=0 ; i < 16 ; i++) std::cout << std::fixed << std::setw(7) << std::setprecision(2) << a[i] << " " ; 
+    unsigned i0 = identity_rot ? 4*3 : 0 ; 
+    for(unsigned i=i0 ; i < 16 ; i++) std::cout << std::fixed << std::setw(7) << std::setprecision(2) << a[i] << " " ; 
     std::cout << ") " << std::endl ; 
 
     for (size_t i=0 ; i < size_t(lv->GetNoDaughters()) ;i++ ) 

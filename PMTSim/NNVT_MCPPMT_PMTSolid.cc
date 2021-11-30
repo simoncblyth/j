@@ -71,7 +71,7 @@ with a single cone.
            *                          |      `                      *         |
           *                           |                              *        |
          *                            |                               *       |
-    - - -F- - - - - - - - - - - - - - E - - - - - - - - - - - - - - - F - - - v- - - - - - - - - - 
+    - - -F- - - - - - - - - - - - - - E - - - - - - - - - - - - - - - F - - - v- - - - - - - - - -                                
          *                           /|\                              *       ^
           *                         / | \                            *        |
            *                       /  |__\                          *         |
@@ -84,7 +84,7 @@ with a single cone.
    _  _  _  _  _  _ .  . .  P_________N_________P _. . _. _  _  _  _  _  _  _ | _  _  _  _  _  _
                  .         /|.        |        .|\          .                 |     ^
                .          / | .       |       . | \           .               |     |      
-             .           /  |  .      |      .  |  \            .             |   m_Htubetorus = m_Rtorus*cos(m_theta); 
+             .           /  |  .      |      .  |  \            .             |   m_Htubetorus = m_Rtorus*cos(m_theta);      _____ head_neck_zoffset = -m_Heq2torus+Htubetorus/2
             .           /   |   .     |     .   |   \            .            |     | 
            .           /    |    .    |    .    |    \            .           |     |
    _ _ _ _ ._ _ _ _ _ T_____|____D____M____D____Q_____T _ _ _ _ _ . _ _ _ _ _ v _ _ V__ _ _ _ _ _ 
@@ -92,152 +92,42 @@ with a single cone.
             .                   .|    |    |.                    .            |
                                . |    |    | .                  .             |
               .               .  |    |    |   .              .               |
-                .           .    |    |    |     .          .                 |
+                .           .    |    |    |     .          .                 |                                              _____ head_neck_tail_zoffset = -(m_Heq2torus+Hbtm*0.50)  
                    .  .  .       |    |    |        .  .  .                  m_Hbtm
                                  |    |    |                                  |
                                  |    |    |                                  |
                                  |    |    |                                  |    
-   _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ C____B____C _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _v_ _ _ _ _ _ _ _ _ _ 
+   _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ C____B____C _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _v_ _ _ _ _ _ _ _ _ _                                   
                                       |<-->|
                                       | m_Rbtm
                                       |    | 
-                                     
-
-
-
 **/
-
 
 #include <cmath>
 using namespace CLHEP;
 NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid()
-  : m_R(254.*mm), m_H(570.*mm), m_Htop(184.*mm), 
+    : 
+    m_R(254.*mm), m_H(570.*mm), m_Htop(184.*mm), 
     m_Hbtm(172.50*mm), m_Rbtm(50.*mm), m_Rtorus(43.*mm), 
     m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true)
 {
-  m_Heq2torus = m_H - m_Htop - m_Hbtm;
-  m_theta = atan((m_Rbtm+m_Rtorus)/(m_Heq2torus));
-  m_Htubetorus = m_Rtorus*cos(m_theta);
-  m_Rtubetorus = m_Rbtm+m_Rtorus - m_Rtorus*sin(m_theta);
+    m_Heq2torus = m_H - m_Htop - m_Hbtm;                       // EM : equator to torus midline
+    m_theta = atan((m_Rbtm+m_Rtorus)/(m_Heq2torus));           // MET : angle of axial triangle connecting center of bulb E, torus center T and point on axis M   
+    m_Htubetorus = m_Rtorus*cos(m_theta);                      // PQ : height of neck 
+    m_Rtubetorus = m_Rbtm+m_Rtorus - m_Rtorus*sin(m_theta);    // NP : radius at P where neck joins head
 
-  m_z_lower = m_H - m_Htop; // from equator to bottom, default value
-  m_z_lower_head = m_Heq2torus - m_Htubetorus;
-  m_z_lower_neck = m_Heq2torus;
-  m_z_lower_tail = m_H - m_Htop;
-
-
- G4cout 
-     << "NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid"
-     << " m_polycone_neck " << m_polycone_neck 
-     << ( m_polycone_neck ? " --pmt20inch-polycone-neck ENABLED " : " " )
-     << G4endl 
-     ;
-
+    G4cout 
+        << "NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid"
+        << " m_polycone_neck " << m_polycone_neck 
+        << ( m_polycone_neck ? " --pmt20inch-polycone-neck ENABLED " : " " )
+        << G4endl 
+        ;
 }
 
+/**
+NNVT_MCPPMT_PMTSolid::GetSolid
+---------------------------------
 
-
-G4VSolid*
-NNVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) {
-  double R = m_R + thickness;
-  //double H = m_H + thickness*2;
-  double Htop = m_Htop + thickness;
-
-  double Hbtm = m_Hbtm + thickness;
-  double Rbtm = m_Rbtm + thickness;
-
-  double Rtorus = m_Rtorus - thickness;
-
-  double Htubetorus = Rtorus*cos(m_theta);
-  double Rtubetorus = m_Rbtm+m_Rtorus - m_Rtorus*sin(m_theta);
-
-
-  double zLower = m_z_lower + thickness; // m_z_lower (>0): from equator to the cut bottom 
-
-  if (zLower < m_z_lower_head) {
-      G4cout << "Creating solid " << solidname
-             << " with only head. "
-             << " zLower: " << zLower
-             << " z_lower_head: " << m_z_lower_head
-             << G4endl;
-  } else if (zLower < m_z_lower_neck) {
-      G4cout << "Creating solid " << solidname
-             << " with head+neck. "
-             << " zLower: " << zLower
-             << " z_lower_neck: " << m_z_lower_neck
-             << G4endl;
-  } else {
-      G4cout << "Creating solid " << solidname
-             << " with head+neck+tail. "
-             << " zLower: " << zLower
-             << " z_lower_tail: " << m_z_lower_tail
-             << G4endl;
-  }
-  
-
-  // PART I:
-  G4VSolid* pmttube_solid_part1 = NULL;
-  pmttube_solid_part1 = construct_head(solidname, 
-                                       R,
-                                       Htop,
-                                       mode);
-  if( pmttube_solid_part1 == NULL )
-  {
-      G4cout  
-          << "NNVT_MCPPMT_PMTSolid::GetSolid"
-          << " FATAL : INVALID MODDE [" << mode << "]"
-          << G4endl 
-          ;
-      assert(0); 
-  } 
- 
-
- 
-
-  // return pmttube_solid_part1;
-
-  // PART II:
-  G4VSolid* pmttube_solid_part2 = NULL ;  
-  pmttube_solid_part2 = construct_neck(solidname,
-                                       Rtubetorus,
-                                       Htubetorus,
-                                       Rtorus,
-                                       Rbtm,
-                                       mode);
-
-
-  // return pmttube_solid_part2;
-  // PART III:
-  G4VSolid* pmttube_solid_end_tube = NULL;
-  pmttube_solid_end_tube = construct_tail(solidname,
-                                          Rbtm,
-                                          Hbtm);
-  //return pmttube_solid_end_tube;
-  // I+II
-  G4UnionSolid* pmttube_solid_1_2 = new G4UnionSolid(
-                                            solidname+"_1_2",
-                                            pmttube_solid_part1,
-                                            pmttube_solid_part2,
-                                            0,
-                                            G4ThreeVector(0, 0, -m_Heq2torus+Htubetorus/2)
-                                            );
-  // return pmttube_solid_1_2;
-  // I+II + III 
-  G4UnionSolid* pmttube_solid_1_2_3 = new G4UnionSolid(
-                                            solidname,
-                                            pmttube_solid_1_2,
-                                            pmttube_solid_end_tube,
-                                            0,
-                                            G4ThreeVector(0,0, 
-                                                -(m_Heq2torus+Hbtm*0.50))
-                                            );
-
-
-
-
-
-    G4VSolid* u_pmt_solid = NULL ; 
-  /**
        mode
        ' '      : full PMT solid 
 
@@ -245,14 +135,48 @@ NNVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) 
 
        'T' tail : almost full PMT solid, but with just the bottom half of 
                   ellipsoid bulb attached to the normal body
-  **/
+**/
 
+G4VSolid* NNVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) 
+{
+    double R = m_R + thickness;
+    double Htop = m_Htop + thickness;
+    double Hbtm = m_Hbtm + thickness;
+    double Rbtm = m_Rbtm + thickness;
+    double Rtorus = m_Rtorus - thickness;
+
+    double Htubetorus = Rtorus*cos(m_theta);
+    double Rtubetorus = m_Rbtm+m_Rtorus - m_Rtorus*sin(m_theta);
+
+    double head_neck_zoffset = -m_Heq2torus+Htubetorus*0.5 ;  
+    double head_neck_tail_zoffset = -(m_Heq2torus+Hbtm*0.5) ;  
+
+    G4VSolid* head = construct_head(solidname, R, Htop, mode); 
+    G4VSolid* neck = construct_neck(solidname, Rtubetorus, Htubetorus, Rtorus, Rbtm, mode); 
+    G4VSolid* tail = construct_tail(solidname, Rbtm, Hbtm); 
+
+    G4UnionSolid* head_neck = new G4UnionSolid(
+                                            solidname+"_1_2",
+                                            head,
+                                            neck,
+                                            0,
+                                            G4ThreeVector(0,0,head_neck_zoffset)
+                                            );
+
+    G4UnionSolid* head_neck_tail = new G4UnionSolid(
+                                            solidname,
+                                            head_neck,
+                                            tail,
+                                            0,
+                                            G4ThreeVector(0,0,head_neck_tail_zoffset)
+                                            );
+    G4VSolid* u_pmt_solid = NULL ; 
     switch(mode)
     {
-       case ' ':u_pmt_solid = pmttube_solid_1_2_3 ; break ;   
-       case 'H':u_pmt_solid = pmttube_solid_part1 ; break ;  
-       case 'T':u_pmt_solid = pmttube_solid_1_2_3 ; break ;  
-       default: u_pmt_solid = NULL                ; break ;       
+        case ' ':u_pmt_solid = head_neck_tail      ; break ;   
+        case 'H':u_pmt_solid = head                ; break ;  
+        case 'T':u_pmt_solid = head_neck_tail      ; break ;  
+        default: u_pmt_solid = NULL                ; break ;       
     }
     
     if(u_pmt_solid == NULL)
@@ -265,49 +189,64 @@ NNVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) 
         assert(0); 
     }
     return u_pmt_solid;
-
 }
 
 
-G4VSolid*
-NNVT_MCPPMT_PMTSolid::construct_head(G4String solidname, 
+/**
+NNVT_MCPPMT_PMTSolid::construct_head
+----------------------------------------
+
+mode::
+
+    ' ' : full ellipsoid
+    'H' : "head" top z-hemi-ellipsoid
+    'T' : "tail" bottom z-hemi-ellipsoid
+
+**/
+
+G4VSolid* NNVT_MCPPMT_PMTSolid::construct_head(G4String solidname, 
                                      double R,       // R of ellipsoid
                                      double Htop,    // height of ellipsoid
                                      char mode) const {
-  G4Ellipsoid* pmttube_solid_part1 = NULL ; 
-
-  // ' ' : full ellipsoid
-  // 'H' : "head" top z-hemi-ellipsoid
-  // 'T' : "tail" bottom z-hemi-ellipsoid
-
+  G4Ellipsoid* head = NULL ; 
   switch(mode)
   { 
-     case ' ': pmttube_solid_part1 = new G4Ellipsoid(
-                                            solidname+"_1_Ellipsoid",
-                                            R,       // pxSemiAxis
-                                            R,       // pySemiAxis
-                                            Htop     // pzSemiAxis
-                                            );  break ; 
-     case 'H': pmttube_solid_part1 = new G4Ellipsoid(
-                                            solidname+"_1_Ellipsoid",
-                                            R,       // pxSemiAxis
-                                            R,       // pySemiAxis
-                                            Htop,    // pzSemiAxis
-                                            0,       // pzBottomCut -> equator
-                                            Htop     // pzTopCut -> top
-                                            );  break ; 
-     case 'T': pmttube_solid_part1 = new G4Ellipsoid(
-                                            solidname+"_1_Ellipsoid",
-                                            R,       // pxSemiAxis
-                                            R,       // pySemiAxis
-                                            Htop,    // pzSemiAxis
-                                            -Htop,   // pzBottomCut -> bottom
-                                            0        // pzTopCut -> equator
-                                            );  break ; 
-      default: pmttube_solid_part1 = NULL ; break ; 
+     case ' ': head = new G4Ellipsoid(
+                                      solidname+"_head",
+                                      R,       // pxSemiAxis
+                                      R,       // pySemiAxis
+                                      Htop     // pzSemiAxis
+                                      );  break ; 
+     case 'H': head = new G4Ellipsoid(
+                                      solidname+"_head",
+                                      R,       // pxSemiAxis
+                                      R,       // pySemiAxis
+                                      Htop,    // pzSemiAxis
+                                      0,       // pzBottomCut -> equator
+                                      Htop     // pzTopCut -> top
+                                      );  break ; 
+     case 'T': head = new G4Ellipsoid(
+                                      solidname+"_head",
+                                      R,       // pxSemiAxis
+                                      R,       // pySemiAxis
+                                      Htop,    // pzSemiAxis
+                                      -Htop,   // pzBottomCut -> bottom
+                                      0        // pzTopCut -> equator
+                                      );  break ; 
+      default: head = NULL ; break ; 
   }
 
-  return pmttube_solid_part1;
+  if( head == NULL )
+  {
+      G4cout  
+          << "NNVT_MCPPMT_PMTSolid::construct_head"
+          << " FATAL : INVALID MODDE [" << mode << "]"
+          << G4endl 
+          ;
+      assert(0); 
+  }  
+
+  return head;
 }
 
 G4VSolid*
@@ -326,7 +265,7 @@ NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
     G4double rOuter[] = {  Rbtm        , Rtubetorus   } ;  
 
     G4Polycone* neck_ = new G4Polycone(
-                                      solidname+"_part2",
+                                      solidname+"_neck",
                                       phiStart,
                                       phiTotal,
                                       numZPlanes,
@@ -381,12 +320,13 @@ G4VSolid*
 NNVT_MCPPMT_PMTSolid::construct_tail(G4String solidname,
                                      double Rbtm,
                                      double Hbtm) const {
-  G4Tubs* pmttube_solid_end_tube = new G4Tubs(
-                                    solidname+"_3_EndTube",
-                                    0*mm,  /* inner */ 
-                                    Rbtm, //21*cm/2, /* pmt_r */ 
-                                    Hbtm/2, //30*cm/2, /* pmt_h */ 
-                                    0*deg, 
-                                    360*deg);
-  return pmttube_solid_end_tube;
+  G4Tubs* tail = new G4Tubs(
+                            solidname+"_tail",
+                            0*mm,  /* inner */ 
+                            Rbtm, //21*cm/2, /* pmt_r */ 
+                            Hbtm/2, //30*cm/2, /* pmt_h */ 
+                            0*deg, 
+                            360*deg);
+  return tail ;
 }
+
