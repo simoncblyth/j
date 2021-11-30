@@ -87,12 +87,21 @@ private:
                            double R,      // R of ellipsoid
                            double Htop,   // height of ellipsoid
                            char mode) const;
+
   G4VSolid* construct_neck(G4String solidname,
                            double Rtubetorus, 
                            double Htubetorus,
                            double Rtorus,     // swipe
                            double Rbtm, // the r at bottom
                            char mode) const;
+
+  G4VSolid* obsolete_construct_torus_neck(G4String solidname,
+                           double Rtubetorus, 
+                           double Htubetorus,
+                           double Rtorus,     // swipe
+                           double Rbtm, // the r at bottom
+                           char mode) const;
+
   G4VSolid* construct_tail(G4String solidname,
                            double Rbtm,
                            double Hbtm) const;

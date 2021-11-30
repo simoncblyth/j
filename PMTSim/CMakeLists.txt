@@ -21,6 +21,8 @@ list(APPEND SOURCES
      NNVT_MCPPMT_PMTSolid.cc
      NNVTMCPPMTManager.cc
 
+     IGeomStandalone.cc
+
      OldZSolid.cc
      ZCanvas.cc
      ZSolid.cc

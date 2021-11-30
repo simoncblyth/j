@@ -9,6 +9,7 @@
  */
 
 #ifdef STANDALONE
+#include "IGeomStandalone.h"
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -31,7 +32,7 @@ class Hamamatsu_R12860_PMTSolid;
 
 #ifdef STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API HamamatsuR12860PMTManager {
+class PMTSIM_API HamamatsuR12860PMTManager : public IGeomStandalone {
 #else
 class HamamatsuR12860PMTManager: public IPMTElement,
                                  public ToolBase {
@@ -51,11 +52,12 @@ public:
     );
     ~HamamatsuR12860PMTManager();
 
+public:
+    // debug interface
     void dump(const char* msg="HamamatsuR12860PMTManager::dump") ; 
     G4LogicalVolume* getLV(const char* name);
     G4PVPlacement*   getPV(const char* name);
     G4VSolid*        getSolid(const char* name); 
-    static bool StartsWithPrefix(const char* name, const char* prefix); 
 
 private:
     void init();

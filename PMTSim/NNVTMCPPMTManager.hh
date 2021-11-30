@@ -10,6 +10,7 @@
 
 
 #ifdef STANDALONE
+#include "IGeomStandalone.h"
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -34,7 +35,7 @@ class NNVT_MCPPMT_PMTSolid;
 
 #ifdef STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API NNVTMCPPMTManager {
+class PMTSIM_API NNVTMCPPMTManager : public IGeomStandalone {
 #else
 
 class NNVTMCPPMTManager: public IPMTElement,
@@ -54,6 +55,13 @@ public:
     (const G4String& plabel // label -- subvolume names are derived from this
     );
     ~NNVTMCPPMTManager();
+
+public:
+    // debug interface
+    G4LogicalVolume* getLV(const char* name);
+    G4PVPlacement*   getPV(const char* name);
+    G4VSolid*        getSolid(const char* name);
+
 private:
     void init();
 
@@ -62,9 +70,11 @@ private:
     void init_mirror_surface();
     void init_pmt();
 
+    void obsolete_inner_cut();
+    void obsolete_tail_cut();
+
     G4String GetName() { return m_label;}
 
-    void ConstructPMT_UsingTorusStack();
 private:
     G4String m_label;
 
@@ -81,6 +91,11 @@ private:
     G4VSolid* inner_solid;
     G4VSolid* inner1_solid;
     G4VSolid* inner2_solid;
+
+    G4VSolid* uncut_pmt_solid;
+    G4VSolid* uncut_body_solid;
+    G4VSolid* uncut_inner2_solid;
+
     G4Tubs* dynode_solid;
     G4double hh_dynode;
     G4double z_dynode;
@@ -155,6 +170,9 @@ private:
     //      Tyvek  |
     //     19.629m
     bool m_useRealSurface;
+    bool m_plus_dynode ;
+    G4double m_pmt_equator_to_bottom ;
+
 
 };
 

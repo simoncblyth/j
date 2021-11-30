@@ -1964,7 +1964,19 @@ double ZSolid::getZ( const G4VSolid* node ) const
 bool ZSolid::CanZ( const G4VSolid* solid ) // static
 {
     int type = EntityType(solid) ; 
-    return type == _G4Ellipsoid || type == _G4Tubs || type == _G4Polycone || type == _G4Torus ; 
+    bool can = type == _G4Ellipsoid || type == _G4Tubs || type == _G4Polycone || type == _G4Torus ; 
+
+    if( can == false )
+    {
+        std::cout 
+            << "ZSolid::CanZ ERROR "
+            << " false for solid.EntityTypeName " << EntityTypeName(solid)
+            << " solid.name " << solid->GetName()
+            << std::endl ; 
+            ;
+    }
+
+    return can ; 
 }
 void ZSolid::ZRange( double& z0, double& z1, const G4VSolid* solid) // static  
 {

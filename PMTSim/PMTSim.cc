@@ -99,14 +99,24 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
     double zcut = s_zcut == nullptr ? 999. : atof_(s_zcut+strlen("zcut")) ; 
 
     std::cout 
-        << "PMTSim::GetSolid " << name 
+        << "PMTSim::GetSolid"
+        << " name " << name  
         << " zcut " << std::setw(10) << std::fixed << std::setprecision(4) << zcut 
         << std::endl 
         ;
 
     G4VSolid* solid = GetSolid_(name); 
 
-    if(s_zcut != nullptr)
+    if( solid == nullptr )
+    {
+        std::cout 
+            << "PMTSim::GetSolid"
+            << " FAILED " 
+            << " name " << name  
+            << std::endl 
+            ;
+    }
+    else if( s_zcut != nullptr )
     {
         bool verbose = getenv("PMTSim_GetSolid") != nullptr ; 
         G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, verbose );  
@@ -171,13 +181,22 @@ G4VSolid* PMTSim::GetSolid_(const char* name) // static
     {
         solid = GetDebugSolid(name) ; 
     }
-    else if(StartsWithPrefix(name, "maker"))
+    else if(Contains(name, "maker"))  // maker comes first as will have manager prefix too
     {
         solid = GetMakerSolid(name) ; 
     }
-    else
+    else if(HasManagerPrefix(name))   // names begins with hama_ or nnvt_
     {
         solid = GetManagerSolid(name) ;
+    }
+
+    if( solid == nullptr )
+    {
+        std::cout
+            << "PMTSim::GetSolid_"
+            << " FAILED for name " << name
+            << std::endl
+            ;   
     }
     return solid ; 
 }
@@ -186,6 +205,11 @@ bool PMTSim::StartsWithPrefix(const char* name, const char* prefix)  // static
 {
     return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ; 
 }
+bool PMTSim::Contains(const char* name, const char* sub)  // static
+{
+    return strlen(name) >= strlen(sub) && strstr( name, sub) != nullptr  ; 
+}
+
 
 bool PMTSim::IsDebugSolid(const char* name) // static
 {
@@ -360,15 +384,6 @@ char* PMTSim::ijtoa_( const char* fmt, int i, int j ) // static
 }
 
 
-
-
-
-
-
-
-
-
-
 /**
 PMTSim::GetMakerSolid
 ----------------------
@@ -391,14 +406,9 @@ G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
 G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 {
     std::cout << "[ PMTSim::GetManagerSolid " << name << std::endl ;      
-
-    std::cout << "[ PMTSim::GetManagerSolid PMTSim::PMTSim " << name << std::endl ;      
     PMTSim* ps = new PMTSim ; 
-    std::cout << "] PMTSim::GetManagerSolid PMTSim::PMTSim " << name << std::endl ;      
-
     std::cout << "[ PMTSim::GetManagerSolid PMTSim::getSolid " << name << std::endl ;      
     G4VSolid* solid = ps->getSolid(name); 
-    std::cout << "] PMTSim::GetManagerSolid PMTSim::getSolid " << name << " solid " << solid << std::endl ;      
 
     if( solid == nullptr )
     {
@@ -515,14 +525,14 @@ void PMTSim::DumpSolids() // static
 
 
 
-PMTSim::PMTSim(const char* name)
+PMTSim::PMTSim()
     :
     verbose(getenv("VERBOSE")!=nullptr),
     m_dc(nullptr),
     m_hama(nullptr),
     m_nnvt(nullptr)
 {
-    init(name); 
+    init(); 
 }
 
 /**
@@ -537,30 +547,36 @@ Instanciates residents with cout+cerr redirected to avoid the noise
 
 **/
 
-void PMTSim::init(const char* name)
+void PMTSim::init()
 {
     std::stringstream coutbuf;
     std::stringstream cerrbuf;
-
     {   
         cout_redirect out_(coutbuf.rdbuf());
         cerr_redirect err_(cerrbuf.rdbuf());
     
         m_dc = new DetectorConstruction ; 
-        m_hama = new HamamatsuR12860PMTManager(name) ; 
-        m_nnvt = new NNVTMCPPMTManager(name) ; 
-    
+        m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
+        m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
 
     std::string out = coutbuf.str(); 
     std::string err = cerrbuf.str(); 
 
-    std::cout << "PMTSim::init captured cout " << std::setw(6) << out.size() << " set VERBOSE to see it " << std::endl  ;   
-    if(verbose) std::cout << "[" << std::endl << out << "]" << std::endl  ;   
+    std::cout 
+        << "PMTSim::init" 
+        << " cout chars " << std::setw(6) << out.size() 
+        << " cerr chars " << std::setw(6) << err.size() 
+        << " set VERBOSE to see them " 
+        << std::endl  
+        ;   
 
-    std::cout << "PMTSim::init captured cerr " << std::setw(6) << err.size() << " set VERBOSE to see it " <<  std::endl ; 
-    if(verbose) std::cout << "[" << std::endl << err << "]" << std::endl  ;   
+    if(verbose) 
+    {
+        std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
+        std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
+    }
 }
 
 /**
@@ -568,20 +584,48 @@ Hmm need to effect the split between Hama and NNVT : maybe simply hama_ nnvt_ pr
 and skipping ahead by the prefix to avoid internal naming changes 
 **/
 
+const char* PMTSim::PREFIX = "01234" ;   // all prefix must have same length 
+const char* PMTSim::HAMA   = "hama_" ; 
+const char* PMTSim::NNVT   = "nnvt_" ; 
+
+
+bool PMTSim::HasManagerPrefix( const char* name ) // static
+{
+    bool hama = StartsWithPrefix(name, HAMA ); 
+    bool nnvt = StartsWithPrefix(name, NNVT ); 
+    return hama ^ nnvt ; 
+}
+
+IGeomStandalone* PMTSim::getManager(const char* name)
+{
+    IGeomStandalone* mgr = nullptr ;   
+    if(IGeomStandalone::StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
+    if(IGeomStandalone::StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
+    if(mgr == nullptr)
+    {
+        std::cerr
+            << "PMTSim::getManager FATAL " 
+            << " name " << name
+            << " does not start with one of the expected prefixes "
+            << std::endl 
+            ;
+    }   
+    assert(mgr);  
+    return mgr ; 
+}
+
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
-    return m_hama->getLV(name) ; 
+    return getManager(name)->getLV(name + strlen(PREFIX)) ; 
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
-    return m_hama->getPV(name) ; 
+    return getManager(name)->getPV(name + strlen(PREFIX)) ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
-    return m_hama->getSolid(name) ;  
+    return getManager(name)->getSolid(name + strlen(PREFIX)) ;  
 }
-
-
 
 
 void PMTSim::Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr , std::vector<G4VSolid*>* solids ) // static

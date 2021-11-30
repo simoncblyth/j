@@ -317,59 +317,65 @@ NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
                                      double Rtorus,     // swipe
                                      double Rbtm, // the r at bottom
                                      char mode) const {
-  G4VSolid* pmttube_solid_part2 = NULL ;
+    G4VSolid* neck = nullptr ;
+    G4double phiStart = 0.00*deg ; 
+    G4double phiTotal = 360.00*deg ;
+    G4int numZPlanes = 2 ; 
+    G4double zPlane[] = { -Htubetorus/2, Htubetorus/2 } ;  
+    G4double rInner[] = {  0.0         , 0.0   } ;  
+    G4double rOuter[] = {  Rbtm        , Rtubetorus   } ;  
 
-  if(m_polycone_neck == false)
-  {
+    G4Polycone* neck_ = new G4Polycone(
+                                      solidname+"_part2",
+                                      phiStart,
+                                      phiTotal,
+                                      numZPlanes,
+                                      zPlane,
+                                      rInner,
+                                      rOuter
+                                      ); 
 
-      G4Tubs* pmttube_solid_tube = new G4Tubs(
-                                        solidname+"_2_Tube",
-                                        0*mm,  /* inner */ 
-                                        Rtubetorus, /* pmt_r */ 
-                                        Htubetorus/2, /* part 2 h */ 
-                                        0*deg, 
-                                        360*deg);
-      G4Torus* pmttube_solid_torus = new G4Torus(
-                                            solidname+"_2_Torus",
-                                            0*mm,  // R min
-                                            Rtorus, // R max
-                                            (m_Rbtm+m_Rtorus), // Swept Radius
-                                            0.00*deg,
-                                            360.00*deg);
-      G4SubtractionSolid* pmttube_solid_part2_ = new G4SubtractionSolid(
-                                                solidname+"_part2",
-                                                pmttube_solid_tube,
-                                                pmttube_solid_torus,
-                                                0,
-                                                G4ThreeVector(0,0,-Htubetorus/2)
-                                                );
-
-      pmttube_solid_part2 = (G4VSolid*)pmttube_solid_part2_ ; 
-
-  } 
-  else
-  {
-      G4double phiStart = 0.00*deg ; 
-      G4double phiTotal = 360.00*deg ;
-      G4int numZPlanes = 2 ; 
-      G4double zPlane[] = { -Htubetorus/2, Htubetorus/2 } ;  
-      G4double rInner[] = {  0.0         , 0.0   } ;  
-      G4double rOuter[] = {  Rbtm        , Rtubetorus   } ;  
-
-      G4Polycone* pmttube_solid_part2_ = new G4Polycone(
-                                                solidname+"_part2",
-                                                phiStart,
-                                                phiTotal,
-                                                numZPlanes,
-                                                zPlane,
-                                                rInner,
-                                                rOuter
-                                                ); 
-
-      pmttube_solid_part2 = (G4VSolid*)pmttube_solid_part2_ ; 
-  } 
-  return pmttube_solid_part2;
+    neck = (G4VSolid*)neck_ ; 
+    return neck ;
 }
+
+
+G4VSolid* NNVT_MCPPMT_PMTSolid::obsolete_construct_torus_neck(G4String solidname,
+                                     double Rtubetorus, 
+                                     double Htubetorus,
+                                     double Rtorus,     // swipe
+                                     double Rbtm, // the r at bottom
+                                     char mode) const 
+{
+    G4VSolid* neck = NULL ;
+    G4Tubs* tube = new G4Tubs(
+                                    solidname+"_2_Tube",
+                                    0*mm,  /* inner */ 
+                                    Rtubetorus, /* pmt_r */ 
+                                    Htubetorus/2, /* part 2 h */ 
+                                    0*deg, 
+                                    360*deg);
+    G4Torus* torus = new G4Torus(
+                                        solidname+"_2_Torus",
+                                        0*mm,  // R min
+                                        Rtorus, // R max
+                                        (m_Rbtm+m_Rtorus), // Swept Radius
+                                        0.00*deg,
+                                        360.00*deg);
+    G4SubtractionSolid* neck_ = new G4SubtractionSolid(
+                                            solidname+"_part2",
+                                            tube,
+                                            torus,
+                                            0,
+                                            G4ThreeVector(0,0,-Htubetorus/2)
+                                            );
+
+    neck = (G4VSolid*)neck_ ; 
+    return neck ;
+} 
+
+
+
 
 G4VSolid*
 NNVT_MCPPMT_PMTSolid::construct_tail(G4String solidname,

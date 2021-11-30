@@ -351,14 +351,12 @@ void HamamatsuR12860PMTManager::init_pmt()
 
 void HamamatsuR12860PMTManager::helper_make_solid() 
 {
-
     double pmt_delta = 1E-3*mm ; 
     double inner_delta =  -5*mm ;  
     double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ; 
-
-    double zcut = -m_pmt_equator_to_bottom ; 
-
     // TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+
+    double zcut = m_pmt_equator_to_bottom ; 
 
     Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ; 
     pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
@@ -377,11 +375,21 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     {
         LogInfo << "Cut the tail of PMT " << std::endl;
 
-        std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
-        bool verbose = true ; 
-        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , zcut + pmt_delta   , verbose );
-        body_solid   = ZSolid::ApplyZCutTree( body_solid  , zcut + body_delta  , verbose );
-        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, zcut + inner_delta , verbose );
+        std::cout 
+            << "[ ZSolid::ApplyZCutTree"
+            << " zcut " << std::setw(10) << std::fixed << std::setprecision(3) << zcut 
+            << " pmt_delta " << std::setw(10) << std::fixed << std::setprecision(3) << pmt_delta 
+            << " body_delta " << std::setw(10) << std::fixed << std::setprecision(3) << body_delta 
+            << " inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << inner_delta 
+            << " zcut+pmt_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + pmt_delta 
+            << " zcut+body_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + body_delta 
+            << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
+            << std::endl ; 
+
+        bool verbose = getenv("HamamatsuR12860PMTManager_helper_make_solid") != nullptr ; 
+        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   , verbose );
+        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  , verbose );
+        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) , verbose );
 
         std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
@@ -416,10 +424,6 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
 }
 
 
-bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
-{
-    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ; 
-}
 
 G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {

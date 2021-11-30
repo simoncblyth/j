@@ -13,11 +13,18 @@ struct DetectorConstruction ;
 class HamamatsuR12860PMTManager ; 
 class NNVTMCPPMTManager ; 
 
+struct IGeomStandalone ; 
+
+
 #include "PMTSIM_API_EXPORT.hh"
 
 struct PMTSIM_API PMTSim
 {
     static void SetEnvironmentSwitches(const char* name); 
+
+    static const char* PREFIX ; 
+    static const char* HAMA ; 
+    static const char* NNVT ; 
 
     static G4VSolid* GetSolid(const char* name); 
 
@@ -29,7 +36,9 @@ struct PMTSIM_API PMTSim
     static bool IsDebugSolid(const char* qname)  ; 
     static char* itoa_( const char* fmt, int i ); 
     static char* ijtoa_( const char* fmt, int i, int j ); 
+
     static bool StartsWithPrefix(const char* name, const char* prefix) ; 
+    static bool Contains(        const char* name, const char* sub) ; 
 
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
@@ -49,8 +58,11 @@ struct PMTSIM_API PMTSim
     HamamatsuR12860PMTManager* m_hama ; 
     NNVTMCPPMTManager*         m_nnvt ; 
 
-    PMTSim(const char* name=""); 
-    void init(const char* name); 
+    static bool HasManagerPrefix( const char* name ); 
+    IGeomStandalone* getManager(const char* name); 
+
+    PMTSim(); 
+    void init(); 
 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
