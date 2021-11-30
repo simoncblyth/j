@@ -1,10 +1,12 @@
 #pragma once
 
 /**
-IGeomStandalone
-=================
+IGeomManager
+===============
 
-The below geometry providing managers are IGeomStandalone 
+Formerly named IGeomStandalone, but renamed as this simple
+protocol base can be useful beyond just STANDALONE tests.
+The below geometry providing managers are IGeomManager 
 when they are compiled with the STANDALONE switch::
 
     HamamatsuR12860PMTManager
@@ -17,7 +19,7 @@ class G4LogicalVolume ;
 class G4PVPlacement ;
 class G4VSolid ; 
 
-struct IGeomStandalone
+struct IGeomManager
 {
     virtual G4LogicalVolume* getLV(const char* name) = 0 ;
     virtual G4PVPlacement*   getPV(const char* name) = 0 ;

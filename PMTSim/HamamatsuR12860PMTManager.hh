@@ -9,7 +9,6 @@
  */
 
 #ifdef STANDALONE
-#include "IGeomStandalone.h"
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -17,6 +16,7 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 #endif
 
+#include "IGeomManager.h"
 #include "globals.hh"
 #include "G4ThreeVector.hh"
 
@@ -32,7 +32,7 @@ class Hamamatsu_R12860_PMTSolid;
 
 #ifdef STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API HamamatsuR12860PMTManager : public IGeomStandalone {
+class PMTSIM_API HamamatsuR12860PMTManager : public IGeomManager {
 #else
 class HamamatsuR12860PMTManager: public IPMTElement,
                                  public ToolBase {

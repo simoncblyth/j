@@ -10,7 +10,6 @@
 
 
 #ifdef STANDALONE
-#include "IGeomStandalone.h"
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -18,6 +17,9 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 #endif
 
+#include "IGeomManager.h"
+#include "G4ThreeVector.hh"
+#include "globals.hh"
 
 class G4OpticalSurface;
 class G4Material;
@@ -27,15 +29,11 @@ class G4VSolid;
 class G4Tubs;
 class G4LogicalVolume ; 
 
-#include "G4ThreeVector.hh"
-#include "globals.hh"
-
 class NNVT_MCPPMT_PMTSolid;
-
 
 #ifdef STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API NNVTMCPPMTManager : public IGeomStandalone {
+class PMTSIM_API NNVTMCPPMTManager : public IGeomManager {
 #else
 
 class NNVTMCPPMTManager: public IPMTElement,

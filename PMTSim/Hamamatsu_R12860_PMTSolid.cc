@@ -15,16 +15,11 @@
 using namespace CLHEP;
 
 Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid()
-    :
-    m_polycone_neck(true)  // was formerly optional controlled by internal envvar JUNO_PMT20INCH_POLYCONE_NECK
 {
    G4cout 
        << "Hamamatsu_R12860_PMTSolid::Hamamatsu_R12860_PMTSolid"
-       << " m_polycone_neck " << m_polycone_neck 
-       << ( m_polycone_neck ? " --pmt20inch-polycone-neck ENABLED " : " " )
        << G4endl 
        ;
-
 
     m1_h = 190.;
     m1_r = 254.;
@@ -162,7 +157,6 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 					0, // pzBottomCut -> equator
 					P_I_H // pzTopCut -> top
 					);
-    // pmt_solid = solid_I;
 
     G4VSolid* solid_II = new G4Tubs(
 					solidname+"_II",
@@ -228,97 +222,8 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 );
 
 
-    G4VSolid* solid_IV = NULL ; 
-    if(m_polycone_neck == false)
-    {
-        G4VSolid* solid_IV_tube = new G4Tubs(
-                         solidname+"_IV_tube",
-                         0.0,
-                         m4_r_1,
-                         m4_h/2,
-                         0.0*deg,
-                         360.0*deg
-                         );
-        G4VSolid* solid_IV_torus = new G4Torus(
-                           solidname+"_IV_torus",
-                           0.*mm,
-                           m4_torus_r-thickness, // R
-                           m4_torus_r+m4_r_2, // swept radius
-                           0.0*deg,
-                           360.0*deg);
-        G4VSolid* _solid_IV = new G4SubtractionSolid(
-                            solidname+"_IV",
-                            solid_IV_tube,
-                            solid_IV_torus,
-                            0,
-                            G4ThreeVector(0,0,-m4_h/2)
-                            );
-
-        solid_IV = _solid_IV ;
-    }
-    else
-    {
-        double ec_r = 0. ; 
-        double ec_z = 0. ; 
-        {
-            // "absolute" frame ellipse params 
-            double e_cx = 0. ; 
-            double e_cy = -m2_h ;   // lower ellipsoid half is pushed down a little : -5 
-            double e_ax = P_I_R ;   
-            double e_ay = P_I_H ;   
-
-            // "absolute" frame torus circle params 
-            double c_cx = m4_torus_r + m4_r_2 ;      // 207.  torus_x 
-            double neck_offset_z = -210. + m4_h/2 ;  // see _1_4 below
-            double c_cy = neck_offset_z -m4_h/2 ;    // -210. torus_z  (see _1_4 below)
-            double c_r = m4_torus_r-thickness ;      //       torus_r 
-
-            // Ellipse_Intersect_Circle gives "absolute" frame intersect of ellipse and circle.
-            // The intersect is found by brute force checking whether up to 1M points 
-            // anti-clockwise around the ellipse are within the circle. 
-            // The first ellipse point encountered that is inside the circle is 
-            // taken as an approximation (a very good one) for the desired intersect.
-            //
-            // In general a circle and an ellipse can intersect at 0,1,2,3 or 4 points
-            // This simple numerical intersection is assumming there are 2 intersects.
-            //
-  
-            int n = 1000000 ; 
-            bool verbose = false ; 
-            printf("[Ellipse_Intersect_Circle \n");
-            Ellipse_Intersect_Circle ec = Ellipse_Intersect_Circle::make( e_cx, e_cy, e_ax, e_ay, c_cx, c_cy, c_r, n, verbose );  
-            printf("]Ellipse_Intersect_Circle (%10.4f, %10.4f) \n", ec.intersect.p[0].x, ec.intersect.p[0].y );  
-            // intersect coordinates in  "absolute" relative to top Union 1_9 frame 
-
-            ec_r = ec.intersect.p[0].x ; 
-            ec_z = ec.intersect.p[0].y - neck_offset_z ;  // get back into neck frame 
-        }    
-        {
-            G4double phiStart = 0.00*deg ; 
-            G4double phiTotal = 360.00*deg ;
-            G4int numZPlanes = 2 ; 
-            G4double zPlane[] = {  -m4_h/2         , ec_z  } ;  
-            G4double rInner[] = {  0.0             , 0.0   } ;  
-            G4double rOuter[] = {  m5_r + thickness, ec_r  } ;    
-
-            // m4_r_2 == m5_r : 
-            // m5_r + thickness : matches radius of the tubs beneath
-
-            G4Polycone* _solid_IV = new G4Polycone(
-                                     solidname+"_IV",
-                                     phiStart,
-                                     phiTotal,
-                                     numZPlanes,
-                                     zPlane,
-                                     rInner,
-                                     rOuter
-                                     ); 
-
-            solid_IV = (G4VSolid*)_solid_IV ;
-        }
-    }
-
-
+    G4VSolid* solid_IV = construct_polycone_neck( solidname, P_I_R, P_I_H, thickness ); 
+    //G4VSolid* solid_IV = obsolete_construct_torus_neck( solidname, thickness ); 
 
     // +IV
     pmt_solid = new G4UnionSolid(
@@ -383,14 +288,6 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 				 G4ThreeVector(0,0,-420.*mm+m8_h/2)
 				 );
 
-    // G4VSolid* solid_IX = new G4Tubs(
-    // 				    solidname+"_IX",
-    // 				    0.0,
-    // 				    m9_r+thickness,
-    // 				    m9_h/2,
-    // 				    0.0*deg,
-    // 				    360.0*deg
-    // 				    );
     double* r_IX_in = new double[2]; r_IX_in[0] = 0.0;            r_IX_in[1] = 0.0;
     double* r_IX = new double[2];    r_IX[0] = m9_r+thickness;    r_IX[1] = m9_r+thickness;
     double* z_IX = new double[2];    z_IX[0] = -(m9_h+thickness); z_IX[1] = 0;
@@ -437,3 +334,103 @@ Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char m
 
     return u_pmt_solid;
 }
+
+
+/**
+Hamamatsu_R12860_PMTSolid::construct_polycone_neck
+-----------------------------------------------------
+
+Ellipse_Intersect_Circle gives "absolute" frame intersect of ellipse and circle.
+The intersect is found by brute force checking whether up to 1M points 
+anti-clockwise around the ellipse are within the circle. 
+The first ellipse point encountered that is inside the circle is 
+taken as an approximation (a very good one) for the desired intersect.
+
+In general a circle and an ellipse can intersect at 0,1,2,3 or 4 points
+This simple numerical intersection is assumming there are 2 intersects.
+
+**/
+
+G4VSolid* Hamamatsu_R12860_PMTSolid::construct_polycone_neck(G4String solidname, double P_I_R, double P_I_H, double thickness )
+{
+    G4VSolid* solid_IV = nullptr ; 
+
+    // "absolute" frame ellipse params 
+    double e_cx = 0. ; 
+    double e_cy = -m2_h ;   // lower ellipsoid half is pushed down a little : -5 
+    double e_ax = P_I_R ;   
+    double e_ay = P_I_H ;   
+
+    // "absolute" frame torus circle params 
+    double c_cx = m4_torus_r + m4_r_2 ;      // 207.  torus_x 
+    double neck_offset_z = -210. + m4_h/2 ;  // see _1_4 below
+    double c_cy = neck_offset_z -m4_h/2 ;    // -210. torus_z  (see _1_4 below)
+    double c_r = m4_torus_r-thickness ;      //       torus_r 
+
+    int n = 1000000 ; 
+    bool verbose = false ; 
+    printf("[Ellipse_Intersect_Circle \n");
+    Ellipse_Intersect_Circle ec = Ellipse_Intersect_Circle::make( e_cx, e_cy, e_ax, e_ay, c_cx, c_cy, c_r, n, verbose );  
+    printf("]Ellipse_Intersect_Circle (%10.4f, %10.4f) \n", ec.intersect.p[0].x, ec.intersect.p[0].y );  
+    // intersect coordinates in  "absolute" relative to top Union 1_9 frame 
+
+    double ec_r = ec.intersect.p[0].x ; 
+    double ec_z = ec.intersect.p[0].y - neck_offset_z ;  // get back into neck frame 
+
+
+    {
+        G4double phiStart = 0.00*deg ; 
+        G4double phiTotal = 360.00*deg ;
+        G4int numZPlanes = 2 ; 
+        G4double zPlane[] = {  -m4_h/2         , ec_z  } ;  
+        G4double rInner[] = {  0.0             , 0.0   } ;  
+        G4double rOuter[] = {  m5_r + thickness, ec_r  } ;    
+
+        // m4_r_2 == m5_r : 
+        // m5_r + thickness : matches radius of the tubs beneath
+
+        G4Polycone* _solid_IV = new G4Polycone(
+                                 solidname+"_IV",
+                                 phiStart,
+                                 phiTotal,
+                                 numZPlanes,
+                                 zPlane,
+                                 rInner,
+                                 rOuter
+                                 ); 
+
+        solid_IV = (G4VSolid*)_solid_IV ;
+    }
+    return solid_IV ; 
+}
+
+
+G4VSolid* Hamamatsu_R12860_PMTSolid::obsolete_construct_torus_neck(G4String solidname, double thickness )
+{
+    G4VSolid* solid_IV_tube = new G4Tubs(
+                     solidname+"_IV_tube",
+                     0.0,
+                     m4_r_1,
+                     m4_h/2,
+                     0.0*deg,
+                     360.0*deg
+                     );
+    G4VSolid* solid_IV_torus = new G4Torus(
+                       solidname+"_IV_torus",
+                       0.*mm,
+                       m4_torus_r-thickness, // R
+                       m4_torus_r+m4_r_2, // swept radius
+                       0.0*deg,
+                       360.0*deg);
+    G4VSolid* solid_IV = new G4SubtractionSolid(
+                        solidname+"_IV",
+                        solid_IV_tube,
+                        solid_IV_torus,
+                        0,
+                        G4ThreeVector(0,0,-m4_h/2)
+                        );
+
+    return solid_IV ; 
+}
+
+

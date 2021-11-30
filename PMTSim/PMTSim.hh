@@ -13,8 +13,7 @@ struct DetectorConstruction ;
 class HamamatsuR12860PMTManager ; 
 class NNVTMCPPMTManager ; 
 
-struct IGeomStandalone ; 
-
+struct IGeomManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
 
@@ -60,7 +59,7 @@ struct PMTSIM_API PMTSim
     NNVTMCPPMTManager*         m_nnvt ; 
 
     static bool HasManagerPrefix( const char* name ); 
-    IGeomStandalone* getManager(const char* name); 
+    IGeomManager* getManager(const char* name); 
 
     PMTSim(); 
     void init(); 

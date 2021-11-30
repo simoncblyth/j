@@ -21,6 +21,9 @@ public:
     G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
 
 private:
+    G4VSolid* construct_polycone_neck(G4String solidname, double P_I_R, double P_I_H, double thickness ); 
+    G4VSolid* obsolete_construct_torus_neck(G4String solidname, double thickness ); 
+
 
     // Hamamatsu R12860 is divided into following part:
     // 1. Ellipsoid  (z: 0 -> 190)      D: 508.
@@ -55,8 +58,6 @@ private:
     double m8_h;
     double m9_r;
     double m9_h;
-
-    bool m_polycone_neck ; 
 
 };
 

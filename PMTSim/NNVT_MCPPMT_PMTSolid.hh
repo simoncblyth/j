@@ -66,7 +66,6 @@ private:
   double m_Hbtm;
   double m_Rbtm;
   double m_Rtorus;
-  bool   m_polycone_neck; 
  
   double m_Heq2torus; 
   double m_theta;

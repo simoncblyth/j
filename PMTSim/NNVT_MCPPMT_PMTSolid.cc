@@ -108,8 +108,7 @@ using namespace CLHEP;
 NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid()
     : 
     m_R(254.*mm), m_H(570.*mm), m_Htop(184.*mm), 
-    m_Hbtm(172.50*mm), m_Rbtm(50.*mm), m_Rtorus(43.*mm), 
-    m_polycone_neck(getenv("JUNO_PMT20INCH_POLYCONE_NECK") == NULL ? false : true)
+    m_Hbtm(172.50*mm), m_Rbtm(50.*mm), m_Rtorus(43.*mm)
 {
     m_Heq2torus = m_H - m_Htop - m_Hbtm;                       // EM : equator to torus midline
     m_theta = atan((m_Rbtm+m_Rtorus)/(m_Heq2torus));           // MET : angle of axial triangle connecting center of bulb E, torus center T and point on axis M   
@@ -118,8 +117,6 @@ NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid()
 
     G4cout 
         << "NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid"
-        << " m_polycone_neck " << m_polycone_neck 
-        << ( m_polycone_neck ? " --pmt20inch-polycone-neck ENABLED " : " " )
         << G4endl 
         ;
 }

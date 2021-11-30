@@ -84,15 +84,15 @@ PMTSim::SetEnvironmentSwitches
 
 Sets switches depending of the content of the name string. 
 
-NB are in process of removing the need for POLYCONE_NECK and SIMPLIFY_CSG switches, 
-the others NOT_USE_REAL_SURFACE and PLUS_DYNODE are for debugging and can remain.
+* have removed  "_pcnk:JUNO_PMT20INCH_POLYCONE_NECK" as that is now standard and non-optional 
+* are in process of removing the SIMPLIFY_CSG switches
+* others : NOT_USE_REAL_SURFACE and PLUS_DYNODE are for debugging and can remain.
 
 **/
 
 void PMTSim::SetEnvironmentSwitches(const char* name)  // static
 {
     std::vector<std::string> tagkeys = {
-       "_pcnk:JUNO_PMT20INCH_POLYCONE_NECK" , 
        "_scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
        "_nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
        "_pdyn:JUNO_PMT20INCH_PLUS_DYNODE" } ; 
@@ -635,15 +635,10 @@ void PMTSim::init()
     }
 }
 
-/**
-Hmm need to effect the split between Hama and NNVT : maybe simply hama_ nnvt_ prefix 
-and skipping ahead by the prefix to avoid internal naming changes 
-**/
 
 const char* PMTSim::PREFIX = "0123" ;   // all prefix must have same length 
 const char* PMTSim::HAMA   = "hama" ; 
 const char* PMTSim::NNVT   = "nnvt" ; 
-
 
 bool PMTSim::HasManagerPrefix( const char* name ) // static
 {
@@ -652,9 +647,9 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     return hama ^ nnvt ; 
 }
 
-IGeomStandalone* PMTSim::getManager(const char* name)
+IGeomManager* PMTSim::getManager(const char* name)
 {
-    IGeomStandalone* mgr = nullptr ;   
+    IGeomManager* mgr = nullptr ;   
     if(StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
     if(StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
     if(mgr == nullptr)
