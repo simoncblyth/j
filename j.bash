@@ -671,16 +671,31 @@ EOC
 
 
 # -false to end sequence of ors 
+jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
 jcl(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
 jfi(){ local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
 
 
+jps_add(){
+    local extra
+    for extra in $* 
+    do 
+        case $extra in
+           *.hh) drel=Simulation/DetSimV2/PMTSim/include ;;
+           *.cc) drel=Simulation/DetSimV2/PMTSim/src     ;;  
+        esac
+        echo cp $extra $JUNOTOP/offline/$drel/$extra 
+    done
+}
+
+
+
 jcopy(){  
-   : copy classes into PWD 
+   : copy classes from offline into PWD 
    local dst=$PWD
    local src=$JUNOTOP/offline
    cd $src
-   local rels=$(jcl $*)
+   local rels=$(jcl $*)    # paths relative to PWD for all the class name arguments 
    local rel 
    local name 
    local path
@@ -699,6 +714,37 @@ jcopy(){
        fi  
    done 
 }
+
+
+jcopyback(){
+   : copy classes from PWD j back into offline SVN 
+   local src=$PWD
+   local dst=$JUNOTOP/offline
+   cd $dst
+
+   local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments 
+   local rel 
+   local name 
+   local path
+   local cmd
+   local spath
+   local dpath
+
+   for rel in $rels 
+   do  
+       name=$(basename $rel)
+       spath=$src/$name
+       dpath=$dst/$rel
+
+       if [ -f "$spath" ]; then 
+           cmd="cp $spath $dpath"
+           echo $cmd
+       fi  
+   done 
+}
+
+
+
 
 jdiff(){
    local dst=$PWD
