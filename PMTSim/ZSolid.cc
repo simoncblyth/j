@@ -7,17 +7,14 @@
 #include "G4UnionSolid.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4SubtractionSolid.hh"
-
 #include "G4Ellipsoid.hh"
 #include "G4Tubs.hh"
 #include "G4Polycone.hh"
 #include "G4Torus.hh"
-
 #include "G4RotationMatrix.hh"
 
 #include "ZCanvas.hh"
 #include "ZSolid.hh"
-#include "NP.hh"
 
 
 G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ) // static

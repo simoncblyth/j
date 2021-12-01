@@ -15,8 +15,6 @@ class G4DisplacedSolid ;
 #include <vector>
 
 
-#include "PMTSIM_API_EXPORT.hh"
-
 /**
 ZSolid : CSG tree manipulations  
 =================================
@@ -25,8 +23,14 @@ ZSolid : CSG tree manipulations
 
 struct ZCanvas ; 
 
+#ifdef STANDALONE
+#include "PMTSIM_API_EXPORT.hh"
 struct PMTSIM_API ZSolid   
 {
+#else
+struct ZSolid   
+{
+#endif
     // primary API
     static G4VSolid* ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ); 
     static void Draw(const G4VSolid* original, const char* msg="ZSolid::Draw" ); 

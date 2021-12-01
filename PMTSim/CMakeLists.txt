@@ -22,7 +22,6 @@ list(APPEND SOURCES
      NNVTMCPPMTManager.cc
 
      OldZSolid.cc
-     ZCanvas.cc
      ZSolid.cc
      MaterialSvc.cc
      DetectorConstruction.cc

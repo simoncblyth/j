@@ -10,6 +10,7 @@
 
 
 #ifdef STANDALONE
+#include "IGeomManager.h"
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -17,7 +18,6 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 #endif
 
-#include "IGeomManager.h"
 #include "G4ThreeVector.hh"
 #include "globals.hh"
 
