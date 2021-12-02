@@ -13,12 +13,121 @@ Common source for JUNO high level bash functions
 Install Link
 ---------------
 
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
 * https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#install_offline_data
 
 
 Page for updating
 
 *  https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation#Using_JunoENV
+
+
+Tao /cvmfs Offline Scripts
+-----------------------------
+
+Yes, we also encounter such problem (ROOT not compatible with devtoolset) before. 
+You can use the GCC 8.3.0 provided by JUNO. You can have a look at my installation 
+script to see how to reuse the external libraries:
+
+* /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0/quick-deploy-J21v2r0-Pre0.sh
+
+BTW: As I mentioned in the last meeting, I had setup a new CVMFS repository for nightly build:
+
+* /cvmfs/juno_nightlies.ihep.ac.cn/centos7_amd64_gcc830/b
+
+The nightly build consists a shell script and a crontab:
+
+    [junopub@cvmfspublisher ~]$ crontab -l
+    25 17 * * * bash <<< "$(bash /cvmfs/juno_nightlies.ihep.ac.cn/centos7_amd64_gcc830/b/build-tools/build.sh deployit)"
+
+
+SCB: deployit emits to stdout a few commands including "cvmfs_server publish" 
+
+The software is built in a container on the cvmfspublisher. The reason why I
+use '<<<' is because the CVMFS will check any file belong this repository is
+used or not. If the shell script is still used, then the publish will be
+failed.  
+
+If I remember correctly, you had the access to the opticks CVMFS
+repository. So you can create a directory for such usage.  I think one missing
+part is the CUDA is not included inside the container. I am not sure is that
+easy to deploy it inside the container.  Maybe we can contact with Jingyan Shi
+and Ran Du for the help. 
+
+
+/cvmfs/juno_nightlies.ihep.ac.cn/centos7_amd64_gcc830/b/build-tools/build.sh
+
+
+Reuse of ExternalLibs
+------------------------
+
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0/quick-deploy-J21v2r0-Pre0.sh::
+
+
+     10 function reuse-junotop() {
+     11     echo /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch
+     12 }
+     13 
+     14 function junotop() {
+     15     echo /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0
+     16 }
+     17 
+     18 function checkout-junoenv() {
+     19     if [ -d "$(junotop)/junoenv" ];
+     20     then
+     21         return
+     22     fi
+     23     svn co https://juno.ihep.ac.cn/svn/offline/${JUNOENV_branches}/installation/junoenv
+     24 }
+     25 
+     26 function setup-env() {
+     27     export JUNOTOP=$(junotop)
+     28     export JUNO_EXTLIB_OLDTOP=$(reuse-junotop)/ExternalLibs
+     29     export ExternalInterface_version="trunk 33"
+     30     export Sniper_version="2.0.3"
+     31     export OfflineData_version="trunk 115"
+     32     export Offline_version="tags/J21v2r0-Pre0" # TODO
+     33 
+     34     export JUNOENV_branches=trunk
+     35     export JUNOENV_version=
+     36 }
+     37 
+     38 function reuse-libs() {
+     39     # bash junoenv libs reuse allpkgs
+     40     bash junoenv libs reuse python
+     41     bash junoenv libs reuse python-setuptools
+     42     bash junoenv libs reuse python-pip
+     43     bash junoenv libs reuse python-cython
+     44     bash junoenv libs reuse python-numpy
+       
+
+
+junoenv-external-libs.sh::
+
+    795 function juno-ext-libs-reuse {
+    796     local msg="==== $FUNCNAME: "
+    797     # = check the environment variable $JUNO_EXTLIB_OLDTOP =
+    798     if [ -z "$JUNO_EXTLIB_OLDTOP" ];
+    799     then 
+    800         echo $msg Please set the ENVIRONMENT VARIABLE called \$JUNO_EXTLIB_OLDTOP first1>&2
+    801         exit 1
+    802     fi  
+    803     if [ ! -d "$JUNO_EXTLIB_OLDTOP" ];
+    804     then 
+    805         echo $msg The \$JUNO_EXTLIB_OLDTOP \"$JUNO_EXTLIB_OLDTOP\" does not exist.
+    806         exit 1
+    807     fi  
+    808     local pkg=$1
+    809     # = get the installation directory for PKG =
+    810     # here is the dir with version
+    811     local oldpath=$JUNO_EXTLIB_OLDTOP/$(juno-ext-libs-${pkg}-name)/$(juno-ext-libs-${pkg}-version)
+    812     local newpath=$(juno-ext-libs-${pkg}-install-dir)
+    813     echo $msg $pkg oldpath: $oldpath
+    814     echo $msg $pkg newpath: $newpath
+
+
+
+
 
 
 HedgeDoc pages
@@ -767,6 +876,93 @@ jdiff(){
            echo $cmd
        fi  
    done 
+}
+
+
+jlibs-usage(){ cat << EOU
+
+
+    jlibs-
+        lists all libs
+
+    jlibs- ROOT:
+        lists selection of libs starting from ROOT
+
+    jlibs- ROOT+
+        lists selection of libs starting from the lib after ROOT which is currently hepmc 
+
+    jlibs
+        build all libs
+
+    jlibs ROOT:
+        build selection of libs starting from ROOT
+
+    jlibs ROOT+
+        build selection of libs starting from the lib after ROOT which is currently hepmc 
+
+EOU
+}
+
+jlibs-()
+{
+   local arg=$1
+   case $arg in
+      *:) mode=: ; first=${arg/:*} ;;
+      *+) mode=+ ; first=${arg/+*} ;;
+   esac
+
+   cd $JUNOTOP/junoenv;
+   local libs=$(bash junoenv libs list | perl -ne 'm, (\S*)@, && print "$1\n"' -); 
+   local sel=0   
+   for sub in $libs;
+   do
+       [ -z "$arg" ] && sel=1 
+       [ "${sub}" == "$first" -a "${mode}" == ":" ] && sel=1 
+       [ "${sub}" == "$first" -a "${mode}" == "+" ] && sel=2 
+       [ "$sel" == "1" ] && echo $sub
+       [ "$sel" == "2" ] && sel=1
+   done
+}   
+
+jlibs()
+{
+   local libs=$(jlibs-)
+   for lib in $libs
+   do
+        echo $lib
+        bash junoenv libs all $lib || return 1
+   done
+   return 0 
+}
+
+
+jcompiler()
+{
+    source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bashrc
+
+    : sets    : JUNO_GCC_PREFIX, CC, CXX, FC
+    : appends : PATH, LD_LIBRARY_PATH, MANPATH, INFOPATH
+    :
+    
+    source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/binutils/2.28/bashrc
+
+    : sets    : JUNO_BINUTILS_PREFIX
+    : appends : PATH, LD_LIBRARY_PATH, MANPATH, INFOPATH
+   
+}
+
+jlibs_reuse()
+{
+   [ -z "$JUNO_EXTLIB_OLDTOP" ]   && echo $FUNCNAME requires envvar JUNO_EXTLIB_OLDTOP && return 1
+   [ ! -d "$JUNO_EXTLIB_OLDTOP" ] && echo $FUNCNAME requires directory JUNO_EXTLIB_OLDTOP $JUNO_EXTLIB_OLDTOP  && return 2
+
+   local libs=$(jlibs-)
+   for lib in $libs
+   do
+        echo $lib
+        bash junoenv libs reuse $lib || return 1
+   done
+   return 0 
 }
 
 

@@ -1296,8 +1296,8 @@ void ZSolid::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
 }
 
 /**
-ZSolid::ApplyZCut_G4Polycone
-------------------------------
+ZSolid::ApplyZCut_G4Polycone_NotWorking
+-----------------------------------------
 
 Currently limited to only 2 Z-planes, 
 to support more that 2 would need to delve 
@@ -1628,7 +1628,7 @@ ZSolid::BooleanClone
 
 The left and right G4VSolid outputs from DeepClone_r will not be G4DisplacedSolid because
 those get "dereferenced" by Moved and the rot/tla set.  This means that the information 
-from the G4DisplacedSolid is available. This approach is necessay as the G4DisplacedSolid
+from the G4DisplacedSolid is available. This approach is necessary as the G4DisplacedSolid
 is an "internal" object that the G4BooleanSolid ctor creates from the rot and tla ctor arguments. 
 
 **/
