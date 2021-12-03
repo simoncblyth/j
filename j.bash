@@ -891,6 +891,7 @@ jlibs-usage(){ cat << EOU
     jlibs- ROOT+
         lists selection of libs starting from the lib after ROOT which is currently hepmc 
 
+
     jlibs
         build all libs
 
@@ -899,6 +900,33 @@ jlibs-usage(){ cat << EOU
 
     jlibs ROOT+
         build selection of libs starting from the lib after ROOT which is currently hepmc 
+
+
+
+    jlibs_reuse
+        plants symbolic links for ExternalLibs assuming JUNO_EXTLIB_OLDTOP points to the dir
+
+        This is especially useful on shared machines like lxslc7 where prior ExternalLibs
+        are available and where building everything (especially ROOT) is really slow.
+
+
+        ::
+
+            cd $JUNOTOP ; mv ExternalLibs ExternalLibs_old
+
+            L7[blyth@lxslc701 junotop]$ l ExternalLibs/Python/
+            total 12
+            4 drwxr-xr-x 35 blyth dyw 4096 Dec  3 02:59 ..
+            4 drwxr-xr-x  2 blyth dyw 4096 Dec  3 02:58 .
+            4 lrwxrwxrwx  1 blyth dyw   97 Dec  3 02:58 3.8.12 -> /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Python/3.8.12
+            L7[blyth@lxslc701 junotop]$ l ExternalLibs/Geant4/
+            total 12
+            4 drwxr-xr-x 35 blyth dyw 4096 Dec  3 02:59 ..
+            4 drwxr-xr-x  2 blyth dyw 4096 Dec  3 02:59 .
+            4 lrwxrwxrwx  1 blyth dyw  105 Dec  3 02:59 10.04.p02.juno -> /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Geant4/10.04.p02.juno
+            L7[blyth@lxslc701 junotop]$ 
+
+
 
 EOU
 }
@@ -936,8 +964,17 @@ jlibs()
 }
 
 
+jdevtoolset8()
+{
+   source /opt/rh/devtoolset-8/enable
+}
+
 jcompiler()
 {
+    : devtoolset-8 gcc not supported by ROOT
+    : so follow lint example from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0/quick-deploy-J21v2r0-Pre0.sh
+    : and use JUNO gcc from cvmfs
+
     source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bashrc
 
     : sets    : JUNO_GCC_PREFIX, CC, CXX, FC
