@@ -358,22 +358,94 @@ jfu(){ source $BASH_SOURCE ; }
 
 
 
+jm-help(){ cat << EON
+jm-help : build offline using CMake machinery
+================================================
+
+jm-sdir : $(jm-sdir)
+jm-bdir : $(jm-bdir)
+jm-idir : $(jm-idir)
+
+jm-scd jm-bcd jm-icd
+    cd to respective dirs 
+
+jm-cmake-has-opticks
+    detect if CMAKE_PREFIX_PATH has the expected opticks prefixes 
+
+jm-cmake- 
+    emit to stdout the cmake commandline configuring with OR without Opticks depending on jm-cmake-has-opticks
+
+jm-cmake
+    after some directory checks runs the above cmake commandline 
+
+jm-clean
+    clean from the build directory 
+
+jm-make
+    make and install from from the CMake build directory 
+
+jm
+    short for jm-make 
+
+EON
+}
+
+
+jm-cmake-has-opticks(){
+
+   : detecting opticks cmake prefixes within CMAKE_PREFIX_PATH
+   : by existance of representative headers
+
+   local with_opticks=0
+   local with_opticks_package=0
+   local with_opticks_externals=0
+   local with_optix=0
+
+   local prefix
+   for prefix in ${CMAKE_PREFIX_PATH//:/ } 
+   do 
+       [ -f "$prefix/include/OpticksCore/Opticks.hh" ] && with_opticks_package=1  
+       [ -f "$prefix/plog/include/plog/Severity.h" ]   && with_opticks_externals=1  
+       [ -f "$prefix/include/optix.h" ]                && with_optix=1  
+   done 
+
+   if [ $with_opticks_package -eq 1 -a $with_opticks_externals -eq 1 -a $with_optix -eq 1 ]; then
+       with_opticks=1
+   fi 
+
+   echo $with_opticks
+}
+
 jm-bdir(){ echo $JUNOTOP/offline/build ; }
 jm-idir(){ echo $JUNOTOP/offline/InstallArea ; }
 jm-sdir(){ echo $JUNOTOP/offline  ; }
 
+jm-bcd(){  cd $(jm-bdir) ; }
+jm-icd(){  cd $(jm-idir) ; }
+jm-scd(){  cd $(jm-sdir) ; }
+
+jm-clean(){ 
+   jm-bcd 
+   make clean 
+}
 
 jm-cmake-(){   
+   : opticks ON/OFF switch based on contents of CMAKE_PREFIX_PATH
 
-   local sdir=$1
-   local idir=$2
+   local mode=${1:-1}
+   local bdir=$(jm-bdir)
+   local sdir=$(jm-sdir)
+   local idir=$(jm-idir)
 
+   local cmake_has_opticks=$(jm-cmake-has-opticks)
    local extra=""
-   if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
-       extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
-   fi
-   if [ -n "$OPTICKS_PREFIX" ]; then 
-       extra="$extra -DOPTICKS_PREFIX=$OPTICKS_PREFIX"
+   if [ "$cmake_has_opticks" == "1" ]; then 
+       if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
+           extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
+       fi
+       if [ -n "$OPTICKS_PREFIX" ]; then 
+           extra="$extra -DOPTICKS_PREFIX=$OPTICKS_PREFIX"
+       fi
    fi
 
    cat << EOC
@@ -388,35 +460,39 @@ EOC
 jm-cmake(){   
    : j/j.bash using build layout from $JUNOTOP/junoenv/junoenv-offline.sh  junoenv-offline-compile-cmake
    : huh $JUNOTOP/offline/build.sh run-build has different cmake line withoec handling 
-
    : see j/opticks_with_cmake_offline.rst
 
    local msg="=== $FUNCNAME :"
    local sdir=$(jm-sdir)
    local bdir=$(jm-bdir)
    local idir=$(jm-idir)
-   [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1 
-   cd $bdir
 
-   local cmd=$(jm-cmake- $sdir $idir)
+   [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1 
+
+   jm-bcd
+
+   local cmd=$(jm-cmake- $*)
    echo $msg cmd $cmd
    eval $cmd 
 }
 
-
-
-jm(){
+jm-make(){
    : j/j.bash 
  
-   local bdir=$(jm-bdir)
-   cd $bdir
+   jm-bcd
    [ $? -ne 0 ] && echo bdir error && return 1 
+
    make 
    [ $? -ne 0 ] && echo make error && return 2
+
    make install
    [ $? -ne 0 ] && echo install error && return 3
+
    return 0 
 }
+
+jm(){ jm-make ; }
+
 
 
 

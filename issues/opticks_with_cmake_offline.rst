@@ -1264,3 +1264,389 @@ Simulation/GenTools/CMakeLists.txt::
      15 
 
 
+
+::
+
+    [ 64%] Building CXX object Simulation/GenDecay/CMakeFiles/GenDecay.dir/src/NucUtil.cpp.o
+    /data/blyth/junotop/offline/Examples/FirstAlg/src/FirstAlg.cc:10:2: error: #error "OPTICKS is enabled. Maybe you are set the envvar CMTEXTRATAGS=opticks"
+     #error "OPTICKS is enabled. Maybe you are set the envvar CMTEXTRATAGS=opticks"
+      ^~~~~
+    In file included from /data/blyth/junotop/offline/Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc:75:
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PhysiSim/include/LocalG4Cerenkov1042.hh:57:10: fatal error: plog/Severity.h: No such file or directory
+     #include "plog/Severity.h"
+              ^~~~~~~~~~~~~~~~~
+    compilation terminated.
+
+
+
+
+So is finding opticks headers but failing to find headers from opticks externals::
+
+
+    [ 64%] Linking CXX shared library ../../lib/libNuSolGen.so
+    In file included from /data/blyth/junotop/offline/Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:69:
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h:74:10: fatal error: plog/Severity.h: No such file or directory
+     #include "plog/Severity.h"
+              ^~~~~~~~~~~~~~~~~
+
+
+up the verbosity::
+
+    -- PLog_MODULE : /data/blyth/junotop/opticks/cmake/Modules/FindPLog.cmake
+    -- FindPLog.cmake : PLog_MODULE      : /data/blyth/junotop/opticks/cmake/Modules/FindPLog.cmake 
+    -- FindPLog.cmake : OPTICKS_PREFIX   : /data/blyth/junotop/ExternalLibs/opticks/head 
+    -- FindPLog.cmake : PLog_INCLUDE_DIR : /data/blyth/junotop/ExternalLibs/opticks/head/externals/plog/include 
+    -- FindPLog.cmake : PLog_FOUND       : YES  
+
+
+The Opticks::PLog target with INTERFACE_INCLUDE_DIRECTORIES is setup in opticks/cmake/Modules/FindPLog.cmake::
+
+     14 
+     15 find_path(
+     16     PLog_INCLUDE_DIR
+     17     NAMES "plog/Log.h"
+     18     PATHS "${OPTICKS_PREFIX}/externals/plog/include"
+     19 )
+     20 
+     21 
+     22 if(PLog_INCLUDE_DIR)
+     23    set(PLog_FOUND "YES")
+     24 else()
+     25    set(PLog_FOUND "NO")
+     26 endif()
+     27 
+     28 set(_tgt Opticks::PLog)
+     29 
+     30 set(PLog_targets)
+     31 
+     32 if(PLog_FOUND AND NOT TARGET ${_tgt})
+     33 
+     34     add_library(${_tgt} INTERFACE IMPORTED)
+     35 
+     36     set_property( TARGET ${_tgt} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PLog_INCLUDE_DIR}" )
+     37     set_property( TARGET ${_tgt} PROPERTY INTERFACE_PKG_CONFIG_NAME "PLog" )
+     38 
+     39     list(APPEND PLog_targets "PLog")
+     40 
+     41 endif()
+     42 
+     43 if(PLog_VERBOSE)
+     44     message(STATUS "FindPLog.cmake : PLog_MODULE      : ${PLog_MODULE} ")
+     45     message(STATUS "FindPLog.cmake : OPTICKS_PREFIX   : ${OPTICKS_PREFIX} ")
+     46     message(STATUS "FindPLog.cmake : PLog_INCLUDE_DIR : ${PLog_INCLUDE_DIR} ")
+     47     message(STATUS "FindPLog.cmake : PLog_FOUND       : ${PLog_FOUND}  ")
+     48 endif()
+
+
+Perhaps am omitting to add Opticks::PLog dependency line somewhere ?
+
+
+Try kludging it, in cmake/JUNODependencies.cmake::
+
+    106 ## Opticks
+    107 foreach(_dir ${CMAKE_MODULE_PATH})
+    108     message(STATUS "CMAKE_MODULE_PATH  _dir ${_dir} ")
+    109 endforeach()
+    110 message(STATUS " CMAKE_PREFIX_PATH : $ENV{CMAKE_PREFIX_PATH} ")
+    111 foreach(_dir $ENV{CMAKE_PREFIX_PATH})
+    112     message(STATUS "CMAKE_PREFIX_PATH  _dir ${_dir} ")
+    113 endforeach()
+    114 set(PLog_VERBOSE ON)
+    115 
+    116 find_package(G4OK CONFIG QUIET)
+    117 if(G4OK_FOUND)
+    118    add_compile_definitions(WITH_G4OPTICKS)
+    119 
+    120    message( STATUS " PLog_INCLUDE_DIR:${PLog_INCLUDE_DIR} ")
+    121    include_directories(${PLog_INCLUDE_DIR})  ## WHY NOT AUTO ? 
+    122 
+    123 endif()
+    124 message(STATUS "cmake/JUNODependencies.cmake : G4OK_FOUND:${G4OK_FOUND}" )
+    125 
+
+
+
+
+After being sure to clean, get to different error.  Suspect that need to clean and reconfig to effect CMake changes.::
+
+    jm 
+    make clean 
+    jm-cmake
+    jm 
+
+
+::
+
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:22:10: fatal error: GtOpticksTool.h: No such file or directory
+     #include "GtOpticksTool.h"
+              ^~~~~~~~~~~~~~~~~
+
+         ^
+
+::
+
+    N[blyth@localhost offline]$ vi /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc 
+    N[blyth@localhost offline]$ find . -name GtOpticksTool.h 
+    ./Simulation/GenTools/src/GtOpticksTool.h
+    N[blyth@localhost offline]$ 
+
+
+/data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/CMakeLists.txt::
+
+     01 
+      2 include (PKG)
+      3 PKG (PMTSim
+      4     DEPENDS
+      5         SimUtil
+      6         IPMTSimParamSvc
+      7         Geometry
+      8         MultiFilmSimSvc
+      9         MCParamsSvc
+     10 
+     11         $<$<BOOL:${G4OK_FOUND}>:Opticks::G4OK>  
+     12 )
+
+/data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/cmt/requirements::
+
+
+     01 package PMTSim
+      2 
+      3 use SniperRelease   v*
+      4 use DetSimPolicy    v*  Simulation/DetSimV2
+      5 use SimUtil         v*  Simulation/DetSimV2
+      6 # use GenSim          v*  Simulation/DetSimV2
+      7 use Geometry        v*  Detector
+      8 
+      9 use DetSimAlg       v*  Simulation/DetSimV2
+     10 use IPMTSimParamSvc  v*  Simulation/SimSvc
+     11 use MultiFilmSimSvc  v*  Simulation/SimSvc
+     12 
+     13 use GenTools        v*  Simulation
+     14 
+     15 
+     16 library PMTSim *.cc
+     17 macro_append PMTSim_cppflags " -I$(PMTSIMROOT)/../SimUtil/include "
+     18 # macro_append PMTSim_cppflags " -I$(PMTSIMROOT)/../GenSim/include "
+     19 
+     20 apply_pattern linker_library library=PMTSim
+     21 include_dirs "$(PMTSIMROOT)/include"
+     22 macro_append PMTSim_cppflags "" opticks " -g "
+
+
+
+Hmm looks like headers from src are not being installed::
+
+    N[blyth@localhost offline]$ l InstallArea/include/GenTools/
+    total 12
+    4 drwxrwxr-x. 44 blyth blyth 4096 Dec  4 01:07 ..
+    0 drwxr-xr-x.  2 blyth blyth   48 Dec  4 01:07 .
+    4 -rw-r--r--.  1 blyth blyth  590 Dec  4 01:05 GenEventBuffer.h
+    4 -rw-r--r--.  1 blyth blyth  240 Dec  4 01:05 IGenTool.h
+    N[blyth@localhost offline]$ 
+
+Gentools are mostly used from python::
+
+    N[blyth@localhost offline]$ jgr \"Gt
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        gun_pos = gt.createTool("GtPositionerTool")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        gun = gt.createTool("GtGunGenTool/gun")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        ok = gt.createTool("GtOpticksTool/ok")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        gun = gt.createTool("GtOpScintTool/gun")
+    ...
+    ./Simulation/GenDecay/src/DecayRates.cpp://            throw GaudiException(err.str(),"GtDecayerator::DecayRates",StatusCode::FAILURE);
+    ./Simulation/GenDecay/src/DecayRates.cpp://        throw GaudiException(err.str(),"GtDecayerator::DecayRates",StatusCode::FAILURE);
+    ./Simulation/GenDecay/src/GtDecayerator.cpp:#include "GtDecayerator.h"
+
+    // NOPE: GtDecayerator.h comes from Simulation/GenDecay/src/
+
+    ./Simulation/GenDecay/share/pyjob.py:era = gt.createTool("GtDecayerator")
+    ./Simulation/GenDecay/share/pyjob.py:toffset = gt.createTool("GtTimeOffsetTool")
+    Binary file ./Simulation/ElecSimV3/ElecSimAlg/share/pmt_tof_map.root matches
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtGunGenTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtHepEvtGenTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtGunGenTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtPelletronBeamerTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtSNTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    gun = gt.createTool("GtNeutronTool/gun")
+    ./Simulation/GenTools/share/run_gentool.py:    dumper = gt.createTool("GtHepMCDumper")
+    ./Simulation/GenTools/src/GtPositionerTool.cc:#include "GtPositionerTool.h"
+    ./Simulation/GenTools/src/GtGstTool.cc:#include "GtGstTool.h"
+    ./Simulation/GenTools/src/GtTimeOffsetTool.cc:#include "GtTimeOffsetTool.h"
+
+
+* fixed this by moving the GtOpticksTool.h into GenTools so it gets installed
+
+
+::
+
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc: In member function ‘virtual G4bool junoSD_PMT_v2::ProcessHits(G4Step*, G4TouchableHistory*)’:
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:411:113: error: ‘volname’ was not declared in this scope
+             if(m_ce_mode == "20inch") m_PMTEfficiencyCheck->addHitRecord( pmtID, global_pos, local_pos, qe, ce, de, volname, ce_cat);
+                                                                                                                     ^~~~~~~
+    In file 
+
+* commented this out 
+
+
+
+::
+
+    [ 98%] Building CXX object Simulation/DetSimV2/AnalysisCode/CMakeFiles/AnalysisCode.dir/src/MuFastnProcessAnaMgr.cc.o
+    [ 98%] Building CXX object Simulation/DetSimV2/AnalysisCode/CMakeFiles/AnalysisCode.dir/src/PrintG4TrackAnaMgr.cc.o
+    /data/blyth/junotop/offline/Simulation/DetSimV2/AnalysisCode/src/G4OpticksAnaMgr.cc:56:10: fatal error: X4PhysicsOrderedFreeVector.hh: No such file or directory
+     #include "X4PhysicsOrderedFreeVector.hh"
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* this is an opticks change 
+
+Its better to use the typedef, for Geant4 version change handling::
+
+     62 typedef G4PhysicsOrderedFreeVector G4MaterialPropertyVector;
+
+
+
+
+Hmm now seems to build with opticks and tds3 runs... but trying to switch off Opticks use not working
+--------------------------------------------------------------------------------------------------------
+
+* huh : deleting the build dir doesnt return to no-opticks
+
+::
+ 
+   jo
+   rm -rf build
+   mkdir build
+   jm-cmake 0 
+
+
+The problem is that are still finding G4OK because CMAKE_PREFIX_PATH contains the OPTICKS_PREFIX::
+
+   find_package(G4OK CONFIG QUIET)
+
+
+
+
+
+::
+
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/python-cython/0.29.24 
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/python-pip/21.2.4 
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/python-setuptools/58.0.4 
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/Python/3.8.12 
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/opticks/head 
+    -- CMAKE_PREFIX_PATH  _prefix /data/blyth/junotop/ExternalLibs/opticks/head/externals 
+    -- CMAKE_PREFIX_PATH  _prefix /home/blyth/local/opticks/externals/OptiX_650 
+    CMake Error at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Cmake/3.21.2/share/cmake-3.21/Modules/CMakeFindDependencyMacro.cmake:47 (find_package):
+      No "FindG4.cmake" found in CMAKE_MODULE_PATH.
+    Call Stack (most recent call first):
+      /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/cfg4/cfg4-config.cmake:8 (find_dependency)
+      /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Cmake/3.21.2/share/cmake-3.21/Modules/CMakeFindDependencyMacro.cmake:47 (find_package)
+      /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/g4ok/g4ok-config.cmake:8 (find_dependency)
+      cmake/JUNODependencies.cmake:119 (find_package)
+      CMakeLists.txt:36 (include)
+
+
+    CMake Warning (dev) at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Cmake/3.21.2/share/cmake-3.21/Modules/CMakeFindDependencyMacro.cmake:47 (find_package):
+      FindG4.cmake must either be part of this project itself, in this case
+      adjust CMAKE_MODULE_PATH so that it points to the correct location inside
+      its source tree.
+
+      Or it must be installed by a package which has already been found via
+      find_package().  In this case make sure that package has indeed been found
+      and adjust CMAKE_MODULE_PATH to contain the location where that package has
+      installed FindG4.cmake.  This must be a location provided by that package.
+      This error in general means that the buildsystem of this project is relying
+      on a Find-module without ensuring that it is actually available.
+
+    Call Stack (most recent call first):
+      /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/cfg4/cfg4-config.cmake:8 (find_dependency)
+      /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Cmake/3.21.2/share/cmake-3.21/Modules/CMakeFindDependencyMacro.cmake:47 (find_package)
+      /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/g4ok/g4ok-config.cmake:8 (find_dependency)
+      cmake/JUNODependencies.cmake:119 (find_package)
+      CMakeLists.txt:36 (include)
+    This warning is for project developers.  Use -Wno-dev to suppress it.
+
+    -- Configuring incomplete, errors occurred!
+    See also "/data/blyth/junotop/offline/build/CMakeFiles/CMakeOutput.log".
+    See also "/data/blyth/junotop/offline/build/CMakeFiles/CMakeError.log".
+    N[blyth@localhost build]$ 
+
+
+
+How to switch Opticks config ON/OFF ?
+---------------------------------------
+
+* need to control the runtime environment 
+
+* hmm: would be better not to hookup opticks in $JUNOTOP/bashrc.sh
+  instead leave it separate like sniper
+
+
+::
+
+
+    N[blyth@localhost offline]$ t j-runtime-env-
+    j-runtime-env- () 
+    { 
+        : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont;
+        local msg="=== $FUNCNAME: ";
+        echo $msg;
+        source $JUNOTOP/bashrc.sh;
+        local sniper_cmt_setup=$JUNOTOP/sniper/SniperRelease/cmt/setup.sh;
+        if [ -f $sniper_cmt_setup ]; then
+            CMTEXTRATAGS= source $sniper_cmt_setup;
+            source $JUNOTOP/offline/JunoRelease/cmt/setup.sh;
+        else
+            source $JUNOTOP/sniper/InstallArea/bashrc;
+            source $JUNOTOP/offline/InstallArea/setup.sh;
+        fi;
+        echo $msg
+    }
+    N[blyth@localhost offline]$ cat $JUNOTOP/bashrc.sh
+    export JUNOTOP=/data/blyth/junotop
+    export CMTPROJECTPATH=/data/blyth/junotop:${CMTPROJECTPATH}
+    source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/binutils/2.28/bashrc
+    source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bashrc
+    source /data/blyth/junotop/ExternalLibs/Python/3.8.12/bashrc
+    source /data/blyth/junotop/ExternalLibs/python-setuptools/58.0.4/bashrc
+    source /data/blyth/junotop/ExternalLibs/python-pip/21.2.4/bashrc
+    source /data/blyth/junotop/ExternalLibs/python-cython/0.29.24/bashrc
+    source /data/blyth/junotop/ExternalLibs/python-numpy/1.21.2/bashrc
+    source /data/blyth/junotop/ExternalLibs/Boost/1.77.0/bashrc
+    source /data/blyth/junotop/ExternalLibs/Cmake/3.21.2/bashrc
+    source /data/blyth/junotop/ExternalLibs/Git/2.33.0/bashrc
+    source /data/blyth/junotop/ExternalLibs/Xercesc/3.2.2/bashrc
+    source /data/blyth/junotop/ExternalLibs/gsl/2.5/bashrc
+    source /data/blyth/junotop/ExternalLibs/fftw3/3.3.8/bashrc
+    source /data/blyth/junotop/ExternalLibs/sqlite3/3.35.5/bashrc
+    source /data/blyth/junotop/ExternalLibs/log4cpp/1.1.3/bashrc
+    source /data/blyth/junotop/ExternalLibs/libxml2/2.9.12/bashrc
+    source /data/blyth/junotop/ExternalLibs/LHAPDF/6.3.0/bashrc
+    source /data/blyth/junotop/ExternalLibs/pythia6/6.4.28/bashrc
+    source /data/blyth/junotop/ExternalLibs/tbb/2019_U8/bashrc
+    source /data/blyth/junotop/ExternalLibs/CMT/v1r26/bashrc
+    source /data/blyth/junotop/ExternalLibs/CLHEP/2.4.1.0/bashrc
+    source /data/blyth/junotop/ExternalLibs/xrootd/5.3.1/bashrc
+    source /data/blyth/junotop/ExternalLibs/ROOT/6.24.06/bashrc
+    source /data/blyth/junotop/ExternalLibs/HepMC/2.06.09/bashrc
+    source /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+    source /data/blyth/junotop/ExternalLibs/genie/3.00.06/bashrc
+    source /data/blyth/junotop/ExternalLibs/nuwro/19.02.2/bashrc
+    source /data/blyth/junotop/ExternalLibs/talys/1.95/bashrc
+    source /data/blyth/junotop/ExternalLibs/libmore/0.8.3/bashrc
+    source /data/blyth/junotop/ExternalLibs/mysql-connector-c/6.1.9/bashrc
+    source /data/blyth/junotop/ExternalLibs/mysql-connector-cpp/1.1.12/bashrc
+    source /data/blyth/junotop/ExternalLibs/libyaml/0.2.4/bashrc
+    source /data/blyth/junotop/ExternalLibs/python-yaml/5.4.1.1/bashrc
+    source /data/blyth/junotop/ExternalLibs/pacparser/1.3.7/bashrc
+    source /data/blyth/junotop/ExternalLibs/frontier/2.9.1/bashrc
+    source /data/blyth/junotop/ExternalLibs/opticks/head/bashrc # Mon Dec 6 20:49:40 CST 2021
+    N[blyth@localhost offline]$ 
+
+Hmm but already have a way to remove the hookup::
+
+    N[blyth@localhost junoenv]$ bash junoenv opticks unhookup
+
+And then start a new session + jre to avoid mixage between envs.
+
+
+
