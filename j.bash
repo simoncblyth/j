@@ -10,6 +10,29 @@ Common source for JUNO high level bash functions
 
    cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
 
+
+Analysis_Foundation_Groups
+----------------------------
+
+Dear all,
+If you are interested in AFG simulation , please feel free to subscribe to the mailing list:      https://juno.ihep.ac.cn/mailman/listinfo/juno_sim
+We will start a bi-weekly meeting to discuss simulation, the meeting link will be sent to:  juno_sim@juno.ihep.ac.cn .
+Thanks.
+Guofu, Cecile and Ziyan
+
+Hi Yongpeng et al,
+
+I'm afarid there is hyperlink under the URL you provided, if one clicks it, it directs to the calib_analysis list. 
+Anyways, I re-copy it here: https://juno.ihep.ac.cn/mailman/listinfo/juno_oec
+
+Btw, Please also add this mailing list info into the wiki page: 
+https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Foundation_Groups
+
+Regards,
+Liangjian Wen
+
+
+
 Install Link
 ---------------
 
@@ -332,6 +355,40 @@ j-scp(){
 
 jvi(){ vi $BASH_SOURCE && jfu ; }
 jfu(){ source $BASH_SOURCE ; }
+
+
+
+jm-bdir(){ echo $JUNOTOP/offline/build ; }
+jm-idir(){ echo $JUNOTOP/offline/InstallArea ; }
+jm-sdir(){ echo $JUNOTOP/offline  ; }
+
+jm-cmake(){   
+   : j/j.bash using build layout from $JUNOTOP/junoenv/junoenv-offline.sh  junoenv-offline-compile-cmake
+
+   local sdir=$(jm-sdir)
+   local bdir=$(jm-bdir)
+   local idir=$(jm-idir)
+   [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1 
+   cd $bdir
+   cmake $sdir \
+         -DCMAKE_INSTALL_PREFIX=$idir \
+         -DCMAKE_CXX_STANDARD=17
+}
+
+jm(){
+   : j/j.bash 
+ 
+   local bdir=$(jm-bdir)
+   cd $bdir
+   [ $? -ne 0 ] && echo bdir error && return 1 
+   make 
+   [ $? -ne 0 ] && echo make error && return 2
+   make install
+   [ $? -ne 0 ] && echo install error && return 3
+   return 0 
+}
+
+
 
 ################### NAVIGATING  ###################################
 
@@ -988,6 +1045,11 @@ jcompiler()
    
 }
 
+jlibs_oldtop()
+{
+    export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs 
+}
+
 jlibs_reuse()
 {
    [ -z "$JUNO_EXTLIB_OLDTOP" ]   && echo $FUNCNAME requires envvar JUNO_EXTLIB_OLDTOP && return 1
@@ -1555,8 +1617,17 @@ j-runtime-env-()
    local msg="=== $FUNCNAME: "
    echo $msg
    source $JUNOTOP/bashrc.sh   # sources the bashrc of the JUNOTOP/ExternalLibs
-   CMTEXTRATAGS= source $JUNOTOP/sniper/SniperRelease/cmt/setup.sh
-   source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
+
+   local sniper_cmt_setup=$JUNOTOP/sniper/SniperRelease/cmt/setup.sh
+   if [ -f $sniper_cmt_setup ]; then
+       CMTEXTRATAGS= source $sniper_cmt_setup
+       source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
+   else 
+       #source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh    # curious setting CMAKE_PREFIX_PATH to lib dir
+       source $JUNOTOP/sniper/InstallArea/bashrc
+       source $JUNOTOP/offline/InstallArea/setup.sh 
+   fi 
+
    echo $msg
 }
 
