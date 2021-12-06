@@ -362,18 +362,48 @@ jm-bdir(){ echo $JUNOTOP/offline/build ; }
 jm-idir(){ echo $JUNOTOP/offline/InstallArea ; }
 jm-sdir(){ echo $JUNOTOP/offline  ; }
 
+
+jm-cmake-(){   
+
+   local sdir=$1
+   local idir=$2
+
+   local extra=""
+   if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
+       extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
+   fi
+   if [ -n "$OPTICKS_PREFIX" ]; then 
+       extra="$extra -DOPTICKS_PREFIX=$OPTICKS_PREFIX"
+   fi
+
+   cat << EOC
+   cmake $sdir \
+         -DCMAKE_INSTALL_PREFIX=$idir \
+         -DCMAKE_CXX_STANDARD=17 \
+         $extra
+
+EOC
+}
+
 jm-cmake(){   
    : j/j.bash using build layout from $JUNOTOP/junoenv/junoenv-offline.sh  junoenv-offline-compile-cmake
+   : huh $JUNOTOP/offline/build.sh run-build has different cmake line withoec handling 
 
+   : see j/opticks_with_cmake_offline.rst
+
+   local msg="=== $FUNCNAME :"
    local sdir=$(jm-sdir)
    local bdir=$(jm-bdir)
    local idir=$(jm-idir)
    [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1 
    cd $bdir
-   cmake $sdir \
-         -DCMAKE_INSTALL_PREFIX=$idir \
-         -DCMAKE_CXX_STANDARD=17
+
+   local cmd=$(jm-cmake- $sdir $idir)
+   echo $msg cmd $cmd
+   eval $cmd 
 }
+
+
 
 jm(){
    : j/j.bash 
@@ -1647,6 +1677,8 @@ j-runtime-env()
 jre(){  j-runtime-env ; }
 jre-(){ j-runtime-env- ; }
 
+
+jrep(){  echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; } 
 
 j-runtime-env-notes(){ cat << EON
 
