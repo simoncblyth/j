@@ -32,6 +32,27 @@ Regards,
 Liangjian Wen
 
 
+Dear all,
+
+As we have presented last Friday, there are lots of important, interesting as well as challenging tasks related to reconstruction in JUNO.
+If you are interested in any of them, please subscribe to our mailing list
+https://juno.ihep.ac.cn/mailman/listinfo (juno_rec)
+
+We have also prepared a wiki https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Foundation_Groups/Reconstruction#Group_Work_Organization
+please update your contact info and areas of interest in the table.
+
+Thank you very much!
+
+Best
+Wuming & Benda
+
+
+CVMFS setup
+--------------
+
+* https://juno.ihep.ac.cn/trac/browser/offline/trunk/installation/junoenv/docker/Dockerfile-cvmfs
+
+
 
 Install Link
 ---------------
@@ -391,6 +412,17 @@ EON
 }
 
 
+jm-junoenv-opticks(){
+   local iwd=$PWD
+   cd $JUNOTOP/junoenv
+   bash junoenv opticks ${1:-info}
+   cd $iwd
+}
+
+jm-hookup(){   jm-junoenv-opticks hookup ; }
+jm-unhookup(){ jm-junoenv-opticks unhookup ; }
+
+
 jm-cmake-has-opticks(){
 
    : detecting opticks cmake prefixes within CMAKE_PREFIX_PATH
@@ -400,7 +432,6 @@ jm-cmake-has-opticks(){
    local with_opticks_package=0
    local with_opticks_externals=0
    local with_optix=0
-
    local prefix
    for prefix in ${CMAKE_PREFIX_PATH//:/ } 
    do 
@@ -412,7 +443,6 @@ jm-cmake-has-opticks(){
    if [ $with_opticks_package -eq 1 -a $with_opticks_externals -eq 1 -a $with_optix -eq 1 ]; then
        with_opticks=1
    fi 
-
    echo $with_opticks
 }
 
@@ -431,6 +461,7 @@ jm-clean(){
 
 jm-cmake-(){   
    : opticks ON/OFF switch based on contents of CMAKE_PREFIX_PATH
+   : TODO: try to avoid extra args by settings in FindOpticks.cmake  ?
 
    local mode=${1:-1}
    local bdir=$(jm-bdir)
@@ -440,6 +471,7 @@ jm-cmake-(){
    local cmake_has_opticks=$(jm-cmake-has-opticks)
    local extra=""
    if [ "$cmake_has_opticks" == "1" ]; then 
+       extra="$extra -DWITH_OPTICKS"
        if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
            extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
        fi
@@ -471,7 +503,7 @@ jm-cmake(){
 
    jm-bcd
 
-   local cmd=$(jm-cmake- $*)
+   local cmd=$(jm-cmake-)
    echo $msg cmd $cmd
    eval $cmd 
 }

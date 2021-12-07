@@ -1649,4 +1649,119 @@ Hmm but already have a way to remove the hookup::
 And then start a new session + jre to avoid mixage between envs.
 
 
+Hmm : how to cleanly fail to find G4OK 
+----------------------------------------
+
+* currently after switching off the opticks prefixes in CMAKE_PREFIX_PATH the 
+  failed attempt to find G4OK results in an error...
+
+* need a cleaner way to fail
+
+* the WITH_OPTICKS switch in the below is a workaround for that : by detecting 
+  if the opticks prefixes are in the CMAKE_PREFIX_PATH prior to the cmake command 
+  line and pass in the decision WITH_OPTICKS 
+
+* suspect CMake caching might be involved with a failure to switch 
+  opticks use off
+
+
+$JUNOTOP/offline/cmake/JUNODependencies.cmake::
+
+    ## Opticks
+    set(G4OK_FOUND NO)
+    if(${WITH_OPTICKS})
+        foreach(_dir ${CMAKE_MODULE_PATH})
+            message(STATUS "CMAKE_MODULE_PATH  _dir ${_dir} ") 
+        endforeach() 
+
+        set(_prefix_list)
+        string(REPLACE ":" ";" _prefix_list $ENV{CMAKE_PREFIX_PATH})
+        foreach(_prefix ${_prefix_list})
+            message(STATUS "CMAKE_PREFIX_PATH  _prefix ${_prefix} ") 
+        endforeach() 
+
+        find_package(G4OK CONFIG QUIET)
+
+        if(G4OK_FOUND)
+           add_compile_definitions(WITH_G4OPTICKS)
+           message( STATUS " PLog_INCLUDE_DIR:${PLog_INCLUDE_DIR} ")
+           include_directories(${PLog_INCLUDE_DIR})  ## WHY NOT AUTOMATIC ? Maybe because plog is header only ?
+        endif()
+    endif()
+    message(STATUS "cmake/JUNODependencies.cmake : WITH_OPTICKS:${WITH_OPTICKS} G4OK_FOUND:${G4OK_FOUND}" )
+
+
+
+::
+
+    N[blyth@localhost offline]$ t jm-cmake-
+    jm-cmake- () 
+    { 
+        : opticks ON/OFF switch based on contents of CMAKE_PREFIX_PATH;
+        local mode=${1:-1};
+        local bdir=$(jm-bdir);
+        local sdir=$(jm-sdir);
+        local idir=$(jm-idir);
+        local cmake_has_opticks=$(jm-cmake-has-opticks);
+        local extra="";
+        if [ "$cmake_has_opticks" == "1" ]; then
+            if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then
+                extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules";
+            fi;
+            if [ -n "$OPTICKS_PREFIX" ]; then
+                extra="$extra -DOPTICKS_PREFIX=$OPTICKS_PREFIX";
+            fi;
+        fi;
+        cat  <<EOC
+       cmake $sdir          -DCMAKE_INSTALL_PREFIX=$idir          -DCMAKE_CXX_STANDARD=17          $extra
+
+    EOC
+
+    }
+
+
+
+Back to Opticks to try to encapsulate this setup into ~/opticks/cmake/Modules/FindOpticks.cmake
+-------------------------------------------------------------------------------------------------
+
+
+Getting errors from the BCM generated properties::
+
+
+    CMake Error at /usr/local/opticks/lib/cmake/g4ok/properties-g4ok-targets.cmake:6 (set_target_properties):
+      set_target_properties called with incorrect number of arguments.
+    Call Stack (most recent call first):
+      /usr/local/opticks/lib/cmake/g4ok/g4ok-config.cmake:15 (include)
+      /Users/blyth/opticks/cmake/Modules/FindOpticks.cmake:32 (find_package)
+      CMakeLists.txt:10 (find_package)
+
+
+    CMake Error at /usr/local/opticks/lib/cmake/g4ok/properties-g4ok-targets.cmake:7 (set_target_properties):
+      set_target_properties called with incorrect number of arguments.
+    Call Stack (most recent call first):
+      /usr/local/opticks/lib/cmake/g4ok/g4ok-config.cmake:15 (include)
+      /Users/blyth/opticks/cmake/Modules/FindOpticks.cmake:32 (find_package)
+      CMakeLists.txt:10 (find_package)
+
+
+::
+
+      1 
+      2 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_PKG_CONFIG_NAME G4OK)
+      3 
+      4 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_INSTALL_CONFIGFILE_BCM ${CMAKE_CURRENT_LIST_FILE})
+      5 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_INSTALL_CONFIGDIR_BCM ${CMAKE_CURRENT_LIST_DIR})
+      6 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_INSTALL_LIBDIR_BCM ${CMAKE_INSTALL_LIBDIR})
+      7 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_INSTALL_INCLUDEDIR_BCM ${CMAKE_INSTALL_INCLUDEDIR})
+      8 set_target_properties(Opticks::G4OK PROPERTIES INTERFACE_INSTALL_PREFIX_BCM ${CMAKE_INSTALL_PREFIX})
+
+
+
+
+
+
+
+
+
+
 
