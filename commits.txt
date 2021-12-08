@@ -1,4 +1,48 @@
 
+N[blyth@localhost offline]$ svn commit -m "add option --additionacrylic-simplify-csg which doesnt subtract cavities for child volumes, plus an option to remove sticks altogether for debugging only --debug-disable-sticks "
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Sending        Simulation/DetSimV2/CentralDetector/include/AdditionAcrylicConstruction.hh
+Sending        Simulation/DetSimV2/CentralDetector/src/AdditionAcrylicConstruction.cc
+Sending        Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc
+Transmitting file data ....
+Committed revision 5183.
+N[blyth@localhost offline]$ 
+
+
+
+N[blyth@localhost offline]$ svn ci Examples/FirstAlg/src/FirstAlg.cc -m "skip the fake error message WITH_G4OPTICKS"
+Sending        Examples/FirstAlg/src/FirstAlg.cc
+Transmitting file data .
+Committed revision 5182.
+N[blyth@localhost offline]$ 
+
+
+
+N[blyth@localhost offline]$ svn ci -m "enable CMake configured building of Offline with Opticks via the standard cmake commandline in junoenv offline or offline/build.sh with existance of OPTICKS_PREFIX envvar acting as the ON/OFF switch "
+Sending        Simulation/DetSimV2/AnalysisCode/CMakeLists.txt
+Sending        Simulation/DetSimV2/AnalysisCode/src/G4OpticksAnaMgr.cc
+Sending        Simulation/DetSimV2/DetSimOptions/CMakeLists.txt
+Sending        Simulation/DetSimV2/PMTSim/CMakeLists.txt
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+Sending        Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+Sending        Simulation/GenTools/CMakeLists.txt
+Adding         Simulation/GenTools/GenTools/GtOpticksTool.h
+Sending        Simulation/GenTools/src/GtOpticksTool.cc
+Deleting       Simulation/GenTools/src/GtOpticksTool.h
+Sending        cmake/JUNODependencies.cmake
+Transmitting file data ..........
+Committed revision 5181.
+N[blyth@localhost offline]$ 
+
+
+
+
+
+
+
+
+
 epsilon:offline blyth$ svn ci -m "add opticks GenTools/subparser that currently just provides loading of input photons for debugging/validation" Examples/Tutorial/python/Tutorial/JUNODetSimModule.py Simulation/GenTools/cmt/requirements Simulation/GenTools/src/GtOpticksTool.cc Simulation/GenTools/src/GtOpticksTool.h  
 Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
 Sending        Simulation/GenTools/cmt/requirements

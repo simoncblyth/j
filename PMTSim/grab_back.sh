@@ -32,8 +32,7 @@ jcopyback \
 jps_add \
      ZSolid.hh \
      ZSolid.cc \
-     ZCanvas.hh \
-     ZCanvas.cc
+     ZCanvas.hh 
 
 
 

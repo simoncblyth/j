@@ -2,6 +2,22 @@ opticks_with_cmake_offline
 =============================
 
 
+Ended up with
+-----------------
+
+cmake/JUNODependencies.cmake::
+ 
+    ## Opticks
+    if(DEFINED ENV{OPTICKS_PREFIX})
+       set(Opticks_VERBOSE YES)
+       set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{JUNOTOP}/opticks/cmake/Modules")
+       find_package(Opticks MODULE)
+       message(STATUS "${CMAKE_CURRENT_LIST_FILE} : Opticks_FOUND:${Opticks_FOUND}" )
+    endif()
+
+
+
+
 Finding and linking against Opticks::G4OK 
 ---------------------------------------------
 
@@ -1724,6 +1740,7 @@ $JUNOTOP/offline/cmake/JUNODependencies.cmake::
 Back to Opticks to try to encapsulate this setup into ~/opticks/cmake/Modules/FindOpticks.cmake
 -------------------------------------------------------------------------------------------------
 
+* fixed this by adding "include(GNUInstallDirs)" 
 
 Getting errors from the BCM generated properties::
 
@@ -1757,11 +1774,118 @@ Getting errors from the BCM generated properties::
 
 
 
+Can the extras on the CMake command line be avoided ?
+----------------------------------------------------------
+
+If the cmake/Modules were installed could automatically determine the OPTICKS_PREFIX from the
+find result. But have to tell CMake where to look anyhow. 
+
+The prefix in use can be determined from the CMAKE_PREFIX_PATH ... where is that coming 
+from. 
+
+$JUNOTOP/bashrc.sh hookup line::
+
+   source /data/blyth/junotop/ExternalLibs/opticks/head/bashrc # Tue Dec 7 19:32:37 CST 2021
+
+From the setup...
+
+    # mandatory envvars from buildenv propagated into userenv via this setup
+    export OPTICKS_PREFIX=/data/blyth/junotop/ExternalLibs/opticks/head
+
+So that means can rely on OPTICKS_PREFIX envvar 
 
 
 
 
+::
+
+    N[blyth@localhost build]$ find /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf/properties-okconf-targets.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf/okconf-targets.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf/okconf-targets-debug.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf/okconf-config.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/okconf/okconf-config-version.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/sysrap
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/sysrap/properties-sysrap-targets.cmake
+    /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/sysrap/sysrap-targets.cmake
 
 
+
+::
+
+    ## Opticks
+    if(DEFINED ENV{OPTICKS_PREFIX})
+       set(Opticks_VERBOSE YES)
+       set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{JUNOTOP}/opticks/cmake/Modules")
+       find_package(Opticks QUIET MODULE)
+       message(STATUS "${CMAKE_CURRENT_LIST_FILE} : Opticks_FOUND:${Opticks_FOUND}" )
+    endif()
+
+
+
+runtime error following opticks switch off not followed by a rebuild
+-------------------------------------------------------------------------
+
+* easy fix is just to make before running after changing opticks on/off
+* hmm: this may indicate that CMake is cleverer than CMT regarding staleness from changes to preprocessor macros 
+* with CMT had to do a manual touchbuild after flipping the opticks switch   
+
+::
+
+    jm-cmake
+    make
+    make install 
+
+
+    ='geom-geom-20pmt.root', voxel_merge_flag=False, voxel_merge_twin=1, voxel_npe_file='npehist3d_single.root', voxel_pmts_structs=True, voxel_quenching_scale=0.93, voxel_save_hits=True, voxel_time_file='dist_tres_single.root', wp_enabled=True, wp_latticed_enabled=True, wp_pmt_enabled=True)
+    == ROOT IO Svc ==
+    == Buffer Memory Management ==
+    == Random Svc ==
+    == Root Writer ==
+     == PMTSimParamSvc == 
+    GENTOOL MODE:  gun
+    SNiPER:Unknown.loadDll         FATAL: libG4OK.so: cannot open shared object file: No such file or directory
+    Traceback (most recent call last):
+      File "/data/blyth/junotop/offline/Examples/Tutorial/share/tut_detsim.py", line 20, in <module>
+        juno_application.run()
+      File "/data/blyth/junotop/offline/InstallArea/python/Tutorial/JUNOApplication.py", line 87, in run
+        module.init(self.toptask, self.args)
+      File "/data/blyth/junotop/offline/InstallArea/python/Tutorial/JUNODetSimModule.py", line 124, in init
+        self.init_gentools(toptask, args)
+      File "/data/blyth/junotop/offline/InstallArea/python/Tutorial/JUNODetSimModule.py", line 912, in init_gentools
+        self.setup_generator(task, args)
+      File "/data/blyth/junotop/offline/InstallArea/python/Tutorial/JUNODetSimModule.py", line 1021, in setup_generator
+        import GenTools
+      File "/data/blyth/junotop/offline/InstallArea/python/GenTools/__init__.py", line 6, in <module>
+        Sniper.loadDll("libGenTools.so")
+    RuntimeError: Can't load DLL libGenTools.so
+    junotoptask:detsimiotask.terminate  WARN: invalid state tranform ((Invalid)) => ((EndUp))
+    junotoptask.terminate           WARN: invalid state tranform ((Invalid)) => ((EndUp))
+
+    **************************************************
+    Terminating @ localhost.localdomain on Tue Dec  7 22:08:36 2021
+    SNiPER::Context Running Mode = { BASIC }
+    SNiPER::Context Can't load DLL libGenTools.so
+
+    [Inferior 1 (process 351819) exited with code 01]
+
+
+
+
+HMM offline/cmake/Modules/PKG.cmake misuses AUX_SOURCE_DIRECTORY
+------------------------------------------------------------------
+
+* https://cmake.org/cmake/help/latest/command/aux_source_directory.html
+
+It is tempting to use this command to avoid writing the list of source files
+for a library or executable target. While this seems to work, there is no way
+for CMake to generate a build system that knows when a new source file has been
+added. Normally the generated build system knows when it needs to rerun CMake
+because the CMakeLists.txt file is modified to add a new source. When the
+source is just added to the directory without modifying this file, one would
+have to manually rerun CMake to generate a build system incorporating the new
+file.
 
 

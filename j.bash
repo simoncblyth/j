@@ -11,6 +11,13 @@ Common source for JUNO high level bash functions
    cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
 
 
+Tao demo-photon-generation
+-----------------------------
+
+* https://github.com/mirguest/demo-photon-generation
+
+
+
 Analysis_Foundation_Groups
 ----------------------------
 
@@ -360,10 +367,13 @@ j-env(){  echo -n ; }
 j-dir(){ echo $(dirname $BASH_SOURCE) ; }
 j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
+
 ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
 j1(){ ji ; vi $(ls -1t | head -1) ; } 
 j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; } 
-jr(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
+jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
+
+
 
 
 j-scp(){  
@@ -419,9 +429,19 @@ jm-junoenv-opticks(){
    cd $iwd
 }
 
-jm-hookup(){   jm-junoenv-opticks hookup ; }
-jm-unhookup(){ jm-junoenv-opticks unhookup ; }
+jm-hookup(){   jm-junoenv-opticks hookup   ; echo NOW start a new session to feel the effects ; }
+jm-unhookup(){ jm-junoenv-opticks unhookup ; echo NOW start a new session to feel the effects ; }
 
+
+jm-find-opticks-prefix(){
+   local opticks_prefix
+   local prefix
+   for prefix in ${CMAKE_PREFIX_PATH//:/ } 
+   do 
+       [ -f "$prefix/include/OpticksCore/Opticks.hh" ] && opticks_prefix=$prefix
+   done
+   echo $opticks_prefix
+}
 
 jm-cmake-has-opticks(){
 
@@ -459,26 +479,22 @@ jm-clean(){
    make clean 
 }
 
-jm-cmake-(){   
+jm-cmake-extra(){   
    : opticks ON/OFF switch based on contents of CMAKE_PREFIX_PATH
-   : TODO: try to avoid extra args by settings in FindOpticks.cmake  ?
+   : DONE: avoided need for -DOPTICKS_PREFIX by setting from envvar in FindOpticks.cmake 
+   : TODO: avoid need for -DCMAKE_MODULE_PATH by setting it based on OPTICKS_PREFIX envvar 
+   :        this is needed separately because of chicken-and-egg issue
 
-   local mode=${1:-1}
-   local bdir=$(jm-bdir)
    local sdir=$(jm-sdir)
    local idir=$(jm-idir)
 
    local cmake_has_opticks=$(jm-cmake-has-opticks)
    local extra=""
    if [ "$cmake_has_opticks" == "1" ]; then 
-       extra="$extra -DWITH_OPTICKS"
        if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
            extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
        fi
-       if [ -n "$OPTICKS_PREFIX" ]; then 
-           extra="$extra -DOPTICKS_PREFIX=$OPTICKS_PREFIX"
-       fi
-   fi
+    fi
 
    cat << EOC
    cmake $sdir \
@@ -488,6 +504,25 @@ jm-cmake-(){
 
 EOC
 }
+
+
+jm-cmake-(){   
+   : have moved the opticks ON/OFF switch inside the CMakeLists.txt based on OPTICKS_PREFIX envvar
+   : in order to allow the JUNO standard cmake commandline to be used with no extras
+
+   local sdir=$(jm-sdir)
+   local idir=$(jm-idir)
+
+   cat << EOC
+   cmake $sdir \
+         -DCMAKE_INSTALL_PREFIX=$idir \
+         -DCMAKE_CXX_STANDARD=17 
+
+EOC
+}
+
+
+
 
 jm-cmake(){   
    : j/j.bash using build layout from $JUNOTOP/junoenv/junoenv-offline.sh  junoenv-offline-compile-cmake
@@ -986,6 +1021,7 @@ jps_add(){
     do 
         case $extra in
            *.hh) drel=Simulation/DetSimV2/PMTSim/include ;;
+            *.h) drel=Simulation/DetSimV2/PMTSim/src     ;;   # local convention for private headers 
            *.cc) drel=Simulation/DetSimV2/PMTSim/src     ;;  
         esac
         echo cp $extra $JUNOTOP/offline/$drel/$extra 
@@ -1219,7 +1255,10 @@ jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and 
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
 jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
+jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
+jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  } 
+
 psi(){ js PMTSIM/src ; }
 #jb(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/cmt && pwd ; } 
 #jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
@@ -1786,7 +1825,6 @@ jre(){  j-runtime-env ; }
 jre-(){ j-runtime-env- ; }
 
 
-jrep(){  echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; } 
 
 j-runtime-env-notes(){ cat << EON
 
