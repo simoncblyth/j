@@ -27,7 +27,7 @@
 
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 
 #include <iostream>

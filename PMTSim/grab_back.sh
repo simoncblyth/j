@@ -30,9 +30,9 @@ jcopyback \
 
 
 jps_add \
-     ZSolid.hh \
+     ZSolid.h \
      ZSolid.cc \
-     ZCanvas.hh 
+     ZCanvas.h 
 
 
 

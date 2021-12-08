@@ -24,7 +24,7 @@
 
 #include "HamamatsuR12860PMTManager.hh"
 #include "Hamamatsu_R12860_PMTSolid.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 using namespace CLHEP;
 

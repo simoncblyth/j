@@ -8,7 +8,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4Tubs.hh"
 #include "G4Orb.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 G4VSolid* make_tubs( const char* name, double rmax, double hz )
 {

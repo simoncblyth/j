@@ -17,7 +17,7 @@
 #include "G4Polycone.hh"
 #include "G4SDManager.hh"
 
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 #ifdef STANDALONE
 

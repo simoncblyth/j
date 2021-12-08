@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include "Hamamatsu_R12860_PMTSolid.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 double atof_(char* s_val)
 {

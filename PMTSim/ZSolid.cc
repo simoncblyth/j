@@ -13,8 +13,8 @@
 #include "G4Torus.hh"
 #include "G4RotationMatrix.hh"
 
-#include "ZCanvas.hh"
-#include "ZSolid.hh"
+#include "ZCanvas.h"
+#include "ZSolid.h"
 
 
 G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ) // static

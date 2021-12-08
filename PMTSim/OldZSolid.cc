@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #include "OldZSolid.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 #include "G4Ellipsoid.hh"
 #include "G4Tubs.hh"

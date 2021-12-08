@@ -1,6 +1,6 @@
 #include <cassert>
 #include "PMTSim.hh"
-#include "ZSolid.hh"
+#include "ZSolid.h"
 
 int main(int argc, char** argv)
 {
