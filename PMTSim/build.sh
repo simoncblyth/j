@@ -35,6 +35,7 @@ gcc \
        -std=c++11 \
        -Wcomment \
        -Wunused-variable \
+       -Wunused-parameter \
        -Wall \
        -I. \
        -I$HOME/np \

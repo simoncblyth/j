@@ -128,7 +128,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       dynode_phys(NULL), m_logical_pmt(NULL), m_mirror_opsurf(NULL),
       Photocathode_opsurf(NULL),
       GlassMat(NULL), PMT_Vacuum(NULL), DynodeMat(NULL),
-      MaskMat(NULL), m_detector(NULL),
+      m_detector(NULL),
       m_logical_cover(NULL), m_cover_mat(NULL),
       m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
       m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true),

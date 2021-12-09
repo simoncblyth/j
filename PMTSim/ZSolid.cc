@@ -1530,9 +1530,9 @@ void ZSolid::dumpUp_r(const G4VSolid* node, int depth) const
     }
     else
     {
-        G4RotationMatrix tree_rot ; 
+        G4RotationMatrix* tree_rot = nullptr ; 
         G4ThreeVector    tree_tla(0., 0., 0. ); 
-        getTreeTransform(&tree_rot, &tree_tla, node ); 
+        getTreeTransform(tree_rot, &tree_tla, node ); 
 
         const G4VSolid* nd = Moved(nullptr, nullptr, node); 
         std::cout 
@@ -1563,6 +1563,10 @@ up the tree from any node up to the root.
 
 void ZSolid::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const 
 {
+    bool expect = rot == nullptr ; 
+    assert(expect && "non null rotation not implemented"); 
+    if(!expect) exit(EXIT_FAILURE); 
+
     const G4VSolid* nd = node ; 
 
     unsigned count = 0 ; 
@@ -1666,6 +1670,15 @@ is an "internal" object that the G4BooleanSolid ctor creates from the rot and tl
 
 G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
 {
+    bool expect_rot = rot == nullptr ;   // HMM MAYBE NOT FULLY GENERAL 
+    assert( expect_rot ); 
+    if(!expect_rot) exit(EXIT_FAILURE); 
+
+    bool expect_tla = tla == nullptr ; 
+    assert( expect_tla ); 
+    if(!expect_tla) exit(EXIT_FAILURE); 
+
+
     G4String name = solid->GetName() ; 
     G4RotationMatrix lrot, rrot ;  
     G4ThreeVector    ltra, rtra ; 
@@ -1674,11 +1687,28 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
     G4VSolid* left  = DeepClone_r( src_boolean->GetConstituentSolid(0), depth+1, &lrot, &ltra ) ; 
     G4VSolid* right = DeepClone_r( src_boolean->GetConstituentSolid(1), depth+1, &rrot, &rtra ) ; 
 
-    assert( dynamic_cast<const G4DisplacedSolid*>(left) == nullptr  ) ; // not expecting these to be displaced 
-    assert( dynamic_cast<const G4DisplacedSolid*>(right) == nullptr ) ; 
-    assert( lrot.isIdentity() );   // lrot is expected to always be identity, as G4 never has left transforms
-    assert( ltra.x() == 0. && ltra.y() == 0. && ltra.z() == 0. );  // not expecting transforms on the left
-    assert( rrot.isIdentity() );   // rrot identity is a simplifying assumption
+    // not expecting left or right to be displaced   
+
+    bool expect_left = dynamic_cast<const G4DisplacedSolid*>(left) == nullptr ;  
+    assert( expect_left );
+    if(!expect_left) exit(EXIT_FAILURE); 
+
+    bool expect_right = dynamic_cast<const G4DisplacedSolid*>(right) == nullptr ; 
+    assert( expect_right );
+    if(!expect_right) exit(EXIT_FAILURE); 
+
+    bool expect_lrot = lrot.isIdentity() ;  // lrot is expected to always be identity, as G4 never has left transforms
+    assert( expect_lrot );
+    if(!expect_lrot) exit(EXIT_FAILURE); 
+
+    bool expect_ltra = ltra.x() == 0. && ltra.y() == 0. && ltra.z() == 0. ; // not expecting translations on the left
+    assert( expect_ltra );
+    if(!expect_ltra) exit(EXIT_FAILURE); 
+
+    bool expect_rrot = rrot.isIdentity() ; // rrot identity is a simplifying assumption
+    assert( expect_rrot );
+    if(!expect_rrot) exit(EXIT_FAILURE); 
+
 
     G4VSolid* clone = nullptr ; 
     switch(EntityType(solid))
@@ -1996,9 +2026,9 @@ G4VSolid* ZSolid::PromoteTubsToPolycone( const G4VSolid* solid ) // static
 
 double ZSolid::getZ( const G4VSolid* node ) const
 {
-    G4RotationMatrix tree_rot ; 
+    G4RotationMatrix* tree_rot = nullptr ; 
     G4ThreeVector    tree_tla(0., 0., 0. ); 
-    getTreeTransform(&tree_rot, &tree_tla, node ); 
+    getTreeTransform(tree_rot, &tree_tla, node ); 
 
     double zdelta = tree_tla.z() ; 
     return zdelta ; 

@@ -90,8 +90,8 @@ private:
     G4VSolid* uncut_inner2_solid;
 
     G4Tubs* dynode_solid;
-    G4double hh_dynode;
-    G4double z_dynode;
+    //G4double hh_dynode;
+    //G4double z_dynode;
 
     void helper_make_logical_volume();
 
@@ -124,7 +124,7 @@ private:
     G4Material* GlassMat;
     G4Material* PMT_Vacuum;
     G4Material* DynodeMat;
-    G4Material* MaskMat;
+    //G4Material* MaskMat;
     G4VSensitiveDetector *m_detector;
 
 private:
