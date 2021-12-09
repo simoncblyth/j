@@ -1657,7 +1657,11 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
         ; 
 
     G4VSolid* clone = Boolean(node) ? BooleanClone(node, depth, rot, tla ) : PrimitiveClone(node) ; 
-    assert(clone);
+
+    bool expect = clone != nullptr ; 
+    if(!expect) std::cout << "ZSolid::DeepClone_r GOT null clone " << std::endl ; 
+    assert(expect);
+    if(!expect) exit(EXIT_FAILURE); 
     return clone ; 
 }    
 
@@ -1674,14 +1678,16 @@ is an "internal" object that the G4BooleanSolid ctor creates from the rot and tl
 
 G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
 {
+    if(verbose) std::cout << "ZSolid::BooleanClone" << std::endl ; 
     bool expect_rot = rot == nullptr ;   // HMM MAYBE NOT FULLY GENERAL 
     assert( expect_rot ); 
+    if(!expect_rot) std::cout << "ZSolid::BooleanClone expect_rot ERROR " << std::endl ; 
     if(!expect_rot) exit(EXIT_FAILURE); 
 
     bool expect_tla = tla == nullptr ; 
     assert( expect_tla ); 
+    if(!expect_tla) std::cout << "ZSolid::BooleanClone expect_tla ERROR " << std::endl ; 
     if(!expect_tla) exit(EXIT_FAILURE); 
-
 
     G4String name = solid->GetName() ; 
     G4RotationMatrix lrot, rrot ;  
@@ -1695,22 +1701,27 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
 
     bool expect_left = dynamic_cast<const G4DisplacedSolid*>(left) == nullptr ;  
     assert( expect_left );
+    if(!expect_left) std::cout << "ZSolid::BooleanClone expect_left ERROR " << std::endl ;
     if(!expect_left) exit(EXIT_FAILURE); 
 
     bool expect_right = dynamic_cast<const G4DisplacedSolid*>(right) == nullptr ; 
     assert( expect_right );
+    if(!expect_right) std::cout << "ZSolid::BooleanClone expect_right ERROR " << std::endl ;
     if(!expect_right) exit(EXIT_FAILURE); 
 
     bool expect_lrot = lrot.isIdentity() ;  // lrot is expected to always be identity, as G4 never has left transforms
     assert( expect_lrot );
+    if(!expect_lrot) std::cout << "ZSolid::BooleanClone expect_lrot ERROR " << std::endl ;
     if(!expect_lrot) exit(EXIT_FAILURE); 
 
     bool expect_ltra = ltra.x() == 0. && ltra.y() == 0. && ltra.z() == 0. ; // not expecting translations on the left
     assert( expect_ltra );
+    if(!expect_ltra) std::cout << "ZSolid::BooleanClone expect_ltra ERROR " << std::endl ;
     if(!expect_ltra) exit(EXIT_FAILURE); 
 
     bool expect_rrot = rrot.isIdentity() ; // rrot identity is a simplifying assumption
     assert( expect_rrot );
+    if(!expect_rrot) std::cout << "ZSolid::BooleanClone expect_rrot ERROR " << std::endl ;
     if(!expect_rrot) exit(EXIT_FAILURE); 
 
 
