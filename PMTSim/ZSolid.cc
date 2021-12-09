@@ -1622,10 +1622,10 @@ which appear to make properly independent copies
 
 G4VSolid* ZSolid::DeepClone( const  G4VSolid* solid )  // static 
 {
-    G4RotationMatrix rot ; 
-    G4ThreeVector tla ; 
+    G4RotationMatrix* rot = nullptr ; 
+    G4ThreeVector* tla = nullptr ; 
     int depth = 0 ; 
-    return DeepClone_r(solid, depth, &rot, &tla );  
+    return DeepClone_r(solid, depth, rot, tla );  
 }
 
 /**
