@@ -87,43 +87,53 @@ void ZSolid::dump(const char* msg) const
 
 void ZSolid::instrumentTree()
 {
-    if(verbose) std::cout << "ZSolid::instrumentTree" << std::endl ; 
+    if(verbose) std::cout << "ZSolid::instrumentTree parent " << std::endl ; 
     parent_map->clear(); 
     (*parent_map)[root] = nullptr ;  // root has no parent by definition
     parent_r( root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree depth " << std::endl ; 
     depth_map->clear(); 
     depth_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree inorder " << std::endl ; 
     inorder.clear();
     inorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree rinorder " << std::endl ; 
     rinorder.clear();
     rinorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree preorder " << std::endl ; 
     preorder.clear();
     preorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree rpreorder " << std::endl ; 
     rpreorder.clear();
     rpreorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree postorder " << std::endl ; 
     postorder.clear(); 
     postorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree rpostorder " << std::endl ; 
     rpostorder.clear(); 
     rpostorder_r(root, 0 ); 
 
+    if(verbose) std::cout << "ZSolid::instrumentTree names" << std::endl ; 
     names.clear(); 
     collectNames_inorder_r( root, 0 ); 
+
+    if(verbose) std::cout << "ZSolid::instrumentTree nameprefix" << std::endl ; 
     nameprefix = CommonPrefix(names); 
 
-    if(false) std::cout << "ZSolid::instrumentTree [ original_num_node " << std::endl ; 
+    if(verbose) std::cout << "ZSolid::instrumentTree [ original_num_node " << std::endl ; 
     int original_num_node = NumNode_r(original, 0); 
-    if(false) std::cout << "ZSolid::instrumentTree ] original_num_node : " << original_num_node  << std::endl ; 
+    if(verbose) std::cout << "ZSolid::instrumentTree ] original_num_node : " << original_num_node  << std::endl ; 
 
-    if(false) std::cout << "ZSolid::instrumentTree [ root_num_node " << std::endl ; 
+    if(verbose) std::cout << "ZSolid::instrumentTree [ root_num_node " << std::endl ; 
     int root_num_node = NumNode_r(root, 0); 
-    if(false) std::cout << "ZSolid::instrumentTree ] root_num_node : " << root_num_node << std::endl ; 
+    if(verbose) std::cout << "ZSolid::instrumentTree ] root_num_node : " << root_num_node << std::endl ; 
 
     int depth_size = depth_map->size(); 
     int inorder_size = inorder.size(); 
