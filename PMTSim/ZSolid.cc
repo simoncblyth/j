@@ -69,10 +69,22 @@ ZSolid::ZSolid(const G4VSolid* original_ )
     extra_width(1),    // +1 for annotations to the right
     extra_height(1+1), // +1 as height zero tree is still one node, +1 for annotation  
     canvas(  new ZCanvas(width+extra_width, height+extra_height, 8, 5) ),
-    nameprefix(nullptr)
+    names( new std::vector<std::string>),
+    nameprefix(nullptr),
+    inorder( new std::vector<const G4VSolid*> ),
+    rinorder( new std::vector<const G4VSolid*> ),
+    preorder( new std::vector<const G4VSolid*> ),
+    rpreorder( new std::vector<const G4VSolid*> ),
+    postorder( new std::vector<const G4VSolid*> ),
+    rpostorder( new std::vector<const G4VSolid*> ),
+    crux( new std::vector<G4VSolid*> )
 {
     init(); 
 }
+
+
+
+
 
 void ZSolid::init()
 {
@@ -98,37 +110,37 @@ void ZSolid::instrumentTree()
     depth_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree inorder " << std::endl ; 
-    inorder.clear();
+    inorder->clear();
     inorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree rinorder " << std::endl ; 
-    rinorder.clear();
+    rinorder->clear();
     rinorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree preorder " << std::endl ; 
-    preorder.clear();
+    preorder->clear();
     preorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree rpreorder " << std::endl ; 
-    rpreorder.clear();
+    rpreorder->clear();
     rpreorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree postorder " << std::endl ; 
-    postorder.clear(); 
+    postorder->clear(); 
     postorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree rpostorder " << std::endl ; 
-    rpostorder.clear(); 
+    rpostorder->clear(); 
     rpostorder_r(root, 0 ); 
 
     if(verbose) std::cout << "ZSolid::instrumentTree names" << std::endl ; 
-    names.clear(); 
+    names->clear(); 
     collectNames_inorder_r( root, 0 ); 
 
     if(verbose)
     {
-        std::cout << "ZSolid::instrumentTree names.size " << names.size() << std::endl ; 
-        for(unsigned i=0 ; i < names.size() ; i++) std::cout << "[" << names[i] << "]" << std::endl ;  
+        std::cout << "ZSolid::instrumentTree names.size " << names->size() << std::endl ; 
+        for(unsigned i=0 ; i < names->size() ; i++) std::cout << "[" << (*names)[i] << "]" << std::endl ;  
     }
     if(verbose) std::cout << "ZSolid::instrumentTree nameprefix" << std::endl ; 
     nameprefix = CommonPrefix(names); 
@@ -143,12 +155,12 @@ void ZSolid::instrumentTree()
     if(verbose) std::cout << "ZSolid::instrumentTree ] root_num_node : " << root_num_node << std::endl ; 
 
     int depth_size = depth_map->size(); 
-    int inorder_size = inorder.size(); 
-    int rinorder_size = rinorder.size(); 
-    int preorder_size = preorder.size(); 
-    int rpreorder_size = rpreorder.size(); 
-    int postorder_size = postorder.size(); 
-    int rpostorder_size = rpostorder.size(); 
+    int inorder_size = inorder->size(); 
+    int rinorder_size = rinorder->size(); 
+    int preorder_size = preorder->size(); 
+    int rpreorder_size = rpreorder->size(); 
+    int postorder_size = postorder->size(); 
+    int rpostorder_size = rpostorder->size(); 
 
     if(verbose) std::cout 
         << "ZSolid::instrumentTree"
@@ -185,9 +197,9 @@ void ZSolid::instrumentTree()
 }
 
 
-const char* ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
+const char* ZSolid::CommonPrefix(const std::vector<std::string>* a) // static
 {
-    std::vector<std::string> aa(a); 
+    std::vector<std::string> aa(*a); 
 
     if(verbose)
     {
@@ -274,8 +286,8 @@ void ZSolid::inorder_r(const G4VSolid* node_, int depth)
 
     inorder_r(Left(node), depth+1) ; 
 
-    (*in_map)[node_] = inorder.size();   
-    inorder.push_back(node_) ; 
+    (*in_map)[node_] = inorder->size();   
+    inorder->push_back(node_) ; 
 
     inorder_r(Right(node), depth+1) ; 
 } 
@@ -287,8 +299,8 @@ void ZSolid::rinorder_r(const G4VSolid* node_, int depth)
 
     rinorder_r(Right(node), depth+1) ; 
 
-    (*rin_map)[node_] = rinorder.size();   
-    rinorder.push_back(node_) ; 
+    (*rin_map)[node_] = rinorder->size();   
+    rinorder->push_back(node_) ; 
 
     rinorder_r(Left(node), depth+1) ; 
 } 
@@ -298,8 +310,8 @@ void ZSolid::preorder_r(const G4VSolid* node_, int depth)
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
 
-    (*pre_map)[node_] = preorder.size();   
-    preorder.push_back(node_) ; 
+    (*pre_map)[node_] = preorder->size();   
+    preorder->push_back(node_) ; 
 
     preorder_r(Left(node), depth+1) ; 
     preorder_r(Right(node), depth+1) ; 
@@ -310,8 +322,8 @@ void ZSolid::rpreorder_r(const G4VSolid* node_, int depth)
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
 
-    (*rpre_map)[node_] = rpreorder.size();   
-    rpreorder.push_back(node_) ; 
+    (*rpre_map)[node_] = rpreorder->size();   
+    rpreorder->push_back(node_) ; 
 
     rpreorder_r(Right(node), depth+1) ; 
     rpreorder_r(Left(node), depth+1) ; 
@@ -325,8 +337,8 @@ void ZSolid::postorder_r(const G4VSolid* node_, int depth)
     postorder_r(Left(node), depth+1) ; 
     postorder_r(Right(node), depth+1) ; 
 
-    (*post_map)[node_] = postorder.size();   
-    postorder.push_back(node_) ; 
+    (*post_map)[node_] = postorder->size();   
+    postorder->push_back(node_) ; 
 }
 
 void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
@@ -337,8 +349,8 @@ void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
     rpostorder_r(Right(node), depth+1) ; 
     rpostorder_r(Left(node), depth+1) ; 
 
-    (*rpost_map)[node_] = rpostorder.size();   
-    rpostorder.push_back(node_) ; 
+    (*rpost_map)[node_] = rpostorder->size();   
+    rpostorder->push_back(node_) ; 
 }
 
 const G4VSolid* ZSolid::parent(  const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
@@ -633,12 +645,12 @@ void ZSolid::prune(bool act, int pass)
         }
     }
 
-    if(crux.size() == 0 ) return ;
-    bool expect= crux.size() == 1 ; 
+    if(crux->size() == 0 ) return ;
+    bool expect= crux->size() == 1 ; 
     if(!expect) exit(EXIT_FAILURE); 
     assert(expect) ;       // more than one crux node not expected
 
-    G4VSolid* x = crux[0] ;
+    G4VSolid* x = (*crux)[0] ;
     prune_crux(x, act, pass);
 }
 
@@ -744,9 +756,9 @@ void ZSolid::draw(const char* msg, int pass)
         << std::endl
         ;
  
-    for(unsigned i=0 ; i < names.size() ; i++ ) 
+    for(unsigned i=0 ; i < names->size() ; i++ ) 
     {
-        const std::string& name = names[i] ; 
+        const std::string& name = (*names)[i] ; 
         std::string nam = nameprefix ? name.substr(strlen(nameprefix)) : "" ; 
         std::string snam = nam.substr(0,6) ;  
         if(false) std::cout 
@@ -829,6 +841,22 @@ const char* ZSolid::EntityTypeName(const G4VSolid* solid)   // static
 const char* ZSolid::EntityTag(const G4VSolid* node_, bool move)   // static
 {
     const G4VSolid*  node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
+    return EntityTag_(node); 
+}
+
+const char* ZSolid::G4Ellipsoid_          = "Ell" ; 
+const char* ZSolid::G4Tubs_               = "Tub" ;
+const char* ZSolid::G4Polycone_           = "Pol" ;
+const char* ZSolid::G4Torus_              = "Tor" ;
+
+const char* ZSolid::G4UnionSolid_         = "Uni" ;
+const char* ZSolid::G4SubtractionSolid_   = "Sub" ;
+const char* ZSolid::G4IntersectionSolid_  = "Int" ;
+const char* ZSolid::G4DisplacedSolid_     = "Dis" ;
+
+
+const char* ZSolid::DirtyEntityTag_( const G4VSolid* node )
+{
     G4GeometryType type = node->GetEntityType();  // G4GeometryType typedef for G4String
     char* tag = strdup(type.c_str() + 2);  // +2 skip "G4"
     assert( strlen(tag) > 3 ); 
@@ -836,9 +864,33 @@ const char* ZSolid::EntityTag(const G4VSolid* node_, bool move)   // static
     return tag ;  
 }
 
+const char* ZSolid::EntityTag_( const G4VSolid* solid )
+{
+    int etype = EntityType(solid); 
+    const char* s = nullptr ;
+    switch(etype)
+    {
+       case _G4Ellipsoid:         s = G4Ellipsoid_         ; break ; 
+       case _G4Tubs:              s = G4Tubs_              ; break ; 
+       case _G4Polycone:          s = G4Polycone_          ; break ; 
+       case _G4Torus:             s = G4Torus_             ; break ; 
+ 
+       case _G4UnionSolid:        s = G4UnionSolid_        ; break ; 
+       case _G4SubtractionSolid:  s = G4SubtractionSolid_  ; break ; 
+       case _G4IntersectionSolid: s = G4IntersectionSolid_ ; break ; 
+       case _G4DisplacedSolid:    s = G4DisplacedSolid_    ; break ; 
+    }
+    return s ; 
+}
+ 
+ 
+
+
 int ZSolid::EntityType(const G4VSolid* solid)   // static 
 {
-    const char* name = EntityTypeName(solid); 
+    G4GeometryType etype = solid->GetEntityType();  // G4GeometryType typedef for G4String
+    const char* name = etype.c_str(); 
+
     int type = _G4Other ; 
     if( strcmp(name, "G4Ellipsoid") == 0 )         type = _G4Ellipsoid ; 
     if( strcmp(name, "G4Tubs") == 0 )              type = _G4Tubs ; 
@@ -1023,7 +1075,7 @@ combination of the child classifications.
 
 int ZSolid::classifyTree(double zcut)  
 {
-    crux.clear(); 
+    crux->clear(); 
     if(verbose) std::cout << "ZSolid::classifyTree against zcut " << zcut  << std::endl ; 
     int zc = classifyTree_r(root, 0, zcut); 
     return zc ; 
@@ -1047,12 +1099,12 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
 
         if(left_zcl == INCLUDE && right_zcl == EXCLUDE )
         {
-            crux.push_back(node_); 
+            crux->push_back(node_); 
             set_mkr( node_, 'X' ); 
         }
         else if(left_zcl == EXCLUDE && right_zcl == INCLUDE )
         {
-            crux.push_back(node_); 
+            crux->push_back(node_); 
             set_mkr( node_, 'Y' ); 
         }
 
@@ -1246,7 +1298,7 @@ void ZSolid::collectNames_inorder_r( const G4VSolid* n_, int depth )
     collectNames_inorder_r(Left(n),  depth+1); 
 
     G4String name = n->GetName(); 
-    names.push_back(name);  
+    names->push_back(name);  
 
     collectNames_inorder_r(Right(n), depth+1); 
 }

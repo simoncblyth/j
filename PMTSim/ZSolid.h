@@ -63,17 +63,17 @@ struct ZSolid
     unsigned extra_width ; 
     unsigned extra_height ; 
     ZCanvas* canvas ; 
+    std::vector<std::string>* names ; 
     const char* nameprefix ; 
 
-    std::vector<const G4VSolid*> inorder ; 
-    std::vector<const G4VSolid*> rinorder ; 
-    std::vector<const G4VSolid*> preorder ; 
-    std::vector<const G4VSolid*> rpreorder ; 
-    std::vector<const G4VSolid*> postorder ; 
-    std::vector<const G4VSolid*> rpostorder ; 
+    std::vector<const G4VSolid*>* inorder ; 
+    std::vector<const G4VSolid*>* rinorder ; 
+    std::vector<const G4VSolid*>* preorder ; 
+    std::vector<const G4VSolid*>* rpreorder ; 
+    std::vector<const G4VSolid*>* postorder ; 
+    std::vector<const G4VSolid*>* rpostorder ; 
 
-    std::vector<G4VSolid*> crux ; 
-    std::vector<std::string> names ; 
+    std::vector<G4VSolid*>* crux ; 
 
     // object methods
     ZSolid(const G4VSolid* root ); 
@@ -184,6 +184,19 @@ struct ZSolid
         _G4DisplacedSolid 
      }; 
 
+    static const char* G4Ellipsoid_ ; 
+    static const char* G4Tubs_      ;
+    static const char* G4Polycone_  ;
+    static const char* G4Torus_     ;
+    static const char* G4UnionSolid_        ;
+    static const char* G4SubtractionSolid_  ;
+    static const char* G4IntersectionSolid_ ;
+    static const char* G4DisplacedSolid_    ;
+
+    static const char* DirtyEntityTag_( const G4VSolid* node );
+    static const char* EntityTag_( const G4VSolid* solid );
+
+
     enum { 
        UNDEFINED=0, 
          INCLUDE=1<<0, 
@@ -254,7 +267,7 @@ struct ZSolid
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone_NotWorking(  G4VSolid* node, double local_zcut);
 
-    static const char* CommonPrefix(const std::vector<std::string>& a); 
+    static const char* CommonPrefix(const std::vector<std::string>* a); 
 
 }; 
 

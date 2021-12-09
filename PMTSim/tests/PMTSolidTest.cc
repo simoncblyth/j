@@ -34,6 +34,8 @@ int main(int argc, char** argv)
 
     ZSolid::Draw(body_solid_zcut, "body_solid_zcut");   
 
+    std::cout << "after ZSolid::Draw " << std::endl ; 
+
     return 0 ; 
 }
 
