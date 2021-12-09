@@ -580,7 +580,9 @@ void ZSolid::prune(bool act, int pass)
     }
 
     if(crux.size() == 0 ) return ;
-    assert(crux.size() == 1) ;       // more than one crux node not expected
+    bool expect= crux.size() == 1 ; 
+    if(!expect) exit(EXIT_FAILURE); 
+    assert(expect) ;       // more than one crux node not expected
 
     G4VSolid* x = crux[0] ;
     prune_crux(x, act, pass);
@@ -597,10 +599,14 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
     assert( x );
     bool ie = is_include_exclude(x) ;  // include left, exclude right
     bool ei = is_exclude_include(x) ;  // exclude left, include right 
-    assert( ie ^ ei );                 // XOR definition of crux node 
+    bool expect_0 =  ie ^ ei ;     // XOR definition of crux node 
+    if(!expect_0) exit(EXIT_FAILURE) ; 
 
     G4VSolid* survivor = ie ? Left_(x) : Right_(x) ;
+    bool expect_1 = survivor != nullptr ; 
+    if(!expect_1) exit(EXIT_FAILURE); 
     assert( survivor );
+
     set_mkr(survivor, 'S') ;
 
     G4VSolid* p = parent_(x); 
@@ -912,7 +918,11 @@ void ZSolid::dumpTree_r( const G4VSolid* node_, int depth  ) const
     assert( node ); 
 
     double zdelta_always_zero = getZ(node); 
-    assert( zdelta_always_zero == 0. ); 
+
+    bool expect = zdelta_always_zero == 0. ; 
+    if(!expect) exit(EXIT_FAILURE); 
+
+    assert(expect ); 
     // Hmm thats tricky, using node arg always gives zero.
     // Must use node_ which is the one that might be G4DisplacedSolid. 
 
@@ -1289,7 +1299,11 @@ void ZSolid::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
     double z1 = ellipsoid->GetZTopCut() ;
     
     double new_z0 = local_zcut ; 
-    assert( new_z0 >= z0 && new_z0 < z1 ); 
+
+    bool expect = new_z0 >= z0 && new_z0 < z1 && z1 > z0 ; 
+    if(!expect) exit(EXIT_FAILURE); 
+    assert( expect ); 
+
     double new_z1 = z1 ; 
 
     ellipsoid->SetZCuts( new_z0, new_z1 ); 
@@ -1322,7 +1336,9 @@ void ZSolid::ApplyZCut_G4Polycone_NotWorking( G4VSolid* node, double local_zcut)
     {
         double z0 = pars->Z_values[i-1] ; 
         double z1 = pars->Z_values[i] ; 
-        assert( z1 > z0 );   
+        bool expect = z1 > z0 ; 
+        assert(expect);   
+        if(!expect) exit(EXIT_FAILURE); 
     }
 
     assert( num_z == 2 );    // simplifying assumption 
@@ -1360,6 +1376,8 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
 
     G4PolyconeHistorical* pars = polycone->GetOriginalParameters(); 
 
+    bool expect ; 
+  
     unsigned num_z = pars->Num_z_planes ; 
     G4double* zp = new G4double[num_z] ; 
     G4double* ri = new G4double[num_z] ; 
@@ -1376,7 +1394,9 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
     {
         double z0 = zp[i-1] ; 
         double z1 = zp[i] ; 
-        assert( z1 > z0 );   
+        expect = z1 > z0 ; 
+        assert(expect);   
+        if(!expect) exit(EXIT_FAILURE); 
     }
 
     assert( num_z == 2 );  // simplifying assumption 
@@ -1399,7 +1419,9 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
 
     // placement new 
     G4Polycone* polycone_replacement = new (polycone) G4Polycone( name, startPhi, endPhi, num_z, zp, ri, ro ); 
-    assert( polycone_replacement == polycone ); 
+    expect = polycone_replacement == polycone ;  
+    assert( expect ); 
+    if(!expect) exit(EXIT_FAILURE); 
 
 }
 
@@ -1437,14 +1459,20 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
     if( PROMOTE_TUBS_TO_POLYCONE )
         assert(0 && "All G4Tubs should have been promoted to G4Polycone at clone stage, how did you get here ?") ; 
 
+    bool expect ; 
     G4RotationMatrix node_rot ; 
     G4ThreeVector    node_tla(0., 0., 0. ); 
     G4VSolid*  node = Moved_(&node_rot, &node_tla, node_ ); 
 
     G4Tubs* tubs = dynamic_cast<G4Tubs*>(node) ;  
-    assert(tubs); 
+    expect = tubs != nullptr ; 
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
+
     G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(node_) ; 
-    assert( disp ); // transform must be associated as must change offset to cut G4Tubs
+    expect = disp != nullptr ; // transform must be associated as must change offset to cut G4Tubs
+    assert( expect ); 
+    if(!expect) exit(EXIT_FAILURE); 
 
     double hz = tubs->GetZHalfLength() ; 
     double new_hz  = (hz - local_zcut)/2. ;  
@@ -1467,7 +1495,10 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
     G4SolidStore::GetInstance()->DeRegister(disp);  // avoids G4SolidStore segv at cleanup
 
     G4DisplacedSolid* disp2 = new (disp) G4DisplacedSolid(disp_name, node, &node_rot, node_tla );  
-    assert( disp2 == disp ); 
+
+    expect =  disp2 == disp ; 
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
 }
 
 
@@ -1662,21 +1693,36 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
 
 void ZSolid::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ) // static
 {
+    bool expect ; 
+
     if(!clone) std::cout << "ZSolid::CheckBooleanClone FATAL " << std::endl ; 
-    assert(clone); 
+
+    expect = clone != nullptr ; 
+    assert(expect);
+    if(!expect) exit(EXIT_FAILURE); 
+ 
     const G4BooleanSolid* boolean = dynamic_cast<const G4BooleanSolid*>(clone) ; 
 
     // lhs is never wrapped in G4DisplacedSolid 
     const G4VSolid* lhs = boolean->GetConstituentSolid(0) ; 
     const G4DisplacedSolid* lhs_disp = dynamic_cast<const G4DisplacedSolid*>(lhs) ; 
-    assert( lhs_disp == nullptr && lhs == left ) ;      
+    expect = lhs_disp == nullptr && lhs == left ; 
+    assert(expect) ;      
+    if(!expect) exit(EXIT_FAILURE); 
 
     // rhs will be wrapped in G4DisplacedSolid as above G4BooleanSolid ctor has transform rrot/rtla
     const G4VSolid* rhs = boolean->GetConstituentSolid(1) ; 
     const G4DisplacedSolid* rhs_disp = dynamic_cast<const G4DisplacedSolid*>(rhs) ; 
-    assert( rhs_disp != nullptr && rhs != right);    
+
+    expect = rhs_disp != nullptr && rhs != right ;  
+    assert(expect);    
+    if(!expect) exit(EXIT_FAILURE); 
+
     const G4VSolid* right_check = rhs_disp->GetConstituentMovedSolid() ;
-    assert( right_check == right );  
+    expect = right_check == right ; 
+
+    assert(expect);    
+    if(!expect) exit(EXIT_FAILURE); 
 }
 
 void ZSolid::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid ) // static
@@ -2006,7 +2052,9 @@ void ZSolid::GetZRange( const G4Polycone* const polycone, double& _z0, double& _
     {
         double z0 = pars->Z_values[i-1] ; 
         double z1 = pars->Z_values[i] ; 
-        assert( z1 > z0 );   
+        bool expect = z1 > z0 ; 
+        assert(expect);   
+        if(!expect) exit(EXIT_FAILURE); 
     }
     _z1 = pars->Z_values[num_z-1] ; 
     _z0 = pars->Z_values[0] ;  

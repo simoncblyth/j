@@ -186,6 +186,7 @@ G4VSolid* NNVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, c
             << G4endl 
             ;
         assert(0); 
+        exit(EXIT_FAILURE);
     }
     return u_pmt_solid;
 }
@@ -243,6 +244,7 @@ G4VSolid* NNVT_MCPPMT_PMTSolid::construct_head(G4String solidname,
           << G4endl 
           ;
       assert(0); 
+      exit(EXIT_FAILURE);
   }  
 
   return head;

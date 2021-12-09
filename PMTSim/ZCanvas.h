@@ -88,7 +88,10 @@ inline void ZCanvas::draw(int ix, int iy, int dx, int dy, int val)
 {
     char tmp[10] ;
     int rc = sprintf(tmp, "%d", val );
-    assert( rc == int(strlen(tmp)) );
+    bool expect = rc == int(strlen(tmp)) ; 
+    assert( expect );
+    if(!expect) exit(EXIT_FAILURE) ; 
+
     _draw(ix, iy, dx, dy, tmp); 
 }
 
@@ -106,10 +109,9 @@ inline void ZCanvas::draw(int ix, int iy, int dx, int dy, const char* txt)
 
 inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   // 0,0 is at top left 
 {
-    assert( ix < int(width)  ); 
-    assert( iy < int(height)  ); 
-    assert( dx < int(xscale) ); 
-    assert( dy < int(yscale) ); 
+    bool expect = ix < int(width) && iy < int(height) && dx < int(xscale) &&  dy < int(yscale) ; 
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
 
     int x = ix*xscale + dx ; 
     int y = iy*yscale + dy ; 

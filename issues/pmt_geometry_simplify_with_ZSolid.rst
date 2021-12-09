@@ -26,7 +26,39 @@ pmt_geometry_simplify_with_ZSolid
 * DONE : STANDALONE is too generic, swited to PMTSIM_STANDALONE 
 
 * TODO: replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
- 
+
+
+Incorporation : lots of unused variable warnings as assert is optimized away in Release mode 
+-----------------------------------------------------------------------------------------------
+
+Lots of ZSolid warnings because it looks like assert is being removed in Release mode.
+
+* https://stackoverflow.com/questions/22140520/how-to-enable-assert-in-cmake-release-mode
+
+Manage to reproduce many of the warnings in standalone j/PMTSim with::
+
+    epsilon:PMTSim blyth$ OPTICKS_BUILDTYPE=Release om-conf
+    epsilon:PMTSim blyth$ touch ZSolid.cc ; om
+
+
+
+Incorporation : Runtime fail after adding new sources
+--------------------------------------------------------
+
+::
+
+    [Ellipse_Intersect_Circle 
+    ]Ellipse_Intersect_Circle (  139.6247,  -158.1783) 
+    [ ZSolid::ApplyZCutTree zcut    183.225 pmt_delta      0.001 body_delta     -4.999 inner_delta     -5.000 zcut+pmt_delta    183.226 zcut+body_delta    178.226 zcut+inner_delta    178.225
+    /data/blyth/junotop/ExternalLibs/Python/3.8.12/bin/python: symbol lookup error: /data/blyth/junotop/offline/InstallArea/lib64/libPMTSim.so: undefined symbol: _ZN6ZSolid13ApplyZCutTreeEPK8G4VSoliddb
+    [Inferior 1 (process 434128) exited with code 0177]
+
+
+This is because offline PKG uses dirty listing of sources so CMake cannot detect added source files at make time, 
+have to manually configure again in order for CMake to notice that there are new sources.
+
+
+
 
 Review of Code Changes (using eg "jdiff Hamamatsu_R12860_PMTSolid")
 ----------------------------------------------------------------------

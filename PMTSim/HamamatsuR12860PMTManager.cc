@@ -180,7 +180,11 @@ void HamamatsuR12860PMTManager::init() {
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
-    assert(m_detector);
+
+    bool expect = m_detector != nullptr ; 
+    assert(expect);
+    if(!expect) exit(EXIT_FAILURE); 
+    
 #endif
     init_material();
     init_variables();
@@ -513,6 +517,7 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 void HamamatsuR12860PMTManager::obsolete_inner_cut()
 {
     assert(0); 
+    exit(EXIT_FAILURE); 
 
     G4double helper_sep_tube_r = m_pmt_r;
     G4double helper_sep_tube_h = m_z_equator;
@@ -969,6 +974,7 @@ HamamatsuR12860PMTManager::helper_fast_sim()
     if(parsvc.invalid()){
         LogError << "Can't get PMTParamSvc. We can't initialize PMT." << std::endl;
         assert(0);
+        exit(EXIT_FAILURE);
     }else{
         LogInfo << "Retrieve PMTParamSvc successfully." << std::endl;
         m_pmt_param_svc = parsvc.data();
@@ -981,6 +987,7 @@ HamamatsuR12860PMTManager::helper_fast_sim()
     if(simsvc.invalid()){
         LogError << "Can't get PMTSimParamSvc. We can't initialize PMT." << std::endl;
         assert(0);
+        exit(EXIT_FAILURE);
     }else{
         LogInfo <<"Retrieve PMTSimParamSvc successfully." << std::endl;
         m_pmt_sim_param_svc = simsvc.data();

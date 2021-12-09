@@ -34,6 +34,8 @@ gcc \
         -DPMTSIM_STANDALONE \
        -std=c++11 \
        -Wcomment \
+       -Wunused-variable \
+       -Wall \
        -I. \
        -I$HOME/np \
        -g \

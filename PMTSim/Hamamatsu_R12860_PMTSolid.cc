@@ -339,6 +339,7 @@ G4VSolid* Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickne
            << G4endl 
            ;
        assert(0); 
+       exit(EXIT_FAILURE);
     }
 
     return u_pmt_solid;

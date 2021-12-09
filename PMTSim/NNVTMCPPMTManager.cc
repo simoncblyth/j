@@ -808,6 +808,7 @@ NNVTMCPPMTManager::helper_fast_sim()
     if(parsvc.invalid()){
         LogError << "Can't get PMTParamSvc. We can't initialize PMT." << std::endl;
         assert(0);
+        exit(EXIT_FAILURE);
     }else{
         LogInfo << "Retrieve PMTParamSvc successfully." << std::endl;
         m_pmt_param_svc = parsvc.data();
@@ -820,6 +821,7 @@ NNVTMCPPMTManager::helper_fast_sim()
     if(simsvc.invalid()){
         LogError << "Can't get PMTSimParamSvc. We can't initialize PMT." << std::endl;
         assert(0);
+        exit(EXIT_FAILURE);
     }else{
         LogInfo <<"Retrieve PMTSimParamSvc successfully." << std::endl;
         m_pmt_sim_param_svc = simsvc.data();
