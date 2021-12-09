@@ -63,6 +63,7 @@ struct ZSolid
     unsigned extra_width ; 
     unsigned extra_height ; 
     ZCanvas* canvas ; 
+    const char* nameprefix ; 
 
     std::vector<const G4VSolid*> inorder ; 
     std::vector<const G4VSolid*> rinorder ; 
@@ -73,7 +74,6 @@ struct ZSolid
 
     std::vector<G4VSolid*> crux ; 
     std::vector<std::string> names ; 
-    std::string nameprefix ; 
 
     // object methods
     ZSolid(const G4VSolid* root ); 
@@ -254,7 +254,7 @@ struct ZSolid
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone_NotWorking(  G4VSolid* node, double local_zcut);
 
-    static std::string CommonPrefix(const std::vector<std::string>& a); 
+    static const char* CommonPrefix(const std::vector<std::string>& a); 
 
 }; 
 

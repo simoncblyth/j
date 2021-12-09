@@ -68,7 +68,8 @@ ZSolid::ZSolid(const G4VSolid* original_ )
     height(0), 
     extra_width(1),    // +1 for annotations to the right
     extra_height(1+1), // +1 as height zero tree is still one node, +1 for annotation  
-    canvas(  new ZCanvas(width+extra_width, height+extra_height, 8, 5) )  
+    canvas(  new ZCanvas(width+extra_width, height+extra_height, 8, 5) ),
+    nameprefix(nullptr)
 {
     init(); 
 }
@@ -184,7 +185,7 @@ void ZSolid::instrumentTree()
 }
 
 
-std::string ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
+const char* ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
 {
     std::vector<std::string> aa(a); 
 
@@ -214,15 +215,17 @@ std::string ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
             break ; 
         }
     }
+    const char* prefix_ = strdup(prefix.c_str()) ; 
 
     if(verbose)
     {
         std::cout << "ZSolid::CommonPrefix s1 " << s1 << std::endl ;  
         std::cout << "ZSolid::CommonPrefix s2 " << s2 << std::endl ;  
         std::cout << "ZSolid::CommonPrefix prefix " << prefix << std::endl ;  
+        std::cout << "ZSolid::CommonPrefix prefix_ " << prefix_ << std::endl ;  
     }
 
-    return prefix ; 
+    return prefix_  ; 
 } 
 
 /**
@@ -735,7 +738,7 @@ void ZSolid::draw(const char* msg, int pass)
     std::cout 
         << msg 
         << " [" << std::setw(2) << pass << "]" 
-        << " nameprefix " << nameprefix 
+        << " nameprefix " << ( nameprefix ? nameprefix : "-" ) 
         << " " << desc() 
         << " Order:" << OrderName(mode) 
         << std::endl
@@ -744,7 +747,7 @@ void ZSolid::draw(const char* msg, int pass)
     for(unsigned i=0 ; i < names.size() ; i++ ) 
     {
         const std::string& name = names[i] ; 
-        std::string nam = name.substr(nameprefix.size()); 
+        std::string nam = nameprefix ? name.substr(strlen(nameprefix)) : "" ; 
         std::string snam = nam.substr(0,6) ;  
         if(false) std::cout 
             << std::setw(3) << i 
