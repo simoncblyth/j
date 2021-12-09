@@ -1987,13 +1987,15 @@ tds-grab(){
 
 tds0(){
    : run with opticks disabled
-   local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
+   #local former_opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
+   local opts="--opticks-mode 0 --no-guide_tube --evtmax 2 " ;   
    tds- $opts gun $*
 }
 
 tds2(){
    : run with opticks disabled, but with Opticks provided intrumentation used to save info from Geant4 in OpticksEvent format files
-   local opts="--opticks-mode 2 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
+   #local former_opts="--opticks-mode 2 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
+   local opts="--opticks-mode 2 --no-guide_tube --evtmax 2 --opticks-anamgr" ;   
    tds- $opts gun $*
 }
 
@@ -2114,8 +2116,12 @@ tds3(){
 
    local opts="" 
    opts="$opts --opticks-mode 3"   
-   opts="$opts --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg"
+   opts="$opts --no-guide_tube"
    #opts="$opts --additionacrylic-simplify-csg"
+
+   #opts="$opts --pmt20inch-polycone-neck"  ## FORMER OPTION NOW DEFAULT
+   #opts="$opts --pmt20inch-simplify-csg"   ## FORMER OPTION NOW DEFAULT
+
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "
 
@@ -2238,11 +2244,12 @@ tds_log(){
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
 tds(){ 
-   #local opts="--no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
    #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
    #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
-   local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
+   #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
    #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"  
+
+   local opts="--opticks-mode 1 --no-guide_tube --evtmax 10"  
 
    tds-elog-quiet
    tds-ectrl 
