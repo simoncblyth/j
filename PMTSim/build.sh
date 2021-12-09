@@ -36,6 +36,8 @@ gcc \
        -Wcomment \
        -Wunused-variable \
        -Wunused-parameter \
+       -Wextra \
+       -Wunused \
        -Wall \
        -I. \
        -I$HOME/np \

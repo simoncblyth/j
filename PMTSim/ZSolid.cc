@@ -1861,7 +1861,10 @@ void ZSolid::PlacementNewDupe( G4VSolid* solid) // static
         case _G4SubtractionSolid  : dupe = new (solid) G4SubtractionSolid(  name, left, right, &rrot, rtla ) ; break ;
         case _G4IntersectionSolid : dupe = new (solid) G4IntersectionSolid( name, left, right, &rrot, rtla ) ; break ; 
     } 
-    assert( dupe == solid ); 
+    bool expect = dupe == solid ; 
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
+
 } 
 
 /**
@@ -1907,7 +1910,10 @@ void ZSolid::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot,
         case _G4SubtractionSolid  : replacement = new (src) G4SubtractionSolid(  name, left, right, rrot, *rtla ) ; break ;
         case _G4IntersectionSolid : replacement = new (src) G4IntersectionSolid( name, left, right, rrot, *rtla ) ; break ; 
     }
-    assert( replacement == src ); 
+
+    bool expect = replacement == src ;
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
 }
 
 /**
@@ -1945,7 +1951,9 @@ void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static
         case _G4SubtractionSolid  : replacement = new (src) G4SubtractionSolid(  name, left, right, &rrot, rtla ) ; break ;
         case _G4IntersectionSolid : replacement = new (src) G4IntersectionSolid( name, left, right, &rrot, rtla ) ; break ; 
     } 
-    assert( replacement == src ); 
+    bool expect = replacement == src ; 
+    assert(expect); 
+    if(!expect) exit(EXIT_FAILURE); 
 }
 
 
