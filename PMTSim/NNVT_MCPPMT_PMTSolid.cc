@@ -270,9 +270,9 @@ G4VSolid* NNVT_MCPPMT_PMTSolid::construct_neck(G4String solidname,
 G4VSolid* NNVT_MCPPMT_PMTSolid::construct_polycone_neck(G4String solidname,
                                      double Rtubetorus, 
                                      double Htubetorus,
-                                     double Rtorus,     // swipe
+                                     double /*Rtorus*/,   
                                      double Rbtm, // the r at bottom
-                                     char mode) const 
+                                     char  /*mode*/) const 
 {
     G4VSolid* neck = nullptr ;
     G4double phiStart = 0.00*deg ; 
@@ -300,8 +300,8 @@ G4VSolid* NNVT_MCPPMT_PMTSolid::construct_obsolete_torus_neck(G4String solidname
                                      double Rtubetorus, 
                                      double Htubetorus,
                                      double Rtorus,     // swipe
-                                     double Rbtm, // the r at bottom
-                                     char mode) const 
+                                     double /*Rbtm*/, // the r at bottom
+                                     char /*mode*/) const 
 {
     G4VSolid* neck = NULL ;
     G4Tubs* tube = new G4Tubs(

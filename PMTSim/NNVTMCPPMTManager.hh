@@ -150,17 +150,20 @@ private:
     G4double m_pmt_h;
 
 private:
-    // If m_useRealSurface is true, the PMT should insert into the surface.
-    // In order to optimize the speed, just reduce the size of the PMT.
-    //
-    //        |    -
-    //        |  /   \
-    //    ------- P M T
-    //    ------- 19.434m
-    //        |  \   /
-    //        |    -
-    //      Tyvek  |
-    //     19.629m
+    /**
+    If m_useRealSurface is true, the PMT should insert into the surface.
+    In order to optimize the speed, just reduce the size of the PMT.
+    
+              |    -
+              |  /   \
+          ------- P M T
+          ------- 19.434m
+              |  \   /
+              |    -
+            Tyvek  |
+           19.629m
+
+    **/
     bool m_useRealSurface;
     bool m_plus_dynode ;
     bool m_profligate_tail_cut ; 

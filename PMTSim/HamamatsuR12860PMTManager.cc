@@ -462,7 +462,7 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
         "uncut_inner2_solid"
     };
 
-    std::cout << "HamamatsuR12860PMTManager::dump" << std::endl ; 
+    std::cout << msg << std::endl ; 
     for(unsigned i=0 ; i < names.size() ; i++)
     {
         const char* name = names[i]; 
