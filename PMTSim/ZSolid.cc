@@ -795,8 +795,10 @@ void ZSolid::draw_r( const G4VSolid* node_, int mode )
     canvas->draw(   ix, iy, 0,2,  idx); 
     canvas->drawch( ix, iy, 0,3,  mk ); 
 
+    bool can_z = ZSolid::CanZ(node) ;
+    if(verbose) std::cout << "ZSolid::draw_r can_z " << can_z << std::endl ;  
 
-    if(ZSolid::CanZ(node))
+    if(can_z)
     {
         double zdelta = getZ(node_) ;  
         double z0, z1 ; 
@@ -2148,13 +2150,14 @@ bool ZSolid::CanZ( const G4VSolid* solid ) // static
 {
     int type = EntityType(solid) ; 
     bool can = type == _G4Ellipsoid || type == _G4Tubs || type == _G4Polycone || type == _G4Torus ; 
+    G4String name = solid->GetName(); 
 
     if( can == false )
     {
         std::cout 
             << "ZSolid::CanZ ERROR "
             << " false for solid.EntityTypeName " << EntityTypeName(solid)
-            << " solid.name " << solid->GetName()
+            << " solid.name " << name.c_str() 
             << std::endl ; 
             ;
     }
