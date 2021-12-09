@@ -124,6 +124,11 @@ void ZSolid::instrumentTree()
     names.clear(); 
     collectNames_inorder_r( root, 0 ); 
 
+    if(verbose)
+    {
+        std::cout << "ZSolid::instrumentTree names.size " << names.size() << std::endl ; 
+        for(unsigned i=0 ; i < names.size() ; i++) std::cout << "[" << names[i] << "]" << std::endl ;  
+    }
     if(verbose) std::cout << "ZSolid::instrumentTree nameprefix" << std::endl ; 
     nameprefix = CommonPrefix(names); 
 
@@ -181,11 +186,42 @@ void ZSolid::instrumentTree()
 std::string ZSolid::CommonPrefix(const std::vector<std::string>& a) // static
 {
     std::vector<std::string> aa(a); 
+
+    if(verbose)
+    {
+        std::cout << "ZSolid::CommonPrefix aa.size (before sort) " << aa.size() << std::endl ;  
+        for(unsigned i=0 ; i < aa.size() ; i++) std::cout << "[" << aa[i] << "]" << std::endl ;  
+    }
+
     std::sort( aa.begin(), aa.end() );  
+
+    if(verbose)
+    {
+        std::cout << "ZSolid::CommonPrefix aa.size (after sort) " << aa.size() << std::endl ;  
+        for(unsigned i=0 ; i < aa.size() ; i++) std::cout << "[" << aa[i] << "]" << std::endl ;  
+    }
+
     const std::string& s1 = aa[0] ; 
     const std::string& s2 = aa[aa.size()-1] ; 
-    for(unsigned i=0 ; i < s1.size() ; i++) if( s1[i] != s2[i] ) return s1.substr(0,i) ; 
-    return s1 ; 
+
+    std::string prefix(s1) ; 
+    for(unsigned i=0 ; i < s1.size() ; i++) 
+    {
+        if( s1[i] != s2[i] ) 
+        {
+            prefix = s1.substr(0,i) ; 
+            break ; 
+        }
+    }
+
+    if(verbose)
+    {
+        std::cout << "ZSolid::CommonPrefix s1 " << s1 << std::endl ;  
+        std::cout << "ZSolid::CommonPrefix s2 " << s2 << std::endl ;  
+        std::cout << "ZSolid::CommonPrefix prefix " << prefix << std::endl ;  
+    }
+
+    return prefix ; 
 } 
 
 /**
