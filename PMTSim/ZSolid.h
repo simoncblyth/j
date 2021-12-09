@@ -36,11 +36,11 @@ struct ZSolid
 {
 #endif
     // primary API
-    static G4VSolid* ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ); 
+    static const bool verbose ; 
+    static G4VSolid* ApplyZCutTree( const G4VSolid* original, double zcut ); 
     static void Draw(const G4VSolid* original, const char* msg="ZSolid::Draw" ); 
 
     // members
-    bool            verbose ; 
     const G4VSolid* original ; 
     G4VSolid*       root ;     // DeepClone of original, which is identical to original AND fully independent from it 
     bool            edited ;   // false, until root changed  or tree pruned
@@ -76,7 +76,7 @@ struct ZSolid
     std::string nameprefix ; 
 
     // object methods
-    ZSolid(const G4VSolid* root, bool verbose_ ); 
+    ZSolid(const G4VSolid* root ); 
 
     void init(); 
 
@@ -248,7 +248,7 @@ struct ZSolid
     static G4VSolid* PromoteTubsToPolycone( const G4VSolid* solid ); 
     static const bool PROMOTE_TUBS_TO_POLYCONE ; 
 
-    static void ApplyZCut(             G4VSolid* node, double local_zcut, bool verbose); 
+    static void ApplyZCut(             G4VSolid* node, double local_zcut); 
     static void ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Tubs(      G4VSolid* node, double local_zcut);
     static void ApplyZCut_G4Polycone(  G4VSolid* node, double local_zcut);

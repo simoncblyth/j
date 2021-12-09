@@ -366,10 +366,9 @@ void HamamatsuR12860PMTManager::helper_make_solid()
             << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
             << std::endl ; 
 
-        bool verbose = getenv("HamamatsuR12860PMTManager_helper_make_solid_verbose") != nullptr ; 
-        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   , verbose );
-        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  , verbose );
-        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) , verbose );
+        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
+        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
+        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
 
         std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }

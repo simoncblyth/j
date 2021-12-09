@@ -170,8 +170,7 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     if( solid != nullptr && s_zcut != nullptr )
     {
-        bool verbose = getenv("PMTSim_GetSolid") != nullptr ; 
-        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut, verbose );  
+        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut);  
         solid = zcut_solid ; 
     }
 

@@ -55,11 +55,16 @@ void OldZSolid::applyZCut( double zcut )
 {
     double az1 = zdelta + z1() ; 
     double az0 = zdelta + z0() ; 
+
+    bool expect = az1 > az0 ; 
+    if(!expect) exit(EXIT_FAILURE); 
+    assert( expect ); 
+
     assert( zcut < az1 && zcut > az0 );  
 
     double local_zcut = zcut - zdelta ;     
 
-    ZSolid::ApplyZCut( solid, local_zcut, true ); 
+    ZSolid::ApplyZCut( solid, local_zcut ); 
 }
 
 

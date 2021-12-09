@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 
     std::cout << " zcut " << zcut << std::endl ; 
 
-    G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree(body_solid, zcut, false ); 
+    G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree(body_solid, zcut ); 
 
     ZSolid::Draw(body_solid_zcut, "body_solid_zcut");   
 

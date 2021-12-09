@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <cstdlib>
 
 #include "G4SolidStore.hh"
 #include "G4UnionSolid.hh"
@@ -17,12 +18,14 @@
 #include "ZSolid.h"
 
 
-G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut, bool verbose ) // static
+const bool ZSolid::verbose = getenv("ZSolid_verbose") != nullptr ; 
+
+G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut ) // static
 {
     if(verbose)
     std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
 
-    ZSolid* zs = new ZSolid(original, verbose ); 
+    ZSolid* zs = new ZSolid(original); 
     zs->apply_cut( zcut );  
     //zs->dump("ZSolid::ApplyZCutTree"); 
 
@@ -39,13 +42,12 @@ void ZSolid::Draw(const G4VSolid* original, const char* msg ) // static
         return ; 
     }    
 
-    ZSolid* zs = new ZSolid(original, false); 
+    ZSolid* zs = new ZSolid(original); 
     zs->draw(msg);
 }
 
-ZSolid::ZSolid(const G4VSolid* original_, bool verbose_ ) 
+ZSolid::ZSolid(const G4VSolid* original_ ) 
     :
-    verbose(verbose_),
     original(original_),
     root(DeepClone(original_)),
     edited(false),
@@ -73,6 +75,7 @@ ZSolid::ZSolid(const G4VSolid* original_, bool verbose_ )
 
 void ZSolid::init()
 {
+    if(verbose) std::cout << "ZSolid::init" << std::endl ; 
     instrumentTree(); 
 }
 
@@ -84,6 +87,7 @@ void ZSolid::dump(const char* msg) const
 
 void ZSolid::instrumentTree()
 {
+    if(verbose) std::cout << "ZSolid::instrumentTree" << std::endl ; 
     parent_map->clear(); 
     (*parent_map)[root] = nullptr ;  // root has no parent by definition
     parent_r( root, 0 ); 
@@ -129,7 +133,7 @@ void ZSolid::instrumentTree()
     int postorder_size = postorder.size(); 
     int rpostorder_size = rpostorder.size(); 
 
-    if(false) std::cout 
+    if(verbose) std::cout 
         << "ZSolid::instrumentTree"
         << " depth_size " << depth_size
         << " inorder_size " << inorder_size
@@ -159,7 +163,7 @@ void ZSolid::instrumentTree()
     width = root_num_node ; 
     height = maxdepth() ; 
 
-    if(false) printf("ZSolid::instrumentTree width %d height %d \n", width, height );     
+    if(verbose) printf("ZSolid::instrumentTree width %d height %d \n", width, height );     
     canvas->resize( width+extra_width, height+extra_height );    
 }
 
@@ -487,7 +491,7 @@ int ZSolid::NumNode_r(const G4VSolid* node_, int depth) // static
             num += NumNode_r( right, depth+1 );  
         }   
 
-        if(false) std::cout 
+        if(verbose) std::cout 
             << "ZSolid::NumNode_r " 
             << " depth " << std::setw(3) << depth
             << " type " << std::setw(20) << EntityTypeName(node)
@@ -514,7 +518,7 @@ int ZSolid::num_node_select_r(const G4VSolid* node_, int qcls) const
     int num = ( node_ && zcl == qcls ) ? 1 : 0 ;
     if( node )
     {
-        if(false) std::cout 
+        if(verbose) std::cout 
             << "ZSolid::num_node_select_r"
             << " zcl " << zcl
             << " zcn " << ClassifyMaskName(zcl)
@@ -1220,7 +1224,7 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
                 << std::endl
                 ;
 
-            ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut, verbose ); 
+            ApplyZCut( const_cast<G4VSolid*>(node_), local_zcut ); 
         } 
     }
 }
@@ -1247,7 +1251,7 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
     }
 } 
 
-void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut, bool verbose ) // static
+void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 {
     G4VSolid* node = Moved_(node_ ); 
     if(verbose) std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
@@ -1643,7 +1647,7 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
 {
     const G4VSolid* node = Moved( rot, tla, node_ ); // if node_ isa G4DisplacedSolid node will not be and rot/tla will be set 
 
-    if(false) std::cout 
+    if(verbose) std::cout 
         << "ZSolid::DeepClone_r(preorder visit)"
         << " type " << std::setw(20) << EntityTypeName(node)
         << " name " << std::setw(20) << node->GetName()
