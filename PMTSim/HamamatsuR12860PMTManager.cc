@@ -3,7 +3,7 @@
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #else
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 #include "junoPMTOpticalModel.hh"
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperLog.h"
