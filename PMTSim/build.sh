@@ -10,11 +10,20 @@ EOU
 
 g4-
 clhep-
+boost-
 
-name=PMTSim
-srcs="$name.cc
+name=PMTSimTest
+
+srcs="
+      tests/$name.cc
+      PMTSim.cc
       Hamamatsu_R12860_PMTSolid.cc
       HamamatsuR12860PMTManager.cc 
+      NNVT_MCPPMT_PMTSolid.cc
+      NNVTMCPPMTManager.cc
+      DetectorConstruction.cc
+      ZSolid.cc
+      MaterialSvc.cc
      "
 
 bin=/tmp/$name/$name
@@ -24,10 +33,13 @@ gcc \
         $srcs \
         -DPMTSIM_STANDALONE \
        -std=c++11 \
+       -Wcomment \
        -I. \
+       -I$HOME/np \
        -g \
        -I$(g4-prefix)/include/Geant4 \
        -I$(clhep-prefix)/include \
+       -I$(boost-prefix)/include \
        -L$(g4-libdir) \
        -L$(clhep-prefix)/lib \
        -lstdc++ \
