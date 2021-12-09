@@ -1656,7 +1656,14 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
             << " depth " << std::setw(2) << depth
             ; 
         if(tla) std::cout 
-            << " tla (" << tla->x() :  << " " << tla->y() << " " << tla->z() << ")"  ; 
+            << " tla (" 
+            << tla->x() 
+            << " " 
+            << tla->y() 
+            << " " 
+            << tla->z() 
+            << ")"  
+            ; 
         std::cout 
             << std::endl 
             ; 
