@@ -133,11 +133,9 @@ void ZSolid::instrumentTree()
     nameprefix = CommonPrefix(names); 
     if(verbose) std::cout << "ZSolid::instrumentTree nameprefix [" << nameprefix << "]" << std::endl ; 
 
-    /*
     if(verbose) std::cout << "ZSolid::instrumentTree [ original_num_node " << std::endl ; 
     int original_num_node = NumNode_r(original, 0); 
     if(verbose) std::cout << "ZSolid::instrumentTree ] original_num_node : " << original_num_node  << std::endl ; 
-    */
 
     if(verbose) std::cout << "ZSolid::instrumentTree [ root_num_node " << std::endl ; 
     int root_num_node = NumNode_r(root, 0); 
