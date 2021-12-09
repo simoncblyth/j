@@ -9,7 +9,7 @@
  */
 
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #include "IGeomManager.h"
 #else
 #include "SniperKernel/ToolBase.h"
@@ -31,7 +31,7 @@ class G4LogicalVolume ;
 
 class NNVT_MCPPMT_PMTSolid;
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
 class PMTSIM_API NNVTMCPPMTManager : public IGeomManager {
 #else
@@ -110,7 +110,7 @@ private:
     G4PVPlacement* inner2_phys;
     G4PVPlacement* dynode_phys;
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
     IPMTParamSvc* m_pmt_param_svc;
     IPMTSimParamSvc* m_pmt_sim_param_svc;

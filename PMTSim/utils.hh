@@ -1,7 +1,7 @@
 #ifndef utils_hh
 #define utils_hh
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #define LogError std::cerr
 #endif
 

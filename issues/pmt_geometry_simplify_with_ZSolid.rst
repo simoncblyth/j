@@ -26,8 +26,20 @@ pmt_geometry_simplify_with_ZSolid
 
 TODO:
 
+* STANDALONE is too generic -> PMTSIM_STANDALONE 
 * review the code changes 
-* add the python switches to control these 
+ 
+
+
+
+
+
+
+
+* add the python switches to control these:: 
+
+  1. JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT
+
 
 * PMT geometry changes are not only relevant to opticks running 
 

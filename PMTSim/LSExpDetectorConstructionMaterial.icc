@@ -128,7 +128,7 @@
         Galactic = new G4Material("Galactic", 1., 1.01*g/mole, universe_mean_density, kStateGas, 2.73*kelvin, 3.e-18*pascal);
     }
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
     MaterialSvc msv ; 
     RefBase<MaterialSvc> mcgt(&msv) ;  
 #else

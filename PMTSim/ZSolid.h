@@ -23,7 +23,11 @@ ZSolid : CSG tree manipulations
 
 struct ZCanvas ; 
 
-#ifdef STANDALONE
+// even though ZSolid.h is a "private" header it still needs to be 
+// used across compilation units (eg for tests) hence assume that 
+// the API_EXPORT is needed 
+
+#ifdef PMTSIM_STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
 struct PMTSIM_API ZSolid   
 {

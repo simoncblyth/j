@@ -9,7 +9,7 @@
 #include "globals.hh"
 class G4VSolid;
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #include "PMTSIM_API_EXPORT.hh"
 class PMTSIM_API Hamamatsu_R12860_PMTSolid {
 #else

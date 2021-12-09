@@ -5,9 +5,9 @@ IGeomManager
 ===============
 
 Formerly named IGeomStandalone, but renamed as this simple
-protocol base can be useful beyond just STANDALONE tests.
+protocol base can be useful beyond just PMTSIM_STANDALONE tests.
 The below geometry providing managers are IGeomManager 
-when they are compiled with the STANDALONE switch::
+when they are compiled with the PMTSIM_STANDALONE switch::
 
     HamamatsuR12860PMTManager
     NNVTMCPPMTManager

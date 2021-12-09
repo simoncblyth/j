@@ -19,7 +19,7 @@
 
 #include "ZSolid.h"
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 
 #define LogInfo  std::cout 
 #define LogError std::cerr 
@@ -37,7 +37,7 @@
 using namespace CLHEP;
 
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
 DECLARE_TOOL(NNVTMCPPMTManager);
 #endif
@@ -101,7 +101,7 @@ G4ThreeVector NNVTMCPPMTManager::GetPosInPMT() {
 
 NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     : 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
       ToolBase(plabel), 
 #endif
@@ -121,7 +121,7 @@ NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
       m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
       m_pmt_equator_to_bottom(0.)
 {
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
     m_fast_cover = false ; 
     m_cover_mat_str = "Water" ; 
     m_enable_optical_model = false ;  
@@ -160,7 +160,7 @@ NNVTMCPPMTManager::~NNVTMCPPMTManager()
 
 void NNVTMCPPMTManager::init() 
 {
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
@@ -221,7 +221,7 @@ void NNVTMCPPMTManager::init_variables()
 
 
     LogInfo 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
          << " scope:tag/objName " << scope() << tag() << "/" << objName() 
 #endif
@@ -792,7 +792,7 @@ void
 NNVTMCPPMTManager::helper_fast_sim()
 {
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
 
     G4Region* body_region = new G4Region(this->GetName()+"_body_region");

@@ -1,5 +1,13 @@
 #!/bin/bash -l 
 
+usage(){ cat << EOU
+
+Have moved to building PMTSim using standard Opticks *om* rather than this script
+
+EOU
+}
+
+
 g4-
 clhep-
 
@@ -14,7 +22,7 @@ mkdir -p $(dirname $bin)
 
 gcc \
         $srcs \
-        -DSTANDALONE \
+        -DPMTSIM_STANDALONE \
        -std=c++11 \
        -I. \
        -g \

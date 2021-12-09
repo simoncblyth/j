@@ -1,5 +1,5 @@
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #else
@@ -28,7 +28,7 @@
 
 using namespace CLHEP;
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
 DECLARE_TOOL(HamamatsuR12860PMTManager);
 #endif
@@ -115,7 +115,7 @@ G4ThreeVector HamamatsuR12860PMTManager::GetPosInPMT() {
 HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     (const G4String& plabel // label -- subvolume names are derived from this
     )
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
     : m_label(plabel),
 #else
     : ToolBase(plabel), m_label(plabel),
@@ -135,7 +135,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
       m_pmt_equator_to_bottom(0.)
 {
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
     m_fast_cover = false ; 
     m_cover_mat_str="Water" ; 
     m_enable_optical_model=false ; 
@@ -176,7 +176,7 @@ HamamatsuR12860PMTManager::~HamamatsuR12860PMTManager() {
 
 // Helper Methods
 void HamamatsuR12860PMTManager::init() {
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
@@ -203,7 +203,7 @@ HamamatsuR12860PMTManager::init_material() {
      Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
      G4Material* mat = G4Material::GetMaterial("photocathode_Ham20inch"); 
      Photocathode_opsurf->SetMaterialPropertiesTable(mat ? mat->GetMaterialPropertiesTable() : nullptr ) ;  
 #else
@@ -295,8 +295,6 @@ HamamatsuR12860PMTManager::init_pmt
 * *m_plus_dynode* adds the dynode geometry even when *m_enable_optical_model* is false, this is
   for debugging only : such as to check if the dynode geometry fits inside the cut PMT 
 
-* TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
-* ancient TODO: face of tube 100 um from front of cylinder
 
 **/
 
@@ -326,6 +324,9 @@ HamamatsuR12860PMTManager::helper_make_solid
 ----------------------------------------------
 
 Tail cutting when real surface is enabled was first implemented by Tao Lin, 09 Aug 2021
+
+* TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+* ancient TODO: face of tube 100 um from front of cylinder
 
 **/
 
@@ -361,7 +362,7 @@ void HamamatsuR12860PMTManager::helper_make_solid()
             << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
             << std::endl ; 
 
-        bool verbose = getenv("HamamatsuR12860PMTManager_helper_make_solid") != nullptr ; 
+        bool verbose = getenv("HamamatsuR12860PMTManager_helper_make_solid_verbose") != nullptr ; 
         pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   , verbose );
         body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  , verbose );
         inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) , verbose );
@@ -953,7 +954,7 @@ HamamatsuR12860PMTManager::helper_make_optical_surface()
 void
 HamamatsuR12860PMTManager::helper_fast_sim()
 {
-#ifdef STANDALONE
+#ifdef PMTSIM_STANDALONE
 #else
     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
     body_log->SetRegion(body_region);
