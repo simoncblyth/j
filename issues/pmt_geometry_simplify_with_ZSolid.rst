@@ -28,6 +28,16 @@ pmt_geometry_simplify_with_ZSolid
 * TODO: replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
 
 
+Incorporation : switch on debug
+--------------------------------- 
+
+::
+
+    N[blyth@localhost offline]$ JUNO_CMAKE_BUILD_TYPE=Debug ./build.sh 
+
+
+
+
 Incorporation : lots of unused variable warnings as assert is optimized away in Release mode 
 -----------------------------------------------------------------------------------------------
 

@@ -1647,14 +1647,20 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
 {
     const G4VSolid* node = Moved( rot, tla, node_ ); // if node_ isa G4DisplacedSolid node will not be and rot/tla will be set 
 
-    if(verbose) std::cout 
-        << "ZSolid::DeepClone_r(preorder visit)"
-        << " type " << std::setw(20) << EntityTypeName(node)
-        << " name " << std::setw(20) << node->GetName()
-        << " depth " << std::setw(2) << depth
-        << " tla (" << tla->x() << " " << tla->y() << " " << tla->z() << ")" 
-        << std::endl 
-        ; 
+    if(verbose) 
+    {
+        std::cout 
+            << "ZSolid::DeepClone_r(preorder visit)"
+            << " type " << std::setw(20) << EntityTypeName(node)
+            << " name " << std::setw(20) << node->GetName()
+            << " depth " << std::setw(2) << depth
+            ; 
+        if(tla) std::cout 
+            << " tla (" << tla->x() :  << " " << tla->y() << " " << tla->z() << ")"  ; 
+        std::cout 
+            << std::endl 
+            ; 
+    }
 
     G4VSolid* clone = Boolean(node) ? BooleanClone(node, depth, rot, tla ) : PrimitiveClone(node) ; 
 
