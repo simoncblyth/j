@@ -1692,14 +1692,38 @@ is an "internal" object that the G4BooleanSolid ctor creates from the rot and tl
 G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
 {
     if(verbose) std::cout << "ZSolid::BooleanClone" << std::endl ; 
-    bool expect_rot = rot == nullptr ;   // HMM MAYBE NOT FULLY GENERAL 
-    assert( expect_rot ); 
+
+    // HMM : rot and tla arguments were not used and they are not always null ... 
+    // that suggests there is a lack of generality here for booleans of booleans etc... 
+    // with translations that apply on top of translations. 
+    // However for JUNO PMTs are not expecting any rotations
+    // and are not expecting more than one level of translation. 
+
+    G4ThreeVector zero(0., 0., 0.); 
+    double epsilon = 1e-6 ; 
+
+    bool expect_rot = rot == nullptr || rot->isIdentity() ;   
     if(!expect_rot) std::cout << "ZSolid::BooleanClone expect_rot ERROR " << std::endl ; 
+    assert( expect_rot ); 
     if(!expect_rot) exit(EXIT_FAILURE); 
 
-    bool expect_tla = tla == nullptr ; 
+    bool expect_tla = tla == nullptr || tla->isNear(zero, epsilon) ; 
+    if(!expect_tla) 
+    {
+        std::cout << "ZSolid::BooleanClone expect_tla ERROR " << std::endl ; 
+        if(tla) std::cout 
+            << "ZSolid::BooleanClone" 
+            << " tla( " 
+            << tla->x() 
+            << " " 
+            << tla->y() 
+            << " " 
+            << tla->z() 
+            << ") " 
+            << std::endl
+            ; 
+    }
     assert( expect_tla ); 
-    if(!expect_tla) std::cout << "ZSolid::BooleanClone expect_tla ERROR " << std::endl ; 
     if(!expect_tla) exit(EXIT_FAILURE); 
 
     G4String name = solid->GetName() ; 
