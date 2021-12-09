@@ -23,18 +23,49 @@ pmt_geometry_simplify_with_ZSolid
     epsilon:PMTSim blyth$ 
 
 
+* DONE : STANDALONE is too generic, swited to PMTSIM_STANDALONE 
+
+* TODO: replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
+ 
+
+Review of Code Changes (using eg "jdiff Hamamatsu_R12860_PMTSolid")
+----------------------------------------------------------------------
+
+Hamamatsu_R12860_PMTSolid and NNVT_MCPPMT_PMTSolid
+
+    Polycone neck now becomes the default, old obsolete torus neck can be 
+    still be used via python option.  
+
+    1. add ability to be compiled standalone with macro -DPMTSIM_STANDALONE 
+
+    2. replace m_polycone_neck with the converse m_obsolete_torus_neck 
+
+    3. factorize out methods : construct_polycone_neck construct_obsolete_torus_neck
+
+
+HamamatsuR12860PMTManager and NNVTMCPPMTManager
+
+    1. add ability to be compiled standalone with macro -DPMTSIM_STANDALONE 
+
+    2. add debug interface providing access to consituent solids and volumes 
+
+    3. add m_plus_dynode and m_profligate_tail_cut
+
+    4. add member m_pmt_equator_to_bottom to allow splitting into methods
+
+    5. reorganize helper_make_solid using ZSolid cutting 
+
+
+
+
+
+
+
+
 
 TODO:
 
-* STANDALONE is too generic -> PMTSIM_STANDALONE 
 * review the code changes 
- 
-
-
-
-
-
-
 
 * add the python switches to control these:: 
 

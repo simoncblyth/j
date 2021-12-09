@@ -1,4 +1,13 @@
 
+epsilon:offline blyth$ svn ci Examples/Tutorial/python/Tutorial/JUNODetSimModule.py -m "avoid duplication in setting up switch options and internal envvars using register_SWITCH_options and init_SWITCH_envvars that both parse common SWITCH variable " 
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Transmitting file data .done
+Committing transaction...
+Committed revision 5187.
+
+
+
+
 N[blyth@localhost offline]$ svn commit -m "add option --additionacrylic-simplify-csg which doesnt subtract cavities for child volumes, plus an option to remove sticks altogether for debugging only --debug-disable-sticks "
 Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
 Sending        Simulation/DetSimV2/CentralDetector/include/AdditionAcrylicConstruction.hh

@@ -1266,6 +1266,8 @@ psi(){ js PMTSIM/src ; }
 #jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
 td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
+jdsm(){ jcv JUNODetSimModule ; }
+
 jsdo(){ jcv junoSD_PMT_v2_Opticks ;  }
 jsc(){ jcv DsG4Scintillation ; }
 jck(){ jcv G4Cerenkov_modified ; }
