@@ -2,6 +2,7 @@ pmt_geometry_simplify_with_ZSolid
 ====================================
 
 
+* hmm ZSolid and ZCanvas should be private headers, so change to .h to signify that 
 
 ::
 
@@ -16,13 +17,25 @@ pmt_geometry_simplify_with_ZSolid
     cp /Users/blyth/j/PMTSim/Hamamatsu_R12860_PMTSolid.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
     cp /Users/blyth/j/PMTSim/NNVTMCPPMTManager.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
     cp /Users/blyth/j/PMTSim/NNVT_MCPPMT_PMTSolid.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
-    cp ZSolid.hh /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/include/ZSolid.hh
+    cp ZSolid.h /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.h
     cp ZSolid.cc /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.cc
-    cp ZCanvas.hh /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/include/ZCanvas.hh
+    cp ZCanvas.h /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZCanvas.h
     epsilon:PMTSim blyth$ 
 
 
-* hmm ZSolid and ZCanvas can be private headers, can I just put them in src 
+
+TODO:
+
+* review the code changes 
+* add the python switches to control these 
+
+* PMT geometry changes are not only relevant to opticks running 
+
+  * so first check without opticks in the build  
+  * :doc:`../docs/offline_opticks_cmake_usage`
+
+
+
 
 
 

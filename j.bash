@@ -16,6 +16,8 @@ Tao demo-photon-generation
 
 * https://github.com/mirguest/demo-photon-generation
 
+  git clone git@github.com:mirguest/demo-photon-generation.git 
+
 
 
 Analysis_Foundation_Groups
