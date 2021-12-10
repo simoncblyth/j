@@ -109,7 +109,17 @@ inline void ZCanvas::draw(int ix, int iy, int dx, int dy, const char* txt)
 
 inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   // 0,0 is at top left 
 {
-    bool expect = ix < int(width) && iy < int(height) && dx < int(xscale) &&  dy < int(yscale) ; 
+    if( ix < 0 ) ix += width ; 
+    if( iy < 0 ) iy += height ;
+    if( dx < 0 ) dx += xscale ; 
+    if( dy < 0 ) dy += yscale ; 
+ 
+    bool expect_ix =  ix >= 0 && ix < int(width)  ; 
+    bool expect_iy =  iy >= 0 && iy < int(height) ; 
+    bool expect_dx =  dx >= 0 && dx < int(xscale) ; 
+    bool expect_dy =  dy >= 0 && dy < int(yscale) ; 
+
+    bool expect = expect_ix && expect_iy && expect_dx && expect_dy ; 
     assert(expect); 
     if(!expect) exit(EXIT_FAILURE); 
 
@@ -117,19 +127,20 @@ inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   //
     int y = iy*yscale + dy ; 
     int l = strlen(txt) ; 
 
-    if(!( x + l < int(nx) && y < int(ny) ))
-    {
-        printf("ZCanvas::_draw error out of range x+l %d  nx %d  y %d ny %d \n", x+l, nx, y, ny ); 
-        return ; 
-    }
+    bool expect_xy =  x + l < int(nx) &&  y < int(ny) ; 
+    assert( expect_xy ); 
+
+    if(!expect_xy) printf("ZCanvas::_draw expect_xy ERROR out of range x+l %d  nx %d  y %d ny %d \n", x+l, nx, y, ny ); 
+    if(!expect_xy) exit(EXIT_FAILURE); 
+
 
     int offset = y*nx + x ;  
+    bool expect_offset = offset >= 0 && offset + l < int(nx*ny) ; 
 
-    if(!(offset + l < int(nx*ny) ))
-    {
-        printf("ZCanvas::_draw error out of range offset+l %d  nx*ny %d \n", offset+l, nx*ny ); 
-        return ; 
-    }
+    if(!expect_offset) printf("ZCanvas::_draw error out of range offset+l %d  nx*ny %d \n", offset+l, nx*ny ) ; 
+    assert(expect_offset);  
+    if(!expect_offset) exit(EXIT_FAILURE); 
+    
 
     memcpy( c + offset , txt, l );
 }

@@ -28,12 +28,122 @@ pmt_geometry_simplify_with_ZSolid
 * TODO: replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
 
 
+
+Smoking gan for the SEGV : somehow handling -ve args code got removed
+------------------------------------------------------------------------
+
+* result was memcpy Jackson Pollocking that causes crashes sometimes 
+
+::
+
+    inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   // 0,0 is at top left 
+    {
+    -    bool expect = ix < int(width) && iy < int(height) && dx < int(xscale) &&  dy < int(yscale) ; 
+    +    if( ix < 0 ) ix += width ; 
+    +    if( iy < 0 ) iy += height ;
+    +    if( dx < 0 ) dx += xscale ; 
+    +    if( dy < 0 ) dy += yscale ; 
+    + 
+
+
+
 Incorporation : switch on debug
 --------------------------------- 
 
 ::
 
     N[blyth@localhost offline]$ JUNO_CMAKE_BUILD_TYPE=Debug ./build.sh 
+
+
+Incorporation : ZSolid segv
+-------------------------------------------
+
+
+Switch back to Debug build::
+
+    epsilon:PMTSim blyth$ OPTICKS_BUILDTYPE=Debug om-conf
+    epsilon:PMTSim blyth$ om
+
+
+::
+
+    (lldb) f 3
+    frame #3: 0x000000010011c9e3 libPMTSim.dylib`ZSolid::draw_r(this=0x0000000109300000, node_=0x00000001093000d0, mode=0) at ZSolid.cc:819
+       816 	        double z0, z1 ; 
+       817 	        ZRange(z0, z1, node);  
+       818 	
+    -> 819 	        canvas->draw(   ix, -1, 0,0,  zdelta ); 
+       820 	        canvas->draw(   ix, -1, 0,2,  z1+zdelta ); 
+       821 	        canvas->draw(   ix, -1, 0,3,  z0+zdelta ); 
+       822 	    }
+    (lldb) p ix
+    (int) $1 = 0
+    (lldb) p zdelta
+    (double) $2 = 0
+    (lldb) p z1
+    (double) $3 = 190
+
+    (lldb) f 2
+    frame #2: 0x000000010011cc57 libPMTSim.dylib`ZCanvas::draw(this=0x0000000109301e00, ix=0, iy=-1, dx=0, dy=0, val=0) at ZCanvas.h:95
+       92  	    assert( expect );
+       93  	    if(!expect) exit(EXIT_FAILURE) ; 
+       94  	
+    -> 95  	    _draw(ix, iy, dx, dy, tmp); 
+       96  	}
+       97  	
+       98  	inline void ZCanvas::drawch(int ix, int iy, int dx, int dy, char ch)  
+
+
+    (lldb) f 1
+    frame #1: 0x0000000100126667 libPMTSim.dylib`ZCanvas::_draw(this=0x0000000109301e00, ix=0, iy=-1, dx=0, dy=0, txt="0") at ZCanvas.h:134
+       131 	        return ; 
+       132 	    }
+       133 	
+    -> 134 	    memcpy( c + offset , txt, l );
+       135 	}
+       136 	
+       137 	inline void ZCanvas::print(const char* msg) const 
+    (lldb) 
+
+    (lldb) p offset
+    (int) $5 = -645
+    (lldb) p txt
+    (const char *) $6 = 0x00007ffeefbfde46 "0"
+    (lldb) p l
+    (int) $7 = 1
+    (lldb) p c
+    (char *) $8 = 0x0000000109800000 "                                                                                                                                \n                                                                                                                                \n                                                                                                                                \n                                                                                                                                \n                                                                                                                                \n                                                                                                                                \n                                                                                                                                \n                                                                                                                         "...
+    (lldb) 
+
+
+
+
+SEGV with Release build gives no symbols::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x1097ffd7b)
+      * frame #0: 0x00007fff7280bfe6 libsystem_platform.dylib`_platform_memmove$VARIANT$Haswell + 198
+        frame #1: 0x00000001000e25af libPMTSim.dylib`ZCanvas::draw(int, int, int, int, int) + 207
+        frame #2: 0x00000001000e235d libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 1517
+        frame #3: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #4: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #5: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #6: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #7: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #8: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #9: 0x00000001000e1e07 libPMTSim.dylib`ZSolid::draw_r(G4VSolid const*, int) + 151
+        frame #10: 0x00000001000db56d libPMTSim.dylib`ZSolid::draw(char const*, int) + 173
+        frame #11: 0x000000010000af8f PMTSolidTest`main + 271
+        frame #12: 0x00007fff724fa015 libdyld.dylib`start + 1
+        frame #13: 0x00007fff724fa015 libdyld.dylib`start + 1
+    (lldb) f 1
+    frame #1: 0x00000001000e25af libPMTSim.dylib`ZCanvas::draw(int, int, int, int, int) + 207
+    libPMTSim.dylib`ZCanvas::draw:
+        0x1000e25af <+207>: jmp    0x1000e25d5               ; <+245>
+        0x1000e25b1 <+209>: leaq   0x2a86f(%rip), %rdi       ; "ZCanvas::_draw error out of range x+l %d  nx %d  y %d ny %d \n"
+        0x1000e25b8 <+216>: xorl   %eax, %eax
+        0x1000e25ba <+218>: callq  0x10010017a               ; symbol stub for: printf
+    (lldb) 
 
 
 
