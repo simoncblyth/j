@@ -2,35 +2,104 @@ pmt_geometry_simplify_with_ZSolid
 ====================================
 
 
-* hmm ZSolid and ZCanvas should be private headers, so change to .h to signify that 
+Overview
+-----------
+
+* PMT geometry changes are not only relevant to opticks running 
+
+  * so first check without opticks in the build  
+  * :doc:`../docs/offline_opticks_cmake_usage`
+
+
+Status
+-------
+
+* now running without Opticks (with Debug build) OK
 
 ::
 
-    epsilon:PMTSim blyth$ ./grab_back.sh 
-    cp /Users/blyth/j/PMTSim/HamamatsuR12860PMTManager.hh /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
-    cp /Users/blyth/j/PMTSim/Hamamatsu_R12860_PMTSolid.hh /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/Hamamatsu_R12860_PMTSolid.hh
-    cp /Users/blyth/j/PMTSim/NNVTMCPPMTManager.hh /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
-    cp /Users/blyth/j/PMTSim/NNVT_MCPPMT_PMTSolid.hh /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh
-    cp /Users/blyth/j/PMTSim/ellipse_intersect_circle.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/ellipse_intersect_circle.cc
-    cp /Users/blyth/j/PMTSim/ellipse_intersect_circle.hh /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/ellipse_intersect_circle.hh
-    cp /Users/blyth/j/PMTSim/HamamatsuR12860PMTManager.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
-    cp /Users/blyth/j/PMTSim/Hamamatsu_R12860_PMTSolid.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
-    cp /Users/blyth/j/PMTSim/NNVTMCPPMTManager.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
-    cp /Users/blyth/j/PMTSim/NNVT_MCPPMT_PMTSolid.cc /Users/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
-    cp ZSolid.h /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.h
-    cp ZSolid.cc /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.cc
-    cp ZCanvas.h /Users/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZCanvas.h
-    epsilon:PMTSim blyth$ 
+    N[blyth@localhost offline]$ grep CMAKE_BUILD_TYPE  build/CMakeCache.txt 
+    CMAKE_BUILD_TYPE:STRING=Debug
 
 
-* DONE : STANDALONE is too generic, swited to PMTSIM_STANDALONE 
+TODO
+------
 
-* TODO: replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
+* Release build test, without Opticks
+* back to Debug build, without Opticks
+
+
+* add in Opticks, redo Debug build
+* running with new PMTs and Opticks : careful look at geometry translation warnings 
+* review/update the switches 
+
+* GO LIVE : commit the svn changes into offline
+
+
+DONE
+------
+
+* STANDALONE is too generic, swited to PMTSIM_STANDALONE 
+* replace python switches JUNO_PMT20INCH_POLYCONE_NECK -> JUNO_PMT20INCH_OBSOLETE_TORUS_NECK 
 
 
 
-Smoking gan for the SEGV : somehow handling -ve args code got removed
-------------------------------------------------------------------------
+Runtime : ZSolid_verbose
+-----------------------------
+
+::
+
+    export ZSolid_verbose=1   
+
+
+
+Machinery to get j/PMTSim into offline/PMTSim
+--------------------------------------------------
+
+* DONE : Changed to .h to signify private headers : ZCanvas.h ZSolid.h to set copying destinations
+
+::
+
+    N[blyth@localhost PMTSim]$ ./grab_back.sh 
+    # mo .bashrc VIP_MODE:non N : plain environment for debug CMTEXTRATAGS:
+    cp /home/blyth/j/PMTSim/ellipse_intersect_circle.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/ellipse_intersect_circle.cc
+    cp /home/blyth/j/PMTSim/ellipse_intersect_circle.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/ellipse_intersect_circle.hh
+    cp /home/blyth/j/PMTSim/HamamatsuR12860PMTManager.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+    cp /home/blyth/j/PMTSim/Hamamatsu_R12860_PMTSolid.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/Hamamatsu_R12860_PMTSolid.hh
+    cp /home/blyth/j/PMTSim/NNVTMCPPMTManager.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+    cp /home/blyth/j/PMTSim/NNVT_MCPPMT_PMTSolid.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh
+    cp /home/blyth/j/PMTSim/HamamatsuR12860PMTManager.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    cp /home/blyth/j/PMTSim/Hamamatsu_R12860_PMTSolid.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
+    cp /home/blyth/j/PMTSim/NNVTMCPPMTManager.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+    cp /home/blyth/j/PMTSim/NNVT_MCPPMT_PMTSolid.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
+    cp ZSolid.h /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.h
+    cp ZSolid.cc /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZSolid.cc
+    cp ZCanvas.h /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/ZCanvas.h
+
+    N[blyth@localhost PMTSim]$ ./grab_back.sh | sh 
+
+    N[blyth@localhost PMTSim]$ jo
+    /data/blyth/junotop/offline
+    M       Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+    M       Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+    M       Simulation/DetSimV2/PMTSim/include/Hamamatsu_R12860_PMTSolid.hh
+    M       Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+    M       Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh
+    M       Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    M       Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
+    M       Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+    M       Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
+    ?       Simulation/DetSimV2/PMTSim/src/ZCanvas.h
+    ?       Simulation/DetSimV2/PMTSim/src/ZSolid.cc
+    ?       Simulation/DetSimV2/PMTSim/src/ZSolid.h
+    M       build.sh
+    N[blyth@localhost offline]$ svn diff build.sh
+
+
+
+
+Smoking gan for the SEGV : somehow handling -ve args code got removed : CONFIRMED FIX
+-------------------------------------------------------------------------------------
 
 * result was memcpy Jackson Pollocking that causes crashes sometimes 
 
@@ -208,26 +277,6 @@ HamamatsuR12860PMTManager and NNVTMCPPMTManager
     5. reorganize helper_make_solid using ZSolid cutting 
 
 
-
-
-
-
-
-
-
-TODO:
-
-* review the code changes 
-
-* add the python switches to control these:: 
-
-  1. JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT
-
-
-* PMT geometry changes are not only relevant to opticks running 
-
-  * so first check without opticks in the build  
-  * :doc:`../docs/offline_opticks_cmake_usage`
 
 
 

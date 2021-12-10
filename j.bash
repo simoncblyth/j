@@ -1825,7 +1825,7 @@ j-runtime-env()
    fi
 
 }
-jre(){  j-runtime-env ; }
+jre(){  j-runtime-env ; jo ;  }
 jre-(){ j-runtime-env- ; }
 
 
@@ -2121,6 +2121,9 @@ tds3(){
 
    #opts="$opts --pmt20inch-polycone-neck"  ## FORMER OPTION NOW DEFAULT
    #opts="$opts --pmt20inch-simplify-csg"   ## FORMER OPTION NOW DEFAULT
+
+   opts="$opts --disable-pmt-optical-model"
+
 
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "

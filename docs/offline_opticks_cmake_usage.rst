@@ -39,9 +39,10 @@ Dump the environment, to verify the opticks prefixes are not present::
 
 4. redo the CMake config and build::
 
-   jo          ## cd $JUNOTOP/offline
-
-   ./build.sh 
+   jo                       ## cd $JUNOTOP/offline
+   ./build.sh               ## defaults to Release build 
+   ./build_Debug.sh    
+   ./build_RelWithDebInfo.sh    
 
 
 5. test the runtime by running tut_detsim.py::
@@ -66,11 +67,44 @@ Add Opticks to the Offline CMake build
 4. redo the CMake config and build::
 
    jo          ## cd $JUNOTOP/offline
-   ./build.sh 
+
+   ./build.sh        ## defaults to Release build 
+   ./build_Debug.sh 
 
 5. test the runtime by running tut_detsim.py::
 
    tds3
+
+
+
+Building with other CMAKE_BUILD_TYPE than the default of Release
+-------------------------------------------------------------------
+
+
+Check the current CMAKE_BUILD_TYPE by looking the the cache, and rebuild to change it::
+
+    N[blyth@localhost offline]$ grep CMAKE_BUILD_TYPE  build/CMakeCache.txt 
+    CMAKE_BUILD_TYPE:STRING=Release
+
+    N[blyth@localhost offline]$ JUNO_CMAKE_BUILD_TYPE=Debug ./build.sh 
+
+    N[blyth@localhost offline]$ grep CMAKE_BUILD_TYPE  build/CMakeCache.txt 
+    CMAKE_BUILD_TYPE:STRING=Debug
+
+    N[blyth@localhost offline]$ ./build.sh           ## Release is the default 
+    N[blyth@localhost offline]$ grep CMAKE_BUILD_TYPE  build/CMakeCache.txt 
+    CMAKE_BUILD_TYPE:STRING=Release
+
+
+
+::
+
+    N[blyth@localhost offline]$ cat build_Debug.sh 
+    #!/bin/bash
+
+    JUNO_CMAKE_BUILD_TYPE=Debug ./build.sh
+
+
 
 
 
