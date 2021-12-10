@@ -433,3 +433,116 @@ j/PMTSim/LSExpDetectorConstructionMaterial.icc::
     epsilon:DetSim blyth$ 
 
 
+
+
+
+::
+
+    AlphaCONSTANT
+    GammaCONSTANT
+    NeutronCONSTANT
+    OpticalCONSTANT
+
+    epsilon:LS blyth$ cat AlphaCONSTANT
+    4.345  *ns  0.4982 
+    17.64  *ns  0.2739
+    89.045   *ns  0.1467
+    544.48    *ns  0.0812
+
+    epsilon:LS blyth$ cat GammaCONSTANT
+    4.6  *ns   0.707
+    15.1  *ns   0.205
+    76.1   *ns   0.06
+    397   *ns   0.028
+
+    epsilon:LS blyth$ cat NeutronCONSTANT
+    4.5  *ns  0.614
+    15.7     *ns  0.232
+    76.2    *ns  0.09
+    367   *ns   0.064
+
+    epsilon:LS blyth$ cat OpticalCONSTANT
+    1.50  *ns  1.0
+
+    RAYLEIGH
+
+    epsilon:LS blyth$ cat RAYLEIGH 
+    1.55                *eV   500                 *m    
+    1.7714              *eV   300                 *m    
+    2.102               *eV   170                 *m    
+    2.255               *eV   100                 *m    
+    2.531               *eV   62                  *m    
+    2.884               *eV   42                  *m    
+    3.024               *eV   30                  *m    
+    4.133               *eV   7.6                 *m    
+    6.2                 *eV   0.85                *m    
+    10.33               *eV   0.85                *m    
+    15.5                *eV   0.85                *m    
+
+
+
+    RINDEX
+
+    epsilon:LS blyth$ cat RINDEX 
+    1.55                *eV   1.4781              
+    1.79505             *eV   1.48                
+    2.10499             *eV   1.4842              
+    2.27077             *eV   1.4861              
+    2.55111             *eV   1.4915              
+    2.84498             *eV   1.4955              
+    3.06361             *eV   1.4988              
+    4.13281             *eV   1.5264              
+    6.2                 *eV   1.6185              
+    6.526               *eV   1.6176              
+    6.889               *eV   1.527               
+    7.294               *eV   1.5545              
+    7.75                *eV   1.793               
+    8.267               *eV   1.7826              
+    8.857               *eV   1.6642              
+    9.538               *eV   1.5545              
+    10.33               *eV   1.4536              
+    15.5                *eV   1.4536              
+
+
+
+    scale                    # kv
+    ConstantProperty         # kv
+
+
+
+
+    SLOWCOMPONENT
+    FASTCOMPONENT
+    PPOCOMPONENT
+    bisMSBCOMPONENT
+
+    REEMISSIONPROB
+    PPOREEMISSIONPROB
+    bisMSBREEMISSIONPROB
+
+    PPOTIMECONSTANT
+    bisMSBTIMECONSTANT
+
+    ABSLENGTH_v1
+    ABSLENGTH_v2
+    PPOABSLENGTH
+    bisMSBABSLENGTH
+
+
+
+ABSLENGTH
+-----------
+
+::
+
+    epsilon:j blyth$ ./qty.sh 
+    https://github.com/simoncblyth/j/blob/main/qty.py
+           (497, 2) : Material.LS.ABSLENGTH_v1 :     2.9615 : /Users/blyth/junotop/data/Simulation/DetSim/Material/LS/ABSLENGTH_v1 
+           (428, 2) : Material.LS.ABSLENGTH_v2 :     1.0000 : /Users/blyth/junotop/data/Simulation/DetSim/Material/LS/ABSLENGTH_v2 
+           (770, 2) : Material.LS.PPOABSLENGTH :     1.0000 : /Users/blyth/junotop/data/Simulation/DetSim/Material/LS/PPOABSLENGTH 
+           (375, 2) : Material.LS.bisMSBABSLENGTH :     1.0000 : /Users/blyth/junotop/data/Simulation/DetSim/Material/LS/bisMSBABSLENGTH 
+    saving /tmp/blyth/j/qty/Material_LS_ABSLENGTH_mpplt.png 
+
+
+
+
