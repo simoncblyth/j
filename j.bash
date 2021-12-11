@@ -1825,7 +1825,13 @@ j-runtime-env()
    fi
 
 }
-jre(){  j-runtime-env ; jo ;  }
+jre(){  
+   j-runtime-env 
+   jo 
+   if [ -n "$OPTICKS_PREFIX" ]; then
+       opticks- 
+   fi   
+}
 jre-(){ j-runtime-env- ; }
 
 

@@ -107,9 +107,34 @@ Check the current CMAKE_BUILD_TYPE by looking the the cache, and rebuild to chan
 
 
 
+Reuse of geometry geocache from integrated Offline + Opticks running, eg from tds3
+--------------------------------------------------------------------------------------
 
-TODO: maybe avoid with/without opticks flip-flip rebuilding by having separate InstallArea for these two configs ?
---------------------------------------------------------------------------------------------------------------------
+Peruse the logging from eg tsd3 running to find OPTICKS_KEY export line and add that to eg .bashrc beside
+the mandatory Opticks envvars is an appropriate place.
+
+
+Copy geometry GDML to laptop for checking geometry translation
+----------------------------------------------------------------
+
+Peruse logging to find path to the GDML file.
+
+::
+
+    epsilon:opticks blyth$ opticks-cd
+    epsilon:opticks blyth$ pwd
+    /usr/local/opticks
+
+    epsilon:opticks blyth$ scp P:/home/blyth/.opticks/geocache/DetSim0Svc_pWorld_g4live/g4ok_gltf/3dbec4dc3bdef47884fe48af781a179d/1/origin_CGDMLKludge.gdml .
+    epsilon:opticks blyth$ mv origin_CGDMLKludge.gdml origin_CGDMLKludge_11dec2021.gdml
+
+
+
+
+
+
+
+
 
 
 

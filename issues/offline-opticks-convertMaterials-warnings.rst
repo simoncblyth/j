@@ -2,6 +2,15 @@ offline-opticks-convertMaterials-warnings
 ============================================
 
 
+local checking of new geometry conversion
+--------------------------------------------
+
+1. run tds3 on GPU workstation, examine log to find OPTICKS_KEY 
+
+
+
+
+
 
 ::
 
