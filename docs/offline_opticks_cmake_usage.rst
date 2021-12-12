@@ -128,6 +128,8 @@ Peruse logging to find path to the GDML file.
     epsilon:opticks blyth$ scp P:/home/blyth/.opticks/geocache/DetSim0Svc_pWorld_g4live/g4ok_gltf/3dbec4dc3bdef47884fe48af781a179d/1/origin_CGDMLKludge.gdml .
     epsilon:opticks blyth$ mv origin_CGDMLKludge.gdml origin_CGDMLKludge_11dec2021.gdml
 
+    epsilon:opticks blyth$ scp P:/home/blyth/.opticks/geocache/DetSim0Svc_pWorld_g4live/g4ok_gltf/3dbec4dc3bdef47884fe48af781a179d/1/origin.gdml .
+    epsilon:opticks blyth$ mv origin.gdml origin_11dec2021.gdml
 
 
 

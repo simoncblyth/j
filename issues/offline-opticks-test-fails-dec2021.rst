@@ -61,6 +61,7 @@ With proper Geant4 environment
       7  /45  Test #7  : CFG4Test.CGeometryTest                        Subprocess aborted***Exception:   5.01   
       27 /45  Test #27 : CFG4Test.CInterpolationTest                   Subprocess aborted***Exception:   4.98   
 
+
       3  /12  Test #3  : CSGTest.CSGPrimSpecTest                       Subprocess aborted***Exception:   0.08   
       4  /12  Test #4  : CSGTest.CSGPrimTest                           Subprocess aborted***Exception:   0.09   
       7  /12  Test #7  : CSGTest.CSGFoundryLoadTest                    Subprocess aborted***Exception:   0.09   
@@ -80,6 +81,12 @@ With proper Geant4 environment
 
     N[blyth@localhost opticks]$ 
 
+
+
+Seems all GDML reading tests are failing : Hopeful of fix via CGDMLKludgeRead::pruneDuplicatedMatrix
+--------------------------------------------------------------------------------------------------------
+
+* :doc:`geant4-gdml-repeated-reflectivity-define-matrix-error-dec2021`
 
 
 

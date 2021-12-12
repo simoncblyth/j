@@ -2293,7 +2293,14 @@ tds-(){
    local dir=$(tds-dir)
    mkdir -p $dir
    cd $dir
-   local runline="gdb $H $B $T --args python $script $*"
+
+   local runline
+   if [ -n "$PDB" ]; then 
+       runline="gdb $H $B $T --args ipython --pdb $script $*"
+   else
+       runline="gdb $H $B $T --args python $script $*"
+   fi 
+
    echo $runline
    date
    eval $runline 
