@@ -2,44 +2,234 @@ offline-opticks-test-fails
 -----------------------------
 
 
-Attempting to run without jre fails many tests for lack of Geant4 environment::
 
+
+
+Tue : down to 1 FAIL
+----------------------
+
+::
 
     SLOW: tests taking longer that 15 seconds
-      6  /17  Test #6  : QUDARapTest.QCKTest                           Passed                         249.42 
+      4  /16  Test #4  : QUDARapTest.QCerenkovIntegralTest             Passed                         33.65  
 
 
-    FAILS:  24  / 541   :  Sun Dec 12 00:56:45 2021   
-      25 /35  Test #25 : OptiXRapTest.interpolationTest                ***Failed                      7.59   
-      1  /39  Test #1  : ExtG4Test.X4GeometryMakerTest                 Child aborted***Exception:     0.35   
-      12 /39  Test #12 : ExtG4Test.X4MaterialWaterTest                 Child aborted***Exception:     0.29   
-      14 /39  Test #14 : ExtG4Test.X4PhysicalVolumeTest                Child aborted***Exception:     0.32   
-      38 /39  Test #38 : ExtG4Test.X4IntersectSolidTest                Child aborted***Exception:     0.29   
-      3  /45  Test #3  : CFG4Test.CTestDetectorTest                    ***Exception: SegFault         2.92   
-      5  /45  Test #5  : CFG4Test.CGDMLDetectorTest                    Child aborted***Exception:     4.86   
-      7  /45  Test #7  : CFG4Test.CGeometryTest                        Child aborted***Exception:     4.95   
-      27 /45  Test #27 : CFG4Test.CInterpolationTest                   ***Exception: SegFault         2.88   
-      44 /45  Test #44 : CFG4Test.WaterTest                            Child aborted***Exception:     0.39   
-      3  /12  Test #3  : CSGTest.CSGPrimSpecTest                       Child aborted***Exception:     0.11   
-      4  /12  Test #4  : CSGTest.CSGPrimTest                           Child aborted***Exception:     0.08   
-      7  /12  Test #7  : CSGTest.CSGFoundryLoadTest                    Child aborted***Exception:     0.08   
-      8  /12  Test #8  : CSGTest.CSGNameTest                           Child aborted***Exception:     0.08   
-      9  /12  Test #9  : CSGTest.CSGTargetTest                         Child aborted***Exception:     0.07   
-      2  /2   Test #2  : GeoChainTest.GeoChainVolumeTest               Child aborted***Exception:     0.28   
-      1  /17  Test #1  : QUDARapTest.QTexRotateTest                    Child aborted***Exception:     0.08   
+    FAILS:  1   / 541   :  Wed Dec 15 04:40:19 2021   
+      25 /35  Test #25 : OptiXRapTest.interpolationTest                ***Failed                      7.90   
+    N[blyth@localhost opticks]$ 
+
+
+    Missing PYTHONPATH
+    N[blyth@localhost opticks]$ echo $PYTHONPATH | tr ":" "\n"
+    /data/blyth/junotop/offline/InstallArea/python
+    /data/blyth/junotop/offline/InstallArea/lib64
+    /data/blyth/junotop/sniper/InstallArea/lib64
+    /data/blyth/junotop/sniper/InstallArea/python
+    /data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib
+    N[blyth@localhost opticks]$ 
+
+
+
+
+
+::
+
+    SLOW: tests taking longer that 15 seconds
+
+
+    FAILS:  13  / 542   :  Wed Dec 15 02:07:26 2021   
+      25 /35  Test #25 : OptiXRapTest.interpolationTest                ***Failed                      8.16   
+
+      3  /12  Test #3  : CSGTest.CSGPrimSpecTest                       Subprocess aborted***Exception:   0.10   
+      4  /12  Test #4  : CSGTest.CSGPrimTest                           Subprocess aborted***Exception:   0.09   
+      7  /12  Test #7  : CSGTest.CSGFoundryLoadTest                    Subprocess aborted***Exception:   0.10   
+      8  /12  Test #8  : CSGTest.CSGNameTest                           Subprocess aborted***Exception:   0.09   
+      9  /12  Test #9  : CSGTest.CSGTargetTest                         Subprocess aborted***Exception:   0.10   
+      All these are fail to load errors. Need to update for new CFBASE approach.  NOW FIXED 
+
+      1  /1   Test #1  : CSG_GGeoTest.CSG_GGeoTest                     Subprocess aborted***Exception:   2.57   
+      Failing with assert from lack of --gparts_transform_offset option 
+      
+      * have moved that into argforced, but anyhow its not such a good idea to run this 
+        every time tests are run ... more appropriate to run it as part of geocache-create-
+
+      3  /16  Test #3  : QUDARapTest.QScintTest                        ***Exception: SegFault         0.09   
+      4  /16  Test #4  : QUDARapTest.QCerenkovIntegralTest             ***Exception: SegFault         0.07   
+      7  /16  Test #7  : QUDARapTest.QSimTest                          ***Failed                      0.04   
+      8  /16  Test #8  : QUDARapTest.QBndTest                          ***Exception: SegFault         0.07   
+      9  /16  Test #9  : QUDARapTest.QPropTest                         ***Exception: SegFault         0.10   
+      12 /16  Test #12 : QUDARapTest.QSimWithEventTest                 ***Failed                      0.04   
+
+      FIXED
+      
+
+
+    N[blyth@localhost opticks]$ 
+
+
+
+QUDARap FAILs
+-----------------
+
+::
+
+    Total Test time (real) =  49.12 sec
+
+    The following tests FAILED:
+          5 - QUDARapTest.QCerenkovTest (SEGFAULT)
+
+         ** seems to be due to NP::MakeNarrow not passing along the meta , NOW FIXED
+
+         11 - QUDARapTest.QEventTest (Child aborted)
+
+         ** avoided fail from non existing cegs.npy 
+
+    Errors while running CTest
+    Sun Dec 12 20:16:47 GMT 2021
+    epsilon:qudarap blyth$ 
+
+
+After fixing the GDML duplicatedMatrix issue down to 15/542
+-------------------------------------------------------------
+
+::
+
+    SLOW: tests taking longer that 15 seconds
+      6  /17  Test #6  : QUDARapTest.QCKTest                           Passed                         249.51 
+
+    skip this one, until have revisited to see if a quicker test can be used
+
+
+    FAILS:  15  / 542   :  Mon Dec 13 03:30:06 2021   
+      25 /35  Test #25 : OptiXRapTest.interpolationTest                ***Failed                      7.80        
+
+    known python/numpy env : maybe now fixable with PYTHONPATH setup ?
+
+    N[blyth@localhost opticks]$ which python
+    /data/blyth/junotop/ExternalLibs/Python/3.8.12/bin/python
+    N[blyth@localhost opticks]$ python -c "import numpy"
+    N[blyth@localhost opticks]$ 
+
+      3  /12  Test #3  : CSGTest.CSGPrimSpecTest                       Subprocess aborted***Exception:   0.12   
+      4  /12  Test #4  : CSGTest.CSGPrimTest                           Subprocess aborted***Exception:   0.10   
+      7  /12  Test #7  : CSGTest.CSGFoundryLoadTest                    Subprocess aborted***Exception:   0.08   
+      8  /12  Test #8  : CSGTest.CSGNameTest                           Subprocess aborted***Exception:   0.08   
+      9  /12  Test #9  : CSGTest.CSGTargetTest                         Subprocess aborted***Exception:   0.10   
+
+      organizational issue : need to integrate CSGFoundry creation with geocache-create (at some level) 
+
+      2  /3   Test #2  : GeoChainTest.GeoChainVolumeTest               Subprocess aborted***Exception:   0.29   
+
+      FIXED : default PV name with prefix hama_ + avoid fail when no PMTSim 
+
+      1  /17  Test #1  : QUDARapTest.QTexRotateTest                    Subprocess aborted***Exception:   0.09   
+
+      avoid failing when no path to PNG provided
+
       3  /17  Test #3  : QUDARapTest.QScintTest                        ***Exception: SegFault         0.07   
-      4  /17  Test #4  : QUDARapTest.QCerenkovIntegralTest             ***Exception: SegFault         0.08   
-      5  /17  Test #5  : QUDARapTest.QCerenkovTest                     Child aborted***Exception:     0.33   
+
+      Fail due to CSGFoundry not existing, same as the above set of 5 CSG fails   
+
+      4  /17  Test #4  : QUDARapTest.QCerenkovIntegralTest             ***Exception: SegFault         0.09   
+      5  /17  Test #5  : QUDARapTest.QCerenkovTest                     Subprocess aborted***Exception:   0.34   
       8  /17  Test #8  : QUDARapTest.QSimTest                          ***Failed                      0.03   
-      9  /17  Test #9  : QUDARapTest.QBndTest                          ***Exception: SegFault         0.08   
-      10 /17  Test #10 : QUDARapTest.QPropTest                         ***Exception: SegFault         0.08   
+      9  /17  Test #9  : QUDARapTest.QBndTest                          ***Exception: SegFault         0.47   
+      10 /17  Test #10 : QUDARapTest.QPropTest                         ***Exception: SegFault         0.09   
       13 /17  Test #13 : QUDARapTest.QSimWithEventTest                 ***Failed                      0.04   
-    N[blyth@localhost ~]$ 
+
+
+Five CSG Fails : all due to lack of CSGFoundry
+--------------------------------------------------
+
+* TODO: automate creation of foundry when create geocache ?  
+* TODO: relocate default CSGFoundry dir within the geocache dir  
+* could do this at bash level with underlying geocache-create functions
+
+::
+
+    epsilon:CSG blyth$ CSGPrimSpecTest
+    2021-12-12 19:33:26.119 INFO  [3187540] [CSGFoundry::load@1148] /tmp/blyth/opticks/CSG_GGeo/CSGFoundry
+    NP::load Failed to load from path /tmp/blyth/opticks/CSG_GGeo/CSGFoundry/solid.npy
+    2021-12-12 19:33:26.121 FATAL [3187540] [CSGFoundry::loadArray@1199] FAIL to load non-optional array  /tmp/blyth/opticks/CSG_GGeo/CSGFoundry/solid.npy
+    2021-12-12 19:33:26.121 FATAL [3187540] [CSGFoundry::loadArray@1200] convert geocache into CSGFoundry model using CSG_GGeo/run.sh 
+    Assertion failed: (0), function loadArray, file /Users/blyth/opticks/CSG/CSGFoundry.cc, line 1202.
+    Abort trap: 6
+
+/Users/blyth/opticks/CSG_GGeo/run.sh::
+
+    092 
+     93 export CFBASE=/tmp/$USER/opticks/CSG_GGeo
+     94 outdir=${CFBASE}/CSGFoundry
+     95 logdir=${CFBASE}/logs
+     96 
+     97 mkdir -p $outdir
+     98 mkdir -p $logdir
+     99 
+    100 
+
+
+Steps to make foundry ...
+
+1. copy over the tds3 CGDMLKludge geometry from GPU workstation
+2. run geocache-create on this GDML file
+3. convert the geocache into CSGFoundry model::
+
+   cd ~/opticks/CSG_GGeo ; ./run.sh 
+
+4. cd ~/opticks/CSG ; om- ; om-test # now the tests should pass
+
+
+* NEED TO AUTOMATE THE LAST STEP AND RELOCATE THE CSGFoundry INSIDE geocache dir
+
+
+::
+
+    epsilon:issues blyth$ 
+    epsilon:issues blyth$ cg
+    /Users/blyth/opticks/CSG_GGeo
+    epsilon:CSG_GGeo blyth$ ./run.sh 
+    /usr/local/opticks/lib/CSG_GGeo
+    2021-12-12 19:48:24.739 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  1
+    2021-12-12 19:48:24.740 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  2
+    2021-12-12 19:48:24.740 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  3
+    2021-12-12 19:48:24.740 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  4
+    2021-12-12 19:48:24.740 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  5
+    2021-12-12 19:48:24.740 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  6
+    2021-12-12 19:48:24.741 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  7
+    2021-12-12 19:48:24.741 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  8
+    2021-12-12 19:48:24.741 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  9
+    2021-12-12 19:48:24.926 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  1000
+    2021-12-12 19:48:25.136 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  2000
+    2021-12-12 19:48:25.291 INFO  [3199206] [GParts::add@1314]  --gparts_transform_offset IS ENABLED, COUNT  3000
+    2021-12-12 19:48:25.668 INFO  [3199206] [CSG_GGeo_Convert::CSG_GGeo_Convert@46]  reverse 0 dump_ridx (DUMP_RIDX) 8
+    2021-12-12 19:48:25.669 INFO  [3199206] [CSG_GGeo_Convert::init@58] 
+     foundry.meshname.size 136
+    2021-12-12 19:48:25.669 INFO  [3199206] [CSG_GGeo_Convert::convertGeometry@110] convert all solids (default)
+    2021-12-12 19:48:25.669 ERROR [3199206] [CSG_GGeo_Convert::convertAllSolid@122] proceeding with convert for repeatIdx 0
+    2021-12-12 19:48:25.669 INFO  [3199206] [*CSG_GGeo_Convert::convertSolid@220]  repeatIdx 0 nmm 10 numPrim(GParts.getNumPrim) 3084 rlabel r0 num_inst 1 dump_ridx 8 dump 0
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   0 AABB  -60000.00  -60000.00  -60000.00   60000.00   60000.00   60000.00 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   1 AABB  -27000.00  -27000.00   21750.00   27000.00   27000.00   43350.00 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   2 AABB  -24000.00  -24000.00   21750.00   24000.00   24000.00   40350.00 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   3 AABB    -412.00    -412.00   20000.00     412.00     412.00   23500.00 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   4 AABB    -400.00    -400.00   20000.00     400.00     400.00   23500.00 
+      2 CSGNode     7 !cy aabb:  -402.0  -402.0 19982.5   402.0   402.0 23517.5  trIdx:     7 atm     4 IsOnlyIntersectionMask 1 is_complemented_leaf 1 bbskip 1
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   5 AABB    -407.00    -407.00   20000.00     407.00     407.00   23500.00 
+      2 CSGNode    10 !cy aabb:  -400.0  -400.0 19982.5   400.0   400.0 23517.5  trIdx:     9 atm     4 IsOnlyIntersectionMask 1 is_complemented_leaf 1 bbskip 1
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   6 AABB    -402.00    -402.00   20000.00     402.00     402.00   23500.00 
+      2 CSGNode    13 !cy aabb:  -500.0  -500.0 21752.0   500.0   500.0 25752.0  trIdx:    11 atm     4 IsOnlyIntersectionMask 1 is_complemented_leaf 1 bbskip 1
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   7 AABB  -24000.00  -24000.00   21752.00   24000.00   24000.00   30152.00 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   8 AABB   16703.00  -10141.80   23483.20   23564.20   -3280.60   23510.80 
+    CSG_GGeo_Convert::convertPrim  ridx  0 primIdx   9 AABB   16703.00  -10096.35   23483.20   23564.20   -3326.05   23496.50 
+
+    ...
 
 
 
-With proper Geant4 environment
---------------------------------
+
+With proper Geant4+other environment from jre : at 20/542
+--------------------------------------------------------------
+
+NB : Attempting to run without jre fails many tests for lack of Geant4 environment
 
 ::
 
@@ -48,19 +238,21 @@ With proper Geant4 environment
 
 
     FAILS:  20  / 542   :  Sun Dec 12 03:08:55 2021   
+
       25 /35  Test #25 : OptiXRapTest.interpolationTest                ***Failed                      8.05   
 
       * known python/numpy issue 
 
       38 /39  Test #38 : ExtG4Test.X4IntersectSolidTest                Subprocess aborted***Exception:   0.32   
-      * FIXED : was bad default that depends on j/PMTSim
-   
 
-      3  /45  Test #3  : CFG4Test.CTestDetectorTest                    Subprocess aborted***Exception:   4.90   
+      * FIXED : was bad default that depends on j/PMTSim
+
+    . 3  /45  Test #3  : CFG4Test.CTestDetectorTest                    Subprocess aborted***Exception:   4.90   
       5  /45  Test #5  : CFG4Test.CGDMLDetectorTest                    Subprocess aborted***Exception:   4.91   
       7  /45  Test #7  : CFG4Test.CGeometryTest                        Subprocess aborted***Exception:   5.01   
       27 /45  Test #27 : CFG4Test.CInterpolationTest                   Subprocess aborted***Exception:   4.98   
 
+      * G4 REPEATED matrix BUG ? MAYBE FIXED BY CGDMLKludge::pruneRepeatedMatrix 
 
       3  /12  Test #3  : CSGTest.CSGPrimSpecTest                       Subprocess aborted***Exception:   0.08   
       4  /12  Test #4  : CSGTest.CSGPrimTest                           Subprocess aborted***Exception:   0.09   
@@ -68,7 +260,11 @@ With proper Geant4 environment
       8  /12  Test #8  : CSGTest.CSGNameTest                           Subprocess aborted***Exception:   0.08   
       9  /12  Test #9  : CSGTest.CSGTargetTest                         Subprocess aborted***Exception:   0.09   
 
+
+
       2  /3   Test #2  : GeoChainTest.GeoChainVolumeTest               Subprocess aborted***Exception:   0.29   
+
+
 
       1  /17  Test #1  : QUDARapTest.QTexRotateTest                    Subprocess aborted***Exception:   0.09   
       3  /17  Test #3  : QUDARapTest.QScintTest                        ***Exception: SegFault         0.07   

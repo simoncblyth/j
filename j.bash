@@ -2296,7 +2296,7 @@ tds-(){
 
    local runline
    if [ -n "$PDB" ]; then 
-       runline="gdb $H $B $T --args ipython --pdb $script $*"
+       runline="ipython --pdb $script $*"
    else
        runline="gdb $H $B $T --args python $script $*"
    fi 
