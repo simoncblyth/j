@@ -2139,6 +2139,23 @@ PMT_20inch_veto_body_solid_1_2
 EON
 }
 
+tds-skipsolidname-(){ cat << EON | grep -v ^#
+
+NNVTMCPPMTsMask_virtual
+HamamatsuR12860sMask_virtual
+mask_PMT_20inch_vetosMask_virtual
+
+NNVTMCPPMT_PMT_20inch_body_solid_1_2
+HamamatsuR12860_PMT_20inch_body_solid_1_4
+PMT_20inch_veto_body_solid_1_2
+
+EON
+}
+
+
+
+
+
 tds3(){
    : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
    : tds3 args now passed along to tut_detsim.py not the embedded opticks as previously 
