@@ -3,6 +3,59 @@ offline-opticks-test-fails
 
 
 
+Remaining FAIL is from lack of PYTHONPATH setup
+--------------------------------------------------
+
+Looks like the below is not automated::
+
+    105 
+    106 sysrap-csg-generate()
+    107 {
+    108     local msg="$FUNCNAME : "
+    109     local iwd=$PWD
+    110     sysrap-cd
+    111     c_enums_to_python.py OpticksCSG.h
+    112 
+    113     echo $msg To write above generated python to OpticksCSG.py ..
+    114 
+    115     local ans
+    116     read -p "Enter YES ... " ans
+    117 
+    118     if [  "$ans" == "YES" ]; then
+    119        c_enums_to_python.py OpticksCSG.h > OpticksCSG.py
+    120 
+    121        echo $msg checking the generated python is valid 
+    122        python  OpticksCSG.py
+    123 
+    124     else
+    125        echo $msg SKIP
+    126     fi
+    127 
+    128     cd $iwd
+    129 }
+    130 
+
+
+
+Is everything installed under py::
+
+    epsilon:opticks blyth$ find $OPTICKS_PREFIX/py
+    /usr/local/opticks/py
+    /usr/local/opticks/py/opticks
+    /usr/local/opticks/py/opticks/ana
+    /usr/local/opticks/py/opticks/ana/histype.py
+    /usr/local/opticks/py/opticks/ana/evt.py
+    /usr/local/opticks/py/opticks/ana/abstat.py
+    /usr/local/opticks/py/opticks/ana/ab.py
+    /usr/local/opticks/py/opticks/ana/dat.py
+    /usr/local/opticks/py/opticks/ana/metadata.py
+    /usr/local/opticks/py/opticks/ana/env.py
+    /usr/local/opticks/py/opticks/ana/nibble.py
+    /usr/local/opticks/py/opticks/ana/mattype.py
+
+Because its too tedious to keep installing the python after changes, its much 
+better to grab from source dirs. 
+
 
 
 Tue : down to 1 FAIL

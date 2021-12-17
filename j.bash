@@ -24,6 +24,33 @@ Analysis_Foundation_Groups
 ----------------------------
 
 Dear all,
+
+The Data Production Group will be in charge of
+
+MC Production
+Physics Production
+Keep Up Production / 1st round reconstruction
+Data Quality Monitoring
+Please find all the necessary information about Data Production group in the wiki page:
+
+    https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Foundation_Groups/Data_production
+For your convenience, here are a list of useful links:
+
+Data Production Mailing list: valprod@juno.ihep.ac.cn
+User forum (HyperNews) to request MC data production: valprod@hnjuno.ihep.ac.cn
+subscribe here: http://hnjuno.ihep.ac.cn/HyperNews/get/valprod.html
+Documentation: https://juno.ihep.ac.cn/~offline/Doc/data-production/
+The source code of docs: https://code.ihep.ac.cn/JUNO/juno-afgs/data-production/docs
+GitLab: https://code.ihep.ac.cn/JUNO/juno-afgs/data-production
+Live Notes: https://jupyter.ihep.ac.cn/Z9b7Xp2hSmKVcEGzR6SUKg
+If you are interested in any topics of our group, please subscribe the mailing list and send us emails.
+
+Thank you!
+
+Alessandra, Zhengyun and Tao
+
+
+Dear all,
 If you are interested in AFG simulation , please feel free to subscribe to the mailing list:      https://juno.ihep.ac.cn/mailman/listinfo/juno_sim
 We will start a bi-weekly meeting to discuss simulation, the meeting link will be sent to:  juno_sim@juno.ihep.ac.cn .
 Thanks.
@@ -2123,13 +2150,12 @@ tds3(){
    local opts="" 
    opts="$opts --opticks-mode 3"   
    opts="$opts --no-guide_tube"
-   #opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --additionacrylic-simplify-csg"
 
    #opts="$opts --pmt20inch-polycone-neck"  ## FORMER OPTION NOW DEFAULT
    #opts="$opts --pmt20inch-simplify-csg"   ## FORMER OPTION NOW DEFAULT
 
    opts="$opts --disable-pmt-optical-model"
-
 
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "
