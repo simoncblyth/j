@@ -2,18 +2,32 @@ tds3_skipsolidname_updates
 ============================
 
 
+j commit
+----------
 
 ::
 
-    2021-12-18 01:58:21.237 INFO  [55054] [G4Opticks::translateGeometry@963] ) GGeo populate
-    2021-12-18 01:58:21.237 INFO  [55054] [G4Opticks::translateGeometry@965] ( GGeo::postDirectTranslation 
-    2021-12-18 01:58:21.237 INFO  [55054] [GGeo::prepare@667] [
-    2021-12-18 01:58:21.238 FATAL [55054] [OpticksDbg::postgeometrySkipSolidName@289]  failed to find solid with name starting [NNVTMCPPMT_body_solid]
-    2021-12-18 01:58:21.238 FATAL [55054] [OpticksDbg::postgeometrySkipSolidName@289]  failed to find solid with name starting [HamamatsuR12860_body_solid_1_9]
-    2021-12-18 01:58:21.239 INFO  [55054] [GGeo::prepareVolumes@1293] [ creating merged meshes from the volume tree 
-    2021-12-18 01:58:35.260 INFO  [55054] [GInstancer::dumpDigests@530] before sort
-     i          0 pdig         a656fc24f42883c6761ea775df0cf460 ndig      25600 first 0x8a13d230 first.nidx     194244
+    epsilon:j blyth$ git add .
+    epsilon:j blyth$ git commit -m "update tds-skipsolidname skipping the PMT virtual hatboxes and degenerate PMT body_solid from the opticks geometry "
+    [main 3eab7b6] update tds-skipsolidname skipping the PMT virtual hatboxes and degenerate PMT body_solid from the opticks geometry
+     2 files changed, 186 insertions(+)
+     create mode 100644 issues/tds3_skipsolidname_updates.rst
+    epsilon:j blyth$ git push 
+    Counting objects: 5, done.
+    Delta compression using up to 8 threads.
+    Compressing objects: 100% (5/5), done.
+    Writing objects: 100% (5/5), 2.79 KiB | 2.79 MiB/s, done.
+    Total 5 (delta 3), reused 0 (delta 0)
+    remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+    To github.com:simoncblyth/j.git
+       1c2eba2..3eab7b6  main -> main
+    epsilon:j blyth$ 
 
+
+issue : need to update the skipsolidname option
+--------------------------------------------------
+
+::
 
 
 
@@ -59,7 +73,6 @@ Update::
 
     EON
     }
-
 
 
 ::
