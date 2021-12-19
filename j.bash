@@ -2167,7 +2167,7 @@ tds3(){
    local opts="" 
    opts="$opts --opticks-mode 3"   
    opts="$opts --no-guide_tube"
-   #opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --additionacrylic-simplify-csg"
 
    #opts="$opts --pmt20inch-polycone-neck"  ## FORMER OPTION NOW DEFAULT
    #opts="$opts --pmt20inch-simplify-csg"   ## FORMER OPTION NOW DEFAULT
