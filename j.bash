@@ -2167,7 +2167,7 @@ tds3(){
    local opts="" 
    opts="$opts --opticks-mode 3"   
    opts="$opts --no-guide_tube"
-   opts="$opts --additionacrylic-simplify-csg"
+   #opts="$opts --additionacrylic-simplify-csg"
 
    #opts="$opts --pmt20inch-polycone-neck"  ## FORMER OPTION NOW DEFAULT
    #opts="$opts --pmt20inch-simplify-csg"   ## FORMER OPTION NOW DEFAULT
@@ -2349,7 +2349,39 @@ tds-(){
    eval $runline 
    date
    cd $iwd
+
+   tds-csg-ggeo-reminder
+
 }
+
+
+tds-csg-ggeo-reminder(){  cat << EOR
+    
+tds-csg-ggeo-reminder
+=======================
+
+Recall that creation of CSG/CSGFoundry geometries for CSGOptiX usage with NVIDIA OptiX 7 is **NOT YET AUTOMATED**.
+
+Following tds running that changes geometry you must remember to:
+
+1. update the OPTICKS_KEY envvar in .bash_profile etc.. if the 
+   geometry change caused the key envvar digest to differ
+
+2. run the conversion from geocache into CSG_GGeo which is 
+   now housed within the geocache directory identified by OPTICKS_KEY::
+
+      cd ~/opticks/CSG_GGeo   # cg 
+      ./run.sh                # should takes less than 5 seconds even for large geometries
+
+   * NB even when the OPTICKS_KEY is unchanged it is still necessary to 
+     update the CSG geometry in order to propagate geometry changes into CSG 
+
+   * after doing this renders created with the various CSGOptiX render scripts
+     should reflect the updated geometry 
+
+EOR
+}
+
 
 tds-dir(){ echo /tmp/$USER/opticks/tds ; }
 tds-cd(){ cd $(tds-dir) ; }
