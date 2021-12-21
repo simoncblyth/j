@@ -1856,7 +1856,12 @@ jre(){
    j-runtime-env 
    jo 
    if [ -n "$OPTICKS_PREFIX" ]; then
+       : TODO add these settings to standard environment  
+
        opticks- 
+
+       export PYTHONPATH=$PYTHONPATH:$JUNOTOP
+
    fi   
 }
 jre-(){ j-runtime-env- ; }
