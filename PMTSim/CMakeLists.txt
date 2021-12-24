@@ -25,6 +25,9 @@ list(APPEND SOURCES
      ZSolid.cc
      MaterialSvc.cc
      DetectorConstruction.cc
+
+
+     HamamatsuMaskManager.cc
 )
 
 list(APPEND HEADERS

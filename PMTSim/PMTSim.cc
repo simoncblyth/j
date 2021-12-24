@@ -14,6 +14,11 @@
 #include "NNVTMCPPMTManager.hh"
 #include "NNVT_MCPPMT_PMTSolid.hh"
 
+
+#include "HamamatsuMaskManager.hh"
+//#include "NNVTMaskManager.hh"
+
+
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SolidStore.hh"
@@ -588,7 +593,9 @@ PMTSim::PMTSim()
     verbose(getenv("VERBOSE")!=nullptr),
     m_dc(nullptr),
     m_hama(nullptr),
-    m_nnvt(nullptr)
+    m_nnvt(nullptr),
+    m_hmsk(nullptr),
+    m_nmsk(nullptr)
 {
     init(); 
 }
@@ -616,6 +623,7 @@ void PMTSim::init()
         m_dc = new DetectorConstruction ; 
         m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
         m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
+
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
 
@@ -629,6 +637,12 @@ void PMTSim::init()
         << " set VERBOSE to see them " 
         << std::endl  
         ;   
+
+
+
+    m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
+    m_nmsk = nullptr ; // new NNVTMaskManager(NMSK) ;   
+
 
     if(verbose) 
     {
@@ -651,12 +665,23 @@ void PMTSim::init()
 const char* PMTSim::PREFIX = "0123" ;   // all prefix must have same length 
 const char* PMTSim::HAMA   = "hama" ; 
 const char* PMTSim::NNVT   = "nnvt" ; 
+const char* PMTSim::HMSK   = "hmsk" ; 
+const std::string PMTSim::HMSK_STR = "hmsk" ; 
+
+const char* PMTSim::NMSK   = "nmsk" ; 
+
+
 
 bool PMTSim::HasManagerPrefix( const char* name ) // static
 {
     bool hama = StartsWithPrefix(name, HAMA ); 
     bool nnvt = StartsWithPrefix(name, NNVT ); 
-    return hama ^ nnvt ; 
+    bool hmsk = StartsWithPrefix(name, HMSK ); 
+    bool nmsk = StartsWithPrefix(name, NMSK ); 
+
+    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) ; 
+    assert( check == 0 || check == 1 ) ;  
+    return check == 1 ; 
 }
 
 IGeomManager* PMTSim::getManager(const char* name)
@@ -664,6 +689,9 @@ IGeomManager* PMTSim::getManager(const char* name)
     IGeomManager* mgr = nullptr ;   
     if(StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
     if(StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
+    if(StartsWithPrefix(name, HMSK)) mgr = m_hmsk ; 
+    //if(StartsWithPrefix(name, NMSK)) mgr = m_nmsk ; 
+
     if(mgr == nullptr)
     {
         std::cerr

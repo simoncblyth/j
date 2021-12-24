@@ -13,6 +13,9 @@ struct DetectorConstruction ;
 class HamamatsuR12860PMTManager ; 
 class NNVTMCPPMTManager ; 
 
+class HamamatsuMaskManager ; 
+class NNVTMaskManager ; 
+
 struct IGeomManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
@@ -24,6 +27,11 @@ struct PMTSIM_API PMTSim
     static const char* PREFIX ; 
     static const char* HAMA ; 
     static const char* NNVT ; 
+    static const char* HMSK ; 
+    static const std::string HMSK_STR ;  
+    static const char* NMSK ; 
+
+
 
     static G4VSolid* GetSolid(const char* name); 
 
@@ -55,8 +63,12 @@ struct PMTSIM_API PMTSim
 
     bool verbose ; 
     DetectorConstruction*      m_dc ;   
+
     HamamatsuR12860PMTManager* m_hama ; 
     NNVTMCPPMTManager*         m_nnvt ; 
+
+    HamamatsuMaskManager*      m_hmsk ; 
+    NNVTMaskManager*           m_nmsk ; 
 
     static bool HasManagerPrefix( const char* name ); 
     IGeomManager* getManager(const char* name); 
