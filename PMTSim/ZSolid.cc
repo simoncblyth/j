@@ -44,6 +44,9 @@ void ZSolid::Draw(const G4VSolid* original, const char* msg ) // static
 
     ZSolid* zs = new ZSolid(original); 
     zs->draw(msg);
+    zs->dumpNames(msg); 
+    zs->zdump(msg); 
+
 }
 
 ZSolid::ZSolid(const G4VSolid* original_ ) 
@@ -776,6 +779,80 @@ void ZSolid::draw(const char* msg, int pass)
     canvas->print(); 
 }
 
+void ZSolid::dumpNames(const char* msg) const 
+{
+    std::cout << msg << std::endl ; 
+    for(unsigned i=0 ; i < names->size() ; i++ ) 
+    {
+        const std::string& name = (*names)[i] ; 
+        std::string nam = nameprefix ? name.substr(strlen(nameprefix)) : "" ; 
+        std::string snam = nam.substr(0,6) ;  
+        std::cout 
+            << std::setw(3) << i 
+            << " : " 
+            << std::setw(35) << name 
+            << " : " 
+            << std::setw(35) << nam 
+            << " : [" 
+            << std::setw(10) << snam << "]" 
+            << std::endl
+            ;
+    } 
+}
+
+void ZSolid::zdump(const char* msg) const 
+{
+    std::cout << msg << std::endl ; 
+    int mode = IN ; 
+    zdump_r(root, mode); 
+}
+
+void ZSolid::zdump_r( const G4VSolid* node_, int mode ) const 
+{
+    if( node_ == nullptr ) return ;
+
+    const G4VSolid* node = Moved(node_); 
+    zdump_r( Left(node),  mode  );
+    zdump_r( Right(node), mode );
+
+    int ix = in(node_) ;            // inorder index, aka "side", increasing from left to right 
+    int iy = depth(node_) ;         // increasing downwards
+    int idx = index(node_, mode);  // index for presentation 
+
+    const char* tag = EntityTag(node, true) ; 
+    int zcl = zcls(node_);                 
+    const char* zcn = ClassifyMaskName(zcl) ; 
+    G4String name = node->GetName(); 
+
+
+    bool can_z = ZSolid::CanZ(node) ;
+
+    if(can_z)
+    {
+        double zdelta = getZ(node_) ;  
+        double z0, z1 ; 
+        ZRange(z0, z1, node);  
+
+        double az0 = z0 + zdelta ;  
+        double az1 = z1 + zdelta ;  
+
+        std::cout 
+            << " ix " << std::setw(2) << ix
+            << " iy " << std::setw(2) << iy
+            << " idx " << std::setw(2) << idx
+            << " tag " << std::setw(10) << tag 
+            << " zcn " << std::setw(10) << zcn 
+            << " zdelta " << std::setw(10) << std::fixed << std::setprecision(3) << zdelta 
+            << " az0 " << std::setw(10) << std::fixed << std::setprecision(3) << az0
+            << " az1 " << std::setw(10) << std::fixed << std::setprecision(3) << az1
+            << " name " << name
+            << std::endl 
+            ; 
+    }
+}
+
+
+
 /**
 ZSolid::draw_r
 ----------------
@@ -816,6 +893,7 @@ void ZSolid::draw_r( const G4VSolid* node_, int mode )
         double z0, z1 ; 
         ZRange(z0, z1, node);  
 
+        // below is coercing double into int val 
         canvas->draw(   ix, -1, 0,0,  zdelta ); 
         canvas->draw(   ix, -1, 0,2,  z1+zdelta ); 
         canvas->draw(   ix, -1, 0,3,  z0+zdelta ); 
@@ -2204,7 +2282,7 @@ bool ZSolid::CanZ( const G4VSolid* solid ) // static
     bool can = type == _G4Ellipsoid || type == _G4Tubs || type == _G4Polycone || type == _G4Torus ; 
     G4String name = solid->GetName(); 
 
-    if( can == false )
+    if( can == false && verbose )
     {
         std::cout 
             << "ZSolid::CanZ ERROR "

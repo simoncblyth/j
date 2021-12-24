@@ -161,6 +161,14 @@ struct ZSolid
     void draw(const char* msg="ZSolid::draw", int pass=-1); 
     void draw_r( const G4VSolid* n, int mode); 
 
+    void dumpNames(const char* msg="ZSolid::dumpNames") const  ; 
+
+
+    void zdump(const char* msg="ZSolid::zdump") const ; 
+    void zdump_r( const G4VSolid* node_, int mode ) const ; 
+
+
+
     int maxdepth() const  ;
     static int Maxdepth_r( const G4VSolid* node_, int depth); 
 

@@ -29,6 +29,7 @@ struct ZCanvas
     void clear(); 
     void drawtest(); 
 
+    void drawf(  int ix, int iy, int dx, int dy, float val); 
     void draw(   int ix, int iy, int dx, int dy, int val); 
     void drawch( int ix, int iy, int dx, int dy, char ch); 
     void draw(   int ix, int iy, int dx, int dy, const char* txt);
@@ -82,6 +83,19 @@ inline void ZCanvas::drawtest()
             draw(ix,iy,dx,dy, dx);
         }
     } 
+}
+
+
+
+inline void ZCanvas::drawf(int ix, int iy, int dx, int dy, float val)
+{
+    char tmp[10] ;
+    int rc = sprintf(tmp, "%f", val );
+    bool expect = rc == int(strlen(tmp)) ; 
+    assert( expect );
+    if(!expect) exit(EXIT_FAILURE) ; 
+
+    _draw(ix, iy, dx, dy, tmp); 
 }
 
 inline void ZCanvas::draw(int ix, int iy, int dx, int dy, int val)
