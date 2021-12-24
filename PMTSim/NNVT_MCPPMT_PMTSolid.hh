@@ -24,7 +24,12 @@
 #include "globals.hh"
 class G4VSolid;
 
+#ifdef PMTSIM_STANDALONE
+#include "PMTSIM_API_EXPORT.hh"
+class PMTSIM_API NNVT_MCPPMT_PMTSolid { 
+#else
 class NNVT_MCPPMT_PMTSolid {
+#endif
 public:
   // We fix the whole geometry parameters. 
   // Developers could use thickness to get different dimension.

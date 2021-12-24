@@ -677,6 +677,280 @@ jcv Material
 
 
 
+
+jgr HamamatsuMaskManager
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+jcv LSExpDetectorConstruction
+jcv JUNODetSimModule
+
+::
+
+    epsilon:offline blyth$ jgr setPMTName
+    ./Simulation/DetSimV2/DetSimMTUtil/src/DetFactorySvc.cc:    dc->setPMTName(m_pmt_name);
+    ./Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh:     void setPMTName(const std::string& pmt_name) {m_pmt_name = pmt_name;}
+    ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:    dc->setPMTName(m_pmt_name);
+    epsilon:offline blyth$ 
+
+::
+
+     31 DetSim0Svc::DetSim0Svc(const std::string& name)
+     32     : SvcBase(name)
+     33 {
+     34     declProp("AnaMgrList", m_ana_list);
+     35     declProp("CDName", m_cd_name="DetSim1");
+     36     declProp("PMTName", m_pmt_name="PMTMask");
+     37     declProp("LPMTExtra", m_extra_lpmt="ONE"); // ONE or TWO
+
+    1609             detsimfactory.property("PMTName").set(args.pmt20inch_name)
+    1610             detsimfactory.property("LPMTExtra").set(args.pmt20inch_extra)
+    1611             if args.pmt20inch_name == "R12860":
+    1612                 r12860 = sim_conf.tool("R12860PMTManager/PMT_20inch")
+    1613                 r12860.property("FastCover").set(True)
+    1614                 r12860.property("FastCoverMaterial").set("Water")
+    1615             elif args.pmt20inch_name == "PMTMask":
+    1616                 mask = sim_conf.tool("R12860MaskManager")
+    1617                 mask.property("TopThickness").set(args.pmtmask_top_thick)
+    1618             pass
+
+
+    0312         grp_pmt_op.add_argument("--pmt20inch-name", default="PMTMask",
+     313                                           choices = ["R12860", "OnlyPMT", "20inchPMT",
+     314                                                    "R3600", "PMTMask",
+     315                                                    "HamamatsuMask", "NNVTMask"
+     316                                                    ],
+     317                                           help=mh("20inch PMT name."))
+     318 
+     319         self.register_SWITCH_options(grp_pmt_op)
+     320 
+     321         grp_pmt_op.add_argument("--pmt20inch-extra", default="TWO-mask",
+     322                                           choices = ["ONE", "TWO", "TWO-mask"],
+     323                                           help=mh("ONE category or TWO categories of LPMT. TWO: pmts without mask. TWO-mask: pmts with mask"))
+     324         grp_pmt_op.add_argument("--pmtmask-top-thick", default=10., type=float,
+
+
+
+::
+
+     450 LSExpDetectorConstruction::setupCentralDetector()
+     451 { 
+     452   // construct the Central Detector
+     453   IDetElement* cd_det = 0;
+     454   if (m_cd_name == "DetSim0" or m_cd_name == "DetSim1" or m_cd_name == "DetSim2") {
+     455       std::string new_name = m_cd_name + "Construction";
+     456       cd_det = det_elem(new_name);
+     457   }
+     458   
+
+jcv DetSim1Construction::
+
+    097     IPMTElement* pmt_elem_r12860 = 0; // R12860 w/ or w/o mask
+     98     IPMTElement* pmt_elem_nnvt = 0; // NNVT w/ or w/o mask
+     99     if (!other) {
+    100         // retrieve
+    101         // * get detsimalg 
+    102         // * get pmt elem
+    103         SniperPtr<DetSimAlg> detsimalg(*getParent(), "DetSimAlg");
+    104         if (detsimalg.invalid()) {
+    105             LogError << "Can't Load DetSimAlg" << std::endl;
+    106             return false;
+    107         }
+    108         pmt_elem_r12860 = dynamic_cast<IPMTElement*>(detsimalg->findTool("HamamatsuR12860")); // need to define the official name
+    109         pmt_elem_nnvt = dynamic_cast<IPMTElement*>(detsimalg->findTool("NNVTMCPPMT"));
+
+    // WHY NO Manager ON THESE ? 
+
+
+    110 
+    111         LogInfo << "Mixing PMT mode: " << std::endl;
+    112         LogInfo << "-> Get Hamamatsu R12860: " << pmt_elem_r12860 << std::endl;
+    113         LogInfo << "-> Get NNVT MCPPMT: " << pmt_elem_nnvt << std::endl;
+    114 
+    115     } else {
+
+
+    epsilon:sniper blyth$ find . -type f -exec grep -H findTool {} \;
+    ./SniperKernel/SniperKernel/AlgBase.h:        ToolBase* findTool(const std::string& toolName);
+    ./SniperKernel/SniperKernel/AlgBase.h:    return dynamic_cast<Type*>(this->findTool(toolName));
+    ./SniperKernel/src/AlgBase.cc:            if ( 0 == this->findTool( result->objName() ) ) {
+    ./SniperKernel/src/AlgBase.cc:ToolBase* AlgBase::findTool(const std::string& toolName)
+    ./SniperKernel/src/binding/AlgBaseExp.cc:        .def("findTool",   &AlgBase::findTool,
+    ./SniperKernel/src/DleSupervisor.cc:            return obj->findTool(name.substr(pseg+1, std::string::npos));
+    epsilon:sniper blyth$ 
+
+    061 ToolBase* AlgBase::findTool(const std::string& toolName)
+     62 {
+     63     auto it = m_tools.find(toolName);
+     64     if ( it != m_tools.end() ) {
+     65         return (*it).second;
+     66     }
+     67     //LogInfo << "cannot find tool: " << toolName << std::endl;
+     68     return nullptr;
+     69 }
+
+    054 
+     55         std::map<std::string, ToolBase*>  m_tools;
+     56 };
+     57 
+     58 template<typename Type>
+     59 Type* AlgBase::tool(const std::string& toolName)
+     60 {
+     61     return dynamic_cast<Type*>(this->findTool(toolName));
+     62 }
+
+    036 ToolBase* AlgBase::createTool(const std::string& toolName)
+     37 {   
+     38     DLElement* obj = DLEFactory::instance().create(toolName);
+     39     if ( obj != 0 ) {
+     40         ToolBase* result = dynamic_cast<ToolBase*>(obj);
+     41         if ( result != 0 ) {
+     42             if ( 0 == this->findTool( result->objName() ) ) {
+     43                 result->setParent(this->getParent());
+     44                 m_tools.insert(std::make_pair(result->objName(), result));
+     45                 return result;
+     46             }
+
+    038 DLElement* DLEFactory::create(const std::string& name)
+     39 {
+     40     std::string type = name;
+     41     std::string nobj = name;
+     42     std::string::size_type pseg = name.find('/');
+     43     if ( pseg != std::string::npos ) {
+     44         type = type.substr(0, pseg);
+     45         nobj = nobj.substr(pseg+1, std::string::npos);
+     46     }
+     47 
+     48     Type2CreatorMap::iterator it = m_creators.find(type);
+     49     if ( it != m_creators.end() ) {
+     50         DLElement* result = (it->second)(nobj);
+     51         result->setTag(type);
+     52         return result;
+     53     }
+
+    049 
+     50         typedef std::map<std::string, DLECreator> Type2CreatorMap;
+     51 
+     52         //standard constructor
+     53         DLEFactory();
+     54         ~DLEFactory();
+     55 
+     56         //members
+     57         std::string      m_name;
+     58         Type2CreatorMap  m_creators;
+
+
+
+    1280     def init_detector_simulation(self, task, args):
+    1281         import DetSimOptions
+    1282         sim_conf = None
+    1283         if args.detoption == "Acrylic":
+    1284             from DetSimOptions.ConfAcrylic import ConfAcrylic
+    1285             acrylic_conf = ConfAcrylic(task)
+    1286             acrylic_conf.configure()
+    1287             sim_conf = acrylic_conf
+    ....
+    1627             if args.pmt20inch_extra == "TWO":
+
+    1628                 log.info("TWO . args.pmt20inch_extra %s " % args.pmt20inch_extra)
+    1629                 nnvt_mcp_pmt = sim_conf.tool("NNVTMCPPMTManager/NNVTMCPPMT")
+    1630                 nnvt_mcp_pmt.property("FastCover").set(True)
+    1631                 nnvt_mcp_pmt.property("FastCoverMaterial").set("Water")
+    1632                 nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    1633 
+    1634                 hamamatsu_pmt = sim_conf.tool("HamamatsuR12860PMTManager/HamamatsuR12860")
+    1635                 hamamatsu_pmt.property("FastCover").set(True)
+    1636                 hamamatsu_pmt.property("FastCoverMaterial").set("Water")
+    1637                 hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+
+    1638             elif args.pmt20inch_extra == "TWO-mask":
+
+    //// THIS IS DEFAULT 
+
+    1639                 log.info("TWO-mask . args.pmt20inch_extra %s " % args.pmt20inch_extra)
+    1640                 nnvt_mcp_pmt = sim_conf.tool("NNVTMCPPMTManager/NNVTMCPPMT_PMT_20inch")
+    1641                 nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    1642                 nnvt_mcp_pmt.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
+    1643 
+    1644                 nnvt_mcp_mask = sim_conf.tool("NNVTMaskManager/NNVTMCPPMT")
+    1645                 nnvt_mcp_mask.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
+    1646                 nnvt_mcp_mask.property("UseRealMaskTail").set(args.real_mask_tail)
+    1647                 nnvt_mcp_mask.property("UseMaskTailOpSurface").set(args.mask_tail_surface_enabled)
+    1648    
+    1649                 hamamatsu_pmt = sim_conf.tool("HamamatsuR12860PMTManager/HamamatsuR12860_PMT_20inch")
+    1650                 hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    1651                 hamamatsu_pmt.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
+    1652 
+    1653                 hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860")       
+    1654                 hamamatsu_mask.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
+    1655                 hamamatsu_mask.property("UseRealMaskTail").set(args.real_mask_tail)
+    1656                 hamamatsu_mask.property("UseMaskTailOpSurface").set(args.mask_tail_surface_enabled)
+    1657 
+    1658             else:
+
+
+    //// THE OBJECT NAMES ARISING FROM THE BELOW ARE CONFUSING AS THEY DO NOT INCLUDE "Mask" 
+    ////
+    ////          nnvt_mcp_mask = sim_conf.tool("NNVTMaskManager/NNVTMCPPMT")
+    ////          hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860") 
+    ////
+
+
+    067     def tool(self, toolname):
+     68         if not self._detsimalg:
+     69             self.configure()
+     70         if self._detsimalg.findTool(toolname):
+     71             return self._detsimalg.findTool(toolname)
+     72 
+     73         return self._detsimalg.createTool(toolname)
+
+
+
+
+jcv HamamatsuR12860PMTManager::
+
+     31 #ifdef PMTSIM_STANDALONE
+     32 #else
+     33 DECLARE_TOOL(HamamatsuR12860PMTManager);
+     34 #endif
+      
+
+jcv NNVTMCPPMTManager::
+
+     40 #ifdef PMTSIM_STANDALONE 
+     41 #else
+     42 DECLARE_TOOL(NNVTMCPPMTManager);
+     43 #endif
+
+SniperKernel/SniperKernel/ToolFactory.h::
+
+     22 #include "SniperKernel/DeclareDLE.h"
+     23 #define DECLARE_TOOL(ToolClass) SNIPER_DECLARE_DLE(ToolClass)
+
+
+::
+
+     24 class DLElement;
+     25 
+     26 struct SniperBookDLE
+     27 {
+     28     SniperBookDLE() = delete;
+     29     SniperBookDLE(const SniperBookDLE&) = delete;
+     30     SniperBookDLE& operator=(const SniperBookDLE&) = delete;
+     31 
+     32     typedef DLElement* (*DLECreator)(const std::string&);
+     33     SniperBookDLE(const std::string& type, DLECreator creator);
+     34 };
+     35 
+     36 #define SNIPER_DECLARE_DLE(DLEClass) \
+     37 DLElement* sniper_DLE_##DLEClass##_creator_(const std::string& name) { \
+     38    return new DLEClass(name); \
+     39 } \
+     40 SniperBookDLE sniper_book_DLE_##DLEClass##_(#DLEClass, &sniper_DLE_##DLEClass##_creator_)
+     41 
+
+
+
+
 Simulation/DetSimV2/PhysiSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

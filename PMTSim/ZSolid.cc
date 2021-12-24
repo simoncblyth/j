@@ -1814,7 +1814,7 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
     bool expect_tla = tla == nullptr || tla->isNear(zero, epsilon) ; 
     if(!expect_tla) 
     {
-        std::cout << "ZSolid::BooleanClone expect_tla ERROR " << std::endl ; 
+        std::cout << "ZSolid::BooleanClone expect_tla ERROR (not expecting more than one level of translation) " << std::endl ; 
         if(tla) std::cout 
             << "ZSolid::BooleanClone" 
             << " tla( " 

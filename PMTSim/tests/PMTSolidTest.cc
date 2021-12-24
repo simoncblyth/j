@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include "Hamamatsu_R12860_PMTSolid.hh"
+#include "NNVT_MCPPMT_PMTSolid.hh"
 #include "ZSolid.h"
 
 double atof_(char* s_val)
@@ -38,33 +39,75 @@ void repeat_ZSolid_Draw( G4VSolid* solid, const char* msg, unsigned num_repeats 
 }
 
 
+
+
+
 int main(int argc, char** argv)
 {
-    Hamamatsu_R12860_PMTSolid* m_pmtsolid_maker = new Hamamatsu_R12860_PMTSolid();
+    //int repeat = 1000 ; 
+    int repeat = 0 ; 
 
-    G4VSolid* body_solid = m_pmtsolid_maker->GetSolid("_body_solid"); 
+    const char* name = "nnvt_body_solid" ; 
+    //const char* name = "hama_body_solid" ; 
 
-    std::cout << " body_solid " << body_solid << std::endl ; 
+/* 
+Trying to switch on the old obsolete torus neck gives ZSolid assert for both hama and nnvt::
 
-    //ZSolid::Draw(body_solid, "body_solid");
-   
-    repeat_ZSolid_Draw( body_solid, "body_solid", 1000 ); 
+   ZSolid::BooleanClone expect_tla ERROR (not expecting more than one level of translation) 
+   ZSolid::BooleanClone tla( 0 0 -193.789) 
+
+    int overwrite = 1 ; 
+    setenv("JUNO_PMT20INCH_OBSOLETE_TORUS_NECK", "ENABLED", overwrite ); 
+*/
+
+
+    Hamamatsu_R12860_PMTSolid* hama = new Hamamatsu_R12860_PMTSolid();
+    NNVT_MCPPMT_PMTSolid* nnvt = new NNVT_MCPPMT_PMTSolid(); 
+
+    const char* HAMA = "hama" ; 
+    const char* NNVT = "nnvt" ; 
+
+    G4VSolid* solid = nullptr ; 
+    if( strstr(name, HAMA) == name )
+    {
+        const char* name_ = name + strlen(HAMA) ; 
+        std::cout << " hama.GetSolid " << name_ << std::endl; 
+        solid = hama->GetSolid( name_ ); 
+    }
+    else if( strstr(name, NNVT) == name )
+    {
+        const char* name_ = name + strlen(NNVT) ; 
+        std::cout << " nnvt.GetSolid " << name_ << std::endl; 
+        solid = nnvt->GetSolid( name_ ); 
+    }
+
+    std::cout 
+        << " name " << name
+        << " solid " << solid 
+        << std::endl
+        ; 
+
+    ZSolid::Draw(solid, name);
+
+    if( repeat > 0 )
+    repeat_ZSolid_Draw( solid, name, repeat ); 
 
 
     double zcut = getenvdouble("ZCUT", -200. ); 
 
     std::cout << " zcut " << zcut << std::endl ; 
 
-    G4VSolid* body_solid_zcut = ZSolid::ApplyZCutTree(body_solid, zcut ); 
+    G4VSolid* solid_zcut = ZSolid::ApplyZCutTree(solid, zcut ); 
 
-    std::cout << " body_solid_zcut " << body_solid_zcut << std::endl ; 
+    std::cout << " solid_zcut " << solid_zcut << std::endl ; 
 
-    //ZSolid::Draw(body_solid_zcut, "body_solid_zcut");   
 
-    repeat_ZSolid_Draw( body_solid_zcut, "body_solid_zcut", 1000 ); 
+    ZSolid::Draw(solid_zcut, "solid_zcut");   
+
+    if( repeat > 0 )
+    repeat_ZSolid_Draw( solid_zcut, "solid_zcut", repeat ); 
 
     std::cout << "after ZSolid::Draw " << std::endl ; 
-
 
     return 0 ; 
 }

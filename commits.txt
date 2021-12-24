@@ -1,4 +1,35 @@
 
+N[blyth@localhost offline]$ svn ci -m "Hama and NNVT PMT simplified CSG model by actually cutting the CSG tree with Simulation/DetSimV2/PMTSim/src/ZSolid.h ZSolid::ApplyZCutTree "
+Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+Sending        Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+Sending        Simulation/DetSimV2/PMTSim/include/Hamamatsu_R12860_PMTSolid.hh
+Sending        Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+Sending        Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh
+Sending        Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+Sending        Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
+Sending        Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+Sending        Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
+Adding         Simulation/DetSimV2/PMTSim/src/ZCanvas.h
+Adding         Simulation/DetSimV2/PMTSim/src/ZSolid.cc
+Adding         Simulation/DetSimV2/PMTSim/src/ZSolid.h
+Transmitting file data ............
+Committed revision 5224.
+N[blyth@localhost offline]$ 
+
+
+
+N[blyth@localhost offline]$ svn ci build.sh build_Debug.sh build_RelWithDebInfo.sh -m "provide easy way to do CMake builds with different CMAKE_BUILD_TYPE Debug RelWithDebInfo instead of the default Release "
+Sending        build.sh
+Adding         build_Debug.sh
+Adding         build_RelWithDebInfo.sh
+Transmitting file data ...
+Committed revision 5223.
+N[blyth@localhost offline]$ 
+
+
+
+
+
 epsilon:offline blyth$ svn ci Examples/Tutorial/python/Tutorial/JUNODetSimModule.py -m "avoid duplication in setting up switch options and internal envvars using register_SWITCH_options and init_SWITCH_envvars that both parse common SWITCH variable " 
 Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
 Transmitting file data .done
