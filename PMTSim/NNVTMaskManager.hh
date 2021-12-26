@@ -22,6 +22,7 @@ class G4Sphere;
 class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class G4PVPlacement ; 
 class G4Material;
 class IMCParamsSvc;
 
@@ -140,29 +141,34 @@ private:
 
 
 private:
-    // If m_useRealSurface is true, the PMT should insert into the surface.
-    // In order to optimize the speed, just reduce the size of the PMT.
-    //
-    //        |    -
-    //        |  /   \
-    //    ------- P M T
-    //    ------- 19.434m
-    //        |  \   /
-    //        |    -
-    //      Tyvek  |
-    //     19.629m
+    /*
+     If m_useRealSurface is true, the PMT should insert into the surface.
+     In order to optimize the speed, just reduce the size of the PMT.
+    
+            |    -
+            |  /   \
+        ------- P M T
+        ------- 19.434m
+            |  \   /
+            |    -
+          Tyvek  |
+         19.629m
+
+    */
     bool m_useRealSurface;
 
 
-    // If m_useRealMaskTail is true, the tail of the mask is not a simple tube.
-    // the shape will be close to the PMT. 
-    //
-    //       - - -
-    //     /       \
-    //     |       |  <--- this head part is the acrylic
-    //     -\     /-  <--- this tail part is the steel      -- r1
-    //        | |                                           -- r2
+    /*
+     If m_useRealMaskTail is true, the tail of the mask is not a simple tube.
+     the shape will be close to the PMT. 
+    
+           - - -
+         /       \
+         |       |  <--- this head part is the acrylic
+         -\     /-  <--- this tail part is the steel      -- r1
+            | |                                           -- r2
 
+    */
     struct ParamRealMaskHead {
         double h_top_equator;   // from top to equator
         double h_below_equator; // below the equator

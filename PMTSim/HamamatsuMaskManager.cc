@@ -275,7 +275,7 @@ HamamatsuMaskManager::makeMaskOutLogical() {
                          mask_radiu_virtual};
 
 
-    G4VSolid* SolidMaskVirtual = new G4Polycone(
+    SolidMaskVirtual = new G4Polycone(
 				objName()+"sMask_virtual",
                                 0,
                                 360*deg,
