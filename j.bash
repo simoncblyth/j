@@ -1359,11 +1359,32 @@ jcopy(){
 }
 
 
+jcopyback_notes(){ cat <<EON
+
+NB to actually do the copies must pipe the commands to sh 
+
+::
+
+    N[blyth@localhost offline]$ jps
+    # On branch main
+    nothing to commit, working directory clean
+
+    N[blyth@localhost PMTSim]$ jcopyback HamamatsuMaskManager NNVTMaskManager
+    cp /home/blyth/j/PMTSim/HamamatsuMaskManager.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh
+    cp /home/blyth/j/PMTSim/NNVTMaskManager.hh /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/include/NNVTMaskManager.hh
+    cp /home/blyth/j/PMTSim/HamamatsuMaskManager.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+    cp /home/blyth/j/PMTSim/NNVTMaskManager.cc /data/blyth/junotop/offline/./Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
+
+EON
+}
+
 jcopyback(){
-   : copy classes from PWD j back into offline SVN 
+   : emit copy commands to copy classes from PWD j back into offline SVN 
+
    local src=$PWD
    local dst=$JUNOTOP/offline
    cd $dst
+   pwd
 
    local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments 
    local rel 
@@ -1384,6 +1405,9 @@ jcopyback(){
            echo $cmd
        fi  
    done 
+
+   cd $src
+   pwd 
 }
 
 
