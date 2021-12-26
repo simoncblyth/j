@@ -10,6 +10,7 @@ int main(int argc, char** argv)
     //const char* default_geom = "maker_body_solid_zcut-183.2246" ; 
     //const char* default_geom = "hmsk_solidMask" ; 
     const char* default_geom = "hmsk_solidMaskTail" ; 
+
     const char* geom = SSys::getenvvar("GEOM", default_geom );  
     const char* name = argc > 1 ? argv[1] : geom ; 
 

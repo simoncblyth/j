@@ -582,13 +582,13 @@ HamamatsuMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
-    G4double Tail_inner_I_Tube_uncoincide_z = 1.0*mm ;   
+    G4double uncoincide_inner_z = 1.0*mm ;   
 
     Tail_inner_I_Tube = new G4Tubs(
             objName()+"Tail_inner_PartI_Tube",
             0*mm,   
             mask_radiu_in,  
-            paramRealMaskTail.edge_height/2 + Tail_inner_I_Tube_uncoincide_z/2 ,  
+            paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ,  
             0*deg, 
             360*deg);
 
@@ -597,7 +597,7 @@ HamamatsuMaskManager::makeMaskTailLogical() {
          Tail_inner_I_Ellipsoid ,
          Tail_inner_I_Tube ,
          0,
-         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + Tail_inner_I_Tube_uncoincide_z/2 )) ;
+         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2 )) ;
 
 
 #ifdef PMTSIM_STANDALONE

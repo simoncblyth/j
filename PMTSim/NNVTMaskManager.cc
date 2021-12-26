@@ -315,6 +315,14 @@ NNVTMaskManager::makeMaskOutLogical() {
     logicMaskVirtual -> SetVisAttributes(maskout_visatt);
 }
 
+/**
+NNVTMaskManager::makeMaskLogical
+----------------------------------
+
+See HamamatsuMaskManager::makeMaskLogical for explanation of uncoincide_z 
+
+**/
+
 void
 NNVTMaskManager::makeMaskLogical() {
     
@@ -342,12 +350,15 @@ NNVTMaskManager::makeMaskLogical() {
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
+
+    G4double uncoincide_z = 1.*mm ;
+
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
             mask_radiu_in, // pxSemiAxis
             mask_radiu_in, // pySemiAxis
             htop_in,  // pzSemiAxis
-            -height_in, // pzBottomCut
+            -(height_in + uncoincide_z), // pzBottomCut
             htop_in  // pzTopCut
             );
 
@@ -355,7 +366,7 @@ NNVTMaskManager::makeMaskLogical() {
             objName()+"Bottom_Tube_in",
             0*mm,   
             mask_radiu_in,  
-            height_in/2,  
+            height_in/2 + uncoincide_z/2 ,  
             0*deg, 
             360*deg);
 
@@ -364,7 +375,7 @@ NNVTMaskManager::makeMaskLogical() {
          Top_in ,
          Bottom_in ,
          0,
-         G4ThreeVector(0,0,-height_in/2 + gap)    ) ;
+         G4ThreeVector(0,0,-height_in/2 + gap - uncoincide_z/2 )    ) ;
 
     solidMask = new G4SubtractionSolid(
             objName()+"sMask",
@@ -400,6 +411,15 @@ NNVTMaskManager::makeMaskPhysical() {
             false,           // no boolean operations
             0);              // no particular field
 }
+
+
+/**
+NNVTMaskManager::makeMaskTailLogical
+--------------------------------------
+
+See HamamatsuMaskManager::makeMaskTailLogical for explanation of uncoincide_inner_z 
+
+**/
 
 
 void
@@ -457,11 +477,16 @@ NNVTMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
+    G4double uncoincide_inner_z = 1.0*mm ; 
+    // expand Tubs hz and offset upwards to keep lower edge at same place 
+    // whilst expanding the inner upwards to avoid coincidence in subtraction
+    // see HamamatsuMaskManager for full explanation
+
     Tail_inner_I_Tube = new G4Tubs(
             objName()+"Tail_inner_PartI_Tube",
             0*mm,   
             mask_radiu_in,  
-            paramRealMaskTail.edge_height/2,  
+            paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ,  
             0*deg, 
             360*deg);
 
@@ -470,7 +495,7 @@ NNVTMaskManager::makeMaskTailLogical() {
          Tail_inner_I_Ellipsoid ,
          Tail_inner_I_Tube ,
          0,
-         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2))) ;
+         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2  )) ;
 
     Tail_inner_II_Tube = new G4Tubs
         (objName()+"Tail_inner_PartII",
