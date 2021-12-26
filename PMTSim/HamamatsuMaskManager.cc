@@ -18,6 +18,9 @@
 
 #ifdef PMTSIM_STANDALONE
 
+#include <iostream>
+#include <iomanip>
+
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 
@@ -305,15 +308,56 @@ HamamatsuMaskManager::makeMaskOutLogical() {
 }
 
 
+/**
+HamamatsuMaskManager::makeMaskLogical
+---------------------------------------
+
+::
+
+
+      +hz   +-----------+                     +-----------+            zoff + new_hz 
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+      0     +-----------+ - - - - - - - - - - - - - - - - - - -          
+            |           |                     |___________| _ _ _ _ _ _ zoff _ _ _ _ _ _ 
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+      -hz   +-----------+ - - - - - - - - - - - - - - - - - - -
+                                              |           | 
+                                              |           |
+      -hz - uncoincide                        +~~~~~~~~~~~+            zoff - new_hz
+
+      (uncoincide +ve)
+
+Add and subtract the line equations::
+
+       +hz                = zoff + new_hz 
+       -hz - uncoincide   = zoff - new_hz
+
+           -uncoincide    = 2*zoff      => zoff = -uncoincide/2 
+
+         2*hz + uncoincide = 2*new_hz   => new_hz = hz + uncoincide/2        
 
 
 
+Both Top_in G4Ellipsoid and Bottom_in G4Tubs extend down to the same coincident Z edge. 
+Hence need to extend them both downwards.   
 
+For the G4Tubs that means increasing hz to new_hz = hz + uncoincide/2 and changing zoff by -uncoincide/2 
+
+For the G4Ellipsoid that means extending downwards the pzBottomCut from -height_out to -(height_out + uncoincide)
+
+
+**/
 
 void
 HamamatsuMaskManager::makeMaskLogical() {
 
-    std::cout << "HamamatsuMaskManager::makeMaskLogical objName [" << objName() << "]" << std::endl ; 
     
     Top_out = new G4Ellipsoid(
             objName()+"Top_Sphere",
@@ -339,29 +383,59 @@ HamamatsuMaskManager::makeMaskLogical() {
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
+
+
+    G4double uncoincide_z = 1.*mm ;  
+
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
             mask_radiu_in, // pxSemiAxis
             mask_radiu_in, // pySemiAxis
             htop_in,  // pzSemiAxis
-            -height_in, // XXX, // pzBottomCut
+            -(height_in + uncoincide_z)  , // XXX, // pzBottomCut
             htop_in // XXX  // pzTopCut
             );
+
 
     Bottom_in = new G4Tubs(
             objName()+"Bottom_Tube_in",
             0*mm,   
             mask_radiu_in,  
-            height_in/2,  
+            height_in/2 + uncoincide_z/2 ,  
             0*deg, 
             360*deg);
+
 
     Mask_in = new G4UnionSolid
         (objName()+"sMask_in",
          Top_in ,
          Bottom_in ,
          0,
-         G4ThreeVector(0,0,-height_in/2 + gap)    ) ;
+         G4ThreeVector(0,0,-height_in/2 + gap - uncoincide_z/2 )    ) ;
+
+
+#ifdef PMTSIM_STANDALONE
+    std::cout << "HamamatsuMaskManager::makeMaskLogical objName [" << objName() << "]" << std::endl ; 
+    std::cout 
+        << "Top_in Ellipsoid "
+        << " pzSemiAxis: htop_in "     << std::fixed << std::setw(10) << std::setprecision(4) << htop_in  
+        << " pzBottomCut: -height_in " << std::fixed << std::setw(10) << std::setprecision(4) << -height_in
+        << " pzTopCut: htop_in "       << std::fixed << std::setw(10) << std::setprecision(4) << htop_in
+        << std::endl 
+        ;
+    std::cout 
+        << "Bottom_in Tubs "
+        << " height_in/2 "     << std::fixed << std::setw(10) << std::setprecision(4) << height_in/2  
+        << std::endl 
+        ;
+    std::cout
+        << "Mask_in Union "
+        << " -height_in/2 + gap " << std::fixed << std::setw(10) << std::setprecision(4) << -height_in/2 + gap 
+        << " -height_in/2       " << std::fixed << std::setw(10) << std::setprecision(4) << -height_in/2
+        << " gap " << std::fixed << std::setw(10) << std::setprecision(4) << gap 
+        << std::endl 
+        ;
+#endif
 
     solidMask = new G4SubtractionSolid(
             objName()+"sMask",
@@ -406,15 +480,55 @@ HamamatsuMaskManager::makeMaskPhysical() {
 }
 
 
+/**
+HamamatsuMaskManager::makeMaskTailLogical
+-------------------------------------------
+
+To avoid coincident faces in the subtraction 
+need to expand the Tail_inner_I_Tube/Tail_inner_PartI_Tube G4Tubs 
+upwards without changing the position its of lower edge.
+Hence increase the half-size in Z from *hz* to *new_hz* and 
+simultaneously shift upwards by the same amount (*zoff*) 
+to keep the lower edge at same z position::
 
 
+       +hz + uncoincide - - - - - - - +~~~~~~~~~+ - -    zoff + new_hz  - - -
+                                      |         |
+                                      |         |
+       +hz  +---------+ - - - - - - - | - - - - | - - - - - - - - - - - - - -
+            |         |               |         |  
+            |         |               |         |
+            |         |               |         |
+            |         |               |_________|        zoff 
+            |         |               |         |
+        0 --|---------| - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            |         |               |         |
+            |         |               |         |
+            |         |               |         |                                
+            |         |               |         |
+            |         |               |         |
+       -hz  +---------+ - - - - - - - +---------+ - - -  zoff - new_hz  - - -
+
+
+Add the line equations::
+
+      hz + uncoincide = zoff + new_hz
+
+      -hz             = zoff - new_hz 
+
+           => uncoincide = 2*zoff       =>   zoff = uncoincide/2
+
+
+Subtract the line equations::
+     
+        2 hz + uncoincide = 2*new_hz    ==>  new_hz = hz + uncoincide/2 
+
+**/
 
 
 void
 HamamatsuMaskManager::makeMaskTailLogical() {
     // outer
-
-    std::cout << "HamamatsuMaskManager::makeMaskTailLogical objName " << objName() << std::endl ; 
 
     Tail_outer_I_Ellipsoid = new G4Ellipsoid(
             objName()+"Tail_outer_PartI_Ellipsoid",
@@ -468,11 +582,13 @@ HamamatsuMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
+    G4double Tail_inner_I_Tube_uncoincide_z = 1.0*mm ;   
+
     Tail_inner_I_Tube = new G4Tubs(
             objName()+"Tail_inner_PartI_Tube",
             0*mm,   
             mask_radiu_in,  
-            paramRealMaskTail.edge_height/2,  
+            paramRealMaskTail.edge_height/2 + Tail_inner_I_Tube_uncoincide_z/2 ,  
             0*deg, 
             360*deg);
 
@@ -481,7 +597,27 @@ HamamatsuMaskManager::makeMaskTailLogical() {
          Tail_inner_I_Ellipsoid ,
          Tail_inner_I_Tube ,
          0,
-         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2))) ;
+         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + Tail_inner_I_Tube_uncoincide_z/2 )) ;
+
+
+#ifdef PMTSIM_STANDALONE
+    if(false)
+    {
+        std::cout << "HamamatsuMaskManager::makeMaskTailLogical objName " << objName() << std::endl ; 
+        std::cout 
+             << " Tail_inner_I_Ellipsoid "
+             << " htop_in " << std::fixed << std::setw(10) << std::setprecision(4) << htop_in 
+             << " pzBottomCut: -(height_out+paramRealMaskTail.height-htop_thickness) " << std::fixed << std::setw(10) << std::setprecision(4) << -(height_out+paramRealMaskTail.height-htop_thickness)
+             << " pzTopCut: -height_out "                                           << std::fixed << std::setw(10) << std::setprecision(4) << -height_out
+             << std::endl 
+             ; 
+        std::cout 
+             << " Tail_inner_PartI_Tube "
+             << " hz: paramRealMaskTail.edge_height/2 " << std::fixed << std::setw(10) << std::setprecision(4) << paramRealMaskTail.edge_height/2 
+             << std::endl 
+             ;
+    }
+#endif
 
     Tail_inner_II_Tube = new G4Tubs
         (objName()+"Tail_inner_PartII",
