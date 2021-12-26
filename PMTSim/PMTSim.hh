@@ -27,10 +27,12 @@ struct PMTSIM_API PMTSim
     static const char* PREFIX ; 
     static const char* HAMA ; 
     static const char* NNVT ; 
+
     static const char* HMSK ; 
-    static const std::string HMSK_STR ;  
     static const char* NMSK ; 
 
+    static const std::string HMSK_STR ;  
+    static const std::string NMSK_STR ;  
 
 
     static G4VSolid* GetSolid(const char* name); 

@@ -33,7 +33,19 @@ grab_1()
 
 }
 
-grab_1
+grab_2()
+{
+    jcopy \
+        NNVTMaskManager 
+ 
+}
+
+
+
+
+
+#grab_1
+grab_2
 
 
 

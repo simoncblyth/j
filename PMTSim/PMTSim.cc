@@ -14,9 +14,8 @@
 #include "NNVTMCPPMTManager.hh"
 #include "NNVT_MCPPMT_PMTSolid.hh"
 
-
 #include "HamamatsuMaskManager.hh"
-//#include "NNVTMaskManager.hh"
+#include "NNVTMaskManager.hh"
 
 
 #include "G4LogicalVolume.hh"
@@ -639,9 +638,8 @@ void PMTSim::init()
         ;   
 
 
-
     m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
-    m_nmsk = nullptr ; // new NNVTMaskManager(NMSK) ;   
+    m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
 
 
     if(verbose) 
@@ -666,9 +664,10 @@ const char* PMTSim::PREFIX = "0123" ;   // all prefix must have same length
 const char* PMTSim::HAMA   = "hama" ; 
 const char* PMTSim::NNVT   = "nnvt" ; 
 const char* PMTSim::HMSK   = "hmsk" ; 
-const std::string PMTSim::HMSK_STR = "hmsk" ; 
-
 const char* PMTSim::NMSK   = "nmsk" ; 
+
+const std::string PMTSim::HMSK_STR = "hmsk" ; 
+const std::string PMTSim::NMSK_STR = "nmsk" ; 
 
 
 
@@ -690,7 +689,7 @@ IGeomManager* PMTSim::getManager(const char* name)
     if(StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
     if(StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
     if(StartsWithPrefix(name, HMSK)) mgr = m_hmsk ; 
-    //if(StartsWithPrefix(name, NMSK)) mgr = m_nmsk ; 
+    if(StartsWithPrefix(name, NMSK)) mgr = m_nmsk ; 
 
     if(mgr == nullptr)
     {
@@ -707,15 +706,18 @@ IGeomManager* PMTSim::getManager(const char* name)
 
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
-    return getManager(name)->getLV(name + strlen(PREFIX) + 1) ;  // +1 for _  
+    IGeomManager* mgr = getManager(name) ; 
+    return mgr->getLV(name + strlen(PREFIX) + 1) ;  // +1 for _  
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
-    return getManager(name)->getPV(name + strlen(PREFIX) + 1) ; 
+    IGeomManager* mgr = getManager(name) ; 
+    return mgr->getPV(name + strlen(PREFIX) + 1) ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
-    return getManager(name)->getSolid(name + strlen(PREFIX) + 1) ;  
+    IGeomManager* mgr = getManager(name) ; 
+    return mgr->getSolid(name + strlen(PREFIX) + 1) ;  
 }
 
 

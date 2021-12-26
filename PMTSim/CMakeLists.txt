@@ -28,6 +28,7 @@ list(APPEND SOURCES
 
 
      HamamatsuMaskManager.cc
+     NNVTMaskManager.cc
 )
 
 list(APPEND HEADERS
