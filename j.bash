@@ -2431,8 +2431,8 @@ tds3dbg()
 
 
 
-tds-skipsolidname(){ echo $(tds-skipsolidname-) | tr " " "," ; }
-tds-skipsolidname-(){ cat << EON | grep -v ^#
+tds-old-skipsolidname(){ echo $(tds-old-skipsolidname-) | tr " " "," ; }
+tds-old-skipsolidname-(){ cat << EON | grep -v ^#
 #NNVTMCPPMTsMask_virtual
 #HamamatsuR12860sMask_virtual
 mask_PMT_20inch_vetosMask_virtual
@@ -2442,7 +2442,8 @@ PMT_20inch_veto_body_solid_1_2
 EON
 }
 
-tds-skipsolidname-(){ cat << EON | grep -v ^#
+tds-nohatbox-skipsolidname(){ echo $(tds-nohatbox-skipsolidname-) | tr " " "," ; }
+tds-nohatbox-skipsolidname-(){ cat << EON | grep -v ^#
 
 NNVTMCPPMTsMask_virtual
 HamamatsuR12860sMask_virtual
@@ -2454,6 +2455,18 @@ PMT_20inch_veto_body_solid_1_2
 
 EON
 }
+
+tds-skipsolidname(){ echo $(tds-skipsolidname-) | tr " " "," ; }
+tds-skipsolidname-(){ cat << EON | grep -v ^#
+
+NNVTMCPPMT_PMT_20inch_body_solid_1_2
+HamamatsuR12860_PMT_20inch_body_solid_1_4
+PMT_20inch_veto_body_solid_1_2
+
+EON
+}
+
+
 
 
 
@@ -2681,6 +2694,14 @@ Following tds running that changes geometry you must remember to:
 
    * after doing this renders created with the various CSGOptiX render scripts
      should reflect the updated geometry 
+
+
+TODO: 
+    automate cg running at bash level, as interim fix prior to being able to do it 
+    properly at C++ level (which must wait until have made the leap to 7) 
+    by autodetecting that the b7 opticks-build7 has been used and simply running 
+    scripts at the tail of tds-  
+
 
 EOR
 }
