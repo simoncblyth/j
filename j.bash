@@ -11,6 +11,26 @@ Common source for JUNO high level bash functions
    cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
 
 
+
+
+JUNO CORE SW FDR
+------------------
+
+Dear all,
+
+We will have the JUNO core software FDR (final design review) on the coming
+collaboration meeting. I was appointed by the EB to be the review chair.  As
+the FDR, the review comittee shall pay particular attentions on that if the
+current core software design satisfies the various needs of future physics
+analysis. The draft of charge letter is attached.  I consider to ask the AFG
+conveners, ACC members, and Simon Blyth to serve as the committee. Please let
+me know if you are available. Since Zhengyun and Tao will be the speakers, so
+they shall not be as the reviewers, :-) The proposed date is Jan 17 (preferred)
+or Jan 18, better to be before the phys/soft parallel sessions.
+
+Thanks!  Regards, Liangjian Wen
+
+
 Tao demo-photon-generation
 -----------------------------
 
