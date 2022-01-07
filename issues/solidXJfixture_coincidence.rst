@@ -1002,3 +1002,106 @@ But with different mother (lTarget and lWaterPool) and radius ?
 
 
 
+
+
+
+In [2]: pf["SJReceiverPosFile"].a                                                                                                                                                          
+Out[2]: 
+array([[[     0.866,     -0.5  ,     -0.   ,      0.   ],
+        [    -0.5  ,     -0.866,     -0.   ,      0.   ],
+        [    -0.   ,      0.   ,     -1.   ,      0.   ],
+        [    -0.   ,      0.   ,  17699.938,      1.   ]],
+
+       [[     0.866,      0.5  ,     -0.   ,      0.   ],
+        [     0.5  ,     -0.866,     -0.   ,      0.   ],
+        [    -0.   ,     -0.   ,     -1.   ,      0.   ],
+        [    -0.   ,     -0.   ,  17699.938,      1.   ]],
+
+       [[    -0.459,     -0.265,      0.848,      0.   ],
+        [    -0.5  ,      0.866,      0.   ,      0.   ],
+        [    -0.734,     -0.424,     -0.53 ,      0.   ],
+        [ 12999.387,   7505.199,   9379.538,      1.   ]],
+
+       [[    -0.   ,     -0.53 ,      0.848,      0.   ],
+        [    -1.   ,      0.   ,      0.   ,      0.   ],
+        [    -0.   ,     -0.848,     -0.53 ,      0.   ],
+        [     0.   ,  15010.399,   9379.538,      1.   ]],
+
+       [[     0.459,     -0.265,      0.848,      0.   ],
+        [    -0.5  ,     -0.866,      0.   ,      0.   ],
+        [     0.734,     -0.424,     -0.53 ,      0.   ],
+        [-12999.387,   7505.199,   9379.538,      1.   ]],
+
+       [[     0.459,      0.265,      0.848,      0.   ],
+        [     0.5  ,     -0.866,      0.   ,      0.   ],
+        [     0.734,      0.424,     -0.53 ,      0.   ],
+        [-12999.387,  -7505.199,   9379.538,      1.   ]],
+
+       [[     0.   ,      0.53 ,      0.848,      0.   ],
+        [     1.   ,     -0.   ,      0.   ,      0.   ],
+        [     0.   ,      0.848,     -0.53 ,      0.   ],
+        [    -0.   , -15010.399,   9379.538,      1.   ]],
+
+       [[    -0.459,      0.265,      0.848,      0.   ],
+        [     0.5  ,      0.866,      0.   ,      0.   ],
+        [    -0.734,      0.424,     -0.53 ,      0.   ],
+        [ 12999.387,  -7505.199,   9379.538,      1.   ]]])
+
+
+
+::
+
+    epsilon:PosFile blyth$ vi RadiusTest.cc
+    epsilon:PosFile blyth$ name=RadiusTest ; gcc $name.cc -std=c++11 -lstdc++ -o /tmp/$name && /tmp/$name  
+             sjreceiver_fastener_r : 17683.4380 :     0.0000 : -1350.2620
+                     sjclsanchor_r : 17699.9380 :    16.5000 : -1333.7620
+                      sjreceiver_r : 17699.9380 :    16.5000 : -1333.7620
+                       sjfixture_r : 17699.9750 :    16.5370 : -1333.7250
+                        addition_r : 17820.0000 :   136.5620 : -1213.7000
+                        xjanchor_r : 17820.0000 :   136.5620 : -1213.7000
+                       xjfixture_r : 17836.5000 :   153.0620 : -1197.2000
+                        fastener_r : 17840.0000 :   156.5620 : -1193.7000
+                           upper_r : 17960.0000 :   276.5620 : -1073.7000
+           strutballhead_r_acrylic : 18026.9000 :   343.4620 : -1006.8000
+                   strut_r_balloon : 18420.0000 :   736.5620 :  -613.7000
+                   strut_r_acrylic : 18980.7000 :  1297.2620 :   -53.0000
+                  strut2_r_acrylic : 19033.7000 :  1350.2620 :     0.0000
+    epsilon:PosFile blyth$ 
+
+
+
+::
+
+  3356       <physvol name="lXJfixture_phys0x5962300">
+  3357         <volumeref ref="lXJfixture0x5958a70"/>
+  3358         <position name="lXJfixture_phys0x5962300_pos" unit="mm" x="0" y="0" z="17683.438"/>
+  3359         <rotation name="lXJfixture_phys0x5962300_rot" unit="deg" x="180" y="0" z="-30"/>
+  3360       </physvol>
+  3361       <physvol copynumber="1" name="lXJfixture_phys0x5964740">
+  3362         <volumeref ref="lXJfixture0x5958a70"/>
+  3363         <position name="lXJfixture_phys0x5964740_pos" unit="mm" x="0" y="0" z="17683.438"/>
+  3364         <rotation name="lXJfixture_phys0x5964740_rot" unit="deg" x="-180" y="0" z="30"/>
+  3365       </physvol>
+  3366       <physvol copynumber="2" name="lXJfixture_phys0x5964820">
+  3367         <volumeref ref="lXJfixture0x5958a70"/>
+  3368         <position name="lXJfixture_phys0x5964820_pos" unit="mm" x="12987.2685003242" y="7498.2029647001" z="9370.7944540735"/>
+  3369         <rotation name="lXJfixture_phys0x5964820_rot" unit="deg" x="-141.334348593975" y="47.2591746481021" z="-132.547177129057"/>
+  3370       </physvol>
+  3371       <physvol copynumber="3" name="lXJfixture_phys0x5964900">
+  3372         <volumeref ref="lXJfixture0x5958a70"/>
+  3373         <position name="lXJfixture_phys0x5964900_pos" unit="mm" x="9.18265026007717e-13" y="14996.4059294002" z="9370.7944540735"/>
+  3374         <rotation name="lXJfixture_phys0x5964900_rot" unit="deg" x="-122" y="0" z="-90"/>
+  3375       </physvol>
+  3376       <physvol copynumber="4" name="lXJfixture_phys0x5962480">
+  3377         <volumeref ref="lXJfixture0x5958a70"/>
+  3378         <position name="lXJfixture_phys0x5962480_pos" unit="mm" x="-12987.2685003242" y="7498.2029647001" z="9370.7944540735"/>
+  3379         <rotation name="lXJfixture_phys0x5962480_rot" unit="deg" x="-141.334348593975" y="-47.2591746481021" z="-47.452822870943"/>
+  3380       </physvol>
+  3381       <physvol copynumber="5" name="lXJfixture_phys0x5962560">
+  3382         <volumeref ref="lXJfixture0x5958a70"/>
+  3383         <position name="lXJfixture_phys0x5962560_pos" unit="mm" x="-12987.2685003242" y="-7498.2029647001" z="9370.7944540735"/>
+  3384         <rotation name="lXJfixture_phys0x5962560_rot" unit="deg" x="141.334348593975" y="-47.2591746481021" z="47.4528228709431"/>
+  3385       </physvol>
+  3386       <physvol copynumber="6" name="lXJfixture_phys0x5962640">
+
+
