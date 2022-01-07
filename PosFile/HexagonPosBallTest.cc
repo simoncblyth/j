@@ -1,5 +1,23 @@
-
 /**
+LSExpDetectorConstruction::setupCD_Sticks
+-------------------------------------------
+
+
+   declProp              csv
+
+   StrutPosFile          Strut_Acrylic.csv             370
+   Strut2PosFile         StrutBar2_Acrylic.csv         220
+   FastenerPosFile       Strut_Anchor_Acrylic.csv      590
+   XJanchorPosFile       XJanchor.csv                  56
+   SJCLSanchorPosFile    SJCLSanchor.csv               2
+   SJReceiverPosFile     SJReceiverPos.csv             8
+   SJFixturePosFile      SJFixturePos.csv              36
+
+
+
+
+
+
 j/PosFile/HexagonPosBallTest.py 
 +------------------+-----------------+----------------------+--------------------------------------------------------------------------------------------+
 |             csv  |             npy |                  key |                                   $JUNOTOP/offline/Simulation/DetSimV2/DetSimOptions/data/ |
@@ -18,6 +36,32 @@ j/PosFile/HexagonPosBallTest.py
 +------------------+-----------------+----------------------+--------------------------------------------------------------------------------------------+
 |           (36,)  |      (36, 4, 4) |     SJFixturePosFile |                                                                           SJFixturePos.csv |
 +------------------+-----------------+----------------------+--------------------------------------------------------------------------------------------+
+
+Simulation/DetSimV2/DetSimOptions/python/DetSimOptions/ConfAcrylic.py::
+
+    self._factory.property("CDName").set("DetSim1")
+    self._factory.property("StrutPosFile").set(DetSimOptions.data_load("Strut_Acrylic.csv"))
+    self._factory.property("Strut2PosFile").set(DetSimOptions.data_load("StrutBar2_Acrylic.csv"))
+    self._factory.property("FastenerPosFile").set(DetSimOptions.data_load("Strut_Anchor_Acrylic.csv"))
+    self._factory.property("XJanchorPosFile").set(DetSimOptions.data_load("XJanchor.csv"))
+    self._factory.property("SJCLSanchorPosFile").set(DetSimOptions.data_load("SJCLSanchor.csv"))
+    self._factory.property("SJReceiverPosFile").set(DetSimOptions.data_load("SJReceiverPos.csv"))
+    self._factory.property("SJFixturePosFile").set(DetSimOptions.data_load("SJFixturePos.csv"))
+
+
+   declProp              csv
+
+   StrutPosFile          Strut_Acrylic.csv             370
+   Strut2PosFile         StrutBar2_Acrylic.csv         220
+   FastenerPosFile       Strut_Anchor_Acrylic.csv      590
+   XJanchorPosFile       XJanchor.csv                  56
+   SJCLSanchorPosFile    SJCLSanchor.csv               2
+   SJReceiverPosFile     SJReceiverPos.csv             8
+   SJFixturePosFile      SJFixturePos.csv              36
+
+
+
+
 **/
 
 
@@ -30,23 +74,16 @@ j/PosFile/HexagonPosBallTest.py
 
 using JUNO::Ball::HexagonPosBall ; 
 
-/**
-
- 
-    00:xx 01:yx 02:zx 03:0
-    04:xy 05:yy 06:zy 07:0
-    08:xz 09:yz 10:zz 11:0
-    12:dx 13:dy 14:dz 15:1
-
-**/
 
 void ReadTransform( double* vv, const G4Transform3D& tr )
 {
-    vv[0] = tr.xx()  ;  vv[1] = tr.yx()  ; vv[2] = tr.zx()  ; vv[3] = 0. ; 
-    vv[4] = tr.xy()  ;  vv[5] = tr.yy()  ; vv[6] = tr.zy()  ; vv[7] = 0. ; 
-    vv[8] = tr.xz()  ;  vv[9] = tr.yz()  ; vv[10] = tr.zz() ; vv[11] = 0. ;  
-    vv[12] = tr.dx() ;  vv[13] = tr.dy() ; vv[14] = tr.dz() ; vv[15] = 1. ;  
+    vv[ 0] = tr.xx()  ;  vv[1] = tr.yx()  ; vv[ 2] = tr.zx()  ; vv[ 3] = 0. ; 
+    vv[ 4] = tr.xy()  ;  vv[5] = tr.yy()  ; vv[ 6] = tr.zy()  ; vv[ 7] = 0. ; 
+    vv[ 8] = tr.xz()  ;  vv[9] = tr.yz()  ; vv[10] = tr.zz()  ; vv[11] = 0. ;  
+    vv[12] = tr.dx() ;  vv[13] = tr.dy()  ; vv[14] = tr.dz()  ; vv[15] = 1. ;  
 } 
+
+
 
 
 int main(int argc, char** argv)
@@ -59,6 +96,9 @@ int main(int argc, char** argv)
          return 1 ;  
      }
 
+     // HMM: potentially due to a bug the CSV name cannot be used as the key  
+
+
      std::string name = U::BaseName(path); 
      double radius = Radius::GetCSV(name.c_str()) ; 
      bool lpmt = false ; 
@@ -66,10 +106,9 @@ int main(int argc, char** argv)
      unsigned num_tran = posfile.m_position.size() ;
 
      NP* a = NP::Make<double>( num_tran, 4, 4 ) ; 
-     double* aa = a->values<double>(); 
-     for(unsigned i=0 ; i < num_tran ; i++) ReadTransform( aa + i*4*4, posfile.m_position[i] ); 
-     std::string apath = U::ChangeExt(path, ".csv", ".npy" ); 
+     for(unsigned i=0 ; i < num_tran ; i++) ReadTransform( a->values<double>() + i*4*4, posfile.m_position[i] ); 
 
+     std::string apath = U::ChangeExt(path, ".csv", ".npy" ); 
      std::cout 
          << " posfile.m_position.size " << std::setw(6) << num_tran 
          << " save to " << apath  
