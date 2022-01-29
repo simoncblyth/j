@@ -1,7 +1,7 @@
 #pragma once
 
 /**
-ZCanvas : ascii "painting"
+SCanvas : ascii "painting"
 ==============================
 
 Used for rendering CSG trees by ZSolid::Draw 
@@ -13,7 +13,7 @@ Used for rendering CSG trees by ZSolid::Draw
 #include <cstdlib>
 #include <cstdio>
 
-struct ZCanvas
+struct SCanvas
 {
     bool verbose ; 
     unsigned width ; 
@@ -24,7 +24,7 @@ struct ZCanvas
     unsigned ny ; 
     char* c ; 
 
-    ZCanvas( unsigned width, unsigned height, unsigned xscale=8, unsigned yscale=4 );  
+    SCanvas( unsigned width, unsigned height, unsigned xscale=8, unsigned yscale=4 );  
     void resize(unsigned width, unsigned height);
     void clear(); 
     void drawtest(); 
@@ -40,7 +40,7 @@ struct ZCanvas
 };
 
 
-inline ZCanvas::ZCanvas(unsigned width_, unsigned height_, unsigned xscale_, unsigned yscale_)
+inline SCanvas::SCanvas(unsigned width_, unsigned height_, unsigned xscale_, unsigned yscale_)
     :
     verbose(getenv("VERBOSE")!=nullptr),
     xscale(xscale_), 
@@ -52,27 +52,27 @@ inline ZCanvas::ZCanvas(unsigned width_, unsigned height_, unsigned xscale_, uns
     resize(width_, height_); 
 }
 
-inline void ZCanvas::resize(unsigned width_, unsigned height_)
+inline void SCanvas::resize(unsigned width_, unsigned height_)
 {
     width = width_ ; 
     height = height_ ; 
     nx = width*xscale+1 ;   // +1 for the newline
     ny = height*yscale  ; 
     if(verbose)
-    printf("ZCanvas::resize width %d height %d nx %d ny %d nx*ny %d xscale %d yscale %d \n", width, height, nx, ny, nx*ny, xscale, yscale ); 
+    printf("SCanvas::resize width %d height %d nx %d ny %d nx*ny %d xscale %d yscale %d \n", width, height, nx, ny, nx*ny, xscale, yscale ); 
     delete [] c ; 
     c  = new char[nx*ny+1] ;   // +1 for string termination
     clear(); 
 }
 
-inline void ZCanvas::clear()
+inline void SCanvas::clear()
 {
     for(unsigned y=0 ; y < ny ; y++) for(unsigned x=0 ; x < nx ; x++)  c[y*nx+x] = ' ' ;   
     for(unsigned y=0 ; y < ny ; y++) c[y*nx+nx-1] = '\n' ;   
     c[nx*ny] = '\0' ;  // string terminate 
 }
 
-inline void ZCanvas::drawtest()
+inline void SCanvas::drawtest()
 {
     for(int ix=0 ; ix < int(width) ;  ix++ )
     for(int iy=0 ; iy < int(height) ; iy++ )
@@ -87,7 +87,7 @@ inline void ZCanvas::drawtest()
 
 
 
-inline void ZCanvas::drawf(int ix, int iy, int dx, int dy, float val)
+inline void SCanvas::drawf(int ix, int iy, int dx, int dy, float val)
 {
     char tmp[10] ;
     int rc = sprintf(tmp, "%f", val );
@@ -98,7 +98,7 @@ inline void ZCanvas::drawf(int ix, int iy, int dx, int dy, float val)
     _draw(ix, iy, dx, dy, tmp); 
 }
 
-inline void ZCanvas::draw(int ix, int iy, int dx, int dy, int val)
+inline void SCanvas::draw(int ix, int iy, int dx, int dy, int val)
 {
     char tmp[10] ;
     int rc = sprintf(tmp, "%d", val );
@@ -109,19 +109,19 @@ inline void ZCanvas::draw(int ix, int iy, int dx, int dy, int val)
     _draw(ix, iy, dx, dy, tmp); 
 }
 
-inline void ZCanvas::drawch(int ix, int iy, int dx, int dy, char ch)  
+inline void SCanvas::drawch(int ix, int iy, int dx, int dy, char ch)  
 {
     char tmp[2]; 
     tmp[0] = ch ; 
     tmp[1] = '\0' ; 
     _draw(ix, iy, dx, dy, tmp); 
 }
-inline void ZCanvas::draw(int ix, int iy, int dx, int dy, const char* txt)   
+inline void SCanvas::draw(int ix, int iy, int dx, int dy, const char* txt)   
 {
     _draw(ix, iy, dx, dy, txt); 
 }
 
-inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   // 0,0 is at top left 
+inline void SCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   // 0,0 is at top left 
 {
     if( ix < 0 ) ix += width ; 
     if( iy < 0 ) iy += height ;
@@ -144,14 +144,14 @@ inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   //
     bool expect_xy =  x + l < int(nx) &&  y < int(ny) ; 
     assert( expect_xy ); 
 
-    if(!expect_xy) printf("ZCanvas::_draw expect_xy ERROR out of range x+l %d  nx %d  y %d ny %d \n", x+l, nx, y, ny ); 
+    if(!expect_xy) printf("SCanvas::_draw expect_xy ERROR out of range x+l %d  nx %d  y %d ny %d \n", x+l, nx, y, ny ); 
     if(!expect_xy) exit(EXIT_FAILURE); 
 
 
     int offset = y*nx + x ;  
     bool expect_offset = offset >= 0 && offset + l < int(nx*ny) ; 
 
-    if(!expect_offset) printf("ZCanvas::_draw error out of range offset+l %d  nx*ny %d \n", offset+l, nx*ny ) ; 
+    if(!expect_offset) printf("SCanvas::_draw error out of range offset+l %d  nx*ny %d \n", offset+l, nx*ny ) ; 
     assert(expect_offset);  
     if(!expect_offset) exit(EXIT_FAILURE); 
     
@@ -159,7 +159,7 @@ inline void ZCanvas::_draw(int ix, int iy, int dx, int dy, const char* txt)   //
     memcpy( c + offset , txt, l );
 }
 
-inline void ZCanvas::print(const char* msg) const 
+inline void SCanvas::print(const char* msg) const 
 {
     if(msg) printf("%s\n", msg); 
     if(verbose) 
@@ -168,10 +168,10 @@ inline void ZCanvas::print(const char* msg) const
         printf("\n%s",c);
 }
 
-inline const char* ZCanvas::desc() const 
+inline const char* SCanvas::desc() const 
 {
     char msg[200] ; 
-    snprintf(msg, 200, "ZCanvas::desc width %d height %d xscale %d yscale %d nx %d ny %d", width, height, xscale, yscale, nx, ny ); 
+    snprintf(msg, 200, "SCanvas::desc width %d height %d xscale %d yscale %d nx %d ny %d", width, height, xscale, yscale, nx, ny ); 
     return strdup(msg); 
 }
 

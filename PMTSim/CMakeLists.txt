@@ -36,7 +36,7 @@ list(APPEND HEADERS
      PMTSIM_API_EXPORT.hh
      OldZSolid.hh
 
-     ZCanvas.h
+     SCanvas.hh
      ZSolid.h
 
      MaterialSvc.hh

@@ -14,7 +14,7 @@
 #include "G4Torus.hh"
 #include "G4RotationMatrix.hh"
 
-#include "ZCanvas.h"
+#include "SCanvas.hh"
 #include "ZSolid.h"
 
 
@@ -71,7 +71,7 @@ ZSolid::ZSolid(const G4VSolid* original_ )
     height(0), 
     extra_width(1),    // +1 for annotations to the right
     extra_height(1+1), // +1 as height zero tree is still one node, +1 for annotation  
-    canvas(  new ZCanvas(width+extra_width, height+extra_height, 8, 5) ),
+    canvas(  new SCanvas(width+extra_width, height+extra_height, 8, 5) ),
     names( new std::vector<std::string>),
     nameprefix(nullptr),
     inorder( new std::vector<const G4VSolid*> ),

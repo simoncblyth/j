@@ -21,7 +21,7 @@ ZSolid : CSG tree manipulations
 
 **/
 
-struct ZCanvas ; 
+struct SCanvas ; 
 
 // even though ZSolid.h is a "private" header it still needs to be 
 // used across compilation units (eg for tests) hence assume that 
@@ -62,7 +62,7 @@ struct ZSolid
     unsigned height ; 
     unsigned extra_width ; 
     unsigned extra_height ; 
-    ZCanvas* canvas ; 
+    SCanvas* canvas ; 
     std::vector<std::string>* names ; 
     const char* nameprefix ; 
 
