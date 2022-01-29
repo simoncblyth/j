@@ -5,5 +5,7 @@
 int main(int argc, char** argv)
 {
     Radius::Dump(); 
+    Radius::Save("/tmp/RadiusTest.npy"); 
+
     return 0 ; 
 }

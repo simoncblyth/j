@@ -3,7 +3,7 @@
 msg="=== $BASH_SOURCE :"
 name=RadiusTest 
 
-gcc $name.cc -std=c++11 -lstdc++ -o $OPTICKS_PREFIX/lib/$name
+gcc $name.cc -std=c++11 -lstdc++ -I$HOME/np -o $OPTICKS_PREFIX/lib/$name
 [ $? -ne 0 ] && echo $msg compile error && exit 1
 
 which $name 

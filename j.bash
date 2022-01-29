@@ -12,23 +12,42 @@ Common source for JUNO high level bash functions
 
 
 
+JUNO Collab Meeting 18-29 July 2022
+-------------------------------------
 
-JUNO CORE SW FDR
-------------------
+OUM Docs
+---------
 
-Dear all,
+* https://juno.ihep.ac.cn/~offline/Doc/user-guide/detsim/structures.html
 
-We will have the JUNO core software FDR (final design review) on the coming
-collaboration meeting. I was appointed by the EB to be the review chair.  As
-the FDR, the review comittee shall pay particular attentions on that if the
+* GPU Related Works : https://jupyter.ihep.ac.cn/GUrbwIBnRjeNypgn6BPg-w?view
+
+
+Jan 2022 collaboration meeting event
+--------------------------------------
+
+https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=1001
+
+
+JUNO CORE SW FDR : Mon Jan 17, 2022
+---------------------------------------
+
+FDR: the review comittee shall pay particular attentions on that if the
 current core software design satisfies the various needs of future physics
-analysis. The draft of charge letter is attached.  I consider to ask the AFG
-conveners, ACC members, and Simon Blyth to serve as the committee. Please let
-me know if you are available. Since Zhengyun and Tao will be the speakers, so
-they shall not be as the reviewers, :-) The proposed date is Jan 17 (preferred)
-or Jan 18, better to be before the phys/soft parallel sessions.
+analysis. The draft of charge letter is attached. 
 
-Thanks!  Regards, Liangjian Wen
+* Charge letter doc-7783. 
+* Agenda for the FDR: https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?sessionid=1625
+* Live note https://jupyter.ihep.ac.cn/htaWZQnRSQmHSRKcy80C6g
+
+
+Tue Jan 18 2022 : physics/offline session
+--------------------------------------------
+
+* https://us02web.zoom.us/j/86093951678?pwd=d1lBbHUrcWVhalcveEpZVG1odHJXdz09
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?sessionid=1626
+
+
 
 
 Tao demo-photon-generation
@@ -37,7 +56,6 @@ Tao demo-photon-generation
 * https://github.com/mirguest/demo-photon-generation
 
   git clone git@github.com:mirguest/demo-photon-generation.git 
-
 
 
 Analysis_Foundation_Groups

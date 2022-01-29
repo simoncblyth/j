@@ -28,6 +28,9 @@ jcv LSExpDetectorConstruction
 
 **/
 
+#include <vector>
+#include <string>
+
 struct Radius
 {
     static constexpr double mm = 1.  ; 
@@ -62,7 +65,10 @@ struct Radius
     static const char* NAMES ;      
     static void Dump();
     static double Get(const char* key );
+    static void Get(std::vector<std::pair<double, std::string>>& radius_name ); 
     static const char* KeyForCSVName(const char* csvname );
+    static void Save(const char* path); 
+
 };
 
 const char* Radius::NAMES = R"LITERAL(
@@ -96,28 +102,51 @@ const char* Radius::sjreceiver_r_            = "sjreceiver_r" ;
 const char* Radius::sjreceiver_fastener_r_   = "sjreceiver_fastener_r" ; 
 
 
-#include <vector>
 #include <utility>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include "NP.hh"
 
-
-inline void Radius::Dump()
+inline void Radius::Get(std::vector<std::pair<double, std::string>>& radius_name )
 {
     std::stringstream ss; 
     ss.str(NAMES)  ;
     std::string s;
-    
-    typedef std::pair<double,std::string> DS ; 
-    std::vector<DS> rk ; 
     while (std::getline(ss, s)) 
     {  
         const char* k = s.c_str(); 
         if(strlen(k) == 0 ) continue ; 
         double r = Get(k) ; 
-        rk.push_back(std::make_pair(r,k));  
+        radius_name.push_back(std::make_pair(r,k));  
     } 
+}
+
+inline void Radius::Save(const char* path)
+{
+    typedef std::pair<double,std::string> DS ; 
+    std::vector<DS> rk ; 
+    Get(rk);  
+
+    NP* a = NP::Make<double>( rk.size() ) ; 
+    double* aa = a->values<double>(); 
+
+    std::stringstream ss ; 
+    for(unsigned i=0 ; i < rk.size() ; i++) 
+    {
+        aa[i] = rk[i].first ; 
+        ss << rk[i].second << std::endl ; 
+    }
+    a->meta = ss.str() ; 
+    std::cout << "Radius::Save " << path << std::endl ;   
+    a->save(path); 
+
+}
+inline void Radius::Dump()
+{
+    typedef std::pair<double,std::string> DS ; 
+    std::vector<DS> rk ; 
+    Get(rk);  
 
     std::sort( rk.begin(), rk.end() ); 
 

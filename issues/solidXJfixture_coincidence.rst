@@ -6,6 +6,12 @@ Internal coincidences
 -----------------------
 
 * cxs clearly showing several lines of spurious coincidences within solidXJfixture and solidXJanchor 
+
+* as the spurious intersects are all internal its difficult to see issues with cxr, eg::
+
+   GEOM=AnnulusFourBoxUnion EYE=0,1,1 UP=1,0,0 CAM=1 TMIN=0.5 ./cxr_geochain.sh 
+
+
   
 
 
