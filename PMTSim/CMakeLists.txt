@@ -21,8 +21,7 @@ list(APPEND SOURCES
      NNVT_MCPPMT_PMTSolid.cc
      NNVTMCPPMTManager.cc
 
-     OldZSolid.cc
-     ZSolid.cc
+     X4SolidTree.cc
      MaterialSvc.cc
      DetectorConstruction.cc
 
@@ -34,10 +33,9 @@ list(APPEND SOURCES
 list(APPEND HEADERS
      PMTSim.hh
      PMTSIM_API_EXPORT.hh
-     OldZSolid.hh
 
      SCanvas.hh
-     ZSolid.h
+     X4SolidTree.hh
 
      MaterialSvc.hh
      DetectorConstruction.hh

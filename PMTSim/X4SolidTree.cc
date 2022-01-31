@@ -15,41 +15,41 @@
 #include "G4RotationMatrix.hh"
 
 #include "SCanvas.hh"
-#include "ZSolid.h"
+#include "X4SolidTree.hh"
 
 
-const bool ZSolid::verbose = getenv("ZSolid_verbose") != nullptr ; 
+const bool X4SolidTree::verbose = getenv("X4SolidTree_verbose") != nullptr ; 
 
-G4VSolid* ZSolid::ApplyZCutTree( const G4VSolid* original, double zcut ) // static
+G4VSolid* X4SolidTree::ApplyZCutTree( const G4VSolid* original, double zcut ) // static
 {
     if(verbose)
-    std::cout << "[ ZSolid::ApplyZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
+    std::cout << "[ X4SolidTree::ApplyZCutTree zcut " << zcut << " original.GetName " << original->GetName() << std::endl ; 
 
-    ZSolid* zs = new ZSolid(original); 
+    X4SolidTree* zs = new X4SolidTree(original); 
     zs->apply_cut( zcut );  
-    //zs->dump("ZSolid::ApplyZCutTree"); 
+    //zs->dump("X4SolidTree::ApplyZCutTree"); 
 
     if(verbose)
-    std::cout << "] ZSolid::ApplyZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
+    std::cout << "] X4SolidTree::ApplyZCutTree  zs.root.GetName " << zs->root->GetName()  << std::endl ; 
     return zs->root ; 
 }
 
-void ZSolid::Draw(const G4VSolid* original, const char* msg ) // static
+void X4SolidTree::Draw(const G4VSolid* original, const char* msg ) // static
 {
     if(original == nullptr )
     {
-        std::cout << "ERROR ZSolid::Draw got nullptr original : msg " << msg << std::endl ; 
+        std::cout << "ERROR X4SolidTree::Draw got nullptr original : msg " << msg << std::endl ; 
         return ; 
     }    
 
-    ZSolid* zs = new ZSolid(original); 
+    X4SolidTree* zs = new X4SolidTree(original); 
     zs->draw(msg);
     zs->dumpNames(msg); 
     zs->zdump(msg); 
 
 }
 
-ZSolid::ZSolid(const G4VSolid* original_ ) 
+X4SolidTree::X4SolidTree(const G4VSolid* original_ ) 
     :
     original(original_),
     root(DeepClone(original_)),
@@ -89,73 +89,73 @@ ZSolid::ZSolid(const G4VSolid* original_ )
 
 
 
-void ZSolid::init()
+void X4SolidTree::init()
 {
-    if(verbose) std::cout << "ZSolid::init" << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::init" << std::endl ; 
     instrumentTree(); 
 }
 
-void ZSolid::dump(const char* msg) const 
+void X4SolidTree::dump(const char* msg) const 
 {
     dumpTree(msg); 
     dumpUp(msg); 
 }
 
-void ZSolid::instrumentTree()
+void X4SolidTree::instrumentTree()
 {
-    if(verbose) std::cout << "ZSolid::instrumentTree parent " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree parent " << std::endl ; 
     parent_map->clear(); 
     (*parent_map)[root] = nullptr ;  // root has no parent by definition
     parent_r( root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree depth " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree depth " << std::endl ; 
     depth_map->clear(); 
     depth_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree inorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree inorder " << std::endl ; 
     inorder->clear();
     inorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree rinorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree rinorder " << std::endl ; 
     rinorder->clear();
     rinorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree preorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree preorder " << std::endl ; 
     preorder->clear();
     preorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree rpreorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree rpreorder " << std::endl ; 
     rpreorder->clear();
     rpreorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree postorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree postorder " << std::endl ; 
     postorder->clear(); 
     postorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree rpostorder " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree rpostorder " << std::endl ; 
     rpostorder->clear(); 
     rpostorder_r(root, 0 ); 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree names" << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree names" << std::endl ; 
     names->clear(); 
     collectNames_inorder_r( root, 0 ); 
 
     if(verbose)
     {
-        std::cout << "ZSolid::instrumentTree names.size " << names->size() << std::endl ; 
+        std::cout << "X4SolidTree::instrumentTree names.size " << names->size() << std::endl ; 
         for(unsigned i=0 ; i < names->size() ; i++) std::cout << "[" << (*names)[i] << "]" << std::endl ;  
     }
-    if(verbose) std::cout << "ZSolid::instrumentTree nameprefix" << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree nameprefix" << std::endl ; 
     nameprefix = CommonPrefix(names); 
-    if(verbose) std::cout << "ZSolid::instrumentTree nameprefix [" << nameprefix << "]" << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree nameprefix [" << nameprefix << "]" << std::endl ; 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree [ original_num_node " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree [ original_num_node " << std::endl ; 
     int original_num_node = NumNode_r(original, 0); 
-    if(verbose) std::cout << "ZSolid::instrumentTree ] original_num_node : " << original_num_node  << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree ] original_num_node : " << original_num_node  << std::endl ; 
 
-    if(verbose) std::cout << "ZSolid::instrumentTree [ root_num_node " << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree [ root_num_node " << std::endl ; 
     int root_num_node = NumNode_r(root, 0); 
-    if(verbose) std::cout << "ZSolid::instrumentTree ] root_num_node : " << root_num_node << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::instrumentTree ] root_num_node : " << root_num_node << std::endl ; 
 
     int depth_size = depth_map->size(); 
     int inorder_size = inorder->size(); 
@@ -166,7 +166,7 @@ void ZSolid::instrumentTree()
     int rpostorder_size = rpostorder->size(); 
 
     if(verbose) std::cout 
-        << "ZSolid::instrumentTree"
+        << "X4SolidTree::instrumentTree"
         << " depth_size " << depth_size
         << " inorder_size " << inorder_size
         << " rinorder_size " << rinorder_size
@@ -195,18 +195,18 @@ void ZSolid::instrumentTree()
     width = root_num_node ; 
     height = maxdepth() ; 
 
-    if(verbose) printf("ZSolid::instrumentTree width %d height %d \n", width, height );     
+    if(verbose) printf("X4SolidTree::instrumentTree width %d height %d \n", width, height );     
     canvas->resize( width+extra_width, height+extra_height );    
 }
 
 
-const char* ZSolid::CommonPrefix(const std::vector<std::string>* a) // static
+const char* X4SolidTree::CommonPrefix(const std::vector<std::string>* a) // static
 {
     std::vector<std::string> aa(*a); 
 
     if(verbose)
     {
-        std::cout << "ZSolid::CommonPrefix aa.size (before sort) " << aa.size() << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix aa.size (before sort) " << aa.size() << std::endl ;  
         for(unsigned i=0 ; i < aa.size() ; i++) std::cout << "[" << aa[i] << "]" << std::endl ;  
     }
 
@@ -214,7 +214,7 @@ const char* ZSolid::CommonPrefix(const std::vector<std::string>* a) // static
 
     if(verbose)
     {
-        std::cout << "ZSolid::CommonPrefix aa.size (after sort) " << aa.size() << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix aa.size (after sort) " << aa.size() << std::endl ;  
         for(unsigned i=0 ; i < aa.size() ; i++) std::cout << "[" << aa[i] << "]" << std::endl ;  
     }
 
@@ -234,17 +234,17 @@ const char* ZSolid::CommonPrefix(const std::vector<std::string>* a) // static
 
     if(verbose)
     {
-        std::cout << "ZSolid::CommonPrefix s1 " << s1 << std::endl ;  
-        std::cout << "ZSolid::CommonPrefix s2 " << s2 << std::endl ;  
-        std::cout << "ZSolid::CommonPrefix prefix " << prefix << std::endl ;  
-        std::cout << "ZSolid::CommonPrefix prefix_ " << prefix_ << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix s1 " << s1 << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix s2 " << s2 << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix prefix " << prefix << std::endl ;  
+        std::cout << "X4SolidTree::CommonPrefix prefix_ " << prefix_ << std::endl ;  
     }
 
     return prefix_  ; 
 } 
 
 /**
-ZSolid::parent_r
+X4SolidTree::parent_r
 -----------------------
 
 Note that the parent_map uses the raw constituent G4DisplacedSolid 
@@ -252,7 +252,7 @@ rather than the moved G4VSolid that it points to in order to have
 treewise access to the transform up the lineage. 
 
 **/
-void ZSolid::parent_r( const G4VSolid* node_, int depth)
+void X4SolidTree::parent_r( const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -271,7 +271,7 @@ void ZSolid::parent_r( const G4VSolid* node_, int depth)
     }
 }
 
-void ZSolid::depth_r(const G4VSolid* node_, int depth)
+void X4SolidTree::depth_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -282,7 +282,7 @@ void ZSolid::depth_r(const G4VSolid* node_, int depth)
     (*depth_map)[node_] = depth ;   
 }
 
-void ZSolid::inorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::inorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -295,7 +295,7 @@ void ZSolid::inorder_r(const G4VSolid* node_, int depth)
     inorder_r(Right(node), depth+1) ; 
 } 
 
-void ZSolid::rinorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::rinorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -308,7 +308,7 @@ void ZSolid::rinorder_r(const G4VSolid* node_, int depth)
     rinorder_r(Left(node), depth+1) ; 
 } 
 
-void ZSolid::preorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::preorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -320,7 +320,7 @@ void ZSolid::preorder_r(const G4VSolid* node_, int depth)
     preorder_r(Right(node), depth+1) ; 
 } 
 
-void ZSolid::rpreorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::rpreorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -332,7 +332,7 @@ void ZSolid::rpreorder_r(const G4VSolid* node_, int depth)
     rpreorder_r(Left(node), depth+1) ; 
 } 
 
-void ZSolid::postorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::postorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -344,7 +344,7 @@ void ZSolid::postorder_r(const G4VSolid* node_, int depth)
     postorder->push_back(node_) ; 
 }
 
-void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
+void X4SolidTree::rpostorder_r(const G4VSolid* node_, int depth)
 {
     if( node_ == nullptr ) return ; 
     const G4VSolid* node = Moved(node_ ); 
@@ -356,19 +356,19 @@ void ZSolid::rpostorder_r(const G4VSolid* node_, int depth)
     rpostorder->push_back(node_) ; 
 }
 
-const G4VSolid* ZSolid::parent(  const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
-G4VSolid*       ZSolid::parent_( const G4VSolid* node ) const { const G4VSolid* p = parent(node); return const_cast<G4VSolid*>(p) ; }
+const G4VSolid* X4SolidTree::parent(  const G4VSolid* node ) const { return parent_map->count(node) == 1 ? (*parent_map)[node] : nullptr ; }
+G4VSolid*       X4SolidTree::parent_( const G4VSolid* node ) const { const G4VSolid* p = parent(node); return const_cast<G4VSolid*>(p) ; }
 
-int ZSolid::depth( const G4VSolid* node_) const { return (*depth_map)[node_] ; }
-int ZSolid::in(    const G4VSolid* node_) const { return (*in_map)[node_] ; }
-int ZSolid::rin(   const G4VSolid* node_) const { return (*rin_map)[node_] ; }
-int ZSolid::pre(   const G4VSolid* node_) const { return (*pre_map)[node_] ; }
-int ZSolid::rpre(  const G4VSolid* node_) const { return (*rpre_map)[node_] ; }
-int ZSolid::post(  const G4VSolid* node_) const { return (*post_map)[node_] ; }
-int ZSolid::rpost( const G4VSolid* node_) const { return (*rpost_map)[node_] ; }
+int X4SolidTree::depth( const G4VSolid* node_) const { return (*depth_map)[node_] ; }
+int X4SolidTree::in(    const G4VSolid* node_) const { return (*in_map)[node_] ; }
+int X4SolidTree::rin(   const G4VSolid* node_) const { return (*rin_map)[node_] ; }
+int X4SolidTree::pre(   const G4VSolid* node_) const { return (*pre_map)[node_] ; }
+int X4SolidTree::rpre(  const G4VSolid* node_) const { return (*rpre_map)[node_] ; }
+int X4SolidTree::post(  const G4VSolid* node_) const { return (*post_map)[node_] ; }
+int X4SolidTree::rpost( const G4VSolid* node_) const { return (*rpost_map)[node_] ; }
 
 /**
-ZSolid::index
+X4SolidTree::index
 ---------------
 
 Returns the index of a node within various traversal orders, 
@@ -404,7 +404,7 @@ RPOST reverse postorder
 
 **/
 
-int ZSolid::index( const G4VSolid* n, int mode ) const  
+int X4SolidTree::index( const G4VSolid* n, int mode ) const  
 {
     int idx = -1 ; 
     switch(mode)
@@ -419,14 +419,14 @@ int ZSolid::index( const G4VSolid* n, int mode ) const
     return idx ; 
 }
 
-const char* ZSolid::IN_ = "IN" ; 
-const char* ZSolid::RIN_ = "RIN" ; 
-const char* ZSolid::PRE_ = "PRE" ; 
-const char* ZSolid::RPRE_ = "RPRE" ; 
-const char* ZSolid::POST_ = "POST" ; 
-const char* ZSolid::RPOST_ = "RPOST" ; 
+const char* X4SolidTree::IN_ = "IN" ; 
+const char* X4SolidTree::RIN_ = "RIN" ; 
+const char* X4SolidTree::PRE_ = "PRE" ; 
+const char* X4SolidTree::RPRE_ = "RPRE" ; 
+const char* X4SolidTree::POST_ = "POST" ; 
+const char* X4SolidTree::RPOST_ = "RPOST" ; 
 
-const char* ZSolid::OrderName(int mode) // static
+const char* X4SolidTree::OrderName(int mode) // static
 {
     const char* s = nullptr ; 
     switch(mode)
@@ -442,7 +442,7 @@ const char* ZSolid::OrderName(int mode) // static
 }
 
 /**
-ZSolid::zcls
+X4SolidTree::zcls
 --------------
 
 Returns zcls value associated with a node, when *move* is true any 
@@ -456,37 +456,37 @@ which is most convenient.
 
 **/
 
-int ZSolid::zcls( const G4VSolid* node_ ) const 
+int X4SolidTree::zcls( const G4VSolid* node_ ) const 
 { 
     return zcls_map->count(node_) == 1 ? (*zcls_map)[node_] : UNDEFINED ; 
 }
 
-void ZSolid::set_zcls( const G4VSolid* node_, int zc )
+void X4SolidTree::set_zcls( const G4VSolid* node_, int zc )
 {
     (*zcls_map)[node_] = zc  ;
 } 
 
-char ZSolid::mkr( const G4VSolid* node_) const 
+char X4SolidTree::mkr( const G4VSolid* node_) const 
 { 
     return mkr_map->count(node_) == 1 ? (*mkr_map)[node_] : ' ' ; 
 }
 
-void ZSolid::set_mkr( const G4VSolid* node_, char mk )
+void X4SolidTree::set_mkr( const G4VSolid* node_, char mk )
 {
     (*mkr_map)[node_] = mk  ;
 } 
 
 
-bool ZSolid::is_include( const G4VSolid* node_) const 
+bool X4SolidTree::is_include( const G4VSolid* node_) const 
 {
     return zcls(node_) == INCLUDE ; 
 }
-bool ZSolid::is_exclude( const G4VSolid* node_) const 
+bool X4SolidTree::is_exclude( const G4VSolid* node_) const 
 {
     return zcls(node_) == EXCLUDE ; 
 }
 
-bool ZSolid::is_exclude_include( const G4VSolid* node_) const 
+bool X4SolidTree::is_exclude_include( const G4VSolid* node_) const 
 {
     if(!Boolean(node_)) return false ; 
     const G4VSolid* left_  = Left(node_); 
@@ -494,7 +494,7 @@ bool ZSolid::is_exclude_include( const G4VSolid* node_) const
     return is_exclude(left_) &&  is_include(right_) ; 
 }
 
-bool ZSolid::is_include_exclude( const G4VSolid* node_) const 
+bool X4SolidTree::is_include_exclude( const G4VSolid* node_) const 
 {
     if(!Boolean(node_)) return false ; 
     const G4VSolid* left_  = Left(node_); 
@@ -502,7 +502,7 @@ bool ZSolid::is_include_exclude( const G4VSolid* node_) const
     return is_include(left_) &&  is_exclude(right_) ; 
 }
 
-bool ZSolid::is_crux( const G4VSolid* node_ ) const 
+bool X4SolidTree::is_crux( const G4VSolid* node_ ) const 
 {
     if(!Boolean(node_)) return false ; 
     const G4VSolid* left_  = Left(node_); 
@@ -512,7 +512,7 @@ bool ZSolid::is_crux( const G4VSolid* node_ ) const
     return exclude_include ^ include_exclude ;   // XOR one or other, not both 
 }
 
-int ZSolid::num_prim_r(const G4VSolid* node_) const
+int X4SolidTree::num_prim_r(const G4VSolid* node_) const
 {   
     if(!node_) return 0 ; 
     const G4VSolid* n = Moved(node_); 
@@ -521,18 +521,18 @@ int ZSolid::num_prim_r(const G4VSolid* node_) const
     return ( l && r ) ? num_prim_r(l) + num_prim_r(r) : 1 ;
 }
 
-int ZSolid::num_prim() const 
+int X4SolidTree::num_prim() const 
 {
     return num_prim_r(root); 
 }
 
-int ZSolid::num_node() const
+int X4SolidTree::num_node() const
 {
     return NumNode_r(root, 0) ; 
 }
 
 /**
-ZSolid::NumNode_r
+X4SolidTree::NumNode_r
 ------------------
 
 In order to visit all nodes it is essential to deref potentially 
@@ -541,7 +541,7 @@ Noticed this with the JUNO PMT with tubs subtract torus neck.
 
 **/
 
-int ZSolid::NumNode_r(const G4VSolid* node_, int depth) // static 
+int X4SolidTree::NumNode_r(const G4VSolid* node_, int depth) // static 
 {
     int num = node_ ? 1 : 0 ;
     if( node_ )
@@ -557,7 +557,7 @@ int ZSolid::NumNode_r(const G4VSolid* node_, int depth) // static
         }   
 
         if(verbose) std::cout 
-            << "ZSolid::NumNode_r " 
+            << "X4SolidTree::NumNode_r " 
             << " depth " << std::setw(3) << depth
             << " type " << std::setw(20) << EntityTypeName(node)
             << " name " << std::setw(20) << node->GetName()
@@ -570,11 +570,11 @@ int ZSolid::NumNode_r(const G4VSolid* node_, int depth) // static
     return num ; 
 } 
 
-int ZSolid::num_node_select(int qcls) const
+int X4SolidTree::num_node_select(int qcls) const
 {
     return num_node_select_r(root, qcls) ; 
 }
-int ZSolid::num_node_select_r(const G4VSolid* node_, int qcls) const 
+int X4SolidTree::num_node_select_r(const G4VSolid* node_, int qcls) const 
 {
     int zcl = zcls(node_) ;
     const G4VSolid* node = Moved(node_ ); 
@@ -584,7 +584,7 @@ int ZSolid::num_node_select_r(const G4VSolid* node_, int qcls) const
     if( node )
     {
         if(verbose) std::cout 
-            << "ZSolid::num_node_select_r"
+            << "X4SolidTree::num_node_select_r"
             << " zcl " << zcl
             << " zcn " << ClassifyMaskName(zcl)
             << " Desc " << Desc(node)
@@ -602,7 +602,7 @@ int ZSolid::num_node_select_r(const G4VSolid* node_, int qcls) const
     return num ; 
 } 
 
-const char* ZSolid::desc() const 
+const char* X4SolidTree::desc() const 
 {
     int num_node_     = num_node(); 
     int num_prim_     = num_prim(); 
@@ -626,22 +626,22 @@ const char* ZSolid::desc() const
     return strdup(s.c_str());
 }
 
-void ZSolid::prune(bool act, int pass)
+void X4SolidTree::prune(bool act, int pass)
 {
     int num_include = num_node_select(INCLUDE) ;
 
     if(verbose)
-    printf("ZSolid::prune act:%d pass:%d num_include %d \n", act, pass, num_include);
+    printf("X4SolidTree::prune act:%d pass:%d num_include %d \n", act, pass, num_include);
 
     if( num_include == 0)
     {
         if(verbose)
-        printf("ZSolid::prune act:%d pass:%d find zero remaining nodes : num_include %d, will set root to nullptr \n", act, pass, num_include);
+        printf("X4SolidTree::prune act:%d pass:%d find zero remaining nodes : num_include %d, will set root to nullptr \n", act, pass, num_include);
 
         if(act)
         {
             if(verbose)
-            printf("ZSolid:::prune act:%d pass:%d setting root to nullptr \n", act, pass);
+            printf("X4SolidTree:::prune act:%d pass:%d setting root to nullptr \n", act, pass);
 
             root = nullptr ;
             edited = true ; 
@@ -658,12 +658,12 @@ void ZSolid::prune(bool act, int pass)
 }
 
 /**
-ZSolid::prune_crux
+X4SolidTree::prune_crux
 -------------------
 
 **/
 
-void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
+void X4SolidTree::prune_crux(G4VSolid* x, bool act, int pass)
 {
     assert( x );
     bool ie = is_include_exclude(x) ;  // include left, exclude right
@@ -683,7 +683,7 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
     if(!is_include(p)) // hmm problems with this will not be apparent with the maximally unbalanced trees 
     {
         if(verbose) 
-        printf("ZSolid::prune_crux act:%d pass:%d parent disqualified as not INCLUDE : handle as root of the new tree\n", act, pass) ; 
+        printf("X4SolidTree::prune_crux act:%d pass:%d parent disqualified as not INCLUDE : handle as root of the new tree\n", act, pass) ; 
         p = nullptr ;    // as *p* is just local variable are changing it even when act=false 
     }
 
@@ -702,7 +702,7 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
             if(act)
             {
                 if(verbose)
-                printf("ZSolid:::prune_crux act:%d pass:%d SetLeft changing p.left to survivor \n", act, pass);
+                printf("X4SolidTree:::prune_crux act:%d pass:%d SetLeft changing p.left to survivor \n", act, pass);
                 SetLeft(p, survivor) ; 
                 edited = true ; 
             }
@@ -712,7 +712,7 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
             if(act)
             {
                 if(verbose)
-                printf("ZSolid:prune_crux act:%d pass:%d SetRight changing p.right to survivor  \n", act, pass);
+                printf("X4SolidTree:prune_crux act:%d pass:%d SetRight changing p.right to survivor  \n", act, pass);
                 SetRight(p, survivor) ; 
                 edited = true ; 
             }
@@ -726,7 +726,7 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
             G4String root_name = root->GetName(); 
             G4String survivor_name = survivor->GetName() ; 
             if(verbose)
-            printf("ZSolid::prune_crux act:%d pass:%d changing root %s to survivor %s \n", act, pass, root_name.c_str(), survivor_name.c_str() );
+            printf("X4SolidTree::prune_crux act:%d pass:%d changing root %s to survivor %s \n", act, pass, root_name.c_str(), survivor_name.c_str() );
             root = survivor ;
             edited = true ; 
         }
@@ -738,7 +738,7 @@ void ZSolid::prune_crux(G4VSolid* x, bool act, int pass)
     }
 }
 
-void ZSolid::draw(const char* msg, int pass) 
+void X4SolidTree::draw(const char* msg, int pass) 
 {
     canvas->clear();
 
@@ -779,7 +779,7 @@ void ZSolid::draw(const char* msg, int pass)
     canvas->print(); 
 }
 
-void ZSolid::dumpNames(const char* msg) const 
+void X4SolidTree::dumpNames(const char* msg) const 
 {
     std::cout << msg << std::endl ; 
     for(unsigned i=0 ; i < names->size() ; i++ ) 
@@ -800,14 +800,14 @@ void ZSolid::dumpNames(const char* msg) const
     } 
 }
 
-void ZSolid::zdump(const char* msg) const 
+void X4SolidTree::zdump(const char* msg) const 
 {
     std::cout << msg << std::endl ; 
     int mode = IN ; 
     zdump_r(root, mode); 
 }
 
-void ZSolid::zdump_r( const G4VSolid* node_, int mode ) const 
+void X4SolidTree::zdump_r( const G4VSolid* node_, int mode ) const 
 {
     if( node_ == nullptr ) return ;
 
@@ -825,7 +825,7 @@ void ZSolid::zdump_r( const G4VSolid* node_, int mode ) const
     G4String name = node->GetName(); 
 
 
-    bool can_z = ZSolid::CanZ(node) ;
+    bool can_z = X4SolidTree::CanZ(node) ;
 
     if(can_z)
     {
@@ -854,7 +854,7 @@ void ZSolid::zdump_r( const G4VSolid* node_, int mode ) const
 
 
 /**
-ZSolid::draw_r
+X4SolidTree::draw_r
 ----------------
 
 Recursively paints nodes of the tree onto the canvas
@@ -862,7 +862,7 @@ using the *mode* traversal order to label the nodes
 
 **/
 
-void ZSolid::draw_r( const G4VSolid* node_, int mode )
+void X4SolidTree::draw_r( const G4VSolid* node_, int mode )
 {
     if( node_ == nullptr ) return ;
 
@@ -884,8 +884,8 @@ void ZSolid::draw_r( const G4VSolid* node_, int mode )
     canvas->draw(   ix, iy, 0,2,  idx); 
     canvas->drawch( ix, iy, 0,3,  mk ); 
 
-    bool can_z = ZSolid::CanZ(node) ;
-    if(verbose) std::cout << "ZSolid::draw_r can_z " << can_z << std::endl ;  
+    bool can_z = X4SolidTree::CanZ(node) ;
+    if(verbose) std::cout << "X4SolidTree::draw_r can_z " << can_z << std::endl ;  
 
     if(can_z)
     {
@@ -902,7 +902,7 @@ void ZSolid::draw_r( const G4VSolid* node_, int mode )
 
 
 /**
-ZSolid::EntityTypeName
+X4SolidTree::EntityTypeName
 -----------------------
 
 Unexpectedly G4 returns EntityType by value rather than by reference
@@ -910,30 +910,30 @@ so have to strdup to avoid corruption when the G4String goes out of scope.
 
 **/
 
-const char* ZSolid::EntityTypeName(const G4VSolid* solid)   // static
+const char* X4SolidTree::EntityTypeName(const G4VSolid* solid)   // static
 {
     G4GeometryType type = solid->GetEntityType();  // G4GeometryType typedef for G4String
     return strdup(type.c_str()); 
 }
 
-const char* ZSolid::EntityTag(const G4VSolid* node_, bool move)   // static
+const char* X4SolidTree::EntityTag(const G4VSolid* node_, bool move)   // static
 {
     const G4VSolid*  node = move ? Moved(nullptr, nullptr, node_ ) : node_ ; 
     return EntityTag_(node); 
 }
 
-const char* ZSolid::G4Ellipsoid_          = "Ell" ; 
-const char* ZSolid::G4Tubs_               = "Tub" ;
-const char* ZSolid::G4Polycone_           = "Pol" ;
-const char* ZSolid::G4Torus_              = "Tor" ;
+const char* X4SolidTree::G4Ellipsoid_          = "Ell" ; 
+const char* X4SolidTree::G4Tubs_               = "Tub" ;
+const char* X4SolidTree::G4Polycone_           = "Pol" ;
+const char* X4SolidTree::G4Torus_              = "Tor" ;
 
-const char* ZSolid::G4UnionSolid_         = "Uni" ;
-const char* ZSolid::G4SubtractionSolid_   = "Sub" ;
-const char* ZSolid::G4IntersectionSolid_  = "Int" ;
-const char* ZSolid::G4DisplacedSolid_     = "Dis" ;
+const char* X4SolidTree::G4UnionSolid_         = "Uni" ;
+const char* X4SolidTree::G4SubtractionSolid_   = "Sub" ;
+const char* X4SolidTree::G4IntersectionSolid_  = "Int" ;
+const char* X4SolidTree::G4DisplacedSolid_     = "Dis" ;
 
 
-const char* ZSolid::DirtyEntityTag_( const G4VSolid* node )
+const char* X4SolidTree::DirtyEntityTag_( const G4VSolid* node )
 {
     G4GeometryType type = node->GetEntityType();  // G4GeometryType typedef for G4String
     char* tag = strdup(type.c_str() + 2);  // +2 skip "G4"
@@ -942,7 +942,7 @@ const char* ZSolid::DirtyEntityTag_( const G4VSolid* node )
     return tag ;  
 }
 
-const char* ZSolid::EntityTag_( const G4VSolid* solid )
+const char* X4SolidTree::EntityTag_( const G4VSolid* solid )
 {
     int etype = EntityType(solid); 
     const char* s = nullptr ;
@@ -964,7 +964,7 @@ const char* ZSolid::EntityTag_( const G4VSolid* solid )
  
 
 
-int ZSolid::EntityType(const G4VSolid* solid)   // static 
+int X4SolidTree::EntityType(const G4VSolid* solid)   // static 
 {
     G4GeometryType etype = solid->GetEntityType();  // G4GeometryType typedef for G4String
     const char* name = etype.c_str(); 
@@ -982,7 +982,7 @@ int ZSolid::EntityType(const G4VSolid* solid)   // static
     return type ; 
 }
 
-std::string ZSolid::Desc(const G4VSolid* solid) // static
+std::string X4SolidTree::Desc(const G4VSolid* solid) // static
 {
     std::stringstream ss ; 
 
@@ -996,40 +996,40 @@ std::string ZSolid::Desc(const G4VSolid* solid) // static
     return s ; 
 }
 
-bool ZSolid::Boolean(const G4VSolid* solid) // static
+bool X4SolidTree::Boolean(const G4VSolid* solid) // static
 {
     return dynamic_cast<const G4BooleanSolid*>(solid) != nullptr ; 
 }
-bool ZSolid::Displaced(const G4VSolid* solid) // static
+bool X4SolidTree::Displaced(const G4VSolid* solid) // static
 {
     return dynamic_cast<const G4DisplacedSolid*>(solid) != nullptr ; 
 }
-const G4VSolid* ZSolid::Left(const G4VSolid* solid ) // static
+const G4VSolid* X4SolidTree::Left(const G4VSolid* solid ) // static
 {
     return Boolean(solid) ? solid->GetConstituentSolid(0) : nullptr ; 
 }
-const G4VSolid* ZSolid::Right(const G4VSolid* solid ) // static
+const G4VSolid* X4SolidTree::Right(const G4VSolid* solid ) // static
 {
     return Boolean(solid) ? solid->GetConstituentSolid(1) : nullptr ; 
 }
-G4VSolid* ZSolid::Left_(G4VSolid* solid ) // static
+G4VSolid* X4SolidTree::Left_(G4VSolid* solid ) // static
 {
     return Boolean(solid) ? solid->GetConstituentSolid(0) : nullptr ; 
 }
-G4VSolid* ZSolid::Right_(G4VSolid* solid ) // static
+G4VSolid* X4SolidTree::Right_(G4VSolid* solid ) // static
 {
     return Boolean(solid) ? solid->GetConstituentSolid(1) : nullptr ; 
 }
 
 /**
-ZSolid::Moved
+X4SolidTree::Moved
 ---------------
 
 When node isa G4DisplacedSolid sets the rotation and translation and returns the constituentMovedSolid
 otherwise returns the input node.
 
 **/
-const G4VSolid* ZSolid::Moved( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node )  // static
+const G4VSolid* X4SolidTree::Moved( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node )  // static
 {
     const G4DisplacedSolid* disp = dynamic_cast<const G4DisplacedSolid*>(node) ; 
     if(disp)
@@ -1040,13 +1040,13 @@ const G4VSolid* ZSolid::Moved( G4RotationMatrix* rot, G4ThreeVector* tla, const 
     return disp ? disp->GetConstituentMovedSolid() : node  ;
 }
 
-const G4VSolid* ZSolid::Moved( const G4VSolid* node )  // static
+const G4VSolid* X4SolidTree::Moved( const G4VSolid* node )  // static
 {
     const G4DisplacedSolid* disp = dynamic_cast<const G4DisplacedSolid*>(node) ; 
     return disp ? disp->GetConstituentMovedSolid() : node  ;
 }
 
-G4VSolid* ZSolid::Moved_( G4RotationMatrix* rot, G4ThreeVector* tla, G4VSolid* node )  // static
+G4VSolid* X4SolidTree::Moved_( G4RotationMatrix* rot, G4ThreeVector* tla, G4VSolid* node )  // static
 {
     G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(node) ; 
     if(disp)
@@ -1057,7 +1057,7 @@ G4VSolid* ZSolid::Moved_( G4RotationMatrix* rot, G4ThreeVector* tla, G4VSolid* n
     return disp ? disp->GetConstituentMovedSolid() : node  ;
 }
 
-G4VSolid* ZSolid::Moved_( G4VSolid* node )  // static
+G4VSolid* X4SolidTree::Moved_( G4VSolid* node )  // static
 {
     G4DisplacedSolid* disp = dynamic_cast<G4DisplacedSolid*>(node) ; 
     return disp ? disp->GetConstituentMovedSolid() : node  ;
@@ -1066,34 +1066,34 @@ G4VSolid* ZSolid::Moved_( G4VSolid* node )  // static
 
 
 
-int ZSolid::maxdepth() const  
+int X4SolidTree::maxdepth() const  
 {
     return Maxdepth_r( root, 0 );  
 }
 
-int ZSolid::Maxdepth_r( const G4VSolid* node_, int depth)  // static 
+int X4SolidTree::Maxdepth_r( const G4VSolid* node_, int depth)  // static 
 {
-    return Boolean(node_) ? std::max( Maxdepth_r(ZSolid::Left(node_), depth+1), Maxdepth_r(ZSolid::Right(node_), depth+1)) : depth ; 
+    return Boolean(node_) ? std::max( Maxdepth_r(X4SolidTree::Left(node_), depth+1), Maxdepth_r(X4SolidTree::Right(node_), depth+1)) : depth ; 
 }
 
 /**
-ZSolid::dumpTree
+X4SolidTree::dumpTree
 ------------------
  
 Postorder traversal of CSG tree
 **/
-void ZSolid::dumpTree(const char* msg ) const 
+void X4SolidTree::dumpTree(const char* msg ) const 
 {
     std::cout << msg << " maxdepth(aka height) " << height << std::endl ; 
     dumpTree_r(root, 0 ); 
 }
 
-void ZSolid::dumpTree_r( const G4VSolid* node_, int depth  ) const
+void X4SolidTree::dumpTree_r( const G4VSolid* node_, int depth  ) const
 {
     if(Boolean(node_))
     {
-        dumpTree_r(ZSolid::Left(node_) , depth+1) ; 
-        dumpTree_r(ZSolid::Right(node_), depth+1) ; 
+        dumpTree_r(X4SolidTree::Left(node_) , depth+1) ; 
+        dumpTree_r(X4SolidTree::Right(node_), depth+1) ; 
     }
 
     // postorder visit 
@@ -1126,7 +1126,7 @@ void ZSolid::dumpTree_r( const G4VSolid* node_, int depth  ) const
         << std::fixed << std::setw(7) << std::setprecision(2) << node_tla.z() << ")"
         ;
 
-    if(ZSolid::CanZ(node))
+    if(X4SolidTree::CanZ(node))
     {
         double z0, z1 ; 
         ZRange(z0, z1, node);  
@@ -1143,7 +1143,7 @@ void ZSolid::dumpTree_r( const G4VSolid* node_, int depth  ) const
 }
 
 /**
-ZSolid::classifyTree
+X4SolidTree::classifyTree
 ----------------------
 
 postorder traveral classifies every node doing bitwise-OR
@@ -1151,16 +1151,16 @@ combination of the child classifications.
 
 **/
 
-int ZSolid::classifyTree(double zcut)  
+int X4SolidTree::classifyTree(double zcut)  
 {
     crux->clear(); 
-    if(verbose) std::cout << "ZSolid::classifyTree against zcut " << zcut  << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::classifyTree against zcut " << zcut  << std::endl ; 
     int zc = classifyTree_r(root, 0, zcut); 
     return zc ; 
 }
 
 
-int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
+int X4SolidTree::classifyTree_r(G4VSolid* node_, int depth, double zcut )
 {
     int zcl = 0 ; 
     int sid = in(node_);    // inorder 
@@ -1187,7 +1187,7 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
         }
 
         if(false) std::cout 
-            << "ZSolid::classifyTree_r" 
+            << "X4SolidTree::classifyTree_r" 
             << " sid " << std::setw(2) << sid
             << " pos " << std::setw(2) << pos
             << " left_zcl " << ClassifyMaskName(left_zcl)
@@ -1216,7 +1216,7 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
             zcl = ClassifyZCut( az0, az1, zcut ); 
 
             if(verbose) std::cout 
-                << "ZSolid::classifyTree_r"
+                << "X4SolidTree::classifyTree_r"
                 << " sid " << std::setw(2) << sid
                 << " pos " << std::setw(2) << pos
                 << " zd " << std::fixed << std::setw(7) << std::setprecision(2) << zd
@@ -1234,11 +1234,11 @@ int ZSolid::classifyTree_r(G4VSolid* node_, int depth, double zcut )
     return zcl ; 
 }
 
-int ZSolid::classifyMask(const G4VSolid* top) const   // NOT USED ?
+int X4SolidTree::classifyMask(const G4VSolid* top) const   // NOT USED ?
 {
     return classifyMask_r(top, 0); 
 }
-int ZSolid::classifyMask_r( const G4VSolid* node_, int depth ) const 
+int X4SolidTree::classifyMask_r( const G4VSolid* node_, int depth ) const 
 {
     int mask = 0 ; 
     if(Boolean(node_))
@@ -1254,7 +1254,7 @@ int ZSolid::classifyMask_r( const G4VSolid* node_, int depth ) const
 }
 
 /**
-ZSolid::ClassifyZCut
+X4SolidTree::ClassifyZCut
 ------------------------
 
 Inclusion status of solid with regard to a particular zcut::
@@ -1277,7 +1277,7 @@ Inclusion status of solid with regard to a particular zcut::
 
 **/
 
-int ZSolid::ClassifyZCut( double az0, double az1, double zcut ) // static
+int X4SolidTree::ClassifyZCut( double az0, double az1, double zcut ) // static
 {
     assert( az1 > az0 ); 
     int cls = UNDEFINED ; 
@@ -1287,12 +1287,12 @@ int ZSolid::ClassifyZCut( double az0, double az1, double zcut ) // static
     return cls ; 
 }
 
-const char* ZSolid::UNDEFINED_ = "UNDEFINED" ; 
-const char* ZSolid::INCLUDE_   = "INCLUDE" ; 
-const char* ZSolid::STRADDLE_  = "STRADDLE" ; 
-const char* ZSolid::EXCLUDE_   = "EXCLUDE" ; 
+const char* X4SolidTree::UNDEFINED_ = "UNDEFINED" ; 
+const char* X4SolidTree::INCLUDE_   = "INCLUDE" ; 
+const char* X4SolidTree::STRADDLE_  = "STRADDLE" ; 
+const char* X4SolidTree::EXCLUDE_   = "EXCLUDE" ; 
 
-const char* ZSolid::ClassifyName( int zcl ) // static 
+const char* X4SolidTree::ClassifyName( int zcl ) // static 
 {
     const char* s = nullptr ; 
     switch( zcl )
@@ -1305,7 +1305,7 @@ const char* ZSolid::ClassifyName( int zcl ) // static
     return s ; 
 }
 
-const char* ZSolid::ClassifyMaskName( int zcl ) // static
+const char* X4SolidTree::ClassifyMaskName( int zcl ) // static
 {
     std::stringstream ss ; 
 
@@ -1318,7 +1318,7 @@ const char* ZSolid::ClassifyMaskName( int zcl ) // static
 }
 
 /**
-ZSolid::apply_cut
+X4SolidTree::apply_cut
 ------------------
 
 See opticks/sysrap/tests/TreePruneTest.cc and opticks/sysrap/tests/tree.sh
@@ -1333,13 +1333,13 @@ Steps:
 
 **/
 
-void ZSolid::apply_cut(double zcut)
+void X4SolidTree::apply_cut(double zcut)
 {
     if(verbose)
-    printf("ZSolid::apply_cut %7.2f \n", zcut );
+    printf("X4SolidTree::apply_cut %7.2f \n", zcut );
 
     if(verbose)
-    Draw(root, "ZSolid::apply_cut root before cut"); 
+    Draw(root, "X4SolidTree::apply_cut root before cut"); 
 
     unsigned pass = 0 ;
     unsigned maxpass = 10 ;
@@ -1355,7 +1355,7 @@ void ZSolid::apply_cut(double zcut)
         prune(false, pass);
 
         if(verbose)
-        draw("ZSolid::apply_cut before prune", pass );
+        draw("X4SolidTree::apply_cut before prune", pass );
 
         prune(true, pass);
 
@@ -1369,7 +1369,7 @@ void ZSolid::apply_cut(double zcut)
     }
 }
 
-void ZSolid::collectNames_inorder_r( const G4VSolid* n_, int depth )
+void X4SolidTree::collectNames_inorder_r( const G4VSolid* n_, int depth )
 {
     if(n_ == nullptr) return ; 
     const G4VSolid* n = Moved(nullptr, nullptr, n_) ;  
@@ -1381,12 +1381,12 @@ void ZSolid::collectNames_inorder_r( const G4VSolid* n_, int depth )
     collectNames_inorder_r(Right(n), depth+1); 
 }
 
-void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
+void X4SolidTree::cutTree_r( const G4VSolid* node_, int depth, double zcut )
 {
     if(Boolean(node_))
     {
-        cutTree_r( ZSolid::Left(node_) , depth+1, zcut ) ; 
-        cutTree_r( ZSolid::Right(node_), depth+1, zcut ) ; 
+        cutTree_r( X4SolidTree::Left(node_) , depth+1, zcut ) ; 
+        cutTree_r( X4SolidTree::Right(node_), depth+1, zcut ) ; 
     }
     else
     {
@@ -1398,7 +1398,7 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
         if( zcl == STRADDLE )
         {
             if(verbose) std::cout 
-                << "ZSolid::cutTree_r"
+                << "X4SolidTree::cutTree_r"
                 << " depth " << std::setw(2) << depth
                 << " zdelta " << std::fixed << std::setw(10) << std::setprecision(4) << zdelta 
                 << " zcut " << std::fixed << std::setw(10) << std::setprecision(4) << zcut
@@ -1411,12 +1411,12 @@ void ZSolid::cutTree_r( const G4VSolid* node_, int depth, double zcut )
     }
 }
 
-void ZSolid::collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  )
+void X4SolidTree::collectNodes( std::vector<const G4VSolid*>& nodes, const G4VSolid* top, int query_zcls  )
 {
     collectNodes_r(nodes, top, 0, query_zcls);  
 }
 
-void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  )
+void X4SolidTree::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid* node_, int query_zcls, int depth  )
 {
     if(Boolean(node_))
     {
@@ -1433,10 +1433,10 @@ void ZSolid::collectNodes_r( std::vector<const G4VSolid*>& nodes, const G4VSolid
     }
 } 
 
-void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
+void X4SolidTree::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 {
     G4VSolid* node = Moved_(node_ ); 
-    if(verbose) std::cout << "ZSolid::ApplyZCut " << EntityTypeName(node) << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::ApplyZCut " << EntityTypeName(node) << std::endl ; 
     switch(EntityType(node))
     {
         case _G4Ellipsoid: ApplyZCut_G4Ellipsoid( node  , local_zcut);  break ; 
@@ -1445,7 +1445,7 @@ void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
         default: 
         { 
             std::cout 
-                << "ZSolid::ApplyZCut FATAL : not implemented for entityType " 
+                << "X4SolidTree::ApplyZCut FATAL : not implemented for entityType " 
                 << EntityTypeName(node) 
                 << std::endl 
                 ; 
@@ -1455,7 +1455,7 @@ void ZSolid::ApplyZCut( G4VSolid* node_, double local_zcut ) // static
 }
 
 /**
-ZSolid::ApplyZCut_G4Ellipsoid
+X4SolidTree::ApplyZCut_G4Ellipsoid
 --------------------------------
      
 ::
@@ -1476,7 +1476,7 @@ ZSolid::ApplyZCut_G4Ellipsoid
 **/
 
 
-void ZSolid::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
+void X4SolidTree::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
 {  
     G4Ellipsoid* ellipsoid =  dynamic_cast<G4Ellipsoid*>(node) ;  
     assert(ellipsoid); 
@@ -1496,7 +1496,7 @@ void ZSolid::ApplyZCut_G4Ellipsoid( G4VSolid* node, double local_zcut)
 }
 
 /**
-ZSolid::ApplyZCut_G4Polycone_NotWorking
+X4SolidTree::ApplyZCut_G4Polycone_NotWorking
 -----------------------------------------
 
 Currently limited to only 2 Z-planes, 
@@ -1511,7 +1511,7 @@ change does not get thru to Geant4
 
 **/
 
-void ZSolid::ApplyZCut_G4Polycone_NotWorking( G4VSolid* node, double local_zcut)
+void X4SolidTree::ApplyZCut_G4Polycone_NotWorking( G4VSolid* node, double local_zcut)
 {  
     G4Polycone* polycone = dynamic_cast<G4Polycone*>(node) ;  
     assert(polycone); 
@@ -1535,7 +1535,7 @@ void ZSolid::ApplyZCut_G4Polycone_NotWorking( G4VSolid* node, double local_zcut)
 
 
 /**
-ZSolid::ApplyZCut_G4Polycone
+X4SolidTree::ApplyZCut_G4Polycone
 ------------------------------
 
 Use placement new to replace the polycone using the ctor again 
@@ -1555,7 +1555,7 @@ order to cut without changing shape other than the cut.::
 
 **/
 
-void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
+void X4SolidTree::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
 {  
     G4Polycone* polycone = dynamic_cast<G4Polycone*>(node) ;  
     assert(polycone); 
@@ -1615,7 +1615,7 @@ void ZSolid::ApplyZCut_G4Polycone( G4VSolid* node, double local_zcut)
 
 
 /**
-ZSolid::ApplyZCut_G4Tubs
+X4SolidTree::ApplyZCut_G4Tubs
 --------------------------
 
 * SEE THE TAIL OF THIS FILE FOR A DERIVATION OF new_hz AND zoffset 
@@ -1640,7 +1640,7 @@ FOR THIS TO WORK : SO ALWAYS USE THE G4BooleanSolid ctor with rot and tla
   
 **/
 
-void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
+void X4SolidTree::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
 { 
     if( PROMOTE_TUBS_TO_POLYCONE )
         assert(0 && "All G4Tubs should have been promoted to G4Polycone at clone stage, how did you get here ?") ; 
@@ -1668,7 +1668,7 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
     node_tla.setZ( node_tla.z() + zoffset ); 
 
     std::cout 
-        << "ZSolid::ApplyZCut_G4Tubs"
+        << "X4SolidTree::ApplyZCut_G4Tubs"
         << " hz " << hz
         << " local_zcut " << local_zcut
         << " new_hz " << new_hz
@@ -1691,7 +1691,7 @@ void ZSolid::ApplyZCut_G4Tubs( G4VSolid* node_ , double local_zcut )
 
 
 /**
-ZSolid::dumpUp
+X4SolidTree::dumpUp
 ----------------
 
 Ordinary postorder recursive traverse in order to get to all nodes. 
@@ -1700,19 +1700,19 @@ complex trees.
 
 **/
 
-void ZSolid::dumpUp(const char* msg) const 
+void X4SolidTree::dumpUp(const char* msg) const 
 {
     assert( parent_map ); 
     std::cout << msg << std::endl ; 
     dumpUp_r(root, 0); 
 }
 
-void ZSolid::dumpUp_r(const G4VSolid* node, int depth) const  
+void X4SolidTree::dumpUp_r(const G4VSolid* node, int depth) const  
 {
     if(Boolean(node))
     {
-        dumpUp_r(ZSolid::Left(  node ), depth+1 ); 
-        dumpUp_r(ZSolid::Right( node ), depth+1 ); 
+        dumpUp_r(X4SolidTree::Left(  node ), depth+1 ); 
+        dumpUp_r(X4SolidTree::Right( node ), depth+1 ); 
     }
     else
     {
@@ -1722,7 +1722,7 @@ void ZSolid::dumpUp_r(const G4VSolid* node, int depth) const
 
         const G4VSolid* nd = Moved(nullptr, nullptr, node); 
         std::cout 
-            << "ZSolid::dumpUp_r" 
+            << "X4SolidTree::dumpUp_r" 
             << " depth " << depth 
             << " type " << std::setw(20) << EntityTypeName(nd) 
             << " name " << std::setw(20) << nd->GetName() 
@@ -1737,7 +1737,7 @@ void ZSolid::dumpUp_r(const G4VSolid* node, int depth) const
 }
 
 /**
-ZSolid::getTreeTransform
+X4SolidTree::getTreeTransform
 -------------------------------
 
 Would normally use parent links to determine all transforms relevant to a node, 
@@ -1747,7 +1747,7 @@ up the tree from any node up to the root.
 
 **/
 
-void ZSolid::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const 
+void X4SolidTree::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const G4VSolid* node ) const 
 {
     bool expect = rot == nullptr ; 
     assert(expect && "non null rotation not implemented"); 
@@ -1766,7 +1766,7 @@ void ZSolid::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const 
         *tla += t ;    // add up the translations 
 
         if(false) std::cout
-            << "ZSolid::getTreeTransform" 
+            << "X4SolidTree::getTreeTransform" 
             << " count " << std::setw(2) << count 
             << " dn.name " << std::setw(20) << dn->GetName()
             << " dn.type " << std::setw(20) << dn->GetEntityType()
@@ -1789,7 +1789,7 @@ void ZSolid::getTreeTransform( G4RotationMatrix* rot, G4ThreeVector* tla, const 
 }
 
 /**
-ZSolid::DeepClone
+X4SolidTree::DeepClone
 -------------------
 
 Clones a CSG tree of solids, assuming that the tree is
@@ -1802,7 +1802,7 @@ which appear to make properly independent copies
 
 **/
 
-G4VSolid* ZSolid::DeepClone( const  G4VSolid* solid )  // static 
+G4VSolid* X4SolidTree::DeepClone( const  G4VSolid* solid )  // static 
 {
     G4RotationMatrix* rot = nullptr ; 
     G4ThreeVector* tla = nullptr ; 
@@ -1811,7 +1811,7 @@ G4VSolid* ZSolid::DeepClone( const  G4VSolid* solid )  // static
 }
 
 /**
-ZSolid::DeepClone_r
+X4SolidTree::DeepClone_r
 --------------------
 
 G4DisplacedSolid is a wrapper for the right hand side boolean constituent 
@@ -1825,14 +1825,14 @@ transform from the child is needed when cloning the parent.
 
 **/
 
-G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatrix* rot, G4ThreeVector* tla )  // static 
+G4VSolid* X4SolidTree::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatrix* rot, G4ThreeVector* tla )  // static 
 {
     const G4VSolid* node = Moved( rot, tla, node_ ); // if node_ isa G4DisplacedSolid node will not be and rot/tla will be set 
 
     if(verbose) 
     {
         std::cout 
-            << "ZSolid::DeepClone_r(preorder visit)"
+            << "X4SolidTree::DeepClone_r(preorder visit)"
             << " type " << std::setw(20) << EntityTypeName(node)
             << " name " << std::setw(20) << node->GetName()
             << " depth " << std::setw(2) << depth
@@ -1854,14 +1854,14 @@ G4VSolid* ZSolid::DeepClone_r( const G4VSolid* node_, int depth, G4RotationMatri
     G4VSolid* clone = Boolean(node) ? BooleanClone(node, depth, rot, tla ) : PrimitiveClone(node) ; 
 
     bool expect = clone != nullptr ; 
-    if(!expect) std::cout << "ZSolid::DeepClone_r GOT null clone " << std::endl ; 
+    if(!expect) std::cout << "X4SolidTree::DeepClone_r GOT null clone " << std::endl ; 
     assert(expect);
     if(!expect) exit(EXIT_FAILURE); 
     return clone ; 
 }    
 
 /**
-ZSolid::BooleanClone
+X4SolidTree::BooleanClone
 -----------------------
 
 The left and right G4VSolid outputs from DeepClone_r will not be G4DisplacedSolid because
@@ -1871,9 +1871,9 @@ is an "internal" object that the G4BooleanSolid ctor creates from the rot and tl
 
 **/
 
-G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
+G4VSolid* X4SolidTree::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMatrix* rot, G4ThreeVector* tla ) // static
 {
-    if(verbose) std::cout << "ZSolid::BooleanClone" << std::endl ; 
+    if(verbose) std::cout << "X4SolidTree::BooleanClone" << std::endl ; 
 
     // HMM : rot and tla arguments were not used and they are not always null ... 
     // that suggests there is a lack of generality here for booleans of booleans etc... 
@@ -1885,16 +1885,16 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
     double epsilon = 1e-6 ; 
 
     bool expect_rot = rot == nullptr || rot->isIdentity() ;   
-    if(!expect_rot) std::cout << "ZSolid::BooleanClone expect_rot ERROR " << std::endl ; 
+    if(!expect_rot) std::cout << "X4SolidTree::BooleanClone expect_rot ERROR " << std::endl ; 
     assert( expect_rot ); 
     if(!expect_rot) exit(EXIT_FAILURE); 
 
     bool expect_tla = tla == nullptr || tla->isNear(zero, epsilon) ; 
     if(!expect_tla) 
     {
-        std::cout << "ZSolid::BooleanClone expect_tla ERROR (not expecting more than one level of translation) " << std::endl ; 
+        std::cout << "X4SolidTree::BooleanClone expect_tla ERROR (not expecting more than one level of translation) " << std::endl ; 
         if(tla) std::cout 
-            << "ZSolid::BooleanClone" 
+            << "X4SolidTree::BooleanClone" 
             << " tla( " 
             << tla->x() 
             << " " 
@@ -1920,27 +1920,27 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
 
     bool expect_left = dynamic_cast<const G4DisplacedSolid*>(left) == nullptr ;  
     assert( expect_left );
-    if(!expect_left) std::cout << "ZSolid::BooleanClone expect_left ERROR " << std::endl ;
+    if(!expect_left) std::cout << "X4SolidTree::BooleanClone expect_left ERROR " << std::endl ;
     if(!expect_left) exit(EXIT_FAILURE); 
 
     bool expect_right = dynamic_cast<const G4DisplacedSolid*>(right) == nullptr ; 
     assert( expect_right );
-    if(!expect_right) std::cout << "ZSolid::BooleanClone expect_right ERROR " << std::endl ;
+    if(!expect_right) std::cout << "X4SolidTree::BooleanClone expect_right ERROR " << std::endl ;
     if(!expect_right) exit(EXIT_FAILURE); 
 
     bool expect_lrot = lrot.isIdentity() ;  // lrot is expected to always be identity, as G4 never has left transforms
     assert( expect_lrot );
-    if(!expect_lrot) std::cout << "ZSolid::BooleanClone expect_lrot ERROR " << std::endl ;
+    if(!expect_lrot) std::cout << "X4SolidTree::BooleanClone expect_lrot ERROR " << std::endl ;
     if(!expect_lrot) exit(EXIT_FAILURE); 
 
     bool expect_ltra = ltra.x() == 0. && ltra.y() == 0. && ltra.z() == 0. ; // not expecting translations on the left
     assert( expect_ltra );
-    if(!expect_ltra) std::cout << "ZSolid::BooleanClone expect_ltra ERROR " << std::endl ;
+    if(!expect_ltra) std::cout << "X4SolidTree::BooleanClone expect_ltra ERROR " << std::endl ;
     if(!expect_ltra) exit(EXIT_FAILURE); 
 
     bool expect_rrot = rrot.isIdentity() ; // rrot identity is a simplifying assumption
     assert( expect_rrot );
-    if(!expect_rrot) std::cout << "ZSolid::BooleanClone expect_rrot ERROR " << std::endl ;
+    if(!expect_rrot) std::cout << "X4SolidTree::BooleanClone expect_rrot ERROR " << std::endl ;
     if(!expect_rrot) exit(EXIT_FAILURE); 
 
 
@@ -1955,11 +1955,11 @@ G4VSolid* ZSolid::BooleanClone( const  G4VSolid* solid, int depth, G4RotationMat
     return clone ; 
 }
 
-void ZSolid::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ) // static
+void X4SolidTree::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, const G4VSolid* right ) // static
 {
     bool expect ; 
 
-    if(!clone) std::cout << "ZSolid::CheckBooleanClone FATAL " << std::endl ; 
+    if(!clone) std::cout << "X4SolidTree::CheckBooleanClone FATAL " << std::endl ; 
 
     expect = clone != nullptr ; 
     assert(expect);
@@ -1989,7 +1989,7 @@ void ZSolid::CheckBooleanClone( const G4VSolid* clone, const G4VSolid* left, con
     if(!expect) exit(EXIT_FAILURE); 
 }
 
-void ZSolid::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid ) // static
+void X4SolidTree::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid ) // static
 {
     int type = EntityType(solid); 
     switch(type)
@@ -2003,7 +2003,7 @@ void ZSolid::GetBooleanBytes(char** bytes, int& num_bytes, const G4VSolid* solid
     memcpy( *bytes, (char*) solid, num_bytes ); 
 }
 
-int ZSolid::CompareBytes( char* bytes0, char* bytes1, int num_bytes ) // static
+int X4SolidTree::CompareBytes( char* bytes0, char* bytes1, int num_bytes ) // static
 {
     int mismatch = 0 ; 
     for(int i=0 ; i < num_bytes ; i++ ) 
@@ -2019,7 +2019,7 @@ int ZSolid::CompareBytes( char* bytes0, char* bytes1, int num_bytes ) // static
 }
 
 /**
-ZSolid::PlacementNewDupe
+X4SolidTree::PlacementNewDupe
 --------------------------
 
 Technical test that should do nothing and in the process
@@ -2072,7 +2072,7 @@ The reason is that the transform ctor allocates, so will normally get a differen
 
 **/
 
-void ZSolid::PlacementNewDupe( G4VSolid* solid) // static
+void X4SolidTree::PlacementNewDupe( G4VSolid* solid) // static
 {
     G4BooleanSolid* src = dynamic_cast<G4BooleanSolid*>(solid) ; 
     assert( src ); 
@@ -2102,7 +2102,7 @@ void ZSolid::PlacementNewDupe( G4VSolid* solid) // static
 } 
 
 /**
-ZSolid::SetRight
+X4SolidTree::SetRight
 -----------------
 
 The right hand side CSG constituent of *node* is changed to the provided *right* G4VSolid, 
@@ -2120,7 +2120,7 @@ to G4BooleanSolid ctors.
 
 **/
 
-void ZSolid::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla )
+void X4SolidTree::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot, G4ThreeVector* rtla )
 {
     assert( dynamic_cast<G4DisplacedSolid*>(node) == nullptr ) ; 
     assert( dynamic_cast<G4DisplacedSolid*>(right) == nullptr ) ; 
@@ -2151,7 +2151,7 @@ void ZSolid::SetRight(  G4VSolid* node, G4VSolid* right, G4RotationMatrix* rrot,
 }
 
 /**
-ZSolid::SetLeft
+X4SolidTree::SetLeft
 -------------------
 
 The lefthand side constituent of *node* is changed to *left* 
@@ -2160,7 +2160,7 @@ This is implemented using placement new trickery to replace the
 
 **/
 
-void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static 
+void X4SolidTree::SetLeft(  G4VSolid* node, G4VSolid* left)  // static 
 {
     assert( dynamic_cast<G4DisplacedSolid*>(node) == nullptr ) ; 
     assert( dynamic_cast<G4DisplacedSolid*>(left) == nullptr ) ; 
@@ -2191,7 +2191,7 @@ void ZSolid::SetLeft(  G4VSolid* node, G4VSolid* left)  // static
 }
 
 
-G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static 
+G4VSolid* X4SolidTree::PrimitiveClone( const  G4VSolid* solid )  // static 
 {
     G4VSolid* clone = nullptr ; 
     int type = EntityType(solid); 
@@ -2222,7 +2222,7 @@ G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static
     else
     {
         std::cout 
-            << "ZSolid::PrimitiveClone FATAL unimplemented prim type " << EntityTypeName(solid) 
+            << "X4SolidTree::PrimitiveClone FATAL unimplemented prim type " << EntityTypeName(solid) 
             << std::endl 
             ;
         assert(0); 
@@ -2230,10 +2230,10 @@ G4VSolid* ZSolid::PrimitiveClone( const  G4VSolid* solid )  // static
     return clone ; 
 }
 
-//const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = true ; 
-const bool ZSolid::PROMOTE_TUBS_TO_POLYCONE = false ; 
+//const bool X4SolidTree::PROMOTE_TUBS_TO_POLYCONE = true ; 
+const bool X4SolidTree::PROMOTE_TUBS_TO_POLYCONE = false ; 
 
-G4VSolid* ZSolid::PromoteTubsToPolycone( const G4VSolid* solid ) // static
+G4VSolid* X4SolidTree::PromoteTubsToPolycone( const G4VSolid* solid ) // static
 {
     const G4Tubs* tubs = dynamic_cast<const G4Tubs*>(solid) ; 
     assert(tubs); 
@@ -2266,7 +2266,7 @@ G4VSolid* ZSolid::PromoteTubsToPolycone( const G4VSolid* solid ) // static
 
 
 
-double ZSolid::getZ( const G4VSolid* node ) const
+double X4SolidTree::getZ( const G4VSolid* node ) const
 {
     G4RotationMatrix* tree_rot = nullptr ; 
     G4ThreeVector    tree_tla(0., 0., 0. ); 
@@ -2276,7 +2276,7 @@ double ZSolid::getZ( const G4VSolid* node ) const
     return zdelta ; 
 }
 
-bool ZSolid::CanZ( const G4VSolid* solid ) // static
+bool X4SolidTree::CanZ( const G4VSolid* solid ) // static
 {
     int type = EntityType(solid) ; 
     bool can = type == _G4Ellipsoid || type == _G4Tubs || type == _G4Polycone || type == _G4Torus ; 
@@ -2285,7 +2285,7 @@ bool ZSolid::CanZ( const G4VSolid* solid ) // static
     if( can == false && verbose )
     {
         std::cout 
-            << "ZSolid::CanZ ERROR "
+            << "X4SolidTree::CanZ ERROR "
             << " false for solid.EntityTypeName " << EntityTypeName(solid)
             << " solid.name " << name.c_str() 
             << std::endl ; 
@@ -2294,7 +2294,7 @@ bool ZSolid::CanZ( const G4VSolid* solid ) // static
 
     return can ; 
 }
-void ZSolid::ZRange( double& z0, double& z1, const G4VSolid* solid) // static  
+void X4SolidTree::ZRange( double& z0, double& z1, const G4VSolid* solid) // static  
 {
     switch(EntityType(solid))
     {
@@ -2302,22 +2302,22 @@ void ZSolid::ZRange( double& z0, double& z1, const G4VSolid* solid) // static
         case _G4Tubs:      GetZRange( dynamic_cast<const G4Tubs*>(solid)    ,  z0, z1 );  break ; 
         case _G4Polycone:  GetZRange( dynamic_cast<const G4Polycone*>(solid),  z0, z1 );  break ; 
         case _G4Torus:     GetZRange( dynamic_cast<const G4Torus*>(solid),     z0, z1 );  break ; 
-        case _G4Other:    { std::cout << "ZSolid::GetZ FATAL : not implemented for entityType " << EntityTypeName(solid) << std::endl ; assert(0) ; } ; break ;  
+        case _G4Other:    { std::cout << "X4SolidTree::GetZ FATAL : not implemented for entityType " << EntityTypeName(solid) << std::endl ; assert(0) ; } ; break ;  
     }
 }
 
-void ZSolid::GetZRange( const G4Ellipsoid* const ellipsoid, double& _z0, double& _z1 )  // static 
+void X4SolidTree::GetZRange( const G4Ellipsoid* const ellipsoid, double& _z0, double& _z1 )  // static 
 {
     _z1 = ellipsoid->GetZTopCut() ; 
     _z0 = ellipsoid->GetZBottomCut() ;  
 }
-void ZSolid::GetZRange( const G4Tubs* const tubs, double& _z0, double& _z1 )  // static 
+void X4SolidTree::GetZRange( const G4Tubs* const tubs, double& _z0, double& _z1 )  // static 
 {
     _z1 = tubs->GetZHalfLength() ;  
     _z0 = -_z1 ;  
     assert( _z1 > 0. ); 
 }
-void ZSolid::GetZRange( const G4Polycone* const polycone, double& _z0, double& _z1 )  // static 
+void X4SolidTree::GetZRange( const G4Polycone* const polycone, double& _z0, double& _z1 )  // static 
 {
     G4PolyconeHistorical* pars = polycone->GetOriginalParameters(); 
     unsigned num_z = pars->Num_z_planes ; 
@@ -2333,7 +2333,7 @@ void ZSolid::GetZRange( const G4Polycone* const polycone, double& _z0, double& _
     _z0 = pars->Z_values[0] ;  
 }
 
-void ZSolid::GetZRange( const G4Torus* const torus, double& _z0, double& _z1 )  // static 
+void X4SolidTree::GetZRange( const G4Torus* const torus, double& _z0, double& _z1 )  // static 
 {
     G4double rmax = torus->GetRmax() ; 
     _z1 = rmax ; 
@@ -2343,7 +2343,7 @@ void ZSolid::GetZRange( const G4Torus* const torus, double& _z0, double& _z1 )  
 
 
 /**
-ZSolid::ApplyZCut_G4Tubs
+X4SolidTree::ApplyZCut_G4Tubs
 ----------------------------
 
 An alternative to using this is to promote all G4Tubs to G4Polycone at the clone stage,  

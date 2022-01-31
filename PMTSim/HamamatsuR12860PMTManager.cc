@@ -24,7 +24,7 @@
 
 #include "HamamatsuR12860PMTManager.hh"
 #include "Hamamatsu_R12860_PMTSolid.hh"
-#include "ZSolid.h"
+#include "X4SolidTree.hh"
 
 using namespace CLHEP;
 
@@ -356,7 +356,7 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     if (m_useRealSurface && m_profligate_tail_cut == false ) 
     {
         std::cout 
-            << "[ ZSolid::ApplyZCutTree"
+            << "[ X4SolidTree::ApplyZCutTree"
             << " zcut " << std::setw(10) << std::fixed << std::setprecision(3) << zcut 
             << " pmt_delta " << std::setw(10) << std::fixed << std::setprecision(3) << pmt_delta 
             << " body_delta " << std::setw(10) << std::fixed << std::setprecision(3) << body_delta 
@@ -366,11 +366,11 @@ void HamamatsuR12860PMTManager::helper_make_solid()
             << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
             << std::endl ; 
 
-        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
-        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
-        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
+        pmt_solid    = X4SolidTree::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
+        body_solid   = X4SolidTree::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
+        inner2_solid = X4SolidTree::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
 
-        std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
+        std::cout << "] X4SolidTree::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
     else if (m_useRealSurface && m_profligate_tail_cut == true )
     {
@@ -389,7 +389,7 @@ finding the intersects with them.  Although this approach is easy to do
 it is incredibly inefficient as it means that you get to pay for the price 
 of the convenience of solid definition easily many millions of times per event. 
 
-This contrasts with the above approach that uses ZSolid::ApplyZCutTree that 
+This contrasts with the above approach that uses X4SolidTree::ApplyZCutTree that 
 actually cuts the CSG tree, leading to a significant simplification.
 
 **/

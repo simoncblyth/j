@@ -8,7 +8,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4Tubs.hh"
 #include "G4Orb.hh"
-#include "ZSolid.h"
+#include "X4SolidTree.hh"
 
 G4VSolid* make_tubs( const char* name, double rmax, double hz )
 {
@@ -39,23 +39,23 @@ void test_PlacementNewDupe()
 
     char* bytes0 = nullptr ; 
     int num_bytes0 ; 
-    ZSolid::GetBooleanBytes( &bytes0, num_bytes0, lr );   
+    X4SolidTree::GetBooleanBytes( &bytes0, num_bytes0, lr );   
     printf("num_bytes0 %d \n", num_bytes0); 
 
     G4cout << *lr ; 
 
-    ZSolid::PlacementNewDupe( lr ); 
+    X4SolidTree::PlacementNewDupe( lr ); 
 
-    printf("after ZSolid::PlacementNewDupe \n"); 
+    printf("after X4SolidTree::PlacementNewDupe \n"); 
 
     G4cout << *lr ; 
 
     char* bytes1 = nullptr ; 
     int num_bytes1 ; 
-    ZSolid::GetBooleanBytes( &bytes1, num_bytes1, lr );   
+    X4SolidTree::GetBooleanBytes( &bytes1, num_bytes1, lr );   
     printf("num_bytes1 %d \n", num_bytes1); 
     assert( num_bytes0 == num_bytes1 ); 
-    int mismatch = ZSolid::CompareBytes( bytes0, bytes1, num_bytes0 ); 
+    int mismatch = X4SolidTree::CompareBytes( bytes0, bytes1, num_bytes0 ); 
     printf("mismatch %d (expect a few different bytes from new G4DisplacedSolid inside ctor \n", mismatch); 
 }
 
@@ -64,7 +64,7 @@ void test_SetRight()
     G4VSolid* lr = make_union(); 
     G4VSolid* o  = make_orb("o", 100.); 
     //G4cout << *lr ; 
-    ZSolid::SetRight( lr, o ); 
+    X4SolidTree::SetRight( lr, o ); 
     G4cout << *lr ; 
 }
 
@@ -74,7 +74,7 @@ void test_SetRight_translate()
     G4VSolid* o  = make_orb("o", 100.); 
     //G4cout << *lr ; 
     G4ThreeVector rtla(0.,0.,-1000.); 
-    ZSolid::SetRight( lr, o, nullptr, &rtla ); 
+    X4SolidTree::SetRight( lr, o, nullptr, &rtla ); 
     G4cout << *lr ; 
 }
 
@@ -82,7 +82,7 @@ void test_SetLeft()
 {
     G4VSolid* lr = make_union(); 
     G4VSolid* o  = make_orb("o", 100.); 
-    ZSolid::SetLeft( lr, o ); 
+    X4SolidTree::SetLeft( lr, o ); 
     G4cout << *lr ; 
 }
 

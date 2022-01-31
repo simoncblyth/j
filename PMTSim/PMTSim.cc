@@ -31,7 +31,7 @@
 
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
-#include "ZSolid.h"
+#include "X4SolidTree.hh"
 
 
 #include <iostream>
@@ -174,7 +174,7 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 
     if( solid != nullptr && s_zcut != nullptr )
     {
-        G4VSolid* zcut_solid = ZSolid::ApplyZCutTree(solid, zcut);  
+        G4VSolid* zcut_solid = X4SolidTree::ApplyZCutTree(solid, zcut);  
         solid = zcut_solid ; 
     }
 

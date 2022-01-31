@@ -4,7 +4,7 @@ project(${name} VERSION 0.1.0)
 
 set(TEST_SOURCES
     PMTSimTest.cc
-    ZSolidTest.cc
+    X4SolidTreeTest.cc
     G4UnionSolidOffsetsTest.cc
     HamamatsuR12860PMTManagerTest.cc
     MaterialSvcTest.cc
