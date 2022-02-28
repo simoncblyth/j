@@ -484,11 +484,22 @@ HamamatsuMaskManager::makeMaskPhysical() {
 HamamatsuMaskManager::makeMaskTailLogical
 -------------------------------------------
 
+MaskTail coincidence spurious intersects happen 
+across the opening of the bowl. 
+
+   +-+ . . . . . . . .+-+ 
+    \ \              / /
+     \ \            / /
+      \ \__________/ / 
+       \____________/
+
+
+
 To avoid coincident faces in the subtraction 
-need to expand the Tail_inner_I_Tube/Tail_inner_PartI_Tube G4Tubs 
-upwards without changing the position its of lower edge.
+need to expand "Tail_inner_I_Tube" (hmskTailInnerITube) G4Tubs 
+upwards without changing the position of its of lower edge.
 Hence increase the half-size in Z from *hz* to *new_hz* and 
-simultaneously shift upwards by the same amount (*zoff*) 
+simultaneously shifting upwards by the same amount (*zoff*) 
 to keep the lower edge at same z position::
 
 
@@ -522,6 +533,27 @@ Add the line equations::
 Subtract the line equations::
      
         2 hz + uncoincide = 2*new_hz    ==>  new_hz = hz + uncoincide/2 
+
+
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+|  GEOM                       |  Member                      | Note                                                                     |
++=============================+==============================+==========================================================================+
+| hmskTailOuterIEllipsoid     |  Tail_outer_I_Ellipsoid      |  -Z : less than hemi-ellipsoid                                           |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailOuterITube          |  Tail_outer_I_Tube           |  thin disc cylinder                                                      |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailOuterI              |  Tail_outer_I                |  less than hemi-ellipsoid union with the disc making lip on top          |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailOuterIITube         |  Tail_outer_II_Tube          |  substantial squat cylinder, forms the base                              |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailOuter               |  Tail_outer                  |  solid bowl with lip and squat cylinder base                             |       
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailInner               |  Tail_inner                  |  looks the same as the Outer                                             |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTailInnerITube          |  Tail_inner_I_Tube           |  thin disc cylinder, upper edge was coincident                           |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskSolidMaskTail           |  solidMaskTail               |  hollowed out bowl, correct way up                                       | 
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
 
 **/
 
@@ -582,7 +614,7 @@ HamamatsuMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
-    G4double uncoincide_inner_z = 1.0*mm ;   
+    G4double uncoincide_inner_z = 1.0*mm ;  // increase ZHalfLength by uncoincide_inner_z/2
 
     Tail_inner_I_Tube = new G4Tubs(
             objName()+"Tail_inner_PartI_Tube",
@@ -598,6 +630,9 @@ HamamatsuMaskManager::makeMaskTailLogical() {
          Tail_inner_I_Tube ,
          0,
          G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2 )) ;
+
+    // shift upwards by uncoincide_inner_z/2 to keep same lower edge position
+    // despite the increased ZHalfLemgth 
 
 
 #ifdef PMTSIM_STANDALONE
@@ -720,28 +755,28 @@ G4VSolid* HamamatsuMaskManager::getSolid(const char* name)
     G4VSolid* solid = nullptr ; 
 
     // [ makeMaskLogical
-    if(strcmp(name, "Top_out") == 0 )    solid = Top_out ; 
-    if(strcmp(name, "Bottom_out") == 0 ) solid = Bottom_out ; 
-    if(strcmp(name, "Mask_out") == 0 )   solid = Mask_out ; 
-    if(strcmp(name, "Top_in") == 0 )     solid = Top_in ; 
-    if(strcmp(name, "Bottom_in") == 0 )  solid = Bottom_in ; 
-    if(strcmp(name, "Mask_in") == 0 )    solid = Mask_in ; 
-    if(strcmp(name, "solidMask") == 0 )  solid = solidMask ; 
+    if(strcmp(name, "TopOut") == 0 )     solid = Top_out ; 
+    if(strcmp(name, "BottomOut") == 0 )  solid = Bottom_out ; 
+    if(strcmp(name, "MaskOut") == 0 )    solid = Mask_out ; 
+    if(strcmp(name, "TopIn") == 0 )      solid = Top_in ; 
+    if(strcmp(name, "BottomIn") == 0 )   solid = Bottom_in ; 
+    if(strcmp(name, "MaskIn") == 0 )     solid = Mask_in ; 
+    if(strcmp(name, "SolidMask") == 0 )  solid = solidMask ; 
     // ] makeMaskLogical
 
 
     // [ makeMaskTailLogical
-    if(strcmp(name,"Tail_outer_I_Ellipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid  ;
-    if(strcmp(name,"Tail_outer_I_Tube") == 0 )      solid = Tail_outer_I_Tube ; 
-    if(strcmp(name,"Tail_outer_I") == 0 )           solid = Tail_outer_I ; 
-    if(strcmp(name,"Tail_outer_II_Tube") == 0 )     solid = Tail_outer_II_Tube ;  
-    if(strcmp(name,"Tail_outer") == 0 )             solid = Tail_outer ; 
-    if(strcmp(name,"Tail_inner_I_Ellipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ; 
-    if(strcmp(name,"Tail_inner_I_Tube") == 0 )      solid = Tail_inner_I_Tube ; 
-    if(strcmp(name,"Tail_inner_I") == 0 )           solid = Tail_inner_I ; 
-    if(strcmp(name,"Tail_inner_II_Tube") == 0 )     solid = Tail_inner_II_Tube ; 
-    if(strcmp(name,"Tail_inner") == 0 )             solid = Tail_inner ; 
-    if(strcmp(name,"solidMaskTail") == 0 )          solid = solidMaskTail ; 
+    if(strcmp(name,"TailOuterIEllipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid  ;
+    if(strcmp(name,"TailOuterITube") == 0 )      solid = Tail_outer_I_Tube ; 
+    if(strcmp(name,"TailOuterI") == 0 )          solid = Tail_outer_I ; 
+    if(strcmp(name,"TailOuterIITube") == 0 )     solid = Tail_outer_II_Tube ;  
+    if(strcmp(name,"TailOuter") == 0 )           solid = Tail_outer ; 
+    if(strcmp(name,"TailInnerIEllipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ; 
+    if(strcmp(name,"TailInnerITube") == 0 )      solid = Tail_inner_I_Tube ; 
+    if(strcmp(name,"TailInnerI") == 0 )          solid = Tail_inner_I ; 
+    if(strcmp(name,"TailInnerIITube") == 0 )     solid = Tail_inner_II_Tube ; 
+    if(strcmp(name,"TailInner") == 0 )           solid = Tail_inner ; 
+    if(strcmp(name,"SolidMaskTail") == 0 )       solid = solidMaskTail ; 
     // ] makeMaskTailLogical
  
     return solid  ; 
@@ -751,15 +786,15 @@ G4VSolid* HamamatsuMaskManager::getSolid(const char* name)
 G4LogicalVolume* HamamatsuMaskManager::getLV(const char* name)
 {
     G4LogicalVolume* lv = nullptr ; 
-    if(strcmp(name, "logicMask") == 0 )     lv = logicMask ;      // makeMaskLogical
-    if(strcmp(name, "logicMaskTail") == 0 ) lv = logicMaskTail ;  // makeMaskTailLogical
+    if(strcmp(name, "LogicMask") == 0 )     lv = logicMask ;      // makeMaskLogical
+    if(strcmp(name, "LogicMaskTail") == 0 ) lv = logicMaskTail ;  // makeMaskTailLogical
     return lv ; 
 }
 G4PVPlacement*   HamamatsuMaskManager::getPV(const char* name)
 {
     G4PVPlacement* pv = nullptr ;  
-    if( strcmp(name, "physiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
-    if( strcmp(name, "physiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
+    if( strcmp(name, "PhysiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
+    if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
     return pv ; 
 }
 

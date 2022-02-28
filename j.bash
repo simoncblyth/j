@@ -6,6 +6,10 @@ j-usage(){ cat << EOU
 Common source for JUNO high level bash functions
 ====================================================
 
+
+* https://juno.ihep.ac.cn/trac/browser/offline/trunk/Simulation/DetSimV2/PMTSim/src
+
+
 ::
 
    cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
@@ -1466,7 +1470,7 @@ EON
 }
 
 jcopyback(){
-   : emit copy commands to copy classes from PWD j back into offline SVN 
+   : emit copy commands to copy classes from PWD eg from jps back into offline SVN 
 
    local src=$PWD
    local dst=$JUNOTOP/offline
@@ -1503,7 +1507,8 @@ jdiff(){
    : Compares files from current directory specified by stem arguments
    : to files with same stems found under JUNOTOP/offline
 
-   local dst=$PWD
+   local iwd=$PWD
+   local dst=$iwd
    local src=$JUNOTOP/offline
    cd $src
    local rels=$(jcl $*)
@@ -1525,6 +1530,8 @@ jdiff(){
            echo $cmd
        fi  
    done 
+   cd $iwd   
+   # tis impolite to leave function without returning to initial dir 
 }
 
 

@@ -148,6 +148,8 @@ value at the end of the name it is extracted.
 
 G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
+    std::cout << " j/PMTSim/PMTSim.cc PMTSim::GetSolid(\"" << name << "\")" << std::endl ; 
+
     PMTSim::SetEnvironmentSwitches(name);  
 
     G4VSolid* solid = GetSolid_(name); 
@@ -199,7 +201,7 @@ G4VSolid* PMTSim::GetSolid_(const char* name) // static
     {
         solid = GetDebugSolid(name) ; 
     }
-    else if(Contains(name, "maker"))  // maker comes first as will have manager prefix too
+    else if(Contains(name, "Maker"))  // maker comes first as will have manager prefix too
     {
         solid = GetMakerSolid(name) ; 
     }
@@ -240,10 +242,10 @@ bool PMTSim::Contains(const char* name, const char* sub)  // static
 bool PMTSim::IsDebugSolid(const char* name) // static
 {
     std::vector<std::string> prefixes = { 
-        "polycone", 
-        "two_tubs_union", 
-        "three_tubs_union",
-        "ten_tubs_union"
+        "Polycone", 
+        "TwoTubsUnion", 
+        "ThreeTubsUnion",
+        "TenTubsUnion"
         } ; 
 
     bool found = false ; 
@@ -261,59 +263,43 @@ bool PMTSim::IsDebugSolid(const char* name) // static
 }
 
 
-G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
+G4VSolid* PMTSim::Polycone(const char* name)  // static
 {
     G4VSolid* solid = nullptr ; 
-    if(StartsWithPrefix(name, "polycone"))
-    {
-        G4double phiStart = 0.00*deg ; 
-        G4double phiTotal = 360.00*deg ;
-        G4int numZPlanes = 2 ; 
-        G4double zPlane[] = { -200.0           , 0.0  } ;   
-        G4double rInner[] = {  0.0             , 0.0   } ;   
-        G4double rOuter[] = {  275.0           , 275.0 } ;    
+    G4double phiStart = 0.00*deg ; 
+    G4double phiTotal = 360.00*deg ;
+    G4int numZPlanes = 2 ; 
+    G4double zPlane[] = { -200.0           , 0.0  } ;   
+    G4double rInner[] = {  0.0             , 0.0   } ;   
+    G4double rOuter[] = {  275.0           , 275.0 } ;    
 
-        solid = new G4Polycone(
-                               name,
-                               phiStart,
-                               phiTotal,
-                               numZPlanes,
-                               zPlane,
-                               rInner,
-                               rOuter
-                               );  
+    solid = new G4Polycone(
+                           name,
+                           phiStart,
+                           phiTotal,
+                           numZPlanes,
+                           zPlane,
+                           rInner,
+                           rOuter
+                           );  
+    return solid ; 
+}
 
-    } 
-    else if(StartsWithPrefix(name, "two_tubs_union"))
-    {
-         double dz_head = 80.  ; 
-         double dz_body = 100. ; 
-         G4VSolid* head = new G4Tubs("head", 0., 250., dz_head, 0.00*deg, 360.00*deg );
-         G4VSolid* body = new G4Tubs("body", 0., 150., dz_body, 0.00*deg, 360.00*deg );
-         G4VSolid* head_body = new G4UnionSolid( "head_body", head, body, 0, G4ThreeVector(0,0,-(dz_head+dz_body+10.))); 
-         solid = head_body ; 
-    }
-    else if(StartsWithPrefix(name, "three_tubs_union"))
-    {
-
-         double dz_head = 250.  ;  double r_head = 250. ; 
-         double dz_body = 150. ;   double r_body = 150. ; 
-         double dz_tail = 100.  ;  double r_tail = 100. ;    
-         double sep = 20. ; 
-
-         double first_shift = dz_head+dz_body+sep ; 
-         double second_shift = dz_head+2.*dz_body+dz_tail+2.*sep ; 
-
-         G4VSolid* head = new G4Tubs("head", 0., r_head, dz_head, 0.00*deg, 360.00*deg );
-         G4VSolid* body = new G4Tubs("body", 0., r_body, dz_body, 0.00*deg, 360.00*deg );
-         G4VSolid* head_body = new G4UnionSolid( "head_body", head, body, 0, G4ThreeVector(0,0,-first_shift)); 
-
-         G4VSolid* tail = new G4Tubs("tail", 0., r_tail, dz_tail, 0.00*deg, 360.00*deg );
-         G4VSolid* head_body_tail = new G4UnionSolid( "head_body_tail", head_body, tail,  0, G4ThreeVector(0,0,-second_shift)); 
-
-         solid = head_body_tail ; 
+G4VSolid* PMTSim::TwoTubsUnion(const char* name)
+{
+    G4VSolid* solid = nullptr ; 
+    double dz_head = 80.  ; 
+    double dz_body = 100. ; 
+    G4VSolid* head = new G4Tubs("head", 0., 250., dz_head, 0.00*deg, 360.00*deg );
+    G4VSolid* body = new G4Tubs("body", 0., 150., dz_body, 0.00*deg, 360.00*deg );
+    G4VSolid* head_body = new G4UnionSolid( "head_body", head, body, 0, G4ThreeVector(0,0,-(dz_head+dz_body+10.))); 
+    solid = head_body ; 
+    return solid ; 
+}
 
 /**
+PMTSim::ThreeTubsUnion
+--------------------------
                                                
 
                            |---------------|      dz_head + dz_body + sep                  (1st shift)
@@ -338,62 +324,91 @@ G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
 
 **/
 
-    } 
-    else if(StartsWithPrefix(name, "ten_tubs_union"))
+G4VSolid* PMTSim::ThreeTubsUnion(const char* name)
+{
+    double dz_head = 250.  ;  double r_head = 250. ; 
+    double dz_body = 150. ;   double r_body = 150. ; 
+    double dz_tail = 100.  ;  double r_tail = 100. ;    
+    double sep = 20. ; 
+
+    double first_shift = dz_head+dz_body+sep ; 
+    double second_shift = dz_head+2.*dz_body+dz_tail+2.*sep ; 
+
+    G4VSolid* head = new G4Tubs("head", 0., r_head, dz_head, 0.00*deg, 360.00*deg );
+    G4VSolid* body = new G4Tubs("body", 0., r_body, dz_body, 0.00*deg, 360.00*deg );
+    G4VSolid* head_body = new G4UnionSolid( "head_body", head, body, 0, G4ThreeVector(0,0,-first_shift)); 
+
+    G4VSolid* tail = new G4Tubs("tail", 0., r_tail, dz_tail, 0.00*deg, 360.00*deg );
+    G4VSolid* head_body_tail = new G4UnionSolid( "head_body_tail", head_body, tail,  0, G4ThreeVector(0,0,-second_shift)); 
+
+    return head_body_tail ; 
+}
+
+G4VSolid* PMTSim::TenTubsUnion(const char* name)
+{
+    unsigned num = 10 ; 
+    double* dz = new double[num] ; 
+    double* ri = new double[num] ; 
+    double* ro = new double[num] ; 
+    double* zs = new double[num] ; 
+    G4VSolid** so = new G4VSolid*[num] ; 
+
+    for(unsigned i=0 ; i < num ; i++ ) 
     {
-        unsigned num = 10 ; 
-        double* dz = new double[num] ; 
-        double* ri = new double[num] ; 
-        double* ro = new double[num] ; 
-        double* zs = new double[num] ; 
-        G4VSolid** so = new G4VSolid*[num] ; 
-
-        for(unsigned i=0 ; i < num ; i++ ) 
-        {
-            dz[i] = 25. ;  
-            ri[i] = 0. ; 
-            ro[i] = 25. ; 
-            so[i] = nullptr ; 
-        }
-        double sep = 20. ; 
-        double startPhi = 0.00*deg ; 
-        double totPhi = 360.00*deg ; 
- 
-
-        G4VSolid* combination = nullptr ;  
-
-        so[0] = new G4Tubs( itoa_("so_%d",0), ri[0], ro[0], dz[0],  startPhi, totPhi ); 
-        zs[0] = 0. ; 
-
-        combination = so[0] ; 
-
-        std::cout 
-            << "PMTSim::GetDebugSolid"  
-            << " name " << name
-            << " num " << num
-            << std::endl 
-            ;
-
-        for(unsigned i=1 ; i < num ; i++) 
-        {
-            so[i] = new G4Tubs( itoa_("so_%d",i), ri[i], ro[i], dz[i], startPhi, totPhi ); 
-
-            double delta = 0. ; 
-            for(unsigned j=0 ; j <= i ; j++) delta += dz[j]*(( j == 0 || j == i ) ? 1. : 2. ) ;
-
-            zs[i] = -(delta+i*sep) ; 
-                 
-            combination = new G4UnionSolid( ijtoa_("so_%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,zs[i] )) ;     
-        }
-
-        std::cout << "zz=" ; 
-        for(unsigned i=0 ; i < num ; i++ ) std::cout << int(zs[i]) << "," ;  
-        std::cout << std::endl  ; 
-
-        solid = combination ; 
+        dz[i] = 25. ;  
+        ri[i] = 0. ; 
+        ro[i] = 25. ; 
+        so[i] = nullptr ; 
     }
+    double sep = 20. ; 
+    double startPhi = 0.00*deg ; 
+    double totPhi = 360.00*deg ; 
+
+
+    G4VSolid* combination = nullptr ;  
+
+    so[0] = new G4Tubs( itoa_("so_%d",0), ri[0], ro[0], dz[0],  startPhi, totPhi ); 
+    zs[0] = 0. ; 
+
+    combination = so[0] ; 
+
+    std::cout 
+        << "PMTSim::GetDebugSolid"  
+        << " name " << name
+        << " num " << num
+        << std::endl 
+        ;
+
+    for(unsigned i=1 ; i < num ; i++) 
+    {
+        so[i] = new G4Tubs( itoa_("so_%d",i), ri[i], ro[i], dz[i], startPhi, totPhi ); 
+
+        double delta = 0. ; 
+        for(unsigned j=0 ; j <= i ; j++) delta += dz[j]*(( j == 0 || j == i ) ? 1. : 2. ) ;
+
+        zs[i] = -(delta+i*sep) ; 
+             
+        combination = new G4UnionSolid( ijtoa_("so_%d_%d", i-1,i), combination, so[i], 0, G4ThreeVector(0.,0.,zs[i] )) ;     
+    }
+
+    std::cout << "zz=" ; 
+    for(unsigned i=0 ; i < num ; i++ ) std::cout << int(zs[i]) << "," ;  
+    std::cout << std::endl  ; 
+
+    return combination ; 
+}
+ 
+G4VSolid* PMTSim::GetDebugSolid(const char* name)  // static
+{
+    G4VSolid* solid = nullptr ; 
+    if(     StartsWithPrefix(name, "Polycone"))       solid = Polycone(name) ; 
+    else if(StartsWithPrefix(name, "TwoTubsUnion"))   solid = TwoTubsUnion(name) ; 
+    else if(StartsWithPrefix(name, "ThreeTubsUnion")) solid = ThreeTubsUnion(name) ; 
+    else if(StartsWithPrefix(name, "TenTubsUnion"))   solid = TenTubsUnion(name) ; 
     return solid ; 
 }
+
+
 
 char* PMTSim::itoa_( const char* fmt, int i ) // static
 {
@@ -704,20 +719,23 @@ IGeomManager* PMTSim::getManager(const char* name)
     return mgr ; 
 }
 
+
+const int PMTSim::NAME_OFFSET = 0 ; 
+
 G4LogicalVolume* PMTSim::getLV(const char* name)  
 {
     IGeomManager* mgr = getManager(name) ; 
-    return mgr->getLV(name + strlen(PREFIX) + 1) ;  // +1 for _  
+    return mgr->getLV(name + strlen(PREFIX) + NAME_OFFSET) ;  // +1 for _  
 }
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
     IGeomManager* mgr = getManager(name) ; 
-    return mgr->getPV(name + strlen(PREFIX) + 1) ; 
+    return mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
     IGeomManager* mgr = getManager(name) ; 
-    return mgr->getSolid(name + strlen(PREFIX) + 1) ;  
+    return mgr->getSolid(name + strlen(PREFIX) + NAME_OFFSET) ;  
 }
 
 

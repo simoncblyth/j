@@ -572,30 +572,30 @@ G4VSolid* NNVTMaskManager::getSolid(const char* name)
     G4VSolid* solid = nullptr ;
    
     // makeMaskLogical
-    if(strcmp(name, "Top_out") == 0 )     solid = Top_out ;
-    if(strcmp(name, "Bottom_out") == 0 )  solid = Bottom_out ;
-    if(strcmp(name, "Mask_out") == 0 )    solid = Mask_out ;
+    if(strcmp(name, "TopOut") == 0 )     solid = Top_out ;
+    if(strcmp(name, "BottomOut") == 0 )  solid = Bottom_out ;
+    if(strcmp(name, "MaskOut") == 0 )    solid = Mask_out ;
 
-    if(strcmp(name, "Top_in") == 0 )      solid = Top_in ;
-    if(strcmp(name, "Bottom_in") == 0 )   solid = Bottom_in ;
-    if(strcmp(name, "Mask_in") == 0 )     solid = Mask_in ;
+    if(strcmp(name, "TopIn") == 0 )      solid = Top_in ;
+    if(strcmp(name, "BottomIn") == 0 )   solid = Bottom_in ;
+    if(strcmp(name, "MaskIn") == 0 )     solid = Mask_in ;
 
-    if(strcmp(name, "solidMask") == 0 )   solid = solidMask ;
+    if(strcmp(name, "SolidMask") == 0 )   solid = solidMask ;
 
     // makeMaskTailLogical
-    if(strcmp(name,"Tail_outer_I_Ellipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid ;
-    if(strcmp(name,"Tail_outer_I_Tube") == 0 )      solid = Tail_outer_I_Tube ;
-    if(strcmp(name,"Tail_outer_I") == 0 )           solid = Tail_outer_I ;
-    if(strcmp(name,"Tail_outer_II_Tube") == 0 )     solid = Tail_outer_II_Tube ;
-    if(strcmp(name,"Tail_outer") == 0 )             solid = Tail_outer ;
+    if(strcmp(name,"TailOuterIEllipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid ;
+    if(strcmp(name,"TailOuterITube") == 0 )      solid = Tail_outer_I_Tube ;
+    if(strcmp(name,"TailOuterI") == 0 )          solid = Tail_outer_I ;
+    if(strcmp(name,"TailOuterIITube") == 0 )     solid = Tail_outer_II_Tube ;
+    if(strcmp(name,"TailOuter") == 0 )           solid = Tail_outer ;
 
-    if(strcmp(name,"Tail_inner_I_Ellipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ;
-    if(strcmp(name,"Tail_inner_I_Tube") == 0 )      solid = Tail_inner_I_Tube ;
-    if(strcmp(name,"Tail_inner_I") == 0 )           solid = Tail_inner_I ;
-    if(strcmp(name,"Tail_inner_II_Tube") == 0 )     solid = Tail_inner_II_Tube ;
-    if(strcmp(name,"Tail_inner") == 0 )             solid = Tail_inner ;
+    if(strcmp(name,"TailInnerIEllipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ;
+    if(strcmp(name,"TailInnerITube") == 0 )      solid = Tail_inner_I_Tube ;
+    if(strcmp(name,"TailInnerI") == 0 )          solid = Tail_inner_I ;
+    if(strcmp(name,"TailInnerIITube") == 0 )     solid = Tail_inner_II_Tube ;
+    if(strcmp(name,"TailInner") == 0 )           solid = Tail_inner ;
 
-    if(strcmp(name,"solidMaskTail") == 0 )          solid = solidMaskTail ;
+    if(strcmp(name,"SolidMaskTail") == 0 )       solid = solidMaskTail ;
     
     return solid  ;
 }
@@ -604,15 +604,15 @@ G4VSolid* NNVTMaskManager::getSolid(const char* name)
 G4PVPlacement*   NNVTMaskManager::getPV(const char* name)
 {
     G4PVPlacement* pv = nullptr ;   
-    if( strcmp(name, "physiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
-    if( strcmp(name, "physiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
+    if( strcmp(name, "PhysiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
+    if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
     return pv ; 
 }
 G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
 {
     G4LogicalVolume* lv = nullptr ; 
-    if(strcmp(name, "logicMask") == 0 )     lv = logicMask ;      // makeMaskLogical
-    if(strcmp(name, "logicMaskTail") == 0 ) lv = logicMaskTail ;  // makeMaskTailLogical
+    if(strcmp(name, "LogicMask") == 0 )     lv = logicMask ;      // makeMaskLogical
+    if(strcmp(name, "LogicMaskTail") == 0 ) lv = logicMaskTail ;  // makeMaskTailLogical
     return lv ; 
 }
 

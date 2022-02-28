@@ -37,6 +37,13 @@ struct PMTSIM_API PMTSim
 
     static G4VSolid* GetSolid(const char* name); 
 
+    static G4VSolid* Polycone(const char* name); 
+    static G4VSolid* TwoTubsUnion(const char* name); 
+    static G4VSolid* ThreeTubsUnion(const char* name); 
+    static G4VSolid* TenTubsUnion(const char* name); 
+
+
+
     static G4VSolid* GetSolid_(const char* name); 
     static G4VSolid* GetDebugSolid(const char* name); 
     static G4VSolid* GetMakerSolid(const char* name); 
@@ -78,6 +85,7 @@ struct PMTSIM_API PMTSim
     PMTSim(); 
     void init(); 
 
+    static const int NAME_OFFSET ; 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
     G4VSolid*           getSolid(const char* name) ;
