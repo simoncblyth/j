@@ -15,7 +15,6 @@
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
 
-using namespace CLHEP;
 
 #ifdef PMTSIM_STANDALONE
 
@@ -23,12 +22,15 @@ using namespace CLHEP;
 #include <iomanip>
 #define LogInfo  std::cout 
 #define LogError std::cerr 
+using namespace CLHEP;
 
 #else
 
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperLog.h"
 #include "SniperKernel/ToolFactory.h"
+
+using namespace CLHEP;
 DECLARE_TOOL(NNVTMaskManager);
 
 #endif
@@ -218,6 +220,11 @@ gap                           | |  | |
         const double m_pmt_r = 254.*mm + 1.*cm;
         double pmt_eq_to_bottom = sqrt(radInnerWaterRealSurface*radInnerWaterRealSurface
                                        -m_pmt_r*m_pmt_r) - 19.434*m; // at z equator
+
+        // avoid the overlap between PMT tail and innerWater
+        const double safety_distance = 1.*cm;
+        pmt_eq_to_bottom -= safety_distance;
+
         double h_to_bottom = pmt_eq_to_bottom;
         LogInfo << "Option RealSurface is enabled in Central Detector. "
                 << " Reduce the height_in from "
@@ -272,26 +279,56 @@ NNVTMaskManager::initMaterials() {
 
 void
 NNVTMaskManager::makeMaskOutLogical() {
+    // BELOW is using 2 zplanes
     
+    // G4double zPlane[] = {
+    //                     -height_virtual,
+    //                     htop_out + MAGIC_virtual_thickness
+    //                     };
+    // G4double rInner[] = {0.,
+    //                      0.};
+    // G4double rOuter[] = {mask_radiu_virtual,
+    //                      mask_radiu_virtual};
+
+
+    // G4VSolid* SolidMaskVirtual = new G4Polycone(
+    //     			objName()+"sMask_virtual",
+    //                             0,
+    //                             360*deg,
+    //                             2,
+    //                             zPlane,
+    //                             rInner,
+    //                             rOuter
+    //                             );
+
+    // BELOW is using 4 zplanes
     G4double zPlane[] = {
                         -height_virtual,
+                        0, // at equator
+                        htop_out/2, // at half H_front
                         htop_out + MAGIC_virtual_thickness
                         };
     G4double rInner[] = {0.,
+                         0., // at equator
+                         0., // at half H_front
                          0.};
     G4double rOuter[] = {mask_radiu_virtual,
-                         mask_radiu_virtual};
+                         mask_radiu_virtual, // at equator
+                         mask_radiu_virtual, // at half H_front
+                         mask_radiu_virtual/2}; // reduce the front R
 
 
     G4VSolid* SolidMaskVirtual = new G4Polycone(
 				objName()+"sMask_virtual",
                                 0,
                                 360*deg,
-                                2,
+                                // 2,
+                                4,
                                 zPlane,
                                 rInner,
                                 rOuter
                                 );
+
 
     G4Material* BufferMaterials = Water;
     if (m_buffer_material=="LAB") {
@@ -309,9 +346,9 @@ NNVTMaskManager::makeMaskOutLogical() {
     G4VisAttributes* maskout_visatt = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
     maskout_visatt -> SetForceWireframe(true);  
     maskout_visatt -> SetForceAuxEdgeVisible(true);
-    //mask_visatt -> SetForceSolid(true);
-    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
-    maskout_visatt -> SetVisibility(false);
+    maskout_visatt -> SetForceSolid(true);
+    maskout_visatt -> SetForceLineSegmentsPerCircle(64);
+    // maskout_visatt -> SetVisibility(false);
     logicMaskVirtual -> SetVisAttributes(maskout_visatt);
 }
 
@@ -326,6 +363,17 @@ See HamamatsuMaskManager::makeMaskLogical for explanation of uncoincide_z
 void
 NNVTMaskManager::makeMaskLogical() {
     
+    /* 
+    G4Sphere*  Top_out = new G4Sphere(
+            "Top_Sphere",
+            0*mm, 
+            mask_radiu_out, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
     Top_out = new G4Ellipsoid(
             objName()+"Top_Sphere",
             mask_radiu_out, // pxSemiAxis
@@ -350,9 +398,18 @@ NNVTMaskManager::makeMaskLogical() {
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
-
+    /* 
+    G4Sphere*  Top_in = new G4Sphere(
+            "Top_Sphere_in",
+            0*mm, 
+            mask_radiu_in, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
     G4double uncoincide_z = 1.*mm ;
-
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
             mask_radiu_in, // pxSemiAxis

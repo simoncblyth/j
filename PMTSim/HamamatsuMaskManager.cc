@@ -65,13 +65,10 @@ HamamatsuMaskManager::HamamatsuMaskManager(const std::string& name)
     declProp("UseMaskTailOpSurface", m_useMaskTailOpSurface=true);
 
 #endif
-
     logicMaskVirtual = 0;
 
     MAGIC_virtual_thickness = 0.05*mm;
 }
-
-
 
 HamamatsuMaskManager::~HamamatsuMaskManager() {
 
@@ -118,8 +115,6 @@ G4double
 HamamatsuMaskManager::GetZEquator() {
     return mask_radiu_virtual;
 }
-
-
 #ifdef PMTSIM_STANDALONE
 #else
 bool
@@ -210,6 +205,11 @@ gap                           | |  | |
         const double m_pmt_r = 254.*mm + 1.*cm;
         double pmt_eq_to_bottom = sqrt(radInnerWaterRealSurface*radInnerWaterRealSurface
                                        -m_pmt_r*m_pmt_r) - 19.434*m; // at z equator
+
+        // avoid the overlap between PMT tail and innerWater
+        const double safety_distance = 1.*cm;
+        pmt_eq_to_bottom -= safety_distance;
+
         double h_to_bottom = pmt_eq_to_bottom;
         LogInfo << "Option RealSurface is enabled in Central Detector. "
                 << " Reduce the height_in from "
@@ -264,22 +264,30 @@ HamamatsuMaskManager::initMaterials() {
 
 void
 HamamatsuMaskManager::makeMaskOutLogical() {
+    // BELOW is using 4 zplanes
     
     G4double zPlane[] = {
                         -height_virtual,
+                        0, // at equator
+                        htop_out/2, // at half H_front
                         htop_out + MAGIC_virtual_thickness
                         };
     G4double rInner[] = {0.,
+                         0., // at equator
+                         0., // at half H_front
                          0.};
     G4double rOuter[] = {mask_radiu_virtual,
-                         mask_radiu_virtual};
+                         mask_radiu_virtual, // at equator
+                         mask_radiu_virtual, // at half H_front
+                         mask_radiu_virtual/2}; // reduce the front R
 
 
     SolidMaskVirtual = new G4Polycone(
 				objName()+"sMask_virtual",
                                 0,
                                 360*deg,
-                                2,
+                                // 2,
+                                4,
                                 zPlane,
                                 rInner,
                                 rOuter
@@ -301,9 +309,9 @@ HamamatsuMaskManager::makeMaskOutLogical() {
     G4VisAttributes* maskout_visatt = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
     maskout_visatt -> SetForceWireframe(true);  
     maskout_visatt -> SetForceAuxEdgeVisible(true);
-    //mask_visatt -> SetForceSolid(true);
-    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
-    maskout_visatt -> SetVisibility(false);
+    maskout_visatt -> SetForceSolid(true);
+    maskout_visatt -> SetForceLineSegmentsPerCircle(64);
+    // maskout_visatt -> SetVisibility(false);
     logicMaskVirtual -> SetVisAttributes(maskout_visatt);
 }
 
@@ -357,8 +365,18 @@ For the G4Ellipsoid that means extending downwards the pzBottomCut from -height_
 
 void
 HamamatsuMaskManager::makeMaskLogical() {
-
     
+    /* 
+    G4Sphere*  Top_out = new G4Sphere(
+            "Top_Sphere",
+            0*mm, 
+            mask_radiu_out, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
     Top_out = new G4Ellipsoid(
             objName()+"Top_Sphere",
             mask_radiu_out, // pxSemiAxis
@@ -383,10 +401,18 @@ HamamatsuMaskManager::makeMaskLogical() {
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
-
-
+    /* 
+    G4Sphere*  Top_in = new G4Sphere(
+            "Top_Sphere_in",
+            0*mm, 
+            mask_radiu_in, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
     G4double uncoincide_z = 1.*mm ;  
-
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
             mask_radiu_in, // pxSemiAxis
@@ -466,10 +492,9 @@ HamamatsuMaskManager::makeMaskLogical() {
 
 void
 HamamatsuMaskManager::makeMaskPhysical() {
-
+#ifdef PMTSIM_STANDALONE
     std::cout << "HamamatsuMaskManager::makeMaskPhysical objName [" << objName() << "]" << std::endl ; 
-
-
+#endif
     physiMask = new G4PVPlacement(0,              // no rotation
             G4ThreeVector(0,0,0), // at (x,y,z)
             logicMask,    // its logical volume 
@@ -602,7 +627,6 @@ HamamatsuMaskManager::makeMaskTailLogical() {
          G4ThreeVector(0.0, 0.0, -(height_out+paramRealMaskTail.height/2)));
 
 
-
     // inner
 
     Tail_inner_I_Ellipsoid = new G4Ellipsoid(
@@ -654,6 +678,7 @@ HamamatsuMaskManager::makeMaskTailLogical() {
     }
 #endif
 
+
     Tail_inner_II_Tube = new G4Tubs
         (objName()+"Tail_inner_PartII",
          0*mm,
@@ -695,10 +720,6 @@ HamamatsuMaskManager::makeMaskTailLogical() {
 
 }
 
-
-
-
-
 void
 HamamatsuMaskManager::makeMaskTailPhysical() {
     physiMaskTail = new G4PVPlacement(0,                    // no rotation
@@ -709,9 +730,6 @@ HamamatsuMaskManager::makeMaskTailPhysical() {
                                       false,                // no boolean operations
                                       0);                   // no particular field
 }
-
-
-
 
 void
 HamamatsuMaskManager::makeMaskTailOpSurface(){
@@ -725,10 +743,8 @@ HamamatsuMaskManager::makeMaskTailOpSurface(){
     new G4LogicalSkinSurface("HamamatsuMaskOpticalSurface", logicMaskTail, mask_optical_surface);
 }
 
-
 #ifdef PMTSIM_STANDALONE
 #else
-
 G4ThreeVector
 HamamatsuMaskManager::GetPosInPMT() {
     G4ThreeVector pos;
@@ -740,9 +756,6 @@ HamamatsuMaskManager::GetPosInPMT() {
 #endif
 
 
-
-
-
 G4VSolid* HamamatsuMaskManager::getSolid(const char* name)
 {
     if (logicMaskVirtual == nullptr ) 
@@ -750,7 +763,6 @@ G4VSolid* HamamatsuMaskManager::getSolid(const char* name)
         std::cout << "HamamatsuMaskManager::getSolid booting with getLV " << name << std::endl ;  
         getLV(); 
     }
-
 
     G4VSolid* solid = nullptr ; 
 
@@ -781,8 +793,6 @@ G4VSolid* HamamatsuMaskManager::getSolid(const char* name)
  
     return solid  ; 
 }
-
-
 G4LogicalVolume* HamamatsuMaskManager::getLV(const char* name)
 {
     G4LogicalVolume* lv = nullptr ; 
@@ -797,8 +807,3 @@ G4PVPlacement*   HamamatsuMaskManager::getPV(const char* name)
     if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
     return pv ; 
 }
-
-
-
-
-
