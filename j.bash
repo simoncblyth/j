@@ -12,8 +12,57 @@ Common source for JUNO high level bash functions
 
 
 
+
+fyi, we have uploaded the NY video of JUNO (english) on youtube
+Maxim
+
+https://www.youtube.com/watch?v=ONXeTieQte4
+
+-- 
+
+
+
+Dear colleagues, The JUNO software and computing move forward to a new stage in
+which development, integration, testing, and  deployment are  happening at the
+same time. We have noticed that more efforts are required to make things  go
+smoothly. For this purpose, we decided to organize the JUNO Offline
+Coordination (JOC) Meeting. The JOC meeting is supposed to be a one-hour
+meeting taking place at 09:00 (Europe/Zurich), 16:00 (Beijing) every Thursday.
+ 
+You may find more information about the meeting in the DocDB event:
+ 
+https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=1021
+ 
+Since we don’t want everyone to be disturbed by  the meeting announcement next
+time, please login with the account, juno/jiangmen, and add your email to the
+mailing list if you feel interested in this meeting:
+ 
+https://juno.ihep.ac.cn/mailman/listinfo/offline_coordination
+ 
+ 
+Best regards,
+ 
+Giuseppe, Xingtao and Weidong
+ 
+
+
+
 JUNO Collab Meeting 18-29 July 2022
 -------------------------------------
+
+
+I updated the WIKI page concerning the procedure and rules to proficiently use our resources @ CNAF.
+
+These informations are summarized in the presentation here attached and can be extensively found at:
+https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Account/CNAF
+https://juno.ihep.ac.cn/mediawiki/index.php/Offline:SetupCNAF
+https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Submitjob/CNAF
+Please take a minute to read them!
+
+For any question, feel free to write to me (alessandra.re@mi.infn.it)
+
+Cheers,
+Ale
 
 OUM Docs
 ---------
@@ -1351,9 +1400,9 @@ EOC
 
 
 # -false to end sequence of ors 
-jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
-jcl(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
-jfi(){ local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ; find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' ; } 
+jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
 
 
 jps_add(){
@@ -1449,13 +1498,17 @@ jcopyback(){
 }
 
 
-
-
 jdiff(){
+
+   : Compares files from current directory specified by stem arguments
+   : to files with same stems found under JUNOTOP/offline
+
    local dst=$PWD
    local src=$JUNOTOP/offline
    cd $src
    local rels=$(jcl $*)
+   : rels are JUNOTOP/offline relative paths 
+
    local rel 
    local name 
    local path
