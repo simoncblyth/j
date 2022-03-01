@@ -1472,10 +1472,10 @@ EON
 jcopyback(){
    : emit copy commands to copy classes from PWD eg from jps back into offline SVN 
 
-   local src=$PWD
+   local iwd=$PWD
+   local src=$iwd
    local dst=$JUNOTOP/offline
    cd $dst
-   pwd
 
    local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments 
    local rel 
@@ -1497,8 +1497,7 @@ jcopyback(){
        fi  
    done 
 
-   cd $src
-   pwd 
+   cd $iwd
 }
 
 

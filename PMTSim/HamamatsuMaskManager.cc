@@ -353,13 +353,34 @@ Add and subtract the line equations::
 
 
 
-Both Top_in G4Ellipsoid and Bottom_in G4Tubs extend down to the same coincident Z edge. 
-Hence need to extend them both downwards.   
+Both hmskTopIn G4Ellipsoid and hmskBottomIn G4Tubs extend down to the same coincident Z edge. 
+The ellipsoid extends below zero and the cylinder does too changing the shape of the edge. 
+To avoid coincidence in the subtraction must extend the lower edges of hmskTopIn and hmskBottomIn downwards. 
 
-For the G4Tubs that means increasing hz to new_hz = hz + uncoincide/2 and changing zoff by -uncoincide/2 
+hmskTopIn G4Ellipsoid
+    extend downwards the pzBottomCut from -height_out to -(height_out + uncoincide)
 
-For the G4Ellipsoid that means extending downwards the pzBottomCut from -height_out to -(height_out + uncoincide)
+hmskBottomIn G4Tubs
+    increasing hz to new_hz = hz + uncoincide/2 and changing zoff by -uncoincide/2 
 
+
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+|  GEOM                       |  Member                      | Note                                                                     |
++=============================+==============================+==========================================================================+
+| hmskTopOut                  |  Top_out                     |  +Z : more-than-hemi-ellipsoid extending below zero in Z                 |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskBottomOut               |  Bottom_out                  |  coin proportions cylinder                                               |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskMaskOut                 |  Mask_out                    |  +Z hat cap extending below zero in Z                                    |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskTopIn                   |  Top_in                      |  +Z looks like hmskTopOut                                                |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskBottomIn                |  Bottom_in                   |  just like hmskBottomOut                                                 |       
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskMaskIn                  |  Mask_in                     |  looks the same as the Outer                                             |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| hmskSolidMask               |  solidMask                   |  upsidedown bowl without stand                                           |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
 
 **/
 
