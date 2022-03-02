@@ -586,6 +586,61 @@ jm-cmake-has-opticks(){
    echo $with_opticks
 }
 
+
+
+j-curl-scp(){
+
+   local msg="=== $FUNCNAME :"
+   local url=$1
+   local name=$2
+   local dist=$(basename $url)
+
+   cd /tmp
+   [ ! -f "$name" ] && curl -L -O $url && mv $dist $name 
+   local cmd="scp $name P:junotop/"
+
+   echo $msg url $url name $name dist $dist 
+   echo $msg $cmd 
+   eval $cmd 
+
+}
+
+
+j-sniper-curl-scp(){
+
+   : workaround GFW firewall github blockage 
+   local msg="=== $FUNCNAME :"
+
+   . $JUNOTOP/junoenv/junoenv-sniper.sh 
+
+   local sv=$(junoenv-sniper-version)
+   local mv=$(junoenv-mtsniper-version)
+
+   local surl=$(junoenv-sniper-url $sv)
+   local murl=$(junoenv-mtsniper-url $mv)
+
+   local sbase=$(basename $surl)
+   local sname=$(junoenv-sniper-name)-$sbase
+
+   local mbase=$(basename $murl)
+   local mname=sniper-$mbase     # duplicate bug in junoenv-sniper
+
+   j-curl-scp $surl $sname
+   j-curl-scp $murl $mname 
+}
+
+
+
+j-sniper-clean()
+{
+   cd $JUNOTOP/sniper || exit 1
+   
+   rm -rf build 
+   rm -rf InstallArea
+}
+
+
+
 jm-bdir(){ echo $JUNOTOP/offline/build ; }
 jm-idir(){ echo $JUNOTOP/offline/InstallArea ; }
 jm-sdir(){ echo $JUNOTOP/offline  ; }
@@ -1647,6 +1702,16 @@ jlibs_oldtop()
 {
     export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs 
 }
+
+
+j-sniper-hookup(){
+   : curriously this is not how sniper is typically hooked up see j-runtime-env-
+   cat << EOA >> $JUNOTOP/bashrc.sh 
+source $JUNOTOP/sniper/InstallArea/bashrc
+source $JUNOTOP/mt.sniper/InstallArea/bashrc
+EOA
+}
+
 
 jlibs_reuse()
 {
