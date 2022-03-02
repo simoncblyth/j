@@ -2294,6 +2294,7 @@ j-runtime-env-()
    else 
        #source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh    # curious setting CMAKE_PREFIX_PATH to lib dir
        source $JUNOTOP/sniper/InstallArea/bashrc
+       source $JUNOTOP/mt.sniper/InstallArea/bashrc
        source $JUNOTOP/offline/InstallArea/setup.sh 
    fi 
 
