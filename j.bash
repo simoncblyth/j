@@ -47,6 +47,41 @@ https://juno.ihep.ac.cn/mailman/listinfo/offline_coordination
 Best regards,
  
 Giuseppe, Xingtao and Weidong
+
+
+
+GitHub Proxy
+--------------
+
+About the github access problem, my solution is connecting to an SSH server and setting up a proxy before installation:
+
+$ type proxy-git-cern
+proxy-git-cern is a function
+proxy-git-cern ()
+{
+    ssh -f -N -D 37687 cern
+}
+
+$ type proxy-setup-cern
+proxy-setup-cern is a function
+proxy-setup-cern ()
+{
+    local hn=localhost;
+    local port=37687;
+    export http_proxy=socks5://$hn:${port};
+    export https_proxy=socks5://$hn:${port};
+    export no_proxy=localhost,202.122.33.67,192.168.60.140,192.168.60.141,192.168.60.142,10.96.0.0/12,10.244.0.0/16;
+    export HTTP_PROXY=${http_proxy};
+    export HTTPS_PROXY=${https_proxy};
+    export NO_PROXY=${no_proxy}
+}
+As socks5 is not supported by wget, so I had already modified junoenv to use cURL to download files. 
+For the github ssh access, I had setup following in $HOME/.gitconfig:
+
+[http "https://github.com"]
+        proxy = socks5://localhost:37687
+
+
  
 
 
@@ -2588,7 +2623,7 @@ tds3ip(){
 tds3dbg()
 {
    unset X4PhysicalVolume
-   #export X4PhysicalVolume=INFO
+   export X4PhysicalVolume=INFO
    export OGeo=INFO   # see if GParts::close is getting called in OGeo::makeAnalyticGeometry
    tds3
 }
