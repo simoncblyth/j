@@ -90,6 +90,8 @@ struct PMTSIM_API PMTSim
     G4VPhysicalVolume*  getPV(const char* name) ;
     G4VSolid*           getSolid(const char* name) ;
 
+    static const char* Name(const char* prefix, int nx, int ny, int nz, const char* suffix); 
+    static G4VPhysicalVolume*   WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int nz  ); 
     static G4VPhysicalVolume*   WrapLV(G4LogicalVolume* lv) ;
     static void Extract( std::vector<long>& vals, const char* s ); 
 };

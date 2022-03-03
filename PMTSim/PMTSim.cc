@@ -24,6 +24,7 @@
 #include "G4DisplacedSolid.hh"
 #include "G4Material.hh"
 
+#include "G4Box.hh"
 #include "G4Polycone.hh"
 #include "G4Tubs.hh"
 #include "G4UnionSolid.hh"
@@ -88,7 +89,7 @@ PMTSim::SetEnvironmentSwitches
 
 Sets switches depending of the content of the name string. 
 
-* have removed  "_pcnk:JUNO_PMT20INCH_POLYCONE_NECK" as that is now standard and non-optional 
+* have removed  ":pcnk:JUNO_PMT20INCH_POLYCONE_NECK" as that is now standard and non-optional 
 * are in process of removing the SIMPLIFY_CSG switches
 * others : NOT_USE_REAL_SURFACE and PLUS_DYNODE are for debugging and can remain.
 
@@ -97,11 +98,11 @@ Sets switches depending of the content of the name string.
 void PMTSim::SetEnvironmentSwitches(const char* name)  // static
 {
     std::vector<std::string> tagkeys = {
-       "_scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
-       "_nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
-       "_pdyn:JUNO_PMT20INCH_PLUS_DYNODE",
-       "_prtc:JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT",
-       "_obto:JUNO_PMT20INCH_OBSOLETE_TORUS_NECK"
+       ":scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
+       ":nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
+       ":pdyn:JUNO_PMT20INCH_PLUS_DYNODE",
+       ":prtc:JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT",
+       ":obto:JUNO_PMT20INCH_OBSOLETE_TORUS_NECK"
       } ; 
 
     for(unsigned i=0 ; i < tagkeys.size() ; i++)
@@ -508,12 +509,20 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
     return pv ; 
 }
 
+
+
 G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
 {
     PMTSim::SetEnvironmentSwitches(name);  
 
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
+
+    if(pv == nullptr)
+    {
+        std::cout << "PMTSim::getPV failed for name [" <<  name << "]" << std::endl ; 
+        return pv ; 
+    }
 
     Traverse(pv, tr, solids); 
     //DumpSolids(); 
@@ -727,10 +736,33 @@ G4LogicalVolume* PMTSim::getLV(const char* name)
     IGeomManager* mgr = getManager(name) ; 
     return mgr->getLV(name + strlen(PREFIX) + NAME_OFFSET) ;  // +1 for _  
 }
+
+/**
+PMTSim::getPV
+--------------
+
+When name contains "WrapLV" the name is used to get an LV (not a PV)
+and that LV is placed multiple times into a grid configured by nx, ny, nz
+
+**/
+
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
     IGeomManager* mgr = getManager(name) ; 
-    return mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; 
+    G4VPhysicalVolume* pv = nullptr ; 
+
+    if(strstr(name, "WrapLV") == nullptr)
+    {
+        pv = mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; 
+    }
+    else
+    {
+        G4LogicalVolume* lv = getLV(name); 
+        assert(lv); 
+        pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
+        assert(pv); 
+    }
+    return pv ; 
 }
 G4VSolid* PMTSim::getSolid(const char* name) 
 {
@@ -804,7 +836,37 @@ void PMTSim::GetObjectTransform(std::array<double, 16>& a, const G4VPhysicalVolu
     a[12] = t.dx() ; a[13] = t.dy() ; a[14] = t.dz() ; a[15] = 1.f    ;
 }
 
+const char* PMTSim::Name(const char* prefix, int ix, int iy, int iz, const char* suffix)
+{
+    std::stringstream ss ; 
+    ss << prefix << ix << "_" << iy << "_" << iz << suffix ; 
+    std::string s = ss.str();
+    return strdup(s.c_str()); 
+}
 
+G4VPhysicalVolume* PMTSim::WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int nz  )
+{
+    std::cout << "PMTSim::WrapLVGrid " << nx << " " << ny << " " << nz << std::endl ; 
+
+    G4Material* vacuum = G4Material::GetMaterial("Vacuum"); 
+    int extent = std::max(std::max(nx, ny), nz); 
+    G4double sc = 500. ; 
+    G4double halfside = sc*extent*3. ; 
+    G4Box* world_so = new G4Box("World_so", halfside, halfside, halfside ); 
+    G4LogicalVolume* world_lv = new G4LogicalVolume(world_so,vacuum,"World_lv",0,0,0); 
+    G4VPhysicalVolume* world_pv = new G4PVPlacement(0,G4ThreeVector(),world_lv ,"World_pv",0,false,0);
+
+    for(int ix=-nx ; ix < nx+1 ; ix++)
+    for(int iy=-ny ; iy < ny+1 ; iy++)
+    for(int iz=-nz ; iz < nz+1 ; iz++)
+    {
+        const char* iname = Name("item", ix, iy, iz, "" );         
+        G4ThreeVector tla( sc*double(ix), sc*double(iy), sc*double(iz) ); 
+        G4VPhysicalVolume* pv_n = new G4PVPlacement(0, tla, lv ,iname,world_lv,false,0);
+        assert( pv_n ); 
+    }
+    return world_pv ; 
+}
 
 G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
 {
