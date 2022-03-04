@@ -17,6 +17,8 @@
 #include "HamamatsuMaskManager.hh"
 #include "NNVTMaskManager.hh"
 
+#include "LowerChimney.hh"
+
 
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
@@ -206,11 +208,10 @@ G4VSolid* PMTSim::GetSolid_(const char* name) // static
     {
         solid = GetMakerSolid(name) ; 
     }
-    else if(HasManagerPrefix(name))   // names begins with hama_ or nnvt_
+    else if(HasManagerPrefix(name))   // names begins with one of : hama/nnvt/hmsk/nmsk/lchi
     {
         solid = GetManagerSolid(name) ;
     }
-
 
     if( solid == nullptr )
     {    
@@ -495,6 +496,13 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
     return solid ; 
 }
 
+G4LogicalVolume* PMTSim::GetLV(const char* name) // static
+{
+    PMTSim::SetEnvironmentSwitches(name);  
+    PMTSim* ps = new PMTSim ; 
+    G4LogicalVolume* lv = ps->getLV(name); 
+    return lv ; 
+}
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 {
@@ -664,6 +672,8 @@ void PMTSim::init()
 
     m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
     m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
+    m_lchi = new LowerChimney(LCHI_STR) ;   
+    m_lchi->getLV(); 
 
 
     if(verbose) 
@@ -689,10 +699,11 @@ const char* PMTSim::HAMA   = "hama" ;
 const char* PMTSim::NNVT   = "nnvt" ; 
 const char* PMTSim::HMSK   = "hmsk" ; 
 const char* PMTSim::NMSK   = "nmsk" ; 
+const char* PMTSim::LCHI   = "lchi" ; 
 
 const std::string PMTSim::HMSK_STR = "hmsk" ; 
 const std::string PMTSim::NMSK_STR = "nmsk" ; 
-
+const std::string PMTSim::LCHI_STR = "lchi" ; 
 
 
 bool PMTSim::HasManagerPrefix( const char* name ) // static
@@ -701,8 +712,9 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     bool nnvt = StartsWithPrefix(name, NNVT ); 
     bool hmsk = StartsWithPrefix(name, HMSK ); 
     bool nmsk = StartsWithPrefix(name, NMSK ); 
+    bool lchi = StartsWithPrefix(name, LCHI ); 
 
-    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) ; 
+    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) + int(lchi) ; 
     assert( check == 0 || check == 1 ) ;  
     return check == 1 ; 
 }
@@ -710,10 +722,18 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
 IGeomManager* PMTSim::getManager(const char* name)
 {
     IGeomManager* mgr = nullptr ;   
-    if(StartsWithPrefix(name, HAMA)) mgr = m_hama ; 
-    if(StartsWithPrefix(name, NNVT)) mgr = m_nnvt ; 
-    if(StartsWithPrefix(name, HMSK)) mgr = m_hmsk ; 
-    if(StartsWithPrefix(name, NMSK)) mgr = m_nmsk ; 
+
+    bool hama = StartsWithPrefix(name, HAMA ); 
+    bool nnvt = StartsWithPrefix(name, NNVT ); 
+    bool hmsk = StartsWithPrefix(name, HMSK ); 
+    bool nmsk = StartsWithPrefix(name, NMSK ); 
+    bool lchi = StartsWithPrefix(name, LCHI ); 
+
+    if(hama) mgr = m_hama ; 
+    if(nnvt) mgr = m_nnvt ; 
+    if(hmsk) mgr = m_hmsk ; 
+    if(nmsk) mgr = m_nmsk ; 
+    if(lchi) mgr = m_lchi ; 
 
     if(mgr == nullptr)
     {
@@ -724,6 +744,20 @@ IGeomManager* PMTSim::getManager(const char* name)
             << std::endl 
             ;
     }   
+    else
+    {
+        std::cout 
+            << "PMTSim::getManager " 
+            << " found manager for name " << name 
+            << " hama " << hama 
+            << " nnvt " << nnvt 
+            << " hmsk " << hmsk
+            << " nmsk " << nmsk
+            << " lchi " << lchi
+            << std::endl 
+            ;
+ 
+    }
     assert(mgr);  
     return mgr ; 
 }
@@ -750,8 +784,8 @@ G4VPhysicalVolume* PMTSim::getPV(const char* name)
 {
     IGeomManager* mgr = getManager(name) ; 
     G4VPhysicalVolume* pv = nullptr ; 
-
-    if(strstr(name, "WrapLV") == nullptr)
+    bool wrap = strstr(name, "WrapLV") != nullptr ; 
+    if(wrap == false)
     {
         pv = mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; 
     }
@@ -764,10 +798,23 @@ G4VPhysicalVolume* PMTSim::getPV(const char* name)
     }
     return pv ; 
 }
-G4VSolid* PMTSim::getSolid(const char* name) 
+G4VSolid* PMTSim::getSolid(const char* name_) 
 {
-    IGeomManager* mgr = getManager(name) ; 
-    return mgr->getSolid(name + strlen(PREFIX) + NAME_OFFSET) ;  
+    IGeomManager* mgr = getManager(name_) ; 
+    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
+    G4VSolid* solid = mgr->getSolid(name) ;  
+
+    if(solid == nullptr)
+        std::cout 
+            << "PMTSim::getSolid FAILED " 
+            << " name_ [" << name_ << "]" 
+            << " name [" << name   << "]"
+            << std::endl 
+            ;
+
+
+    assert( solid ); 
+    return solid ; 
 }
 
 

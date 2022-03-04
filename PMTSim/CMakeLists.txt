@@ -25,6 +25,8 @@ list(APPEND SOURCES
      MaterialSvc.cc
      DetectorConstruction.cc
 
+     LowerChimney.cc
+     LowerChimneyMaker.cc
 
      HamamatsuMaskManager.cc
      NNVTMaskManager.cc

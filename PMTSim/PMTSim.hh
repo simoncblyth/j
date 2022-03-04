@@ -16,6 +16,8 @@ class NNVTMCPPMTManager ;
 class HamamatsuMaskManager ; 
 class NNVTMaskManager ; 
 
+class LowerChimney ; 
+
 struct IGeomManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
@@ -30,9 +32,11 @@ struct PMTSIM_API PMTSim
 
     static const char* HMSK ; 
     static const char* NMSK ; 
+    static const char* LCHI ; 
 
     static const std::string HMSK_STR ;  
     static const std::string NMSK_STR ;  
+    static const std::string LCHI_STR ;  
 
 
     static G4VSolid* GetSolid(const char* name); 
@@ -56,6 +60,7 @@ struct PMTSIM_API PMTSim
     static bool StartsWithPrefix(const char* name, const char* prefix) ; 
     static bool Contains(        const char* name, const char* sub) ; 
 
+    static G4LogicalVolume*   GetLV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
 
@@ -78,6 +83,8 @@ struct PMTSIM_API PMTSim
 
     HamamatsuMaskManager*      m_hmsk ; 
     NNVTMaskManager*           m_nmsk ; 
+
+    LowerChimney*              m_lchi ; 
 
     static bool HasManagerPrefix( const char* name ); 
     IGeomManager* getManager(const char* name); 
