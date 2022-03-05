@@ -1537,6 +1537,7 @@ jcopy(){
            eval $cmd 
        fi  
    done 
+   cd $dst 
 }
 
 
