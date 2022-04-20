@@ -50,6 +50,34 @@ Giuseppe, Xingtao and Weidong
 
 
 
+Mattermost
+------------
+
+Dear collaborators,
+
+In the past there had been a few suggestions regarding having an instant
+messaging tool to permit us rapid communication between ourselves. IHEP has
+prepared an installation of mattermost for us which we can use for such a
+purpose. Afte r a brief testing period we'd like to invite all collaborators to
+join us at:
+https://mattermost.ihep.ac.cn/signup_user_complete/?id=8diw658t67gkfjgwkn5awi7zgo
+
+A few groups have already been created for the AFGs and offline group. You can
+find them directly via the mattermost w eb interface, or join them directly via
+the links provided in the Wiki:
+https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Foundation_Groups#Mattermost_Team_and_Channels
+
+With the IHEP installation, we have no limit to the number of messages that are
+saved in mattermost so we can track th e full history of all conversations in
+there, if that is needed at some point. Additionally, mattermost uses the IHEP
+SSO, which makes it pretty convenient as no new login/password are required.
+
+Let us know if you have any trouble getting started with mattermost!
+
+Cheers, João Pedro for the ACC
+
+
+
 GitHub Proxy
 --------------
 
@@ -2869,6 +2897,14 @@ tds-(){
    tds-csg-ggeo-reminder
 
 }
+
+tds-gdb-(){
+   local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py
+   local runline="gdb --args python $script $*"
+   echo $runline
+   eval $runline
+}
+
 
 
 tds-csg-ggeo-reminder(){  cat << EOR

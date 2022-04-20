@@ -7,6 +7,7 @@
 
 #include "SPath.hh"
 #include "PMTSim.hh"
+#include "P4Volume.hh"
 
 int main(int argc, char** argv)
 {
@@ -26,11 +27,10 @@ int main(int argc, char** argv)
     G4VPhysicalVolume* pv = PMTSim::GetPV(name, tr, so );
     assert(pv); 
 
-    PMTSim::DumpTransforms(tr, so, "PMTSim::DumpTransforms"); 
+    P4Volume::DumpTransforms(tr, so, "PMTSim::DumpTransforms"); 
  
-    int create_dirs = 1 ; // 1:filepath
-    const char* path = SPath::Resolve("$TMP/PMTSim/GetPVTest/transforms.npy", create_dirs ); 
-    PMTSim::SaveTransforms(tr, so, path  ); 
+    const char* path = SPath::Resolve("$TMP/PMTSim/GetPVTest/transforms.npy", FILEPATH ); 
+    P4Volume::SaveTransforms(tr, so, path  ); 
 
     return 0 ; 
 }

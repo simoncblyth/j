@@ -64,17 +64,6 @@ struct PMTSIM_API PMTSim
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
 
-    static void SaveTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* path ); 
-    static void SaveTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* fold, const char* name ); 
-    static NP* MakeArray( std::vector<double>* tr, std::vector<G4VSolid*>* solids ); 
-    static void DumpTransforms( std::vector<double>* tr, std::vector<G4VSolid*>* names, const char* msg ); 
-
-    static void Traverse(const G4VPhysicalVolume* const pv, std::vector<double>* tr, std::vector<G4VSolid*>* names ); 
-    static void Traverse_r(const G4VPhysicalVolume* const pv, int depth, std::vector<double>* tr, std::vector<G4VSolid*>* names); 
-    static bool IsIdentityRotation(const std::array<double, 16>& a, double epsilon ) ; 
-    static void GetObjectTransform(std::array<double, 16>& a, const G4VPhysicalVolume* const pv); 
-    static void DumpSolids(); 
-
     bool verbose ; 
     DetectorConstruction*      m_dc ;   
 

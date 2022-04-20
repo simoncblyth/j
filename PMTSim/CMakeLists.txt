@@ -14,6 +14,7 @@ set(HEADERS)
 
 list(APPEND SOURCES
      PMTSim.cc
+     P4Volume.cc
 
      Hamamatsu_R12860_PMTSolid.cc
      HamamatsuR12860PMTManager.cc 
@@ -34,6 +35,7 @@ list(APPEND SOURCES
 
 list(APPEND HEADERS
      PMTSim.hh
+     P4Volume.hh
      PMTSIM_API_EXPORT.hh
 
      SCanvas.hh
