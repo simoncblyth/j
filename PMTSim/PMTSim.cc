@@ -499,22 +499,21 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 
 G4LogicalVolume* PMTSim::GetLV(const char* name) // static
 {
+    std::cout << "[ PMTSim::GetLV [" << name << "]" << std::endl ; 
     PMTSim::SetEnvironmentSwitches(name);  
     PMTSim* ps = new PMTSim ; 
     G4LogicalVolume* lv = ps->getLV(name); 
+    std::cout << "] PMTSim::GetLV [" << name << "]" << " lv " << ( lv ? "Y" : "N" ) << std::endl ; 
     return lv ; 
 }
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
 {
     PMTSim::SetEnvironmentSwitches(name);  
-
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
-
     P4Volume::Traverse(pv, nullptr, nullptr); 
     //DumpSolids(); 
-
     return pv ; 
 }
 
@@ -628,7 +627,7 @@ const char* PMTSim::HAMA   = "hama" ;
 const char* PMTSim::NNVT   = "nnvt" ; 
 const char* PMTSim::HMSK   = "hmsk" ; 
 const char* PMTSim::NMSK   = "nmsk" ; 
-const char* PMTSim::LCHI   = "lchi" ; 
+const char* PMTSim::LCHI   = "lchi" ;   // lower chimney  
 
 const std::string PMTSim::HMSK_STR = "hmsk" ; 
 const std::string PMTSim::NMSK_STR = "nmsk" ; 
@@ -692,41 +691,35 @@ IGeomManager* PMTSim::getManager(const char* name)
 }
 
 
-const int PMTSim::NAME_OFFSET = 0 ; 
-
-G4LogicalVolume* PMTSim::getLV(const char* name)  
-{
-    IGeomManager* mgr = getManager(name) ; 
-    return mgr->getLV(name + strlen(PREFIX) + NAME_OFFSET) ;  // +1 for _  
-}
+const int PMTSim::NAME_OFFSET = 1 ;  // HMM from 0 ? 
 
 /**
-PMTSim::getPV
---------------
+PMTSim::getLV PMTSim::getPV PMTSim::getSolid
+----------------------------------------------
 
-When name contains "WrapLV" the name is used to get an LV (not a PV)
-and that LV is placed multiple times into a grid configured by nx, ny, nz
+All three getters work similarly, the first four characters of the name 
+(eg hama/nnvt/hmsk/nmsk/lchi) are used to identify the Manager that will be 
+used to get the LV/PV or Solid. The managers are passed a string offset to skip the manager prefix.
 
 **/
 
-G4VPhysicalVolume* PMTSim::getPV(const char* name) 
+G4LogicalVolume* PMTSim::getLV(const char* name_)  
 {
-    IGeomManager* mgr = getManager(name) ; 
-    G4VPhysicalVolume* pv = nullptr ; 
-    bool wrap = strstr(name, "WrapLV") != nullptr ; 
-    if(wrap == false)
-    {
-        pv = mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; 
-    }
-    else
-    {
-        G4LogicalVolume* lv = getLV(name); 
-        assert(lv); 
-        pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
-        assert(pv); 
-    }
-    return pv ; 
+    IGeomManager* mgr = getManager(name_) ; 
+    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
+
+    std::cout 
+        << "PMTSim::getLV" 
+        << " name_ [" << name_ << "]"
+        << " name [" << name << "]"
+        << " mgr " << ( mgr ? "Y" : "N" ) 
+        << " NAME_OFFSET " << NAME_OFFSET 
+        << std::endl
+        ; 
+
+    return mgr->getLV(name) ;  // +1 for _  
 }
+
 G4VSolid* PMTSim::getSolid(const char* name_) 
 {
     IGeomManager* mgr = getManager(name_) ; 
@@ -746,6 +739,34 @@ G4VSolid* PMTSim::getSolid(const char* name_)
     return solid ; 
 }
 
+/**
+PMTSim::getPV
+--------------
+
+When name contains "WrapLV" the name is used to get an LV (not a PV)
+and that LV is placed multiple times by WrapLVGrid 
+into a grid configured by nx, ny, nz within a PV that is returned. 
+
+**/
+
+G4VPhysicalVolume* PMTSim::getPV(const char* name) 
+{
+    IGeomManager* mgr = getManager(name) ; 
+    G4VPhysicalVolume* pv = nullptr ; 
+    bool wrap = strstr(name, "WrapLV") != nullptr ; 
+    if(wrap == false)
+    {
+        pv = mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; // manager PREFIX all 4 chars long 
+    }
+    else
+    {
+        G4LogicalVolume* lv = getLV(name); 
+        assert(lv); 
+        pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
+        assert(pv); 
+    }
+    return pv ; 
+}
 const char* PMTSim::Name(const char* prefix, int ix, int iy, int iz, const char* suffix)
 {
     std::stringstream ss ; 
@@ -753,6 +774,20 @@ const char* PMTSim::Name(const char* prefix, int ix, int iy, int iz, const char*
     std::string s = ss.str();
     return strdup(s.c_str()); 
 }
+
+/**
+PMTSim::WrapLVGrid
+--------------------
+
+Places the argument lv multiple times in a grid of placements configured by nx ny nz
+that are placed within world_so/world_lv/world_pv
+
+CAUTION: currently the grid scaling and dimensions of the world box 
+make unfounded assumptions regarding the size of the lv 
+
+The number of placements is (2*nx+1)*(2*ny+1)*(2*nz+1)
+
+**/
 
 G4VPhysicalVolume* PMTSim::WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int nz  )
 {
@@ -778,6 +813,14 @@ G4VPhysicalVolume* PMTSim::WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int 
     return world_pv ; 
 }
 
+/**
+PMTSim::WrapLV
+------------------
+
+Places the argument lv into a placeholder G4PVPlacement pv that is returned. 
+
+**/
+
 G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
 {
     G4String pName = lv->GetName(); 
@@ -798,7 +841,7 @@ G4VPhysicalVolume* PMTSim::WrapLV(G4LogicalVolume* lv) // static
 PMTSim::Extract
 ----------------
 
-Parse string converting groups of 0123456789+- chars into long integers.  
+Parse argument string converting groups of numeric 0123456789+- chars into long integers.  
 
 **/
 
