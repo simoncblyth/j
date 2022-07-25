@@ -17,6 +17,64 @@ Common source for JUNO high level bash functions
 
 
 
+Was surprised that this worked::
+
+    epsilon:tmp blyth$ git clone https://code.ihep.ac.cn/huyuxiang/qmultifilmlut
+    Cloning into 'qmultifilmlut'...
+    warning: redirecting to https://code.ihep.ac.cn/huyuxiang/qmultifilmlut.git/
+    remote: Enumerating objects: 1610, done.
+    remote: Total 1610 (delta 0), reused 0 (delta 0), pack-reused 1610
+    Receiving objects: 100% (1610/1610), 2.03 MiB | 190.00 KiB/s, done.
+    Resolving deltas: 100% (583/583), done.
+    epsilon:tmp blyth$ 
+    epsilon:tmp blyth$ 
+    epsilon:tmp blyth$ l qmultifilmlut/
+    total 16
+     0 drwxr-xr-x   13 blyth  wheel   416 May 25 10:49 .git
+     0 drwxr-xr-x    7 blyth  wheel   224 May 25 10:49 trunk
+     0 drwxr-xr-x    9 blyth  wheel   288 May 25 10:49 .
+     0 drwxr-xr-x  207 blyth  wheel  6624 May 25 10:49 sysrap
+     0 drwxr-xr-x   96 blyth  wheel  3072 May 25 10:49 qudarap
+     0 drwxr-xr-x    7 blyth  wheel   224 May 25 10:49 j
+    16 -rw-r--r--    1 blyth  wheel  6280 May 25 10:49 README.md
+     0 drwxr-xr-x   91 blyth  wheel  2912 May 25 10:49 CSGOptiX
+     0 drwxrwxrwt   35 root   wheel  1120 May 25 10:49 ..
+    epsilon:tmp blyth$ 
+
+
+    
+
+
+
+
+The paper on the intrinsic energy resolution of liquid scintillator has been published online, https://doi.org/10.1088/1748-0221/17/04/P04018. The energy resolution of liquid scintillator has become a little confusing. This issue needs further exploration, and it is not only a matter of our LS group, but the simulation and the physics group should pay attention.
+
+--
+best regards
+Xilei Sun
+IHEP
+
+
+
+Dear All,
+
+To avoid massive data transfer between /eos/juno and /hpcfs,   /ets/juno is accessable on Slurm GPU worker nodes now,  access to /eos/juno is available with xrootd in job scripts.
+
+Users can use the following method to access file in /eos/juno:  TFile *filein = TFile::Open("root://junoeos01.ihep.ac.cn//eos_absolute_path_filein_name.root")
+
+More  details can refer to the user manual: http://afsapply.ihep.ac.cn/cchelp/en/experiments/JUNO/
+
+Thanks a lot for you support and understanding.
+
+Best regards,
+Computing Center
+
+
+
+
+
+
+
 fyi, we have uploaded the NY video of JUNO (english) on youtube
 Maxim
 
