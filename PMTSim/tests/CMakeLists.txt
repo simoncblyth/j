@@ -22,6 +22,8 @@ foreach(SRC ${TEST_SOURCES})
     add_test(${name}.${TGT} ${TGT})
 
     target_link_libraries(${TGT} Opticks::PMTSim)
+    target_compile_definitions( ${TGT} PRIVATE PMTSIM_STANDALONE )
+
     install(TARGETS ${TGT} DESTINATION lib)
 endforeach()
 

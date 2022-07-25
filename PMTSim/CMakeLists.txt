@@ -3,6 +3,11 @@ set(name PMTSim)
 project(${name} VERSION 0.1.0)
 include(OpticksBuildOptions)
 
+if(PMTSim_VERBOSE)
+message(STATUS "j/PMTSim/CMakeLists.txt find_packge... " )
+endif()
+
+
 set(COMPONENTS system program_options filesystem regex )
 find_package(Boost REQUIRED COMPONENTS ${COMPONENTS} )
 find_package(G4    REQUIRED MODULE)
@@ -52,7 +57,7 @@ message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
 add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
 
-target_compile_definitions( ${name} PUBLIC OPTICKS_PMTSIM PMTSIM_STANDALONE )
+target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE )
 
 target_include_directories(${name}
      PUBLIC
