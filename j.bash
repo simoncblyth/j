@@ -2884,7 +2884,7 @@ ntds3()
    echo $msg trgs : $trgs 
    echo $msg args : atrgs 
 
-   tds- $opts $args
+   tds- $opts $trgs $args
 }
 
 
