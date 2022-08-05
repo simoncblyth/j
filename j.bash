@@ -2859,6 +2859,36 @@ tds3(){
 }
 
 
+ntds3()
+{
+   local args=$*     
+   local msg="=== $FUNCNAME :"
+   local evtmax=${EVTMAX:-2}
+
+   local opts="" 
+   opts="$opts --opticks-mode 3"   
+   opts="$opts --no-guide_tube"
+   opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --disable-pmt-optical-model"
+   opts="$opts --evtmax $evtmax"
+   opts="$opts $(anamgr) "
+
+   if [ -n "$DEBUG_DISABLE_STICKS" ]; then
+       opts="$opts --debug-disable-sticks"
+   fi 
+
+   local trgs=""
+   trgs="$trgs gun"
+
+   echo $msg opts : $opts 
+   echo $msg trgs : $trgs 
+   echo $msg args : atrgs 
+
+   tds- $opts $args
+}
+
+
+
 tds_ctrl(){ cat << EOV
 INPUT_PHOTON_PATH
 OPTICKS_EVENT_PFX

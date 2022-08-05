@@ -30,6 +30,36 @@ Plough on::
 
 
 
+
+j/PMTSim uses om for building
+-------------------------------
+
+So it installs into Opticks install dirs::
+
+    -- Installing: /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/pmtsim/pmtsim-targets.cmake
+    -- Installing: /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/pmtsim/pmtsim-targets-debug.cmake
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/pmtsim/pmtsim-config.cmake
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/lib64/cmake/pmtsim/pmtsim-config-version.cmake
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/include/PMTSim/PMTSim.hh
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/include/PMTSim/P4Volume.hh
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/include/PMTSim/PMTSIM_API_EXPORT.hh
+    -- Up-to-date: /data/blyth/junotop/ExternalLibs/opticks/head/include/PMTSim/SCanvas.hh
+
+
+* This means that there is no way to prevent it being found by find_package. 
+* This means that when offline depends on Opticks proj that find_package(PMTSim) it will be found
+
+There is also nameclash risk with original PMTSim 
+
+* DONE : changed PMTSIM_STANDALONE to be PRIVATE, that seems to fix the offline build
+
+* PERHAPS : should rename j/PMTSim to StandlonePMTSim OR jPMTSim to avoid confusion
+
+
+PMTSIM_STANDALONE flag leaking into offline CMake build : try making it PRIVATE
+----------------------------------------------------------------------------------
+
+
 ::
 
     In file included from /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:25:
@@ -85,7 +115,7 @@ HUH : PMTSIM_STANDALONE should not be switched on in standard build::
     ./extg4/X4SolidTree.hh:#ifdef PMTSIM_STANDALONE
     epsilon:opticks blyth$ 
 
-The only such switch is j/PMTSim/CMakeLists.txt, changed from PUBLIC to PRIVATE::
+The only such switch is j/PMTSim/CMakeLists.txt, changed it from PUBLIC to PRIVATE::
 
      55 target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE )
 
@@ -123,6 +153,31 @@ HMM : this could be name clash with the real PMTSim ?
 
 
 
+
+OpticksFlags::FlagMask -> OpticksPhoton::FlagMask
+------------------------------------------------------
+
+::
+
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc: In member function 'void junoSD_PMT_v2_Opticks::dumpHit(unsigned int, const G4OpticksHit*, const G4OpticksHitExtra*) const':
+    /data/blyth/junotop/offline/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:314:50: error: 'FlagMask' is not a member of 'OpticksFlags'
+             << " " << std::setw(20) << OpticksFlags::FlagMask(hit->flag_mask, true)
+                                                      ^~~~~~~~
+    [ 94%] Built target GenDecay
+    make[2]: *** [Simulation/DetSimV2/PMTSim/CMakeFiles/PMTSim.dir/src/junoSD_PMT_v2_Opticks.cc.o] Error 1
+    make[2]: *** Waiting for unfinished jobs....
+    [ 94%] Built target GenGenie
+    make[1]: *** [Simulation/DetSimV2/PMTSim/CMakeFiles/PMTSim.dir/all] Error 2
+    make: *** [all] Error 2
+    ERROR: ERROR Found during make stage. 
+
+::
+
+    N[blyth@localhost offline]$ jcv junoSD_PMT_v2_Opticks
+
+
+
+
 opticks connection
 ---------------------
 
@@ -138,8 +193,14 @@ opticks connection
      51 
 
 
-* what was the special arrangement ? partly just a symbolic "opticks" link from HOME
-  into the junoenv managed opticks 
+* where are the Opticks packages hooked up ? 
+
+  * cmake/Modulues/FindOpticks.cmake does find_package(G4OK ...
+  * DONE: changed to G4CX  
+
+* what was the special arrangement ? 
+
+  1. symbolic "opticks" link from HOME into the junoenv managed opticks 
 
 ::
 
