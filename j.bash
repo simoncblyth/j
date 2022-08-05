@@ -2865,6 +2865,8 @@ ntds3()
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
 
+   export SCRIPT=$FUNCNAME  
+
    local opts="" 
    opts="$opts --opticks-mode 3"   
    opts="$opts --no-guide_tube"
