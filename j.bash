@@ -2886,7 +2886,10 @@ ntds3()
    echo $msg trgs : $trgs 
    echo $msg args : atrgs 
 
-   tds- $opts $trgs $args
+   case $(uname) in 
+      Linux) tds- $opts $trgs $args  ;;
+      Darwin) source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/$SCRIPT ;;
+   esac
 }
 
 
