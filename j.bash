@@ -2859,16 +2859,25 @@ tds3(){
 }
 
 
+logging(){
+   export GGeo=INFO
+   export G4CXOpticks=INFO
+   export GNodeLib=INFO
+}
+
+
+ntds0(){ OPTICKS_MODE=0 ntds3 ; }
 ntds3()
 {
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
+   local mode=${OPTICKS_MODE:-3}
 
    export SCRIPT=$FUNCNAME  
 
    local opts="" 
-   opts="$opts --opticks-mode 3"   
+   opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --disable-pmt-optical-model"
