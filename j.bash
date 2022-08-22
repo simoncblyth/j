@@ -7,14 +7,36 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
+
+How to test compilation without Opticks ? 
+------------------------------------------
+
+1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
+2. start a new terminal session
+3. get into env : jre
+4. redo the build : "jo ; ./build_Debug.sh"
+5. ntds3 will fail quickly, so test running with ntds0 
+
+Yuxiang JUNOLight
+--------------------
+
+* https://code.ihep.ac.cn/huyuxiang/ls_sim
+* https://code.ihep.ac.cn/huyuxiang/ls_sim/-/blob/main/LS_Sim/src/LSDetectorConstruction_Opticks.cc
+
+* https://code.ihep.ac.cn/huyuxiang/ls_sim/-/blob/main/LS_Sim/src/LSDetectorConstruction.cc
+
+
+
+PMTSim
+---------
+
+
 * https://juno.ihep.ac.cn/trac/browser/offline/trunk/Simulation/DetSimV2/PMTSim/src
 
 
 ::
 
    cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
-
-
 
 
 Was surprised that this worked::
@@ -108,6 +130,13 @@ Giuseppe, Xingtao and Weidong
 
 
 
+
+
+
+
+
+
+
 Mattermost
 ------------
 
@@ -146,6 +175,11 @@ proxy-git-cern is a function
 proxy-git-cern ()
 {
     ssh -f -N -D 37687 cern
+
+    : -f got to background before call
+    : -N do not execute remote command, useful for just forwarding ports
+    : -D setup forwarding port 37687, allocates a socket 
+    : cern the name of the remote machine in ssh_config
 }
 
 $ type proxy-setup-cern
@@ -160,7 +194,12 @@ proxy-setup-cern ()
     export HTTP_PROXY=${http_proxy};
     export HTTPS_PROXY=${https_proxy};
     export NO_PROXY=${no_proxy}
+
+    : see man curl
+    : NO_PROXY is list of hostname that should not go thru the proxy 
+
 }
+
 As socks5 is not supported by wget, so I had already modified junoenv to use cURL to download files. 
 For the github ssh access, I had setup following in $HOME/.gitconfig:
 
@@ -2860,21 +2899,25 @@ tds3(){
 
 
 logging(){
-   export GGeo=INFO
+   #export GGeo=INFO
    export G4CXOpticks=INFO
-   export GNodeLib=INFO
+   #export GNodeLib=INFO
+   #export SEvt=INFO
+   export junoSD_PMT_v2_Opticks=INFO
 }
 
 
 ntds0(){ OPTICKS_MODE=0 ntds3 ; }
 ntds3()
 {
+   env | grep =INFO
+
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
 
-   export SCRIPT=$FUNCNAME  
+   export SCRIPT=${SCRIPT:-$FUNCNAME} 
 
    local opts="" 
    opts="$opts --opticks-mode $mode"   
@@ -2895,10 +2938,15 @@ ntds3()
    echo $msg trgs : $trgs 
    echo $msg args : atrgs 
 
+   #BASE=/tmp/$USER/opticks/$SCRIPT   
+   BASE=.opticks/$SCRIPT   
+
    case $(uname) in 
       Linux) tds- $opts $trgs $args  ;;
-      Darwin) source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/$SCRIPT ;;
+      Darwin) source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
    esac
+
+   env | grep =INFO
 }
 
 
