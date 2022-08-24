@@ -1,3 +1,28 @@
+N[blyth@localhost offline]$ svn commit -m "Updated Opticks integration requiring latest Opticks, hidden behind WITH_G4CXOPTICKS macro, tests ongoing"
+Sending        Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh
+Sending        Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction_Opticks.hh
+Sending        Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc
+Sending        Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc
+Sending        Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+Sending        Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+Sending        Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+Sending        Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+Sending        Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h
+Sending        Simulation/DetSimV2/PhysiSim/include/LocalG4Cerenkov1042.hh
+Sending        Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+Sending        Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+Sending        Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+Sending        Simulation/GenTools/GenTools/GtOpticksTool.h
+Sending        Simulation/GenTools/src/GtOpticksTool.cc
+Transmitting file data ................
+Committed revision 5892.
+N[blyth@localhost offline]$ 
+
+
+
+
+
 
 N[blyth@localhost offline]$ svn ci -m "Hama and NNVT PMT simplified CSG model by actually cutting the CSG tree with Simulation/DetSimV2/PMTSim/src/ZSolid.h ZSolid::ApplyZCutTree "
 Sending        Examples/Tutorial/python/Tutorial/JUNODetSimModule.py

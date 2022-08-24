@@ -12,24 +12,23 @@ How to test compilation without Opticks ?
 ------------------------------------------
 
 1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
-2. start a new terminal session
-3. get into env : jre
-4. redo the build : "jo ; ./build_Debug.sh"
-5. ntds3 will fail quickly, so test running with ntds0 
+2. close terminal session and start a new one
+3. get into env : jre  (the "o" command should not be found, showing opticks not hookedup)
+4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
+5. ntds3 should fail at DetSim0Svc::initializeOpticks 
+6. ntds0 
+
 
 Yuxiang JUNOLight
 --------------------
 
 * https://code.ihep.ac.cn/huyuxiang/ls_sim
 * https://code.ihep.ac.cn/huyuxiang/ls_sim/-/blob/main/LS_Sim/src/LSDetectorConstruction_Opticks.cc
-
 * https://code.ihep.ac.cn/huyuxiang/ls_sim/-/blob/main/LS_Sim/src/LSDetectorConstruction.cc
-
 
 
 PMTSim
 ---------
-
 
 * https://juno.ihep.ac.cn/trac/browser/offline/trunk/Simulation/DetSimV2/PMTSim/src
 
@@ -2907,8 +2906,11 @@ logging(){
 }
 
 
-ntds0(){ OPTICKS_MODE=0 ntds3 ; }
-ntds3()
+ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
+ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
+#ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
+                                    #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
+ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 
