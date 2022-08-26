@@ -691,7 +691,7 @@ IGeomManager* PMTSim::getManager(const char* name)
 }
 
 
-const int PMTSim::NAME_OFFSET = 1 ;  // HMM from 0 ? 
+const int PMTSim::NAME_OFFSET = 0 ;  // HMM have needed to flip/flop 0<->1 
 
 /**
 PMTSim::getLV PMTSim::getPV PMTSim::getSolid

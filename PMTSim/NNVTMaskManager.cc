@@ -318,7 +318,7 @@ NNVTMaskManager::makeMaskOutLogical() {
                          mask_radiu_virtual/2}; // reduce the front R
 
 
-    G4VSolid* SolidMaskVirtual = new G4Polycone(
+    SolidMaskVirtual = new G4Polycone(
 				objName()+"sMask_virtual",
                                 0,
                                 360*deg,
@@ -627,7 +627,9 @@ G4VSolid* NNVTMaskManager::getSolid(const char* name)
     }
 
     G4VSolid* solid = nullptr ;
-   
+    // makeMaskOutLogical 
+    if(strcmp(name, "SolidMaskVirtual") == 0 ) solid = SolidMaskVirtual ;
+ 
     // makeMaskLogical
     if(strcmp(name, "TopOut") == 0 )     solid = Top_out ;
     if(strcmp(name, "BottomOut") == 0 )  solid = Bottom_out ;
@@ -668,8 +670,9 @@ G4PVPlacement*   NNVTMaskManager::getPV(const char* name)
 G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
 {
     G4LogicalVolume* lv = nullptr ; 
-    if(strcmp(name, "LogicMask") == 0 )     lv = logicMask ;      // makeMaskLogical
-    if(strcmp(name, "LogicMaskTail") == 0 ) lv = logicMaskTail ;  // makeMaskTailLogical
+    if(strcmp(name, "LogicMaskVirtual") == 0 ) lv = logicMaskVirtual ;      // makeMaskLogical
+    if(strcmp(name, "LogicMask") == 0 )        lv = logicMask ;      // makeMaskLogical
+    if(strcmp(name, "LogicMaskTail") == 0 )    lv = logicMaskTail ;  // makeMaskTailLogical
     return lv ; 
 }
 

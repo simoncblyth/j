@@ -57,6 +57,9 @@ public:
 #endif
 
 private:
+    // makeMaskOutLogical
+    G4VSolid* SolidMaskVirtual ; 
+
     // makeMaskLogical
     G4VSolid* Top_out ; 
     G4VSolid* Bottom_out ; 
