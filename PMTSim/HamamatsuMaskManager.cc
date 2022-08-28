@@ -828,3 +828,9 @@ G4PVPlacement*   HamamatsuMaskManager::getPV(const char* name)
     if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
     return pv ; 
 }
+
+
+NP* HamamatsuMaskManager::getValues(const char* prefix)
+{
+    return nullptr ; 
+}

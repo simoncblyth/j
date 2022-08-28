@@ -39,6 +39,11 @@ G4LogicalVolume* HamamatsuR12860PMTManager::getLV()
     return m_logical_pmt;
 }
 
+NP* HamamatsuR12860PMTManager::getValues(const char* prefix) 
+{
+    return nullptr ; 
+}
+
 G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();

@@ -188,6 +188,9 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
 }
 
 
+
+
+
 /**
 PMTSim::GetSolid_
 -------------------
@@ -231,6 +234,21 @@ G4VSolid* PMTSim::GetSolid_(const char* name) // static
     }
     return solid ; 
 }
+
+
+
+NP* PMTSim::GetValues(const char* name) // static
+{
+    NP* vv = nullptr ; 
+    if(HasManagerPrefix(name))   // names begins with one of : hama/nnvt/hmsk/nmsk/lchi
+    {
+        vv = GetManagerValues(name) ;
+    }
+    return vv ; 
+}
+
+
+
 
 bool PMTSim::StartsWithPrefix(const char* name, const char* prefix)  // static
 {
@@ -497,6 +515,16 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
     return solid ; 
 }
 
+
+NP* PMTSim::GetManagerValues(const char* name) // static
+{
+    PMTSim* ps = new PMTSim ; 
+    NP* vv = ps->getValues(name) ; 
+    return vv ; 
+}
+
+
+
 G4LogicalVolume* PMTSim::GetLV(const char* name) // static
 {
     std::cout << "[ PMTSim::GetLV [" << name << "]" << std::endl ; 
@@ -691,7 +719,7 @@ IGeomManager* PMTSim::getManager(const char* name)
 }
 
 
-const int PMTSim::NAME_OFFSET = 0 ;  // HMM have needed to flip/flop 0<->1 
+const int PMTSim::NAME_OFFSET = 0 ;  // HMM have needed to flip/flop 0<->1 TODO: be more clever parsing the name to decide 
 
 /**
 PMTSim::getLV PMTSim::getPV PMTSim::getSolid
@@ -718,6 +746,25 @@ G4LogicalVolume* PMTSim::getLV(const char* name_)
         ; 
 
     return mgr->getLV(name) ;  // +1 for _  
+}
+
+NP* PMTSim::getValues(const char* name_)
+{
+    IGeomManager* mgr = getManager(name_) ; 
+    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
+    NP* vv = mgr->getValues(name);  
+
+    std::cout 
+        << "PMTSim::getValues" 
+        << " name_ [" << name_ << "]"
+        << " name [" << name << "]"
+        << " mgr " << ( mgr ? "Y" : "N" ) 
+        << " NAME_OFFSET " << NAME_OFFSET 
+        << " vv " << ( vv ? vv->sstr() : "-" )
+        << std::endl
+        ; 
+
+    return vv ; 
 }
 
 G4VSolid* PMTSim::getSolid(const char* name_) 

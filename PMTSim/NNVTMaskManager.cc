@@ -18,6 +18,7 @@
 
 #ifdef PMTSIM_STANDALONE
 
+#include "NP.hh"
 #include <iostream>
 #include <iomanip>
 #define LogInfo  std::cout 
@@ -383,6 +384,14 @@ NNVTMaskManager::makeMaskLogical() {
             htop_out // pzTopCut
             );
 
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Top_out.pxySemiAxis.mask_radiu_out",  mask_radiu_out} ) ; 
+    m_values.push_back( {"SolidMask.Top_out.pzSemiAxis.htop_out"       ,  htop_out }) ; 
+    m_values.push_back( {"SolidMask.Top_out.pzBottomCut.-height_out"   , -height_out }) ; 
+    m_values.push_back( {"SolidMask.Top_out.pzTopCut.htop_out"         ,  htop_out }) ; 
+#endif
+
+
     Bottom_out = new G4Tubs(
             objName()+"Bottom_Tube",
             0*mm,   
@@ -391,12 +400,24 @@ NNVTMaskManager::makeMaskLogical() {
             0*deg, 
             360*deg);
 
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Bottom_out.hz.height_out/2",  height_out/2 } ) ; 
+#endif
+
+
     Mask_out = new G4UnionSolid
         (objName()+"sMask_out",
          Top_out ,
          Bottom_out ,
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Mask_out.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
+#endif
+    
+
 
     /* 
     G4Sphere*  Top_in = new G4Sphere(
@@ -419,6 +440,13 @@ NNVTMaskManager::makeMaskLogical() {
             htop_in  // pzTopCut
             );
 
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Top_in.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
+    m_values.push_back( {"SolidMask.Top_in.pzSemiAxis.htop_in",       htop_in }) ; 
+    m_values.push_back( {"SolidMask.Top_in.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) }) ; 
+    m_values.push_back( {"SolidMask.Top_in.pzTopCut.htop_in",   htop_in }); 
+#endif
+
     Bottom_in = new G4Tubs(
             objName()+"Bottom_Tube_in",
             0*mm,   
@@ -427,12 +455,26 @@ NNVTMaskManager::makeMaskLogical() {
             0*deg, 
             360*deg);
 
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Bottom_in.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 }) ; 
+#endif
+
+
     Mask_in = new G4UnionSolid
         (objName()+"sMask_in",
          Top_in ,
          Bottom_in ,
          0,
          G4ThreeVector(0,0,-height_in/2 + gap - uncoincide_z/2 )    ) ;
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMask.Mask_in.zoffset.-height_in/2 + gap - uncoincide_z/2", -height_in/2 + gap - uncoincide_z/2 }) ; 
+    m_values.push_back( {"SolidMask.Mask_in.zoffset.-height_in/2", -height_in/2 }) ; 
+    m_values.push_back( {"SolidMask.Mask_in.zoffset.gap", gap }) ; 
+    m_values.push_back( {"SolidMask.Mask_in.zoffset.-uncoincide_z/2",-uncoincide_z/2 }) ; 
+#endif
+
 
     solidMask = new G4SubtractionSolid(
             objName()+"sMask",
@@ -676,6 +718,20 @@ G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
     return lv ; 
 }
 
+#ifdef PMTSIM_STANDALONE
+NP* NNVTMaskManager::getValues(const char* prefix) 
+{ 
+     getLV(); 
+     std::cout << "NNVTMaskManager::getValues with PMTSIM_STANDALONE prefix [" << prefix << "] return NP::MakeValues  " << std::endl ;  
+     return NP::MakeValues(m_values, prefix) ; 
+}
+#else
+NP* NNVTMaskManager::getValues(const char* prefix) 
+{
+    std::cout << "NNVTMaskManager::getValues not PMTSIM_STANDALONE prefix [" << prefix << "] return nullptr " << std::endl ;  
+    return nullptr ; 
+}
+#endif
 
 #ifdef PMTSIM_STANDALONE
 #else
@@ -688,5 +744,8 @@ NNVTMaskManager::GetPosInPMT() {
     }
     return pos;
 }
+
+
+
 #endif
 

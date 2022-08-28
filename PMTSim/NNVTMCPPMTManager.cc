@@ -47,6 +47,10 @@ G4LogicalVolume* NNVTMCPPMTManager::getLV()
     if(!m_logical_pmt) init();
     return m_logical_pmt;
 }
+NP* NNVTMCPPMTManager::getValues(const char* prefix)
+{
+    return nullptr ; 
+}
 
 G4LogicalVolume* NNVTMCPPMTManager::getLV(const char* name)
 {

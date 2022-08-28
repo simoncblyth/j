@@ -25,9 +25,11 @@ class G4VPhysicalVolume;
 class G4PVPlacement ; 
 class G4Material;
 class IMCParamsSvc;
+struct NP ; 
 
 
 #ifdef PMTSIM_STANDALONE
+#include <vector>
 #include "PMTSIM_API_EXPORT.hh"
 class PMTSIM_API NNVTMaskManager : public IGeomManager  {
 #else
@@ -52,6 +54,7 @@ public:
 #ifdef PMTSIM_STANDALONE
     virtual ~NNVTMaskManager();
     const std::string& m_objName;
+    std::vector<std::pair<std::string, double>> m_values ; 
 #else
     ~NNVTMaskManager();
 #endif
@@ -88,6 +91,8 @@ public:
     G4LogicalVolume* getLV(const char* name); 
     G4PVPlacement*   getPV(const char* name);  
     G4VSolid*        getSolid(const char* name); 
+    NP*              getValues(const char* prefix); 
+
 
 private:
 

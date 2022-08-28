@@ -18,12 +18,15 @@ when they are compiled with the PMTSIM_STANDALONE switch::
 class G4LogicalVolume ; 
 class G4PVPlacement ;
 class G4VSolid ; 
+struct NP ; 
 
 struct IGeomManager
 {
     virtual G4LogicalVolume* getLV(const char* name) = 0 ;
     virtual G4PVPlacement*   getPV(const char* name) = 0 ;
     virtual G4VSolid*        getSolid(const char* name) = 0 ; 
+    virtual NP*              getValues(const char* prefix) = 0 ;             
+    // TODO: these should all be const qualified 
 }; 
 
 

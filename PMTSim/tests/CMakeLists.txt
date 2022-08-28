@@ -11,6 +11,7 @@ set(TEST_SOURCES
     DetectorConstructionTest.cc
     PMTSolidTest.cc
     GetSolidTest.cc
+    GetValuesTest.cc
     GetSolid_Test.cc
     GetPVTest.cc
 )

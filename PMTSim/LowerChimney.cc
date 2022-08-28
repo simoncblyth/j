@@ -115,6 +115,10 @@ G4VSolid*     LowerChimney::getSolid(const char* name)
    return so ; 
 }
 
+NP* LowerChimney::getValues(const char* prefix) 
+{
+    return nullptr ;  
+}
 
 
 void LowerChimney::dump(const char* msg) const 
