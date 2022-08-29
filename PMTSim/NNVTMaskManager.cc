@@ -461,10 +461,10 @@ NNVTMaskManager::makeMaskLogical() {
             );
 
 #ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMask.MaskOut.Top_out.pxySemiAxis.mask_radiu_out",  mask_radiu_out} ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Top_out.pzSemiAxis.htop_out"       ,  htop_out }) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Top_out.pzBottomCut.-height_out"   , -height_out }) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Top_out.pzTopCut.htop_out"         ,  htop_out }) ; 
+    m_values.push_back( {"SolidMask.MaskOut.TopOut.pxySemiAxis.mask_radiu_out",  mask_radiu_out} ) ; 
+    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzSemiAxis.htop_out"       ,  htop_out }) ; 
+    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzBottomCut.-height_out"   , -height_out }) ; 
+    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzTopCut.htop_out"         ,  htop_out }) ; 
 #endif
 
 
@@ -492,10 +492,10 @@ Bottom_out z range without and with the offset::
 
 **/
 
-    m_values.push_back( {"SolidMask.MaskOut.Bottom_out.hz.height_out/2"   ,  height_out/2 } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Bottom_out.z1.gap"            ,  gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Bottom_out.z0.-height_out+gap",  -height_out + gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.Bottom_out.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
+    m_values.push_back( {"SolidMask.MaskOut.BottomOut.hz.height_out/2"   ,  height_out/2 } ) ; 
+    m_values.push_back( {"SolidMask.MaskOut.BottomOut.z1.gap"            ,  gap } ) ; 
+    m_values.push_back( {"SolidMask.MaskOut.BottomOut.z0.-height_out+gap",  -height_out + gap } ) ; 
+    m_values.push_back( {"SolidMask.MaskOut.BottomOut.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
 #endif
 
 
@@ -525,12 +525,12 @@ Bottom_out z range without and with the offset::
     // coincidence on the lower edge with the outer ellipsoid : but both ellipsoids 
     // are serving no purpose in these region because they are unioned with cylinders 
 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pzSemiAxis.htop_in",       htop_in }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pzBottomCut.-height_in", -height_in  }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pzBottomCut.uncoincide_z", uncoincide_z }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Top_in.pzTopCut.htop_in",   htop_in }); 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzSemiAxis.htop_in",       htop_in }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.-height_in", -height_in  }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.uncoincide_z", uncoincide_z }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzTopCut.htop_in",   htop_in }); 
 #endif
 
     Bottom_in = new G4Tubs(
@@ -565,11 +565,11 @@ BUT: the upper edges of both cylinders are still coincident
 
 **/
 
-    m_values.push_back( {"SolidMask.MaskIn.Bottom_in.hz.height_in/2",                  height_in/2  }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Bottom_in.hz.uncoincide_z/2",               uncoincide_z/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Bottom_in.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Bottom_in.z1.gap"                         ,  gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskIn.Bottom_in.z0.-height_in-uncoincide_z+gap",  -height_in - uncoincide_z + gap } ) ; 
+    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.height_in/2",                  height_in/2  }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.uncoincide_z/2",               uncoincide_z/2 }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 }) ; 
+    m_values.push_back( {"SolidMask.MaskIn.BottomIn.z1.gap"                         ,  gap } ) ; 
+    m_values.push_back( {"SolidMask.MaskIn.BottomIn.z0.-height_in-uncoincide_z+gap",  -height_in - uncoincide_z + gap } ) ; 
 
 #endif
 
