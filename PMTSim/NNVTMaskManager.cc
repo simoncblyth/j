@@ -357,24 +357,100 @@ NNVTMaskManager::makeMaskOutLogical() {
 NNVTMaskManager::makeMaskLogical
 ----------------------------------
 
-See HamamatsuMaskManager::makeMaskLogical for explanation of uncoincide_z 
+See also HamamatsuMaskManager::makeMaskLogical 
+
+::
+
+
+      +hz   +-----------+                     +-----------+            zoff + new_hz 
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+      0     +-----------+ - - - - - - - - - - - - - - - - - - -          
+            |           |                     |___________| _ _ _ _ _ _ zoff _ _ _ _ _ _ 
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+            |           |                     |           |
+      -hz   +-----------+ - - - - - - - - - - - - - - - - - - -
+                                              |           | 
+                                              |           |
+      -hz - uncoincide                        +~~~~~~~~~~~+            zoff - new_hz
+
+      (uncoincide +ve)
+
+
+
+Top and bottom line equations::
+
+       +hz                = zoff + new_hz 
+       -hz - uncoincide   = zoff - new_hz
+
+Add and subtract the line equations::
+
+          -uncoincide    = 2*zoff         => zoff = -uncoincide/2 
+
+         2*hz + uncoincide = 2*new_hz     => new_hz = hz + uncoincide/2        
+
+
+So changing hz by +uncoincide/2 and zoffset by -uncoincide/2  keeps upper edge at same position
+but changes lower edge by -uncoincide. 
+
+
+Both G4Ellipsoid and G4Tubs extend down to the same coincident Z edge. 
+The ellipsoid extends below zero and the cylinder does too changing the shape of the edge. 
+To avoid coincidence in the subtraction must extend the lower edges downwards. 
+
+
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+|  GEOM                       |  Member                      | Note                                                                     |
++=============================+==============================+==========================================================================+
+| nmskTopOut                  |  Top_out                     |  +Z : more-than-hemi-ellipsoid extending below zero in Z                 |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskBottomOut               |  Bottom_out                  |  coin proportions cylinder                                               |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskMaskOut                 |  Mask_out                    |  +Z hat cap extending below zero in Z                                    |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskTopIn                   |  Top_in                      |  +Z looks like nmskTopOut                                                |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskBottomIn                |  Bottom_in                   |  just like nmskBottomOut                                                 |       
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskMaskIn                  |  Mask_in                     |  looks the same as the Outer                                             |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+| nmskSolidMask               |  solidMask                   |  upsidedown bowl without stand                                           |
++-----------------------------+------------------------------+--------------------------------------------------------------------------+
+
+
+
+
+
+
+
+
+
+                                       
+                          .     +     .          - - - - - - - - - - -  
+                     .                     .
+                         
+                 .                             .          htop_out
+                 
+                .                                .
+          ------+--------------------------------+-------------------               
+                .                               .      
+                                                         -height_out
+                                                      
+                   +--------------------------+    - - - - - - - - - - - - 
+
+
+
 
 **/
 
 void
 NNVTMaskManager::makeMaskLogical() {
     
-    /* 
-    G4Sphere*  Top_out = new G4Sphere(
-            "Top_Sphere",
-            0*mm, 
-            mask_radiu_out, 
-            0*deg,
-            360*deg, 
-            0*deg,
-            90*deg 
-            );
-    */
     Top_out = new G4Ellipsoid(
             objName()+"Top_Sphere",
             mask_radiu_out, // pxSemiAxis
@@ -402,7 +478,24 @@ NNVTMaskManager::makeMaskLogical() {
 
 
 #ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMask.Bottom_out.hz.height_out/2",  height_out/2 } ) ; 
+/**
+Bottom_out z range without and with the offset::    
+
+
+           +-----------------+  +height_out/2                gap       
+           |                 |
+           |                 |
+           +-----------------+     0.                  
+           |                 |
+           |                 |
+           +-----------------+  -height_out/2              -height_out + gap 
+
+**/
+
+    m_values.push_back( {"SolidMask.Bottom_out.hz.height_out/2"   ,  height_out/2 } ) ; 
+    m_values.push_back( {"SolidMask.Bottom_out.z1.gap"            ,  gap } ) ; 
+    m_values.push_back( {"SolidMask.Bottom_out.z0.-height_out+gap",  -height_out + gap } ) ; 
+    m_values.push_back( {"SolidMask.Bottom_out.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
 #endif
 
 
@@ -413,24 +506,10 @@ NNVTMaskManager::makeMaskLogical() {
          0,
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMask.Mask_out.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
-#endif
-    
 
+    //G4double uncoincide_z = 1.*mm ;
+    G4double uncoincide_z = 0.*mm ;
 
-    /* 
-    G4Sphere*  Top_in = new G4Sphere(
-            "Top_Sphere_in",
-            0*mm, 
-            mask_radiu_in, 
-            0*deg,
-            360*deg, 
-            0*deg,
-            90*deg 
-            );
-    */
-    G4double uncoincide_z = 1.*mm ;
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
             mask_radiu_in, // pxSemiAxis
@@ -441,9 +520,16 @@ NNVTMaskManager::makeMaskLogical() {
             );
 
 #ifdef PMTSIM_STANDALONE
+
+    // HMM: inner ellipsoid pzBottomCut is shifted downwards by uncoincide_z to avoid 
+    // coincidence on the lower edge with the outer ellipsoid : but both ellipsoids 
+    // are serving no purpose in these region because they are unioned with cylinders 
+
     m_values.push_back( {"SolidMask.Top_in.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
     m_values.push_back( {"SolidMask.Top_in.pzSemiAxis.htop_in",       htop_in }) ; 
     m_values.push_back( {"SolidMask.Top_in.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) }) ; 
+    m_values.push_back( {"SolidMask.Top_in.pzBottomCut.-height_in", -height_in  }) ; 
+    m_values.push_back( {"SolidMask.Top_in.pzBottomCut.uncoincide_z", uncoincide_z }) ; 
     m_values.push_back( {"SolidMask.Top_in.pzTopCut.htop_in",   htop_in }); 
 #endif
 
@@ -457,7 +543,34 @@ NNVTMaskManager::makeMaskLogical() {
 
 
 #ifdef PMTSIM_STANDALONE
+/**
+Bottom_in z range::
+
+                                   without offset                                with offset        
+
+           +-----------------+  +height_in/2 + uncoincide_z/2                      gap     
+           |                 |
+           |                 |
+           +-----------------+     0.                  
+           |                 |
+           |                 |
+           +-----------------+  -(height_in/2 + uncoincide_z/2 )               -height_in - uncoincide_z + gap 
+
+
+half height of inner cylinder is expanded by uncoincide_z/2
+and the G4UnionSolid zoffset is reduced by uncoincide_z/2 to keep the upper 
+edge of the cylinder at same place but with lower edge of cylinder
+expanded outwards avoiding coincidence in the subtraction.
+BUT: the upper edges of both cylinders are still coincident
+
+**/
+
+    m_values.push_back( {"SolidMask.Bottom_in.hz.height_in/2",                  height_in/2  }) ; 
+    m_values.push_back( {"SolidMask.Bottom_in.hz.uncoincide_z/2",               uncoincide_z/2 }) ; 
     m_values.push_back( {"SolidMask.Bottom_in.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 }) ; 
+    m_values.push_back( {"SolidMask.Bottom_in.z1.gap"                         ,  gap } ) ; 
+    m_values.push_back( {"SolidMask.Bottom_in.z0.-height_in-uncoincide_z+gap",  -height_in - uncoincide_z + gap } ) ; 
+
 #endif
 
 

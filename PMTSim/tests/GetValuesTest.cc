@@ -1,6 +1,3 @@
-#include <cassert>
-#include <cstdio>
-
 #include "SSys.hh"
 #include "NP.hh"
 #include "PMTSim.hh"

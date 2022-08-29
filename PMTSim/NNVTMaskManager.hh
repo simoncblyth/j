@@ -43,48 +43,17 @@ public:
     G4double GetZEquator();
 
 #ifdef PMTSIM_STANDALONE
+    const std::string& m_objName;
     const std::string& objName() { return m_objName; }
+    std::vector<std::pair<std::string, double>> m_values ; 
+    virtual ~NNVTMaskManager();
 #else
     G4ThreeVector GetPosInPMT();
     bool inject(std::string motherName, IDetElement* other, IDetElementPos* pos);
-#endif
-
-    NNVTMaskManager(const std::string& name);
-
-#ifdef PMTSIM_STANDALONE
-    virtual ~NNVTMaskManager();
-    const std::string& m_objName;
-    std::vector<std::pair<std::string, double>> m_values ; 
-#else
     ~NNVTMaskManager();
 #endif
 
-private:
-    // makeMaskOutLogical
-    G4VSolid* SolidMaskVirtual ; 
-
-    // makeMaskLogical
-    G4VSolid* Top_out ; 
-    G4VSolid* Bottom_out ; 
-    G4VSolid* Mask_out ; 
-    G4VSolid* Top_in ; 
-    G4VSolid* Bottom_in ; 
-    G4VSolid* Mask_in ; 
-    G4VSolid* solidMask ; 
-
-    // makeMaskTailLogical
-    G4VSolid* Tail_outer_I_Ellipsoid ;  
-    G4VSolid* Tail_outer_I_Tube ;  
-    G4VSolid* Tail_outer_I ;  
-    G4VSolid* Tail_outer_II_Tube ;  
-    G4VSolid* Tail_outer ;  
-    G4VSolid* Tail_inner_I_Ellipsoid ;
-    G4VSolid* Tail_inner_I_Tube ;  
-    G4VSolid* Tail_inner_I ;  
-    G4VSolid* Tail_inner_II_Tube ;  
-    G4VSolid* Tail_inner ;  
-    G4VSolid* solidMaskTail ; 
-    
+    NNVTMaskManager(const std::string& name);
 
 public:
      // debug interface
@@ -92,7 +61,6 @@ public:
     G4PVPlacement*   getPV(const char* name);  
     G4VSolid*        getSolid(const char* name); 
     NP*              getValues(const char* prefix); 
-
 
 private:
 
@@ -126,6 +94,33 @@ private:
     G4Material* Water;
     G4Material* AcrylicMask;
     G4Material* Steel;           
+
+private:
+    // makeMaskOutLogical
+    G4VSolid* SolidMaskVirtual ; 
+
+    // makeMaskLogical
+    G4VSolid* Top_out ; 
+    G4VSolid* Bottom_out ; 
+    G4VSolid* Mask_out ; 
+    G4VSolid* Top_in ; 
+    G4VSolid* Bottom_in ; 
+    G4VSolid* Mask_in ; 
+    G4VSolid* solidMask ; 
+
+    // makeMaskTailLogical
+    G4VSolid* Tail_outer_I_Ellipsoid ;  
+    G4VSolid* Tail_outer_I_Tube ;  
+    G4VSolid* Tail_outer_I ;  
+    G4VSolid* Tail_outer_II_Tube ;  
+    G4VSolid* Tail_outer ;  
+    G4VSolid* Tail_inner_I_Ellipsoid ;
+    G4VSolid* Tail_inner_I_Tube ;  
+    G4VSolid* Tail_inner_I ;  
+    G4VSolid* Tail_inner_II_Tube ;  
+    G4VSolid* Tail_inner ;  
+    G4VSolid* solidMaskTail ; 
+
 private:
     double mask_radiu_in;
     double mask_radiu_out;
