@@ -752,7 +752,11 @@ NP* PMTSim::getValues(const char* name_)
 {
     IGeomManager* mgr = getManager(name_) ; 
     const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
-    NP* vv = mgr->getValues(name);  
+
+    NP* vv0 = mgr->getValues(name);  
+
+    // if the name prefix fails to yield any values, try again with null to get all values
+    NP* vv = vv0 == nullptr ? mgr->getValues(nullptr) : vv0 ;  
 
     std::cout 
         << "PMTSim::getValues" 
@@ -760,6 +764,7 @@ NP* PMTSim::getValues(const char* name_)
         << " name [" << name << "]"
         << " mgr " << ( mgr ? "Y" : "N" ) 
         << " NAME_OFFSET " << NAME_OFFSET 
+        << " vv0 " << ( vv0 ? vv0->sstr() : "-" )
         << " vv " << ( vv ? vv->sstr() : "-" )
         << std::endl
         ; 
