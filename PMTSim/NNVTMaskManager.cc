@@ -507,8 +507,8 @@ Bottom_out z range without and with the offset::
          G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
 
 
-    //G4double uncoincide_z = 1.*mm ;
-    G4double uncoincide_z = 0.*mm ;
+    G4double uncoincide_z = 1.*mm ;
+    //G4double uncoincide_z = 0.*mm ;
 
     Top_in = new G4Ellipsoid(
             objName()+"Top_Sphere_in",
@@ -647,6 +647,14 @@ NNVTMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out", mask_radiu_out }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out", htop_out }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzBottomCut.-htop_out", -htop_out }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzTopCut.-height_out", -height_out }) ; 
+#endif
+
+
     Tail_outer_I_Tube = new G4Tubs(
             objName()+"Tail_outer_PartI_Tube",
             0*mm,   
@@ -654,6 +662,13 @@ NNVTMaskManager::makeMaskTailLogical() {
             paramRealMaskTail.edge_height/2,  
             0*deg, 
             360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out", mask_radiu_out }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterITube.halfheightz.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2)", -(height_out+paramRealMaskTail.edge_height/2) }) ; 
+#endif
 
     Tail_outer_I = new G4UnionSolid
         (objName()+"Tail_outer_PartI",
@@ -669,6 +684,14 @@ NNVTMaskManager::makeMaskTailLogical() {
          paramRealMaskTail.height/2,
          0*deg,
          360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIITube.halfheightz.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2)", -(height_out+paramRealMaskTail.height/2) }) ; 
+#endif
+
                                            
     Tail_outer = new G4UnionSolid
         (objName()+"Tail_outer",
