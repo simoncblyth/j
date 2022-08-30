@@ -832,16 +832,25 @@ G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
 }
 
 #ifdef PMTSIM_STANDALONE
-NP* NNVTMaskManager::getValues(const char* prefix) 
+NP* NNVTMaskManager::getValues(const char* contains) 
 { 
-     getLV(); 
-     std::cout << "NNVTMaskManager::getValues with PMTSIM_STANDALONE prefix [" << prefix << "] return NP::MakeValues  " << std::endl ;  
-     return NP::MakeValues(m_values, prefix) ; 
+    getLV(); 
+    std::cout 
+        << "NNVTMaskManager::getValues with PMTSIM_STANDALONE"
+        << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 
+        << " m_values.size " << m_values.size()
+        << std::endl 
+        ;  
+    return NP::MakeValues(m_values, contains) ; 
 }
 #else
-NP* NNVTMaskManager::getValues(const char* prefix) 
+NP* NNVTMaskManager::getValues(const char* contains) 
 {
-    std::cout << "NNVTMaskManager::getValues not PMTSIM_STANDALONE prefix [" << prefix << "] return nullptr " << std::endl ;  
+    std::cout 
+        << "NNVTMaskManager::getValues NOT-WITH PMTSIM_STANDALONE" 
+        << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 
+        << std::endl 
+        ;  
     return nullptr ; 
 }
 #endif
