@@ -666,7 +666,7 @@ NNVTMaskManager::makeMaskTailLogical() {
 
 #ifdef PMTSIM_STANDALONE
     m_values.push_back( {"SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out", mask_radiu_out }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterITube.halfheightz.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 }) ; 
     m_values.push_back( {"SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2)", -(height_out+paramRealMaskTail.edge_height/2) }) ; 
 #endif
 
@@ -688,7 +688,7 @@ NNVTMaskManager::makeMaskTailLogical() {
 
 #ifdef PMTSIM_STANDALONE
     m_values.push_back( {"SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIITube.halfheightz.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 }) ; 
     m_values.push_back( {"SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2)", -(height_out+paramRealMaskTail.height/2) }) ; 
 #endif
 
@@ -712,7 +712,18 @@ NNVTMaskManager::makeMaskTailLogical() {
             -height_out // pzTopCut
             );
 
-    G4double uncoincide_inner_z = 1.0*mm ; 
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in", htop_in }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzBottomCut.-htop_in", -htop_in }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzTopCut.-height_out", -height_out }) ; 
+#endif
+
+
+
+
+    //G4double uncoincide_inner_z = 1.0*mm ; 
+    G4double uncoincide_inner_z = 0.0*mm ; 
     // expand Tubs hz and offset upwards to keep lower edge at same place 
     // whilst expanding the inner upwards to avoid coincidence in subtraction
     // see HamamatsuMaskManager for full explanation
@@ -724,6 +735,18 @@ NNVTMaskManager::makeMaskTailLogical() {
             paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ,  
             0*deg, 
             360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailInnerITube.uncoincide_inner_z/2", uncoincide_inner_z/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerITube.outerRadius.mask_radiu_in", mask_radiu_in }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerITube.zhalfheight.paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2", 
+                                                                   paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 }) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2",
+                                                               -(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2 });  
+#endif
+
+
 
     Tail_inner_I = new G4UnionSolid
         (objName()+"Tail_inner_PartI",
@@ -740,12 +763,21 @@ NNVTMaskManager::makeMaskTailLogical() {
          0*deg,
          360*deg);
                                            
+#ifdef PMTSIM_STANDALONE
+    m_values.push_back( {"SolidMaskTail.TailInnerIITube.outerRadius.paramRealMaskTail.r2 - requator_thickness", paramRealMaskTail.r2 - requator_thickness}) ; 
+    m_values.push_back( {"SolidMaskTail.TailInnerIITube.zhalfheight.(paramRealMaskTail.height-htop_thickness)/2", (paramRealMaskTail.height-htop_thickness)/2 });  
+    m_values.push_back( {"SolidMaskTail.TailInnerIITube.zoffset.-(height_out+(paramRealMaskTail.height-htop_thickness)/2)", 
+                                                                -(height_out+(paramRealMaskTail.height-htop_thickness)/2) } ); 
+#endif
+
+
     Tail_inner = new G4UnionSolid
         (objName()+"Tail_inner",
          Tail_inner_I,
          Tail_inner_II_Tube,
          0,
          G4ThreeVector(0.0, 0.0, -(height_out+(paramRealMaskTail.height-htop_thickness)/2)));
+
 
     // outer - inner
     solidMaskTail = new G4SubtractionSolid(
