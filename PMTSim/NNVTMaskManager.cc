@@ -722,8 +722,8 @@ NNVTMaskManager::makeMaskTailLogical() {
 
 
 
-    //G4double uncoincide_inner_z = 1.0*mm ; 
-    G4double uncoincide_inner_z = 0.0*mm ; 
+    G4double uncoincide_inner_z = 1.0*mm ; 
+    //G4double uncoincide_inner_z = 0.0*mm ; 
     // expand Tubs hz and offset upwards to keep lower edge at same place 
     // whilst expanding the inner upwards to avoid coincidence in subtraction
     // see HamamatsuMaskManager for full explanation
