@@ -39,6 +39,7 @@ DECLARE_TOOL(LowerChimney);
 LowerChimney::LowerChimney(const std::string& name)
     :
 #ifdef PMTSIM_STANDALONE
+    IGeomManager(name),
 #else
     ToolBase(name),
 #endif

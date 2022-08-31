@@ -17,10 +17,6 @@
 
 
 #ifdef PMTSIM_STANDALONE
-
-#include "NP.hh"
-#include <iostream>
-#include <iomanip>
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 using namespace CLHEP;
@@ -37,13 +33,12 @@ DECLARE_TOOL(NNVTMaskManager);
 #endif
 
 NNVTMaskManager::NNVTMaskManager(const std::string& name)
-    :
-#ifdef PMTSIM_STANDALONE
-    m_objName(name),
+#ifndef PMTSIM_STANDALONE
+    : ToolBase(name)
 #else
-    ToolBase(name),
+    : IGeomManager(name)
 #endif
-    logicMaskVirtual(NULL)
+    , logicMaskVirtual(NULL)
     , logicMask(NULL), physiMask(NULL)
     , logicMaskTail(NULL), physiMaskTail(NULL)
     , LAB(NULL), Acrylic(NULL), Water(NULL), AcrylicMask(NULL), Steel(NULL)
@@ -55,17 +50,6 @@ NNVTMaskManager::NNVTMaskManager(const std::string& name)
     , inner_pmt(NULL)
     //, m_scope(0)
 {
-
-#ifdef PMTSIM_STANDALONE
-    m_buffer_material = "Water" ; 
-    htop_thickness=8.*mm ;
-    htop_gap=2.*mm ;
-    requator_thickness=8.*mm ;
-    requator_gap=2.*mm ;
-    m_useRealSurface=true ;
-    m_useRealMaskTail=true ;
-    m_useMaskTailOpSurface=true ;
-#else
     declProp("BufferMaterial", m_buffer_material = "Water");
     declProp("TopThickness", htop_thickness=8.*mm);
     declProp("TopGap", htop_gap=2.*mm); // gap between PMT and Mask at top
@@ -76,7 +60,6 @@ NNVTMaskManager::NNVTMaskManager(const std::string& name)
     declProp("UseRealSurface", m_useRealSurface=true);
     declProp("UseRealMaskTail", m_useRealMaskTail=true);
     declProp("UseMaskTailOpSurface", m_useMaskTailOpSurface=true);
-#endif
 
     logicMaskVirtual = 0;
 
@@ -128,11 +111,6 @@ G4double
 NNVTMaskManager::GetZEquator() {
     return mask_radiu_virtual;
 }
-
-
-#ifdef PMTSIM_STANDALONE
-#else
-
 bool
 NNVTMaskManager::inject(std::string motherName, IDetElement* other, IDetElementPos* /*pos*/) {
     // initialize self.
@@ -149,8 +127,12 @@ NNVTMaskManager::inject(std::string motherName, IDetElement* other, IDetElementP
     }
 
     // retrieve the daughter's LV
+#ifndef PMTSIM_STANDALONE
     inner_pmt = dynamic_cast<IPMTElement*>(other);
     G4LogicalVolume* daughtervol = other->getLV();
+#else
+    G4LogicalVolume* daughtervol = nullptr ; 
+#endif
 
     if (not daughtervol) {
         LogError << "Can't find the daughter volume " << std::endl;
@@ -171,7 +153,6 @@ NNVTMaskManager::inject(std::string motherName, IDetElement* other, IDetElementP
     
     return true;
 }
-#endif
 
 void
 NNVTMaskManager::initVariables() {
@@ -353,6 +334,438 @@ NNVTMaskManager::makeMaskOutLogical() {
     logicMaskVirtual -> SetVisAttributes(maskout_visatt);
 }
 
+void
+NNVTMaskManager::makeMaskLogical() {
+
+
+    G4double uncoincide_z = 1.*mm ;
+    //G4double uncoincide_z = 0.*mm ;
+
+    
+    /* 
+    G4Sphere*  Top_out = new G4Sphere(
+            "Top_Sphere",
+            0*mm, 
+            mask_radiu_out, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
+    G4Ellipsoid* Top_out = new G4Ellipsoid(
+            objName()+"Top_Sphere",
+            mask_radiu_out, // pxSemiAxis
+            mask_radiu_out, // pySemiAxis
+            htop_out,  // pzSemiAxis
+            -height_out, // pzBottomCut
+            htop_out // pzTopCut
+            );
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMask.MaskOut.TopOut.pxySemiAxis.mask_radiu_out",  mask_radiu_out ) ; 
+    addValue("SolidMask.MaskOut.TopOut.pzSemiAxis.htop_out"       ,  htop_out ) ; 
+    addValue("SolidMask.MaskOut.TopOut.pzBottomCut.-height_out"   , -height_out ) ; 
+    addValue("SolidMask.MaskOut.TopOut.pzTopCut.htop_out"         ,  htop_out ) ; 
+#endif
+
+
+    Bottom_out = new G4Tubs(
+            objName()+"Bottom_Tube",
+            0*mm,   
+            mask_radiu_out,  
+            height_out/2,  
+            0*deg, 
+            360*deg);
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMask.MaskOut.BottomOut.hz.height_out/2"   ,  height_out/2 ) ; 
+    addValue("SolidMask.MaskOut.BottomOut.z1.gap"            ,  gap ) ; 
+    addValue("SolidMask.MaskOut.BottomOut.z0.-height_out+gap",  -height_out + gap ) ; 
+    addValue("SolidMask.MaskOut.BottomOut.zoffset.-height_out/2+gap",  -height_out/2 + gap ) ; 
+#endif
+
+
+    Mask_out = new G4UnionSolid
+        (objName()+"sMask_out",
+         Top_out ,
+         Bottom_out ,
+         0,
+         G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
+
+    /* 
+    G4Sphere*  Top_in = new G4Sphere(
+            "Top_Sphere_in",
+            0*mm, 
+            mask_radiu_in, 
+            0*deg,
+            360*deg, 
+            0*deg,
+            90*deg 
+            );
+    */
+    Top_in = new G4Ellipsoid(
+            objName()+"Top_Sphere_in",
+            mask_radiu_in, // pxSemiAxis
+            mask_radiu_in, // pySemiAxis
+            htop_in,  // pzSemiAxis
+            -(height_in + uncoincide_z), // pzBottomCut
+            htop_in  // pzTopCut
+            );
+
+#ifdef PMTSIM_STANDALONE
+    // HMM: inner ellipsoid pzBottomCut is shifted downwards by uncoincide_z to avoid 
+    // coincidence on the lower edge with the outer ellipsoid : but both ellipsoids 
+    // are serving no purpose in this region because they are unioned with cylinders 
+
+    addValue("SolidMask.MaskIn.TopIn.pxySemiAxis.mask_radiu_in", mask_radiu_in ) ; 
+    addValue("SolidMask.MaskIn.TopIn.pzSemiAxis.htop_in",       htop_in ) ; 
+    addValue("SolidMask.MaskIn.TopIn.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) ) ; 
+    addValue("SolidMask.MaskIn.TopIn.pzBottomCut.-height_in", -height_in  ) ; 
+    addValue("SolidMask.MaskIn.TopIn.pzBottomCut.uncoincide_z", uncoincide_z ) ; 
+    addValue("SolidMask.MaskIn.TopIn.pzTopCut.htop_in",   htop_in ); 
+#endif
+
+    Bottom_in = new G4Tubs(
+            objName()+"Bottom_Tube_in",
+            0*mm,   
+            mask_radiu_in,  
+            height_in/2 + uncoincide_z/2 ,  
+            0*deg, 
+            360*deg);
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMask.MaskIn.BottomIn.hz.height_in/2",                  height_in/2  ) ; 
+    addValue("SolidMask.MaskIn.BottomIn.hz.uncoincide_z/2",               uncoincide_z/2 ) ; 
+    addValue("SolidMask.MaskIn.BottomIn.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 ) ; 
+    addValue("SolidMask.MaskIn.BottomIn.z1.gap"                         ,  gap ) ; 
+    addValue("SolidMask.MaskIn.BottomIn.z0.-height_in-uncoincide_z+gap",  -height_in - uncoincide_z + gap ) ; 
+#endif
+
+
+    Mask_in = new G4UnionSolid
+        (objName()+"sMask_in",
+         Top_in ,
+         Bottom_in ,
+         0,
+         G4ThreeVector(0,0,-height_in/2 + gap - uncoincide_z/2 )    ) ;
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMask.MaskIn.zoffset.-height_in/2 + gap - uncoincide_z/2", -height_in/2 + gap - uncoincide_z/2 ) ; 
+    addValue("SolidMask.MaskIn.zoffset.-height_in/2", -height_in/2 ) ; 
+    addValue("SolidMask.MaskIn.zoffset.gap", gap ) ; 
+    addValue("SolidMask.MaskIn.zoffset.-uncoincide_z/2",-uncoincide_z/2 ) ; 
+#endif
+
+
+    solidMask = new G4SubtractionSolid(
+            objName()+"sMask",
+            Mask_out,
+            Mask_in,
+            0,
+            G4ThreeVector(0,0,0)
+            );
+    
+    logicMask = new G4LogicalVolume(
+            solidMask, 
+            //Acrylic, 
+            AcrylicMask,
+            objName()+"lMask",
+            0,
+            0,
+            0);
+    G4VisAttributes* mask_visatt = new G4VisAttributes(G4Colour(1.0, 0, 1.0));
+    mask_visatt -> SetForceWireframe(true);  
+    mask_visatt -> SetForceAuxEdgeVisible(true);
+    //mask_visatt -> SetForceSolid(true);
+    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
+    logicMask -> SetVisAttributes(mask_visatt);
+}
+
+void
+NNVTMaskManager::makeMaskPhysical() {
+    physiMask = new G4PVPlacement(0,              // no rotation
+            G4ThreeVector(0,0,0), // at (x,y,z)
+            logicMask,    // its logical volume 
+            objName()+"pMask",       // its name
+            logicMaskVirtual,  // its mother  volume
+            false,           // no boolean operations
+            0);              // no particular field
+}
+
+
+void
+NNVTMaskManager::makeMaskTailLogical() {
+    // outer
+
+    Tail_outer_I_Ellipsoid = new G4Ellipsoid(
+            objName()+"Tail_outer_PartI_Ellipsoid",
+            mask_radiu_out, // pxSemiAxis
+            mask_radiu_out, // pySemiAxis
+            htop_out,  // pzSemiAxis
+            -htop_out, // pzBottomCut (TODO)
+            -height_out // pzTopCut
+            );
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out", mask_radiu_out ) ; 
+    addValue("SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out", htop_out ) ; 
+    addValue("SolidMaskTail.TailOuterIEllipsoid.pzBottomCut.-htop_out", -htop_out ) ; 
+    addValue("SolidMaskTail.TailOuterIEllipsoid.pzTopCut.-height_out", -height_out ) ; 
+#endif
+
+
+    Tail_outer_I_Tube = new G4Tubs(
+            objName()+"Tail_outer_PartI_Tube",
+            0*mm,   
+            mask_radiu_out,  
+            paramRealMaskTail.edge_height/2,  
+            0*deg, 
+            360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out", mask_radiu_out ) ; 
+    addValue("SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 ) ; 
+    addValue("SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2)", -(height_out+paramRealMaskTail.edge_height/2) ) ; 
+#endif
+
+    Tail_outer_I = new G4UnionSolid
+        (objName()+"Tail_outer_PartI",
+         Tail_outer_I_Ellipsoid ,
+         Tail_outer_I_Tube ,
+         0,
+         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2))) ;
+
+    Tail_outer_II_Tube = new G4Tubs
+        (objName()+"Tail_outer_PartII",
+         0*mm,
+         paramRealMaskTail.r2,
+         paramRealMaskTail.height/2,
+         0*deg,
+         360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 ) ; 
+    addValue("SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 ) ; 
+    addValue("SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2)", -(height_out+paramRealMaskTail.height/2) ) ; 
+#endif
+
+                                           
+    Tail_outer = new G4UnionSolid
+        (objName()+"Tail_outer",
+         Tail_outer_I,
+         Tail_outer_II_Tube,
+         0,
+         G4ThreeVector(0.0, 0.0, -(height_out+paramRealMaskTail.height/2)));
+
+
+    // inner
+
+    Tail_inner_I_Ellipsoid = new G4Ellipsoid(
+            objName()+"Tail_inner_PartI_Ellipsoid",
+            mask_radiu_in, // pxSemiAxis
+            mask_radiu_in, // pySemiAxis
+            htop_in,  // pzSemiAxis
+            -htop_in, // pzBottomCut (TODO)
+            -height_out // pzTopCut
+            );
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in", mask_radiu_in ) ; 
+    addValue("SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in", htop_in ) ; 
+    addValue("SolidMaskTail.TailInnerIEllipsoid.pzBottomCut.-htop_in", -htop_in ) ; 
+    addValue("SolidMaskTail.TailInnerIEllipsoid.pzTopCut.-height_out", -height_out ) ; 
+#endif
+
+
+
+
+    G4double uncoincide_inner_z = 1.0*mm ; 
+    //G4double uncoincide_inner_z = 0.0*mm ; 
+    // expand Tubs hz and offset upwards to keep lower edge at same place 
+    // whilst expanding the inner upwards to avoid coincidence in subtraction
+    // see HamamatsuMaskManager for full explanation
+
+    Tail_inner_I_Tube = new G4Tubs(
+            objName()+"Tail_inner_PartI_Tube",
+            0*mm,   
+            mask_radiu_in,  
+            paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ,  
+            0*deg, 
+            360*deg);
+
+
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailInnerITube.uncoincide_inner_z/2", uncoincide_inner_z/2 ) ; 
+    addValue("SolidMaskTail.TailInnerITube.outerRadius.mask_radiu_in", mask_radiu_in ) ; 
+    addValue("SolidMaskTail.TailInnerITube.zhalfheight.paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2", 
+                                                                   paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ) ; 
+    addValue("SolidMaskTail.TailInnerITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2",
+                                                               -(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2 );  
+#endif
+
+
+
+    Tail_inner_I = new G4UnionSolid
+        (objName()+"Tail_inner_PartI",
+         Tail_inner_I_Ellipsoid ,
+         Tail_inner_I_Tube ,
+         0,
+         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2  )) ;
+
+    Tail_inner_II_Tube = new G4Tubs
+        (objName()+"Tail_inner_PartII",
+         0*mm,
+         paramRealMaskTail.r2 - requator_thickness,
+         (paramRealMaskTail.height-htop_thickness)/2,
+         0*deg,
+         360*deg);
+                                           
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMaskTail.TailInnerIITube.outerRadius.paramRealMaskTail.r2 - requator_thickness", paramRealMaskTail.r2 - requator_thickness) ; 
+    addValue("SolidMaskTail.TailInnerIITube.zhalfheight.(paramRealMaskTail.height-htop_thickness)/2", (paramRealMaskTail.height-htop_thickness)/2 );  
+    addValue("SolidMaskTail.TailInnerIITube.zoffset.-(height_out+(paramRealMaskTail.height-htop_thickness)/2)", 
+                                                                -(height_out+(paramRealMaskTail.height-htop_thickness)/2) ); 
+#endif
+
+
+    Tail_inner = new G4UnionSolid
+        (objName()+"Tail_inner",
+         Tail_inner_I,
+         Tail_inner_II_Tube,
+         0,
+         G4ThreeVector(0.0, 0.0, -(height_out+(paramRealMaskTail.height-htop_thickness)/2)));
+
+    // outer - inner
+    solidMaskTail = new G4SubtractionSolid(
+            objName()+"Tail",
+            Tail_outer,
+            Tail_inner,
+            0,
+            G4ThreeVector(0,0,0)
+            );
+
+    // create logical volume
+    logicMaskTail = new G4LogicalVolume(
+            solidMaskTail, 
+            Steel,
+            objName()+"lMaskTail",
+            0,
+            0,
+            0);
+    G4VisAttributes* mask_visatt = new G4VisAttributes(G4Colour(113./255, 121./255, 126./255));
+    mask_visatt -> SetForceWireframe(true);  
+    mask_visatt -> SetForceAuxEdgeVisible(true);
+    //mask_visatt -> SetForceSolid(true);
+    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
+    logicMaskTail -> SetVisAttributes(mask_visatt);
+
+}
+
+void
+NNVTMaskManager::makeMaskTailPhysical() {
+    physiMaskTail = new G4PVPlacement(0,                    // no rotation
+                                      G4ThreeVector(0,0,0), // at (x,y,z)
+                                      logicMaskTail,        // its logical volume 
+                                      objName()+"pMaskTail",// its name
+                                      logicMaskVirtual,     // its mother  volume
+                                      false,                // no boolean operations
+                                      0);                   // no particular field
+}
+
+void
+NNVTMaskManager::makeMaskTailOpSurface(){
+    G4OpticalSurface* mask_optical_surface = new G4OpticalSurface("opNNVTMask");
+    mask_optical_surface->SetMaterialPropertiesTable(Steel->GetMaterialPropertiesTable());
+    mask_optical_surface->SetModel(unified);
+    mask_optical_surface->SetType(dielectric_metal);
+    mask_optical_surface->SetFinish(ground);
+    mask_optical_surface->SetSigmaAlpha(0.2);
+
+    new G4LogicalSkinSurface("NNVTMaskOpticalSurface", logicMaskTail, mask_optical_surface);
+}
+
+G4ThreeVector
+NNVTMaskManager::GetPosInPMT() {
+    G4ThreeVector pos;
+    if (inner_pmt) {
+#ifndef PMTSIM_STANDALONE
+        pos = inner_pmt->GetPosInPMT();
+#endif
+    }
+    return pos;
+}
+
+
+
+
+
+G4VSolid* NNVTMaskManager::getSolid(const char* name)
+{   
+    if (logicMaskVirtual == nullptr )
+    {   
+        std::cout << "NNVTMaskManager::getSolid booting with getLV " << name << std::endl ;
+        getLV();
+    }
+
+    G4VSolid* solid = nullptr ;
+    // makeMaskOutLogical 
+    if(strcmp(name, "SolidMaskVirtual") == 0 ) solid = SolidMaskVirtual ;
+ 
+    // makeMaskLogical
+    if(strcmp(name, "TopOut") == 0 )     solid = Top_out ;
+    if(strcmp(name, "BottomOut") == 0 )  solid = Bottom_out ;
+    if(strcmp(name, "MaskOut") == 0 )    solid = Mask_out ;
+
+    if(strcmp(name, "TopIn") == 0 )      solid = Top_in ;
+    if(strcmp(name, "BottomIn") == 0 )   solid = Bottom_in ;
+    if(strcmp(name, "MaskIn") == 0 )     solid = Mask_in ;
+
+    if(strcmp(name, "SolidMask") == 0 )   solid = solidMask ;
+
+    // makeMaskTailLogical
+    if(strcmp(name,"TailOuterIEllipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid ;
+    if(strcmp(name,"TailOuterITube") == 0 )      solid = Tail_outer_I_Tube ;
+    if(strcmp(name,"TailOuterI") == 0 )          solid = Tail_outer_I ;
+    if(strcmp(name,"TailOuterIITube") == 0 )     solid = Tail_outer_II_Tube ;
+    if(strcmp(name,"TailOuter") == 0 )           solid = Tail_outer ;
+
+    if(strcmp(name,"TailInnerIEllipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ;
+    if(strcmp(name,"TailInnerITube") == 0 )      solid = Tail_inner_I_Tube ;
+    if(strcmp(name,"TailInnerI") == 0 )          solid = Tail_inner_I ;
+    if(strcmp(name,"TailInnerIITube") == 0 )     solid = Tail_inner_II_Tube ;
+    if(strcmp(name,"TailInner") == 0 )           solid = Tail_inner ;
+
+    if(strcmp(name,"SolidMaskTail") == 0 )       solid = solidMaskTail ;
+    
+    return solid  ;
+}
+
+
+G4PVPlacement*   NNVTMaskManager::getPV(const char* name)
+{
+    G4PVPlacement* pv = nullptr ;   
+    if( strcmp(name, "PhysiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
+    if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
+    return pv ; 
+}
+G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
+{
+    G4LogicalVolume* lv = nullptr ; 
+    if(strcmp(name, "LogicMaskVirtual") == 0 ) lv = logicMaskVirtual ;      // makeMaskLogical
+    if(strcmp(name, "LogicMask") == 0 )        lv = logicMask ;      // makeMaskLogical
+    if(strcmp(name, "LogicMaskTail") == 0 )    lv = logicMaskTail ;  // makeMaskTailLogical
+    return lv ; 
+}
+
+
+
+
+
+
+
+
+
 /**
 NNVTMaskManager::makeMaskLogical
 ----------------------------------
@@ -425,11 +838,6 @@ To avoid coincidence in the subtraction must extend the lower edges downwards.
 
 
 
-
-
-
-
-
                                        
                           .     +     .          - - - - - - - - - - -  
                      .                     .
@@ -446,39 +854,8 @@ To avoid coincidence in the subtraction must extend the lower edges downwards.
 
 
 
-**/
-
-void
-NNVTMaskManager::makeMaskLogical() {
-    
-    Top_out = new G4Ellipsoid(
-            objName()+"Top_Sphere",
-            mask_radiu_out, // pxSemiAxis
-            mask_radiu_out, // pySemiAxis
-            htop_out,  // pzSemiAxis
-            -height_out, // pzBottomCut
-            htop_out // pzTopCut
-            );
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMask.MaskOut.TopOut.pxySemiAxis.mask_radiu_out",  mask_radiu_out} ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzSemiAxis.htop_out"       ,  htop_out }) ; 
-    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzBottomCut.-height_out"   , -height_out }) ; 
-    m_values.push_back( {"SolidMask.MaskOut.TopOut.pzTopCut.htop_out"         ,  htop_out }) ; 
-#endif
 
 
-    Bottom_out = new G4Tubs(
-            objName()+"Bottom_Tube",
-            0*mm,   
-            mask_radiu_out,  
-            height_out/2,  
-            0*deg, 
-            360*deg);
-
-
-#ifdef PMTSIM_STANDALONE
-/**
 Bottom_out z range without and with the offset::    
 
 
@@ -490,60 +867,8 @@ Bottom_out z range without and with the offset::
            |                 |
            +-----------------+  -height_out/2              -height_out + gap 
 
-**/
-
-    m_values.push_back( {"SolidMask.MaskOut.BottomOut.hz.height_out/2"   ,  height_out/2 } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.BottomOut.z1.gap"            ,  gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.BottomOut.z0.-height_out+gap",  -height_out + gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskOut.BottomOut.zoffset.-height_out/2+gap",  -height_out/2 + gap } ) ; 
-#endif
 
 
-    Mask_out = new G4UnionSolid
-        (objName()+"sMask_out",
-         Top_out ,
-         Bottom_out ,
-         0,
-         G4ThreeVector(0,0,-height_out/2 + gap)    ) ;
-
-
-    G4double uncoincide_z = 1.*mm ;
-    //G4double uncoincide_z = 0.*mm ;
-
-    Top_in = new G4Ellipsoid(
-            objName()+"Top_Sphere_in",
-            mask_radiu_in, // pxSemiAxis
-            mask_radiu_in, // pySemiAxis
-            htop_in,  // pzSemiAxis
-            -(height_in + uncoincide_z), // pzBottomCut
-            htop_in  // pzTopCut
-            );
-
-#ifdef PMTSIM_STANDALONE
-
-    // HMM: inner ellipsoid pzBottomCut is shifted downwards by uncoincide_z to avoid 
-    // coincidence on the lower edge with the outer ellipsoid : but both ellipsoids 
-    // are serving no purpose in these region because they are unioned with cylinders 
-
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzSemiAxis.htop_in",       htop_in }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.-(height_in+uncoincide_z)", -(height_in + uncoincide_z) }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.-height_in", -height_in  }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzBottomCut.uncoincide_z", uncoincide_z }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.TopIn.pzTopCut.htop_in",   htop_in }); 
-#endif
-
-    Bottom_in = new G4Tubs(
-            objName()+"Bottom_Tube_in",
-            0*mm,   
-            mask_radiu_in,  
-            height_in/2 + uncoincide_z/2 ,  
-            0*deg, 
-            360*deg);
-
-
-#ifdef PMTSIM_STANDALONE
-/**
 Bottom_in z range::
 
                                    without offset                                with offset        
@@ -563,366 +888,6 @@ edge of the cylinder at same place but with lower edge of cylinder
 expanded outwards avoiding coincidence in the subtraction.
 BUT: the upper edges of both cylinders are still coincident
 
-**/
-
-    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.height_in/2",                  height_in/2  }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.uncoincide_z/2",               uncoincide_z/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.BottomIn.hz.height_in/2 + uncoincide_z/2", height_in/2 + uncoincide_z/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.BottomIn.z1.gap"                         ,  gap } ) ; 
-    m_values.push_back( {"SolidMask.MaskIn.BottomIn.z0.-height_in-uncoincide_z+gap",  -height_in - uncoincide_z + gap } ) ; 
-
-#endif
-
-
-    Mask_in = new G4UnionSolid
-        (objName()+"sMask_in",
-         Top_in ,
-         Bottom_in ,
-         0,
-         G4ThreeVector(0,0,-height_in/2 + gap - uncoincide_z/2 )    ) ;
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMask.MaskIn.zoffset.-height_in/2 + gap - uncoincide_z/2", -height_in/2 + gap - uncoincide_z/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.zoffset.-height_in/2", -height_in/2 }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.zoffset.gap", gap }) ; 
-    m_values.push_back( {"SolidMask.MaskIn.zoffset.-uncoincide_z/2",-uncoincide_z/2 }) ; 
-#endif
-
-
-    solidMask = new G4SubtractionSolid(
-            objName()+"sMask",
-            Mask_out,
-            Mask_in,
-            0,
-            G4ThreeVector(0,0,0)
-            );
-    
-    logicMask = new G4LogicalVolume(
-            solidMask, 
-            //Acrylic, 
-            AcrylicMask,
-            objName()+"lMask",
-            0,
-            0,
-            0);
-    G4VisAttributes* mask_visatt = new G4VisAttributes(G4Colour(1.0, 0, 1.0));
-    mask_visatt -> SetForceWireframe(true);  
-    mask_visatt -> SetForceAuxEdgeVisible(true);
-    //mask_visatt -> SetForceSolid(true);
-    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
-    logicMask -> SetVisAttributes(mask_visatt);
-}
-
-void
-NNVTMaskManager::makeMaskPhysical() {
-    physiMask = new G4PVPlacement(0,              // no rotation
-            G4ThreeVector(0,0,0), // at (x,y,z)
-            logicMask,    // its logical volume 
-            objName()+"pMask",       // its name
-            logicMaskVirtual,  // its mother  volume
-            false,           // no boolean operations
-            0);              // no particular field
-}
-
-
-/**
-NNVTMaskManager::makeMaskTailLogical
---------------------------------------
-
-See HamamatsuMaskManager::makeMaskTailLogical for explanation of uncoincide_inner_z 
 
 **/
-
-
-void
-NNVTMaskManager::makeMaskTailLogical() {
-    // outer
-
-    Tail_outer_I_Ellipsoid = new G4Ellipsoid(
-            objName()+"Tail_outer_PartI_Ellipsoid",
-            mask_radiu_out, // pxSemiAxis
-            mask_radiu_out, // pySemiAxis
-            htop_out,  // pzSemiAxis
-            -htop_out, // pzBottomCut (TODO)
-            -height_out // pzTopCut
-            );
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out", mask_radiu_out }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out", htop_out }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzBottomCut.-htop_out", -htop_out }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIEllipsoid.pzTopCut.-height_out", -height_out }) ; 
-#endif
-
-
-    Tail_outer_I_Tube = new G4Tubs(
-            objName()+"Tail_outer_PartI_Tube",
-            0*mm,   
-            mask_radiu_out,  
-            paramRealMaskTail.edge_height/2,  
-            0*deg, 
-            360*deg);
-
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out", mask_radiu_out }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2)", -(height_out+paramRealMaskTail.edge_height/2) }) ; 
-#endif
-
-    Tail_outer_I = new G4UnionSolid
-        (objName()+"Tail_outer_PartI",
-         Tail_outer_I_Ellipsoid ,
-         Tail_outer_I_Tube ,
-         0,
-         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2))) ;
-
-    Tail_outer_II_Tube = new G4Tubs
-        (objName()+"Tail_outer_PartII",
-         0*mm,
-         paramRealMaskTail.r2,
-         paramRealMaskTail.height/2,
-         0*deg,
-         360*deg);
-
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2)", -(height_out+paramRealMaskTail.height/2) }) ; 
-#endif
-
-                                           
-    Tail_outer = new G4UnionSolid
-        (objName()+"Tail_outer",
-         Tail_outer_I,
-         Tail_outer_II_Tube,
-         0,
-         G4ThreeVector(0.0, 0.0, -(height_out+paramRealMaskTail.height/2)));
-
-
-    // inner
-
-    Tail_inner_I_Ellipsoid = new G4Ellipsoid(
-            objName()+"Tail_inner_PartI_Ellipsoid",
-            mask_radiu_in, // pxSemiAxis
-            mask_radiu_in, // pySemiAxis
-            htop_in,  // pzSemiAxis
-            -htop_in, // pzBottomCut (TODO)
-            -height_out // pzTopCut
-            );
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in", mask_radiu_in }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in", htop_in }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzBottomCut.-htop_in", -htop_in }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerIEllipsoid.pzTopCut.-height_out", -height_out }) ; 
-#endif
-
-
-
-
-    G4double uncoincide_inner_z = 1.0*mm ; 
-    //G4double uncoincide_inner_z = 0.0*mm ; 
-    // expand Tubs hz and offset upwards to keep lower edge at same place 
-    // whilst expanding the inner upwards to avoid coincidence in subtraction
-    // see HamamatsuMaskManager for full explanation
-
-    Tail_inner_I_Tube = new G4Tubs(
-            objName()+"Tail_inner_PartI_Tube",
-            0*mm,   
-            mask_radiu_in,  
-            paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 ,  
-            0*deg, 
-            360*deg);
-
-
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailInnerITube.uncoincide_inner_z/2", uncoincide_inner_z/2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerITube.outerRadius.mask_radiu_in", mask_radiu_in }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerITube.zhalfheight.paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2", 
-                                                                   paramRealMaskTail.edge_height/2 + uncoincide_inner_z/2 }) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2",
-                                                               -(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2 });  
-#endif
-
-
-
-    Tail_inner_I = new G4UnionSolid
-        (objName()+"Tail_inner_PartI",
-         Tail_inner_I_Ellipsoid ,
-         Tail_inner_I_Tube ,
-         0,
-         G4ThreeVector(0,0,-(height_out+paramRealMaskTail.edge_height/2) + uncoincide_inner_z/2  )) ;
-
-    Tail_inner_II_Tube = new G4Tubs
-        (objName()+"Tail_inner_PartII",
-         0*mm,
-         paramRealMaskTail.r2 - requator_thickness,
-         (paramRealMaskTail.height-htop_thickness)/2,
-         0*deg,
-         360*deg);
-                                           
-#ifdef PMTSIM_STANDALONE
-    m_values.push_back( {"SolidMaskTail.TailInnerIITube.outerRadius.paramRealMaskTail.r2 - requator_thickness", paramRealMaskTail.r2 - requator_thickness}) ; 
-    m_values.push_back( {"SolidMaskTail.TailInnerIITube.zhalfheight.(paramRealMaskTail.height-htop_thickness)/2", (paramRealMaskTail.height-htop_thickness)/2 });  
-    m_values.push_back( {"SolidMaskTail.TailInnerIITube.zoffset.-(height_out+(paramRealMaskTail.height-htop_thickness)/2)", 
-                                                                -(height_out+(paramRealMaskTail.height-htop_thickness)/2) } ); 
-#endif
-
-
-    Tail_inner = new G4UnionSolid
-        (objName()+"Tail_inner",
-         Tail_inner_I,
-         Tail_inner_II_Tube,
-         0,
-         G4ThreeVector(0.0, 0.0, -(height_out+(paramRealMaskTail.height-htop_thickness)/2)));
-
-
-    // outer - inner
-    solidMaskTail = new G4SubtractionSolid(
-            objName()+"Tail",
-            Tail_outer,
-            Tail_inner,
-            0,
-            G4ThreeVector(0,0,0)
-            );
-
-    // create logical volume
-    logicMaskTail = new G4LogicalVolume(
-            solidMaskTail, 
-            Steel,
-            objName()+"lMaskTail",
-            0,
-            0,
-            0);
-    G4VisAttributes* mask_visatt = new G4VisAttributes(G4Colour(113./255, 121./255, 126./255));
-    mask_visatt -> SetForceWireframe(true);  
-    mask_visatt -> SetForceAuxEdgeVisible(true);
-    //mask_visatt -> SetForceSolid(true);
-    //mask_visatt -> SetForceLineSegmentsPerCircle(4);
-    logicMaskTail -> SetVisAttributes(mask_visatt);
-
-}
-
-void
-NNVTMaskManager::makeMaskTailPhysical() {
-    physiMaskTail = new G4PVPlacement(0,                    // no rotation
-                                      G4ThreeVector(0,0,0), // at (x,y,z)
-                                      logicMaskTail,        // its logical volume 
-                                      objName()+"pMaskTail",// its name
-                                      logicMaskVirtual,     // its mother  volume
-                                      false,                // no boolean operations
-                                      0);                   // no particular field
-}
-
-void
-NNVTMaskManager::makeMaskTailOpSurface(){
-    G4OpticalSurface* mask_optical_surface = new G4OpticalSurface("opNNVTMask");
-    mask_optical_surface->SetMaterialPropertiesTable(Steel->GetMaterialPropertiesTable());
-    mask_optical_surface->SetModel(unified);
-    mask_optical_surface->SetType(dielectric_metal);
-    mask_optical_surface->SetFinish(ground);
-    mask_optical_surface->SetSigmaAlpha(0.2);
-
-    new G4LogicalSkinSurface("NNVTMaskOpticalSurface", logicMaskTail, mask_optical_surface);
-}
-
-G4VSolid* NNVTMaskManager::getSolid(const char* name)
-{   
-    if (logicMaskVirtual == nullptr )
-    {   
-        std::cout << "NNVTMaskManager::getSolid booting with getLV " << name << std::endl ;
-        getLV();
-    }
-
-    G4VSolid* solid = nullptr ;
-    // makeMaskOutLogical 
-    if(strcmp(name, "SolidMaskVirtual") == 0 ) solid = SolidMaskVirtual ;
- 
-    // makeMaskLogical
-    if(strcmp(name, "TopOut") == 0 )     solid = Top_out ;
-    if(strcmp(name, "BottomOut") == 0 )  solid = Bottom_out ;
-    if(strcmp(name, "MaskOut") == 0 )    solid = Mask_out ;
-
-    if(strcmp(name, "TopIn") == 0 )      solid = Top_in ;
-    if(strcmp(name, "BottomIn") == 0 )   solid = Bottom_in ;
-    if(strcmp(name, "MaskIn") == 0 )     solid = Mask_in ;
-
-    if(strcmp(name, "SolidMask") == 0 )   solid = solidMask ;
-
-    // makeMaskTailLogical
-    if(strcmp(name,"TailOuterIEllipsoid") == 0 ) solid = Tail_outer_I_Ellipsoid ;
-    if(strcmp(name,"TailOuterITube") == 0 )      solid = Tail_outer_I_Tube ;
-    if(strcmp(name,"TailOuterI") == 0 )          solid = Tail_outer_I ;
-    if(strcmp(name,"TailOuterIITube") == 0 )     solid = Tail_outer_II_Tube ;
-    if(strcmp(name,"TailOuter") == 0 )           solid = Tail_outer ;
-
-    if(strcmp(name,"TailInnerIEllipsoid") == 0 ) solid = Tail_inner_I_Ellipsoid ;
-    if(strcmp(name,"TailInnerITube") == 0 )      solid = Tail_inner_I_Tube ;
-    if(strcmp(name,"TailInnerI") == 0 )          solid = Tail_inner_I ;
-    if(strcmp(name,"TailInnerIITube") == 0 )     solid = Tail_inner_II_Tube ;
-    if(strcmp(name,"TailInner") == 0 )           solid = Tail_inner ;
-
-    if(strcmp(name,"SolidMaskTail") == 0 )       solid = solidMaskTail ;
-    
-    return solid  ;
-}
-
-
-G4PVPlacement*   NNVTMaskManager::getPV(const char* name)
-{
-    G4PVPlacement* pv = nullptr ;   
-    if( strcmp(name, "PhysiMask") == 0 )     pv = dynamic_cast<G4PVPlacement*>(physiMask) ;     // makeMaskPhysical
-    if( strcmp(name, "PhysiMaskTail") == 0 ) pv = dynamic_cast<G4PVPlacement*>(physiMaskTail) ; // makeMaskTailPhysical
-    return pv ; 
-}
-G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
-{
-    G4LogicalVolume* lv = nullptr ; 
-    if(strcmp(name, "LogicMaskVirtual") == 0 ) lv = logicMaskVirtual ;      // makeMaskLogical
-    if(strcmp(name, "LogicMask") == 0 )        lv = logicMask ;      // makeMaskLogical
-    if(strcmp(name, "LogicMaskTail") == 0 )    lv = logicMaskTail ;  // makeMaskTailLogical
-    return lv ; 
-}
-
-#ifdef PMTSIM_STANDALONE
-NP* NNVTMaskManager::getValues(const char* contains) 
-{ 
-    getLV(); 
-    std::cout 
-        << "NNVTMaskManager::getValues with PMTSIM_STANDALONE"
-        << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 
-        << " m_values.size " << m_values.size()
-        << std::endl 
-        ;  
-    return NP::MakeValues(m_values, contains) ; 
-}
-#else
-NP* NNVTMaskManager::getValues(const char* contains) 
-{
-    std::cout 
-        << "NNVTMaskManager::getValues NOT-WITH PMTSIM_STANDALONE" 
-        << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 
-        << std::endl 
-        ;  
-    return nullptr ; 
-}
-#endif
-
-#ifdef PMTSIM_STANDALONE
-#else
-
-G4ThreeVector
-NNVTMaskManager::GetPosInPMT() {
-    G4ThreeVector pos;
-    if (inner_pmt) {
-        pos = inner_pmt->GetPosInPMT();
-    }
-    return pos;
-}
-
-
-
-#endif
 

@@ -116,6 +116,7 @@ G4ThreeVector NNVTMCPPMTManager::GetPosInPMT() {
 NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     : 
 #ifdef PMTSIM_STANDALONE
+      IGeomManager(plabel), 
 #else
       ToolBase(plabel), 
 #endif

@@ -7,8 +7,6 @@
 
 #ifdef PMTSIM_STANDALONE
 #include "IGeomManager.h"
-#include "G4SystemOfUnits.hh"
-class IPMTElement ; 
 #else
 #include "SniperKernel/ToolBase.h"
 #include "DetSimAlg/IPMTElement.h"
@@ -22,15 +20,11 @@ class G4Sphere;
 class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4PVPlacement ; 
 class G4Material;
 class IMCParamsSvc;
-struct NP ; 
 
 
 #ifdef PMTSIM_STANDALONE
-#include <vector>
-#include "PMTSIM_API_EXPORT.hh"
 class PMTSIM_API NNVTMaskManager : public IGeomManager  {
 #else
 class NNVTMaskManager : public IPMTElement,
@@ -41,26 +35,11 @@ public:
     G4double GetPMTRadius();
     G4double GetPMTHeight();
     G4double GetZEquator();
-
-#ifdef PMTSIM_STANDALONE
-    const std::string& m_objName;
-    const std::string& objName() { return m_objName; }
-    std::vector<std::pair<std::string, double>> m_values ; 
-    virtual ~NNVTMaskManager();
-#else
     G4ThreeVector GetPosInPMT();
     bool inject(std::string motherName, IDetElement* other, IDetElementPos* pos);
-    ~NNVTMaskManager();
-#endif
 
     NNVTMaskManager(const std::string& name);
-
-public:
-     // debug interface
-    G4LogicalVolume* getLV(const char* name); 
-    G4PVPlacement*   getPV(const char* name);  
-    G4VSolid*        getSolid(const char* name); 
-    NP*              getValues(const char* prefix); 
+    ~NNVTMaskManager();
 
 private:
 
@@ -94,33 +73,6 @@ private:
     G4Material* Water;
     G4Material* AcrylicMask;
     G4Material* Steel;           
-
-private:
-    // makeMaskOutLogical
-    G4VSolid* SolidMaskVirtual ; 
-
-    // makeMaskLogical
-    G4VSolid* Top_out ; 
-    G4VSolid* Bottom_out ; 
-    G4VSolid* Mask_out ; 
-    G4VSolid* Top_in ; 
-    G4VSolid* Bottom_in ; 
-    G4VSolid* Mask_in ; 
-    G4VSolid* solidMask ; 
-
-    // makeMaskTailLogical
-    G4VSolid* Tail_outer_I_Ellipsoid ;  
-    G4VSolid* Tail_outer_I_Tube ;  
-    G4VSolid* Tail_outer_I ;  
-    G4VSolid* Tail_outer_II_Tube ;  
-    G4VSolid* Tail_outer ;  
-    G4VSolid* Tail_inner_I_Ellipsoid ;
-    G4VSolid* Tail_inner_I_Tube ;  
-    G4VSolid* Tail_inner_I ;  
-    G4VSolid* Tail_inner_II_Tube ;  
-    G4VSolid* Tail_inner ;  
-    G4VSolid* solidMaskTail ; 
-
 private:
     double mask_radiu_in;
     double mask_radiu_out;
@@ -144,34 +96,29 @@ private:
 
 
 private:
-    /*
-     If m_useRealSurface is true, the PMT should insert into the surface.
-     In order to optimize the speed, just reduce the size of the PMT.
-    
-            |    -
-            |  /   \
-        ------- P M T
-        ------- 19.434m
-            |  \   /
-            |    -
-          Tyvek  |
-         19.629m
-
-    */
+    // If m_useRealSurface is true, the PMT should insert into the surface.
+    // In order to optimize the speed, just reduce the size of the PMT.
+    //
+    //        |    -
+    //        |  /   \
+    //    ------- P M T
+    //    ------- 19.434m
+    //        |  \   /
+    //        |    -
+    //      Tyvek  |
+    //     19.629m
     bool m_useRealSurface;
 
 
-    /*
-     If m_useRealMaskTail is true, the tail of the mask is not a simple tube.
-     the shape will be close to the PMT. 
-    
-           - - -
-         /       \
-         |       |  <--- this head part is the acrylic
-         -\     /-  <--- this tail part is the steel      -- r1
-            | |                                           -- r2
+    // If m_useRealMaskTail is true, the tail of the mask is not a simple tube.
+    // the shape will be close to the PMT. 
+    //
+    //       - - -
+    //     /       \
+    //     |       |  <--- this head part is the acrylic
+    //     -\     /-  <--- this tail part is the steel      -- r1
+    //        | |                                           -- r2
 
-    */
     struct ParamRealMaskHead {
         double h_top_equator;   // from top to equator
         double h_below_equator; // below the equator
@@ -203,6 +150,43 @@ private:
 
     bool m_useRealMaskTail;
     bool m_useMaskTailOpSurface;
+
+
+
+public:
+     // debug interface
+    G4LogicalVolume* getLV(const char* name); 
+    G4PVPlacement*   getPV(const char* name);  
+    G4VSolid*        getSolid(const char* name); 
+
+
+private:
+    // makeMaskOutLogical
+    G4VSolid* SolidMaskVirtual ; 
+
+    // makeMaskLogical
+    G4VSolid* Top_out ; 
+    G4VSolid* Bottom_out ; 
+    G4VSolid* Mask_out ; 
+    G4VSolid* Top_in ; 
+    G4VSolid* Bottom_in ; 
+    G4VSolid* Mask_in ; 
+    G4VSolid* solidMask ; 
+
+    // makeMaskTailLogical
+    G4VSolid* Tail_outer_I_Ellipsoid ;  
+    G4VSolid* Tail_outer_I_Tube ;  
+    G4VSolid* Tail_outer_I ;  
+    G4VSolid* Tail_outer_II_Tube ;  
+    G4VSolid* Tail_outer ;  
+    G4VSolid* Tail_inner_I_Ellipsoid ;
+    G4VSolid* Tail_inner_I_Tube ;  
+    G4VSolid* Tail_inner_I ;  
+    G4VSolid* Tail_inner_II_Tube ;  
+    G4VSolid* Tail_inner ;  
+    G4VSolid* solidMaskTail ; 
+
+
 };
 
 #endif

@@ -121,7 +121,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     (const G4String& plabel // label -- subvolume names are derived from this
     )
 #ifdef PMTSIM_STANDALONE
-    : m_label(plabel),
+    : IGeomManager(plabel),
 #else
     : ToolBase(plabel), m_label(plabel),
 #endif

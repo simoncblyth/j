@@ -36,7 +36,7 @@ using namespace CLHEP;
 HamamatsuMaskManager::HamamatsuMaskManager(const std::string& name)
     :
 #ifdef PMTSIM_STANDALONE
-    m_objName(name),
+    IGeomManager(name),
 #else
     ToolBase(name),
 #endif

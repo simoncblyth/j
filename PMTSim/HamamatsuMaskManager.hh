@@ -40,7 +40,7 @@ public:
     G4double GetZEquator();
 
 #ifdef PMTSIM_STANDALONE
-    const std::string& objName() { return m_objName; }
+   // const std::string& objName() { return m_objName; }
 #else
     G4ThreeVector GetPosInPMT();
     bool inject(std::string motherName, IDetElement* other, IDetElementPos* pos);
@@ -77,7 +77,7 @@ private:
 private:
 
 #ifdef PMTSIM_STANDALONE
-    const std::string& m_objName;
+    //const std::string& m_objName;
 #endif
     
     G4VSolid*           Top_Virtual ;   
