@@ -40,11 +40,16 @@ struct PMTSIM_API IGeomManager
     IGeomManager( const std::string& name ); 
 
     const std::string& m_objName;
+    const char* m_opt ;
+
     std::vector<std::pair<std::string, double>> m_values ;
 
     template<typename Type>
     bool declProp(const std::string& key, Type& var); 
 
+    void setOpt(const char* opt); 
+    const char* getOpt() const ;  
+    bool hasOpt(const char* q) const ; 
 
     const std::string& objName() { return m_objName; }
 
@@ -61,7 +66,8 @@ struct PMTSIM_API IGeomManager
 
 inline IGeomManager::IGeomManager( const std::string& name )
     :
-    m_objName(name)
+    m_objName(name), 
+    m_opt(nullptr)
 {
 }
 
@@ -88,6 +94,30 @@ inline bool IGeomManager::declProp(const std::string& key, Type& var)
     return true ; 
 }
 
+inline void IGeomManager::setOpt( const char* opt )
+{
+    std::cout << "IGeomManager::setOpt opt " << ( opt ? opt : "-" ) << std::endl ; 
+    m_opt = opt ? strdup(opt) : nullptr  ; 
+}
+inline const char* IGeomManager::getOpt() const 
+{
+    return m_opt ; 
+}
+inline bool IGeomManager::hasOpt(const char* q) const 
+{
+    bool has = q && m_opt && strlen(q) <= strlen(m_opt) && strstr( m_opt, q ) != nullptr ; 
+    /*
+    std::cout 
+        << "IGeomManager::hasOpt" 
+        << " q " << ( q  ? q : "-" )
+        << " m_opt " << ( m_opt ? m_opt : "-" )
+        << " has " << ( has ? "YES" : "NO" )
+        << std::endl
+        ; 
+    */
+    return has ; 
+
+}
 
 inline void IGeomManager::addValue( const char* k, double v )
 {

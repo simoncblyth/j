@@ -80,7 +80,9 @@ struct PMTSIM_API PMTSim
     LowerChimney*              m_lchi ; 
 
     static bool HasManagerPrefix( const char* name ); 
+    static void Chop( char** head, char** tail, const char* delim, const char* str ); 
     IGeomManager* getManager(const char* name); 
+    IGeomManager* getManager_(const char* name); 
 
     PMTSim(); 
     void init(); 
@@ -90,6 +92,7 @@ struct PMTSIM_API PMTSim
     G4VPhysicalVolume*  getPV(const char* name) ;
     G4VSolid*           getSolid(const char* name) ;
     NP*                 getValues(const char* name)  ; 
+
 
 
     static const char* Name(const char* prefix, int nx, int ny, int nz, const char* suffix); 

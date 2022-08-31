@@ -675,7 +675,61 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     return check == 1 ; 
 }
 
+
+
+void PMTSim::Chop( char** head, char** tail, const char* delim, const char* str ) // static
+{
+    *head = strdup(str); 
+    char* p = strstr(*head, delim);  // pointer to first occurence of delim in str or null if not found
+    if(p) p[0] = '\0' ; 
+    *tail = p ? p + strlen(delim) : nullptr ; 
+}
+
+/**
+PMTSim::getManager
+-------------------
+
+The name prefix is used to find the manager.
+
++---------+--------------------------+
+| prefix  | Manager                  |
++=========+==========================+
+| nmsk    |  NNVTMaskManager         |
++---------+--------------------------+
+
+In addition if the name has a suffix following delimiter "__"
+then that string is passed to IGeomManger::setOpt
+
+**/
+
 IGeomManager* PMTSim::getManager(const char* name)
+{
+    IGeomManager* mgr = getManager_(name);  // uses StartsWithPrefix so any tail does nothing 
+
+    char* head ; 
+    char* tail ; 
+    Chop( &head, &tail, "__" , name ); 
+
+    std::cout 
+        << "PMTSim::getManager"
+        << " mgr "  << ( mgr  ? "Y" : "N" )
+        << " name " << ( name ? name : "-" )
+        << " head " << ( head ? head : "-" )
+        << " tail " << ( tail ? tail : "-" )
+        << std::endl 
+        ;
+
+    assert( head ); 
+    assert( mgr ); 
+
+    if(tail && mgr) 
+    {
+        mgr->setOpt(tail); 
+    }
+
+    return mgr ; 
+}
+IGeomManager* PMTSim::getManager_(const char* name)
 {
     IGeomManager* mgr = nullptr ;   
 
@@ -771,6 +825,10 @@ NP* PMTSim::getValues(const char* name_)
 
     return vv ; 
 }
+
+
+
+
 
 G4VSolid* PMTSim::getSolid(const char* name_) 
 {
