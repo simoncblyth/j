@@ -26,7 +26,6 @@ struct PMTSIM_API PMTSim
 {
     static void SetEnvironmentSwitches(const char* name); 
 
-    static const char* PREFIX ; 
     static const char* HAMA ; 
     static const char* NNVT ; 
 
@@ -80,9 +79,7 @@ struct PMTSIM_API PMTSim
     LowerChimney*              m_lchi ; 
 
     static bool HasManagerPrefix( const char* name ); 
-    static void Chop( char** head, char** tail, const char* delim, const char* str ); 
     IGeomManager* getManager(const char* name); 
-    IGeomManager* getManager_(const char* name); 
 
     PMTSim(); 
     void init(); 

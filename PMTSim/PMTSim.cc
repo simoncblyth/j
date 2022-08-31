@@ -650,7 +650,6 @@ void PMTSim::init()
 }
 
 
-const char* PMTSim::PREFIX = "0123" ;   // all prefix must have same length 
 const char* PMTSim::HAMA   = "hama" ; 
 const char* PMTSim::NNVT   = "nnvt" ; 
 const char* PMTSim::HMSK   = "hmsk" ; 
@@ -676,15 +675,6 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
 }
 
 
-
-void PMTSim::Chop( char** head, char** tail, const char* delim, const char* str ) // static
-{
-    *head = strdup(str); 
-    char* p = strstr(*head, delim);  // pointer to first occurence of delim in str or null if not found
-    if(p) p[0] = '\0' ; 
-    *tail = p ? p + strlen(delim) : nullptr ; 
-}
-
 /**
 PMTSim::getManager
 -------------------
@@ -702,42 +692,15 @@ then that string is passed to IGeomManger::setOpt
 
 **/
 
-IGeomManager* PMTSim::getManager(const char* name)
-{
-    IGeomManager* mgr = getManager_(name);  // uses StartsWithPrefix so any tail does nothing 
-
-    char* head ; 
-    char* tail ; 
-    Chop( &head, &tail, "__" , name ); 
-
-    std::cout 
-        << "PMTSim::getManager"
-        << " mgr "  << ( mgr  ? "Y" : "N" )
-        << " name " << ( name ? name : "-" )
-        << " head " << ( head ? head : "-" )
-        << " tail " << ( tail ? tail : "-" )
-        << std::endl 
-        ;
-
-    assert( head ); 
-    assert( mgr ); 
-
-    if(tail && mgr) 
-    {
-        mgr->setOpt(tail); 
-    }
-
-    return mgr ; 
-}
-IGeomManager* PMTSim::getManager_(const char* name)
+IGeomManager* PMTSim::getManager(const char* geom)
 {
     IGeomManager* mgr = nullptr ;   
 
-    bool hama = StartsWithPrefix(name, HAMA ); 
-    bool nnvt = StartsWithPrefix(name, NNVT ); 
-    bool hmsk = StartsWithPrefix(name, HMSK ); 
-    bool nmsk = StartsWithPrefix(name, NMSK ); 
-    bool lchi = StartsWithPrefix(name, LCHI ); 
+    bool hama = StartsWithPrefix(geom, HAMA ); 
+    bool nnvt = StartsWithPrefix(geom, NNVT ); 
+    bool hmsk = StartsWithPrefix(geom, HMSK ); 
+    bool nmsk = StartsWithPrefix(geom, NMSK ); 
+    bool lchi = StartsWithPrefix(geom, LCHI ); 
 
     if(hama) mgr = m_hama ; 
     if(nnvt) mgr = m_nnvt ; 
@@ -749,7 +712,7 @@ IGeomManager* PMTSim::getManager_(const char* name)
     {
         std::cerr
             << "PMTSim::getManager FATAL " 
-            << " name " << name
+            << " geom " << geom
             << " does not start with one of the expected prefixes "
             << std::endl 
             ;
@@ -758,7 +721,7 @@ IGeomManager* PMTSim::getManager_(const char* name)
     {
         std::cout 
             << "PMTSim::getManager " 
-            << " found manager for name " << name 
+            << " found manager for geom " << geom 
             << " hama " << hama 
             << " nnvt " << nnvt 
             << " hmsk " << hmsk
@@ -769,11 +732,11 @@ IGeomManager* PMTSim::getManager_(const char* name)
  
     }
     assert(mgr);  
+    mgr->setGeom(geom);  // Chop head__tail for tail options
     return mgr ; 
 }
 
 
-const int PMTSim::NAME_OFFSET = 0 ;  // HMM have needed to flip/flop 0<->1 TODO: be more clever parsing the name to decide 
 
 /**
 PMTSim::getLV PMTSim::getPV PMTSim::getSolid
@@ -785,39 +748,35 @@ used to get the LV/PV or Solid. The managers are passed a string offset to skip 
 
 **/
 
-G4LogicalVolume* PMTSim::getLV(const char* name_)  
+G4LogicalVolume* PMTSim::getLV(const char* geom)  
 {
-    IGeomManager* mgr = getManager(name_) ; 
-    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
+    IGeomManager* mgr = getManager(geom) ; 
+    const char* head = mgr ? mgr->getHead() : nullptr ; 
 
     std::cout 
         << "PMTSim::getLV" 
-        << " name_ [" << name_ << "]"
-        << " name [" << name << "]"
+        << " geom [" << geom << "]"
         << " mgr " << ( mgr ? "Y" : "N" ) 
-        << " NAME_OFFSET " << NAME_OFFSET 
+        << " head [" << ( head ? head : "-" ) << "]"
         << std::endl
         ; 
 
-    return mgr->getLV(name) ;  // +1 for _  
+    return mgr->getLV(head) ;  // name at this point much have mgr prefix and any option suffix removed 
 }
 
-NP* PMTSim::getValues(const char* name_)
+NP* PMTSim::getValues(const char* geom)
 {
-    IGeomManager* mgr = getManager(name_) ; 
-    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
-
-    NP* vv0 = mgr->getValues(name);  
+    IGeomManager* mgr = getManager(geom) ; 
+    const char* head = mgr->getHead() ; 
+    NP* vv0 = mgr->getValues(head);  
 
     // if the name prefix fails to yield any values, try again with null to get all values
     NP* vv = vv0 == nullptr ? mgr->getValues(nullptr) : vv0 ;  
 
     std::cout 
         << "PMTSim::getValues" 
-        << " name_ [" << name_ << "]"
-        << " name [" << name << "]"
+        << " geom [" << geom << "]"
         << " mgr " << ( mgr ? "Y" : "N" ) 
-        << " NAME_OFFSET " << NAME_OFFSET 
         << " vv0 " << ( vv0 ? vv0->sstr() : "-" )
         << " vv " << ( vv ? vv->sstr() : "-" )
         << std::endl
@@ -830,17 +789,16 @@ NP* PMTSim::getValues(const char* name_)
 
 
 
-G4VSolid* PMTSim::getSolid(const char* name_) 
+G4VSolid* PMTSim::getSolid(const char* geom) 
 {
-    IGeomManager* mgr = getManager(name_) ; 
-    const char* name = name_ + strlen(PREFIX) + NAME_OFFSET ; 
-    G4VSolid* solid = mgr->getSolid(name) ;  
+    IGeomManager* mgr = getManager(geom) ; 
+    const char* head = mgr->getHead() ; 
+    G4VSolid* solid = mgr->getSolid(head) ;  
 
     if(solid == nullptr)
         std::cout 
             << "PMTSim::getSolid FAILED " 
-            << " name_ [" << name_ << "]" 
-            << " name [" << name   << "]"
+            << " geom [" << geom   << "]"
             << std::endl 
             ;
 
@@ -862,15 +820,17 @@ into a grid configured by nx, ny, nz within a PV that is returned.
 G4VPhysicalVolume* PMTSim::getPV(const char* name) 
 {
     IGeomManager* mgr = getManager(name) ; 
+    const char* head = mgr->getHead() ; 
+
     G4VPhysicalVolume* pv = nullptr ; 
-    bool wrap = strstr(name, "WrapLV") != nullptr ; 
+    bool wrap = strstr(head, "WrapLV") != nullptr ; 
     if(wrap == false)
     {
-        pv = mgr->getPV(name + strlen(PREFIX) + NAME_OFFSET) ; // manager PREFIX all 4 chars long 
+        pv = mgr->getPV(head) ;
     }
     else
     {
-        G4LogicalVolume* lv = getLV(name); 
+        G4LogicalVolume* lv = getLV(head); 
         assert(lv); 
         pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
         assert(pv); 

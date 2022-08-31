@@ -37,19 +37,27 @@ class IDetElementPos ;
 
 struct PMTSIM_API IGeomManager
 {
-    IGeomManager( const std::string& name ); 
+    static constexpr const char* PREFIX = "0123" ; 
+    IGeomManager( const std::string& objName ); 
 
     const std::string& m_objName;
-    const char* m_opt ;
+    char* m_geom ;
+    char* m_head ;
+    char* m_tail ;
 
     std::vector<std::pair<std::string, double>> m_values ;
 
     template<typename Type>
     bool declProp(const std::string& key, Type& var); 
 
-    void setOpt(const char* opt); 
-    const char* getOpt() const ;  
+    static void Chop( char** head, char** tail, const char* delim, const char* str );
+    void setGeom(const char* geom); 
+    const char* getGeom() const ;  
+    const char* getHead() const ;  
+    const char* getTail() const ;  
+
     bool hasOpt(const char* q) const ; 
+
 
     const std::string& objName() { return m_objName; }
 
@@ -64,10 +72,12 @@ struct PMTSIM_API IGeomManager
 }; 
 
 
-inline IGeomManager::IGeomManager( const std::string& name )
+inline IGeomManager::IGeomManager( const std::string& objName )
     :
-    m_objName(name), 
-    m_opt(nullptr)
+    m_objName(objName), 
+    m_geom(nullptr),
+    m_head(nullptr),
+    m_tail(nullptr)
 {
 }
 
@@ -94,23 +104,55 @@ inline bool IGeomManager::declProp(const std::string& key, Type& var)
     return true ; 
 }
 
-inline void IGeomManager::setOpt( const char* opt )
-{
-    std::cout << "IGeomManager::setOpt opt " << ( opt ? opt : "-" ) << std::endl ; 
-    m_opt = opt ? strdup(opt) : nullptr  ; 
+
+inline void IGeomManager::Chop( char** head, char** tail, const char* delim, const char* str ) // static
+{   
+    *head = strdup(str); 
+    char* p = strstr(*head, delim);  // pointer to first occurence of delim in str or null if not found
+    if(p) p[0] = '\0' ; 
+    *tail = p ? p + strlen(delim) : nullptr ;
 }
-inline const char* IGeomManager::getOpt() const 
+
+/**
+IGeomManager::setGeom
+----------------------
+
+Canonically called from PMTSim::getManager immediately 
+after picking the appropriate manager to handle the geom 
+argument. 
+
+**/
+
+
+
+inline void IGeomManager::setGeom( const char* geom )
 {
-    return m_opt ; 
+    assert( geom ); 
+    m_geom = strdup(geom) ; 
+    Chop( &m_head, &m_tail, "__" , m_geom + strlen(PREFIX) );
+  
+    std::cout 
+        << "IGeomManager::setGeom "
+        << " m_geom " << ( m_geom ? m_geom : "-" )
+        << " m_head " << ( m_head ? m_head : "-" )
+        << " m_tail " << ( m_tail ? m_tail : "-" )
+        << std::endl 
+        ;   
+
+    assert( m_head );  
 }
+inline const char* IGeomManager::getGeom() const { return m_geom ; }
+inline const char* IGeomManager::getHead() const { return m_head ; }
+inline const char* IGeomManager::getTail() const { return m_tail ; }
+
 inline bool IGeomManager::hasOpt(const char* q) const 
 {
-    bool has = q && m_opt && strlen(q) <= strlen(m_opt) && strstr( m_opt, q ) != nullptr ; 
+    bool has = q && m_tail && strlen(q) <= strlen(m_tail) && strstr( m_tail, q ) != nullptr ; 
     /*
     std::cout 
         << "IGeomManager::hasOpt" 
         << " q " << ( q  ? q : "-" )
-        << " m_opt " << ( m_opt ? m_opt : "-" )
+        << " m_tail " << ( m_tail ? m_tail : "-" )
         << " has " << ( has ? "YES" : "NO" )
         << std::endl
         ; 
@@ -127,14 +169,21 @@ inline void IGeomManager::addValue( const char* k, double v )
 inline NP* IGeomManager::getValues(const char* contains) 
 { 
     getLV(); 
+
+    NP* vv = NP::MakeValues(m_values, contains) ; 
     std::cout 
         << "IGeomManager::getValues "
         << " m_objName " << m_objName 
         << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 
         << " m_values.size " << m_values.size()
+        << " vv " << ( vv ? vv->sstr() : "-" )
         << std::endl 
         ;  
-    return NP::MakeValues(m_values, contains) ; 
+
+    if(vv && m_geom) vv->set_meta<std::string>("geom", m_geom) ; 
+    if(vv && m_head) vv->set_meta<std::string>("head", m_head) ; 
+    if(vv && m_tail) vv->set_meta<std::string>("tail", m_tail) ; 
+    return vv ; 
 }
 
 

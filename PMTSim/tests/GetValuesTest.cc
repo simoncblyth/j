@@ -13,6 +13,7 @@ int main(int argc, char** argv)
     if(vv == nullptr) return 1 ; 
 
     std::cout << vv->descValues() << std::endl ; 
+    std::cout << vv->descMeta() << std::endl ; 
 
     return 0 ; 
 }
