@@ -310,6 +310,18 @@ NNVTMaskManager::makeMaskOutLogical() {
                                 rInner,
                                 rOuter
                                 );
+#ifdef PMTSIM_STANDALONE
+    addValue("SolidMask.SolidMaskVirtual.zPlane0.-height_virtual",  -height_virtual ) ; 
+    addValue("SolidMask.SolidMaskVirtual.zPlane1.0",  0. ) ; 
+    addValue("SolidMask.SolidMaskVirtual.zPlane2.htop_out/2",  htop_out/2 ) ; 
+    addValue("SolidMask.SolidMaskVirtual.zPlane3.htop_out+MAGIC_virtual_thickness", htop_out + MAGIC_virtual_thickness ) ; 
+    addValue("SolidMask.SolidMaskVirtual.rOuter0.mask_radiu_virtual", mask_radiu_virtual ) ; 
+    addValue("SolidMask.SolidMaskVirtual.rOuter1.mask_radiu_virtual", mask_radiu_virtual ) ; 
+    addValue("SolidMask.SolidMaskVirtual.rOuter2.mask_radiu_virtual", mask_radiu_virtual ) ; 
+    addValue("SolidMask.SolidMaskVirtual.rOuter3.mask_radiu_virtual/2", mask_radiu_virtual/2 ) ; 
+    addValue("SolidMask.SolidMaskVirtual.MAGIC_virtual_thickness", MAGIC_virtual_thickness ) ; 
+    addValue("SolidMask.SolidMaskVirtual.htop_out",                htop_out ) ; 
+#endif
 
 
     G4Material* BufferMaterials = Water;
