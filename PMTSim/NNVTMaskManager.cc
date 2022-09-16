@@ -743,8 +743,9 @@ G4VSolid* NNVTMaskManager::getSolid(const char* name)
 {   
     if (logicMaskVirtual == nullptr )
     {   
-        std::cout << "NNVTMaskManager::getSolid booting with getLV " << name << std::endl ;
+        std::cout << "[ NNVTMaskManager::getSolid booting with getLV " << name << std::endl ;
         getLV();
+        std::cout << "] NNVTMaskManager::getSolid booting with getLV " << name << std::endl ;
     }
 
     G4VSolid* solid = nullptr ;

@@ -37,6 +37,7 @@ class IDetElementPos ;
 
 struct PMTSIM_API IGeomManager
 {
+    static constexpr const int LEVEL = 0 ;  // using PLOG across projects inconvenient ?
     static constexpr const char* PREFIX = "0123" ; 
     IGeomManager( const std::string& objName ); 
 
@@ -94,7 +95,7 @@ to change less of its setup code.
 template<typename Type>
 inline bool IGeomManager::declProp(const std::string& key, Type& var)
 {
-    std::cout 
+    if(LEVEL > 0) std::cout 
         << "IGeomManager::declProp"
         << " objName " << std::setw(30) << objName()
         << " key " << std::setw(20) << key 
@@ -131,7 +132,7 @@ inline void IGeomManager::setGeom( const char* geom )
     m_geom = strdup(geom) ; 
     Chop( &m_head, &m_tail, "__" , m_geom + strlen(PREFIX) );
   
-    std::cout 
+    if(LEVEL > 0) std::cout 
         << "IGeomManager::setGeom "
         << " m_geom " << ( m_geom ? m_geom : "-" )
         << " m_head " << ( m_head ? m_head : "-" )
@@ -148,15 +149,15 @@ inline const char* IGeomManager::getTail() const { return m_tail ; }
 inline bool IGeomManager::hasOpt(const char* q) const 
 {
     bool has = q && m_tail && strlen(q) <= strlen(m_tail) && strstr( m_tail, q ) != nullptr ; 
-    /*
-    std::cout 
+    
+    if(LEVEL > 2) std::cout 
         << "IGeomManager::hasOpt" 
         << " q " << ( q  ? q : "-" )
         << " m_tail " << ( m_tail ? m_tail : "-" )
         << " has " << ( has ? "YES" : "NO" )
         << std::endl
         ; 
-    */
+
     return has ; 
 
 }
@@ -171,7 +172,7 @@ inline NP* IGeomManager::getValues(const char* contains)
     getLV(); 
 
     NP* vv = NP::MakeValues(m_values, contains) ; 
-    std::cout 
+    if(LEVEL > 0 ) std::cout 
         << "IGeomManager::getValues "
         << " m_objName " << m_objName 
         << " contains [" << ( contains ? contains : "-" )  << "] return NP::MakeVales " 

@@ -497,12 +497,29 @@ G4VSolid* PMTSim::GetMakerSolid(const char* name)  // static
 }
 
 
+
+const char*  PMTSim::LastManagerSolidName   = nullptr ; 
+NP*          PMTSim::LastManagerSolidValues = nullptr ; 
+
+void PMTSim::SetLastManagerSolid(const char* name, NP* vv)  // static 
+{
+    LastManagerSolidName   = name ; 
+    LastManagerSolidValues = vv ; 
+}
+
+const char* PMTSim::GetLastManagerSolidName(){   return LastManagerSolidName   ;  }
+NP*         PMTSim::GetLastManagerSolidValues(){ return LastManagerSolidValues ;  }
+
+
 G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 {
-    std::cout << "[ PMTSim::GetManagerSolid " << name << std::endl ;      
+    std::cout << "[ PMTSim::GetManagerSolid " << name << " instanciate PMTSim " << std::endl ;      
     PMTSim* ps = new PMTSim ; 
     std::cout << "[ PMTSim::GetManagerSolid PMTSim::getSolid " << name << std::endl ;      
     G4VSolid* solid = ps->getSolid(name); 
+    NP* values = ps->getValues(name) ; 
+
+    SetLastManagerSolid(name, values); 
 
     if( solid == nullptr )
     {
@@ -518,8 +535,16 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 
 NP* PMTSim::GetManagerValues(const char* name) // static
 {
-    PMTSim* ps = new PMTSim ; 
-    NP* vv = ps->getValues(name) ; 
+    NP* vv = nullptr ; 
+    if( LastManagerSolidName && name && strcmp(LastManagerSolidName, name) == 0 )
+    {
+        vv = LastManagerSolidValues ; 
+    }
+    else
+    {
+        PMTSim* ps = new PMTSim ; 
+        vv = ps->getValues(name) ; 
+    }
     return vv ; 
 }
 
@@ -611,6 +636,12 @@ void PMTSim::init()
         m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
         m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
 
+        m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
+        m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
+        m_lchi = new LowerChimney(LCHI_STR) ;   
+        m_lchi->getLV(); 
+
+        // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
 
@@ -625,18 +656,12 @@ void PMTSim::init()
         << std::endl  
         ;   
 
-
-    m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
-    m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
-    m_lchi = new LowerChimney(LCHI_STR) ;   
-    m_lchi->getLV(); 
-
-
     if(verbose) 
     {
         std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
         std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
     }
+
 
     std::cout 
         << "PMTSim::init"
@@ -793,7 +818,43 @@ G4VSolid* PMTSim::getSolid(const char* geom)
 {
     IGeomManager* mgr = getManager(geom) ; 
     const char* head = mgr->getHead() ; 
-    G4VSolid* solid = mgr->getSolid(head) ;  
+
+
+    G4VSolid* solid = nullptr ; 
+
+    std::cout << "[ PMTSim::getSolid " << geom << std::endl ; 
+
+    std::stringstream coutbuf;
+    std::stringstream cerrbuf;
+    {   
+        cout_redirect out_(coutbuf.rdbuf());
+        cerr_redirect err_(cerrbuf.rdbuf());
+
+
+        solid = mgr->getSolid(head) ;  
+
+        // dtors of the redirect structs reset back to standard cout/cerr streams  
+    }    
+
+    std::string out = coutbuf.str(); 
+    std::string err = cerrbuf.str(); 
+
+    std::cout 
+        << "PMTSim::getSolid" 
+        << " cout chars " << std::setw(6) << out.size() 
+        << " cerr chars " << std::setw(6) << err.size() 
+        << " set VERBOSE to see them " 
+        << std::endl  
+        ;   
+
+    if(verbose) 
+    {
+        std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
+        std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
+    }
+
+    std::cout << "] PMTSim::getSolid " << geom << std::endl ; 
+
 
     if(solid == nullptr)
         std::cout 

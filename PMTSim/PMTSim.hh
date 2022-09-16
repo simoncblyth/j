@@ -53,7 +53,16 @@ struct PMTSIM_API PMTSim
     static G4VSolid* GetMakerSolid(const char* name); 
     static G4VSolid* GetManagerSolid(const char* name); 
 
+    // avoid having to create the managers twice to get solid and value by keeping static notes
+    static const char* LastManagerSolidName ; 
+    static NP*         LastManagerSolidValues ; 
+    static void        SetLastManagerSolid(const char* name, NP* values); 
+    static const char* GetLastManagerSolidName() ; 
+    static NP*         GetLastManagerSolidValues() ; 
+
+
     static NP* GetManagerValues(const char* name); 
+
 
 
     static bool IsDebugSolid(const char* qname)  ; 
