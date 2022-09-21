@@ -6,6 +6,7 @@
 #include <array>
 
 #include "NP.hh"
+#include "SSys.hh"
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -70,6 +71,28 @@ private:
 
 
 
+std::string PMTSim::OutputMessage(const char* msg, const std::string& out, const std::string& err, bool verbose )  // static
+{
+    std::stringstream ss ; 
+
+    ss << std::left << std::setw(30) << msg << std::right 
+       << " yielded chars : "
+       << " cout " << std::setw(6) << out.size() 
+       << " cerr " << std::setw(6) << err.size() 
+       << " : set VERBOSE to see them " 
+       << std::endl  
+       ;   
+
+    if(verbose) 
+    {
+        ss << "cout[" << std::endl << out << "]" << std::endl  ;   
+        ss << "cerr[" << std::endl << err << "]" << std::endl  ;   
+    }
+    std::string s = ss.str(); 
+    return s ; 
+}
+
+
 
 
 double atof_(const char* s_val)
@@ -85,6 +108,10 @@ double getenvdouble(const char* key, double fallback)
     char* s_val = getenv(key);
     return s_val ? atof_(s_val) : fallback ; 
 }
+
+
+int PMTSim::LEVEL = SSys::getenvint("PMTSim", 0) ;   // using PLOG across packages needs investigation 
+
 
 /**
 PMTSim::SetEnvironmentSwitches
@@ -118,7 +145,7 @@ void PMTSim::SetEnvironmentSwitches(const char* name)  // static
         const char* key = key_.c_str(); 
 
         bool found = strstr(name, tag) != nullptr ; 
-        std::cout 
+        if(LEVEL > 0 ) std::cout 
             << "PMTSim::SetEnvironment"
             << " name " << std::setw(30) << name 
             << " tag [" << tag << "] "
@@ -152,7 +179,7 @@ value at the end of the name it is extracted.
 
 G4VSolid* PMTSim::GetSolid(const char* name) // static
 {
-    std::cout << " j/PMTSim/PMTSim.cc PMTSim::GetSolid(\"" << name << "\")" << std::endl ; 
+    if(LEVEL > 0) std::cout << " j/PMTSim/PMTSim.cc PMTSim::GetSolid(\"" << name << "\")" << std::endl ; 
 
     PMTSim::SetEnvironmentSwitches(name);  
 
@@ -171,7 +198,7 @@ G4VSolid* PMTSim::GetSolid(const char* name) // static
     const char* s_zcut = strstr(name, "zcut") ; 
     double zcut = s_zcut == nullptr ? 999. : atof_(s_zcut+strlen("zcut")) ; 
 
-    std::cout 
+    if(LEVEL > 0) std::cout 
         << "PMTSim::GetSolid"
         << " name " << name  
         << " zcut " << std::setw(10) << std::fixed << std::setprecision(4) << zcut 
@@ -279,7 +306,7 @@ bool PMTSim::IsDebugSolid(const char* name) // static
            break ;  
         }
     }
-    std::cout << "PMTSim::IsDebugSolid name " << name << " found " << found << std::endl ; 
+    if(LEVEL > 1) std::cout << "PMTSim::IsDebugSolid name " << name << " found " << found << std::endl ; 
     return found ; 
 }
 
@@ -513,9 +540,9 @@ NP*         PMTSim::GetLastManagerSolidValues(){ return LastManagerSolidValues ;
 
 G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
 {
-    std::cout << "[ PMTSim::GetManagerSolid " << name << " instanciate PMTSim " << std::endl ;      
+    if(LEVEL > 0) std::cout << "[ PMTSim::GetManagerSolid " << name << " instanciate PMTSim " << std::endl ;      
     PMTSim* ps = new PMTSim ; 
-    std::cout << "[ PMTSim::GetManagerSolid PMTSim::getSolid " << name << std::endl ;      
+    if(LEVEL > 0) std::cout << "[ PMTSim::GetManagerSolid PMTSim::getSolid " << name << std::endl ;      
     G4VSolid* solid = ps->getSolid(name); 
     NP* values = ps->getValues(name) ; 
 
@@ -528,7 +555,7 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
         P4Volume::DumpSolids(); 
     }
  
-    std::cout << "] PMTSim::GetManagerSolid " << name << std::endl ;      
+    if(LEVEL > 0) std::cout << "] PMTSim::GetManagerSolid " << name << std::endl ;      
     return solid ; 
 }
 
@@ -647,23 +674,9 @@ void PMTSim::init()
 
     std::string out = coutbuf.str(); 
     std::string err = cerrbuf.str(); 
+    std::cout << OutputMessage("PMTSim::init" , out, err, verbose ); 
 
-    std::cout 
-        << "PMTSim::init" 
-        << " cout chars " << std::setw(6) << out.size() 
-        << " cerr chars " << std::setw(6) << err.size() 
-        << " set VERBOSE to see them " 
-        << std::endl  
-        ;   
-
-    if(verbose) 
-    {
-        std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
-        std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
-    }
-
-
-    std::cout 
+    if(LEVEL > 0) std::cout 
         << "PMTSim::init"
         << std::endl
         << " m_hama.desc " << m_hama->desc() 
@@ -744,7 +757,7 @@ IGeomManager* PMTSim::getManager(const char* geom)
     }   
     else
     {
-        std::cout 
+        if(LEVEL > 1) std::cout 
             << "PMTSim::getManager " 
             << " found manager for geom " << geom 
             << " hama " << hama 
@@ -798,7 +811,7 @@ NP* PMTSim::getValues(const char* geom)
     // if the name prefix fails to yield any values, try again with null to get all values
     NP* vv = vv0 == nullptr ? mgr->getValues(nullptr) : vv0 ;  
 
-    std::cout 
+    if(LEVEL > 0) std::cout 
         << "PMTSim::getValues" 
         << " geom [" << geom << "]"
         << " mgr " << ( mgr ? "Y" : "N" ) 
@@ -822,14 +835,13 @@ G4VSolid* PMTSim::getSolid(const char* geom)
 
     G4VSolid* solid = nullptr ; 
 
-    std::cout << "[ PMTSim::getSolid " << geom << std::endl ; 
+    if(LEVEL > 0) std::cout << "[ PMTSim::getSolid " << geom << std::endl ; 
 
     std::stringstream coutbuf;
     std::stringstream cerrbuf;
     {   
         cout_redirect out_(coutbuf.rdbuf());
         cerr_redirect err_(cerrbuf.rdbuf());
-
 
         solid = mgr->getSolid(head) ;  
 
@@ -838,22 +850,10 @@ G4VSolid* PMTSim::getSolid(const char* geom)
 
     std::string out = coutbuf.str(); 
     std::string err = cerrbuf.str(); 
+    std::cout << OutputMessage("PMTSim::getSolid" , out, err, verbose ); 
 
-    std::cout 
-        << "PMTSim::getSolid" 
-        << " cout chars " << std::setw(6) << out.size() 
-        << " cerr chars " << std::setw(6) << err.size() 
-        << " set VERBOSE to see them " 
-        << std::endl  
-        ;   
 
-    if(verbose) 
-    {
-        std::cout << "cout[" << std::endl << out << "]" << std::endl  ;   
-        std::cout << "cerr[" << std::endl << err << "]" << std::endl  ;   
-    }
-
-    std::cout << "] PMTSim::getSolid " << geom << std::endl ; 
+    if(LEVEL > 0) std::cout << "] PMTSim::getSolid " << geom << std::endl ; 
 
 
     if(solid == nullptr)

@@ -116,14 +116,14 @@ G4ThreeVector NNVTMCPPMTManager::GetPosInPMT() {
 NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     : 
 #ifdef PMTSIM_STANDALONE
-      IGeomManager(plabel), 
+    IGeomManager(plabel), 
 #else
-      ToolBase(plabel), 
+    ToolBase(plabel), 
 #endif
-      m_label(plabel),
-      m_pmtsolid_maker(0),
-      pmt_solid(NULL), body_solid(NULL), inner_solid(NULL),
-      inner1_solid(NULL), inner2_solid(NULL), dynode_solid(NULL),
+    m_label(plabel),
+    m_pmtsolid_maker(0),
+    pmt_solid(NULL), body_solid(NULL), inner_solid(NULL),
+    inner1_solid(NULL), inner2_solid(NULL), dynode_solid(NULL),
       body_log(NULL), inner1_log(NULL), inner2_log(NULL), dynode_log(NULL),
       body_phys(NULL), inner1_phys(NULL), inner2_phys(NULL), 
       dynode_phys(NULL), m_logical_pmt(NULL), m_mirror_opsurf(NULL),
@@ -427,16 +427,16 @@ G4VSolid* NNVTMCPPMTManager::getSolid(const char* name)
     }
 
     G4VSolid* so = nullptr ;
-    if(StartsWithPrefix(name, "pmt_solid"))    so = pmt_solid ;
-    if(StartsWithPrefix(name, "body_solid"))   so = body_solid ;
-    if(StartsWithPrefix(name, "inner_solid"))  so = inner_solid ;
-    if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ;
-    if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ;
-    if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ;
+    if(StartsWithPrefix(name, "PMTSolid"))    so = pmt_solid ;
+    if(StartsWithPrefix(name, "BodySolid"))   so = body_solid ;
+    if(StartsWithPrefix(name, "InnerSolid"))  so = inner_solid ;
+    if(StartsWithPrefix(name, "Inner1Solid")) so = inner1_solid ;
+    if(StartsWithPrefix(name, "Inner2Solid")) so = inner2_solid ;
+    if(StartsWithPrefix(name, "DynodeSolid")) so = dynode_solid ;
 
-    if(StartsWithPrefix(name, "uncut_pmt_solid"))    so = uncut_pmt_solid ;
-    if(StartsWithPrefix(name, "uncut_body_solid"))   so = uncut_body_solid ;
-    if(StartsWithPrefix(name, "uncut_inner2_solid")) so = uncut_inner2_solid ;
+    if(StartsWithPrefix(name, "UncutPMTSolid"))    so = uncut_pmt_solid ;
+    if(StartsWithPrefix(name, "UncutBodySolid"))   so = uncut_body_solid ;
+    if(StartsWithPrefix(name, "UncutInner2Solid")) so = uncut_inner2_solid ;
 
     return so ;
 }

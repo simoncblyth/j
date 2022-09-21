@@ -24,6 +24,12 @@ struct IGeomManager ;
 
 struct PMTSIM_API PMTSim
 {
+    static int LEVEL ; 
+    bool verbose ; 
+
+    static std::string OutputMessage(const char* msg, const std::string& out, const std::string& err, bool verbose ); 
+
+
     static void SetEnvironmentSwitches(const char* name); 
 
     static const char* HAMA ; 
@@ -76,7 +82,6 @@ struct PMTSIM_API PMTSim
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
 
-    bool verbose ; 
     DetectorConstruction*      m_dc ;   
 
     HamamatsuR12860PMTManager* m_hama ; 

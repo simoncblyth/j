@@ -140,17 +140,10 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
       m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
       m_pmt_equator_to_bottom(0.)
 {
-#ifdef PMTSIM_STANDALONE
-    m_fast_cover = false ; 
-    m_cover_mat_str="Water" ; 
-    m_enable_optical_model=false ; 
-    m_useRealSurface = getenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE") == NULL ? true : false  ;  
-#else
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
     declProp("UsePMTOpticalModel", m_enable_optical_model=false);
     declProp("UseRealSurface", m_useRealSurface=true);
-#endif
 }
 
 std::string HamamatsuR12860PMTManager::desc() const 
@@ -486,7 +479,18 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
 
 bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
 {
-    return strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;   
+    bool match = strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;   
+    std::cout 
+        << "HamamatsuR12860PMTManager::StartsWithPrefix" 
+        << " name[" << name << "]" 
+        << " prefix[" << prefix << "]" 
+        << " strlen(name) " << strlen(name)
+        << " strlen(prefix) " << strlen(prefix)
+        << " match " << match
+        << std::endl 
+        ;
+
+    return match ; 
 }
 
 
@@ -494,22 +498,25 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 {
     if(!m_logical_pmt) 
     {
-        std::cout << "[ HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
+        std::cout << "[ HamamatsuR12860PMTManager::getSolid " << name << std::endl; 
         init();
-        std::cout << "] HamamatsuR12860PMTManager::getSolid init " << name << std::endl; 
+        std::cout << "] HamamatsuR12860PMTManager::getSolid " << name << std::endl; 
     }
 
     G4VSolid* so = nullptr ; 
-    if(StartsWithPrefix(name, "pmt_solid"))    so = pmt_solid ; 
-    if(StartsWithPrefix(name, "body_solid"))   so = body_solid ; 
-    if(StartsWithPrefix(name, "inner_solid"))  so = inner_solid ; 
-    if(StartsWithPrefix(name, "inner1_solid")) so = inner1_solid ; 
-    if(StartsWithPrefix(name, "inner2_solid")) so = inner2_solid ; 
-    if(StartsWithPrefix(name, "dynode_solid")) so = dynode_solid ; 
+    if(StartsWithPrefix(name, "PMTSolid"))    so = pmt_solid ; 
+    if(StartsWithPrefix(name, "BodySolid"))   so = body_solid ; 
+    if(StartsWithPrefix(name, "InnerSolid"))  so = inner_solid ; 
+    if(StartsWithPrefix(name, "Inner1Solid")) so = inner1_solid ; 
+    if(StartsWithPrefix(name, "Inner2Solid")) so = inner2_solid ; 
+    if(StartsWithPrefix(name, "DynodeSolid")) so = dynode_solid ; 
 
-    if(StartsWithPrefix(name, "uncut_pmt_solid"))    so = uncut_pmt_solid ; 
-    if(StartsWithPrefix(name, "uncut_body_solid"))   so = uncut_body_solid ; 
-    if(StartsWithPrefix(name, "uncut_inner2_solid")) so = uncut_inner2_solid ; 
+    if(StartsWithPrefix(name, "UncutPMTSolid"))    so = uncut_pmt_solid ; 
+    if(StartsWithPrefix(name, "UncutBodySolid"))   so = uncut_body_solid ; 
+    if(StartsWithPrefix(name, "UncutInner2Solid")) so = uncut_inner2_solid ; 
+
+    if( so == nullptr ) std::cerr << "HamamatsuR12860PMTManager::getSolid gives null name[" << name << "]" << std::endl ; 
+
 
     return so ; 
 }

@@ -7,7 +7,6 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
-
 How to test compilation without Opticks ? 
 ------------------------------------------
 
@@ -33,18 +32,23 @@ We encourage users and developers use the issues system in gitlab:
 
     For JUNOSW: https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues
     For TAOSW: https://code.ihep.ac.cn/JUNO/offline/taosw/-/issues
+
 You can find instructions to use git in OUM:
 
     https://juno.ihep.ac.cn/~offline/Doc/user-guide/appendix/tools.html#git-a-version-control-system
 
+    * un/pw j/j worked
+
 Here is a quickstart:
 
 If you are the first time to use IHEP gitlab, you need to register a public key before use it. Then you can clone the code:
+
     git clone git@code.ihep.ac.cn:JUNO/offline/junosw.git
 
 If you don't setup a public key yet, you can clone code with your IHEP SSO account:
 
     https://code.ihep.ac.cn/JUNO/offline/junosw.git
+
 After you get the code, you need to use new exteral libraries (J22.2.x) to build them:
 
     source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/setup.sh

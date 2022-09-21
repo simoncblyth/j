@@ -799,13 +799,6 @@ G4LogicalVolume* NNVTMaskManager::getLV(const char* name)
 }
 
 
-
-
-
-
-
-
-
 /**
 NNVTMaskManager::makeMaskLogical
 ----------------------------------
