@@ -39,11 +39,6 @@ G4LogicalVolume* HamamatsuR12860PMTManager::getLV()
     return m_logical_pmt;
 }
 
-NP* HamamatsuR12860PMTManager::getValues(const char* prefix) 
-{
-    return nullptr ; 
-}
-
 G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();
@@ -234,6 +229,11 @@ void HamamatsuR12860PMTManager::init_variables() {
 
         // then, subtract the thickness of mask
         pmt_eq_to_bottom -= 10.*mm;
+
+        // avoid the overlap between PMT tail and innerWater
+        const double safety_distance = 1.*cm;
+        pmt_eq_to_bottom -= safety_distance;
+
 
         m_pmt_equator_to_bottom = pmt_eq_to_bottom ; 
 
@@ -480,7 +480,7 @@ void HamamatsuR12860PMTManager::dump(const char* msg)  // cannot be const as get
 bool HamamatsuR12860PMTManager::StartsWithPrefix(const char* name, const char* prefix)  // static
 {
     bool match = strlen(name) >= strlen(prefix) && strncmp( name, prefix, strlen(prefix)) == 0 ;   
-    std::cout 
+    if(false) std::cout 
         << "HamamatsuR12860PMTManager::StartsWithPrefix" 
         << " name[" << name << "]" 
         << " prefix[" << prefix << "]" 

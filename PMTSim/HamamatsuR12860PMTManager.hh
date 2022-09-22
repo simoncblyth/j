@@ -54,7 +54,6 @@ public:
     G4LogicalVolume* getLV(const char* name);
     G4PVPlacement*   getPV(const char* name);
     G4VSolid*        getSolid(const char* name); 
-    NP*              getValues(const char* prefix); 
     static bool StartsWithPrefix(const char* name, const char* prefix); 
     G4String GetName() { return m_label;}
 private:

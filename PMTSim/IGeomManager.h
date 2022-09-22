@@ -6,11 +6,14 @@ IGeomManager
 
 Formerly named IGeomStandalone, but renamed as this simple
 protocol base can be useful beyond just PMTSIM_STANDALONE tests.
-The below geometry providing managers are IGeomManager 
-when they are compiled with the PMTSIM_STANDALONE switch::
+The geometry providing managers defined in the below headers 
+are IGeomManager when they are compiled with the PMTSIM_STANDALONE switch::
 
-    HamamatsuR12860PMTManager
-    NNVTMCPPMTManager
+    HamamatsuMaskManager.hh
+    NNVTMaskManager.hh
+    NNVTMCPPMTManager.hh
+    HamamatsuR12860PMTManager.hh
+    LowerChimney.hh
 
 The methods cannot easily be const as the underlying Manager 
 use lazy instanciation. 
@@ -105,6 +108,14 @@ inline bool IGeomManager::declProp(const std::string& key, Type& var)
     return true ; 
 }
 
+
+/**
+IGeomManager::Chop
+--------------------
+
+Chop *str* into *head* and *tail* delimited by *delim*
+
+**/
 
 inline void IGeomManager::Chop( char** head, char** tail, const char* delim, const char* str ) // static
 {   
