@@ -17,7 +17,7 @@
 #include "G4Polycone.hh"
 #include "G4SDManager.hh"
 
-#include "X4SolidTree.hh"
+#include "ZSolid.h"
 
 #ifdef PMTSIM_STANDALONE
 
@@ -47,16 +47,12 @@ G4LogicalVolume* NNVTMCPPMTManager::getLV()
     if(!m_logical_pmt) init();
     return m_logical_pmt;
 }
-NP* NNVTMCPPMTManager::getValues(const char* prefix)
-{
-    return nullptr ; 
-}
 
 G4LogicalVolume* NNVTMCPPMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();
     G4LogicalVolume* lv = nullptr ; 
-    if(StartsWithPrefix(name, "LogicalPmt")) lv = m_logical_pmt ;
+    if(StartsWithPrefix(name, "LogicalPMT")) lv = m_logical_pmt ;
     if(StartsWithPrefix(name, "BodyLog"))    lv = body_log ;
     if(StartsWithPrefix(name, "Inner1Log"))  lv = inner1_log ;
     if(StartsWithPrefix(name, "Inner2Log"))  lv = inner2_log ;
@@ -116,14 +112,14 @@ G4ThreeVector NNVTMCPPMTManager::GetPosInPMT() {
 NNVTMCPPMTManager::NNVTMCPPMTManager(const G4String& plabel)
     : 
 #ifdef PMTSIM_STANDALONE
-    IGeomManager(plabel), 
+      IGeomManager(plabel), 
 #else
-    ToolBase(plabel), 
+      ToolBase(plabel), 
 #endif
-    m_label(plabel),
-    m_pmtsolid_maker(0),
-    pmt_solid(NULL), body_solid(NULL), inner_solid(NULL),
-    inner1_solid(NULL), inner2_solid(NULL), dynode_solid(NULL),
+      m_label(plabel),
+      m_pmtsolid_maker(0),
+      pmt_solid(NULL), body_solid(NULL), inner_solid(NULL),
+      inner1_solid(NULL), inner2_solid(NULL), dynode_solid(NULL),
       body_log(NULL), inner1_log(NULL), inner2_log(NULL), dynode_log(NULL),
       body_phys(NULL), inner1_phys(NULL), inner2_phys(NULL), 
       dynode_phys(NULL), m_logical_pmt(NULL), m_mirror_opsurf(NULL),
@@ -223,6 +219,12 @@ void NNVTMCPPMTManager::init_variables()
                                        -r*r) - 19.434*m; // at z equator
         // then, subtract the thickness of mask
         pmt_eq_to_bottom -= 10.*mm;
+
+        // avoid the overlap between PMT tail and innerWater
+        const double safety_distance = 1.*cm;
+        pmt_eq_to_bottom -= safety_distance;
+
+
 
         m_pmt_equator_to_bottom = pmt_eq_to_bottom ;
 
@@ -331,7 +333,7 @@ void NNVTMCPPMTManager::helper_make_solid()
     if (m_useRealSurface && m_profligate_tail_cut == false) 
     {
         std::cout 
-            << "[ X4SolidTree::ApplyZCutTree"
+            << "[ ZSolid::ApplyZCutTree"
             << " zcut " << std::setw(10) << std::fixed << std::setprecision(3) << zcut 
             << " pmt_delta " << std::setw(10) << std::fixed << std::setprecision(3) << pmt_delta 
             << " body_delta " << std::setw(10) << std::fixed << std::setprecision(3) << body_delta 
@@ -341,11 +343,11 @@ void NNVTMCPPMTManager::helper_make_solid()
             << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
             << std::endl ; 
 
-        pmt_solid    = X4SolidTree::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
-        body_solid   = X4SolidTree::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
-        inner2_solid = X4SolidTree::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
+        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
+        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
+        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
 
-        std::cout << "] X4SolidTree::ApplyZCutTree zcut " << zcut << std::endl ; 
+        std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
     else if (m_useRealSurface && m_profligate_tail_cut == true)
     {

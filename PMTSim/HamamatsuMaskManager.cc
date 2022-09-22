@@ -325,7 +325,7 @@ void
 HamamatsuMaskManager::makeMaskLogical() {
 
 
-    G4double MaskIn_uncoincide_z = 0.0*mm ; 
+    G4double MaskIn_uncoincide_z = 1.0*mm ; 
 #ifdef PMTSIM_STANDALONE
     if(hasOpt("U0"))
     {
@@ -457,7 +457,6 @@ HamamatsuMaskManager::makeMaskLogical() {
          Bottom_in ,
          0,
          G4ThreeVector(0,0,-height_in/2 + gap - MaskIn_uncoincide_z/2 )    ) ;
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMask.MaskIn.zoffset.-height_in/2 + gap - MaskIn_uncoincide_z/2", -height_in/2 + gap - MaskIn_uncoincide_z/2 ) ; 
     addValue("SolidMask.MaskIn.zoffset.-height_in/2", -height_in/2 ) ; 
@@ -490,9 +489,6 @@ HamamatsuMaskManager::makeMaskLogical() {
     logicMask -> SetVisAttributes(mask_visatt);
 }
 
-
-
-
 void
 HamamatsuMaskManager::makeMaskPhysical() {
     physiMask = new G4PVPlacement(0,              // no rotation
@@ -503,8 +499,6 @@ HamamatsuMaskManager::makeMaskPhysical() {
             false,           // no boolean operations
             0);              // no particular field
 }
-
-
 
 void
 HamamatsuMaskManager::makeMaskTailLogical() {
@@ -518,7 +512,6 @@ HamamatsuMaskManager::makeMaskTailLogical() {
             -(height_out+paramRealMaskTail.height), // pzBottomCut (TODO)
             -height_out // pzTopCut
             );
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out", mask_radiu_out ) ; 
     addValue("SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out", htop_out ) ; 
@@ -540,7 +533,6 @@ HamamatsuMaskManager::makeMaskTailLogical() {
     addValue("SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2)", -(height_out+paramRealMaskTail.edge_height/2) ) ; 
 #endif
 
-
     Tail_outer_I = new G4UnionSolid
         (objName()+"Tail_outer_PartI",
          Tail_outer_I_Ellipsoid ,
@@ -555,14 +547,11 @@ HamamatsuMaskManager::makeMaskTailLogical() {
          paramRealMaskTail.height/2,
          0*deg,
          360*deg);
-
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 ) ; 
     addValue("SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 ) ; 
     addValue("SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2)", -(height_out+paramRealMaskTail.height/2) ) ; 
 #endif
-
                                            
     Tail_outer = new G4UnionSolid
         (objName()+"Tail_outer",
@@ -582,7 +571,6 @@ HamamatsuMaskManager::makeMaskTailLogical() {
             -(height_out+paramRealMaskTail.height-htop_thickness), // pzBottomCut (TODO)
             -height_out // pzTopCut
             );
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in", mask_radiu_in ) ; 
     addValue("SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in", htop_in ) ; 
@@ -592,7 +580,7 @@ HamamatsuMaskManager::makeMaskTailLogical() {
 
 
 
-    G4double TailInnerI_uncoincide_z = 0.0*mm ;  // <-- change this to 1.0*mm when happy with uncoincidence as default  
+    G4double TailInnerI_uncoincide_z = 1.0*mm ;  // <-- change this to 1.0*mm when happy with uncoincidence as default  
 #ifdef PMTSIM_STANDALONE
     if(hasOpt("U0"))
     {

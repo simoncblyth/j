@@ -1,6 +1,6 @@
 #include <cassert>
 #include "PMTSim.hh"
-#include "X4SolidTree.hh"
+#include "ZSolid.h"
 
 int main(int argc, char** argv)
 {
@@ -10,6 +10,6 @@ int main(int argc, char** argv)
 
     PMTSim::SetEnvironmentSwitches(name);  
     G4VSolid* solid = PMTSim::GetSolid_(name); 
-    X4SolidTree::Draw(solid); 
+    ZSolid::Draw(solid); 
     return 0 ; 
 }

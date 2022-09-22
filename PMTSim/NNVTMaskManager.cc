@@ -350,7 +350,7 @@ void
 NNVTMaskManager::makeMaskLogical() {
 
 
-    G4double MaskIn_uncoincide_z = 0.0*mm ; 
+    G4double MaskIn_uncoincide_z = 1.0*mm ; 
 #ifdef PMTSIM_STANDALONE
     if(hasOpt("U0"))
     {
@@ -473,7 +473,6 @@ NNVTMaskManager::makeMaskLogical() {
          Bottom_in ,
          0,
          G4ThreeVector(0,0,-height_in/2 + gap - MaskIn_uncoincide_z/2 )    ) ;
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMask.MaskIn.zoffset.-height_in/2 + gap - MaskIn_uncoincide_z/2", -height_in/2 + gap - MaskIn_uncoincide_z/2 ) ; 
     addValue("SolidMask.MaskIn.zoffset.-height_in/2", -height_in/2 ) ; 
@@ -530,7 +529,6 @@ NNVTMaskManager::makeMaskTailLogical() {
             -htop_out, // pzBottomCut (TODO)
             -height_out // pzTopCut
             );
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out", mask_radiu_out ) ; 
     addValue("SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out", htop_out ) ; 
@@ -546,8 +544,6 @@ NNVTMaskManager::makeMaskTailLogical() {
             paramRealMaskTail.edge_height/2,  
             0*deg, 
             360*deg);
-
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out", mask_radiu_out ) ; 
     addValue("SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2", paramRealMaskTail.edge_height/2 ) ; 
@@ -568,8 +564,6 @@ NNVTMaskManager::makeMaskTailLogical() {
          paramRealMaskTail.height/2,
          0*deg,
          360*deg);
-
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2", paramRealMaskTail.r2 ) ; 
     addValue("SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2",    paramRealMaskTail.height/2 ) ; 
@@ -595,7 +589,6 @@ NNVTMaskManager::makeMaskTailLogical() {
             -htop_in, // pzBottomCut (TODO)
             -height_out // pzTopCut
             );
-
 #ifdef PMTSIM_STANDALONE
     addValue("SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in", mask_radiu_in ) ; 
     addValue("SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in", htop_in ) ; 
@@ -605,7 +598,7 @@ NNVTMaskManager::makeMaskTailLogical() {
 
 
 
-    G4double TailInnerI_uncoincide_z = 0.0*mm ; 
+    G4double TailInnerI_uncoincide_z = 1.0*mm ; 
 #ifdef PMTSIM_STANDALONE
     if(hasOpt("U0"))
     {

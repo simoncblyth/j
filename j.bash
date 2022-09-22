@@ -18,6 +18,43 @@ How to test compilation without Opticks ?
 6. ntds0 
 
 
+
+
+Tao advice
+------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/10
+
+
+
+::
+
+    Hi Simon,
+
+    OK, I see your issue now.
+
+    BTW: when you make commit, you can add "WIP:" so that the CI will run without testing jobs. 
+    Tao
+
+
+::
+
+    Hi Simon,
+
+    For your changes, you could create a new issue first. As Gitlab support cross
+    reference, you can then associate a merge request to this issue. You can use
+    #42 to ref issue-42 in the merge request, then the issue will be associated
+    with the merge request automatically.
+
+    About the developer's workflow: due to the fork projects could not use the
+    gitlab runners to run CI, we suggest developers to create a branch in junosw
+    official repository. Then you can create a merge request after you have this
+    branch.  People will review your code and the merge your merge request. 
+
+    Do you think is that clear?
+    Tao
+
+
 IHEP git setup
 ---------------
 
@@ -1877,7 +1914,7 @@ jdiff(){
 
    : j/j.bash 
    : Compares files from current directory specified by stem arguments
-   : to files with same stems found under JUNOTOP/junosw   (formerly offline)
+   : to files with same stems found under JUNOTOP/junosw : formerly offline 
    : NB this must be run from the directory such as j/PMTSim with the modified files
 
    local iwd=$PWD

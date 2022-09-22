@@ -3,7 +3,7 @@
 
 #include "SSys.hh"
 #include "PMTSim.hh"
-#include "X4SolidTree.hh"
+#include "ZSolid.h"
 
 int main(int argc, char** argv)
 {
@@ -18,6 +18,6 @@ int main(int argc, char** argv)
     printf("(arg overrides GEOM envvar value, envvar value overrides hardcoded default_geom)\n"); 
  
     G4VSolid* solid = PMTSim::GetSolid(name); 
-    X4SolidTree::Draw(solid); 
+    ZSolid::Draw(solid); 
     return 0 ; 
 }

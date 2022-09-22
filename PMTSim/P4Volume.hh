@@ -4,7 +4,9 @@ P4Volume.hh
 =============
 
 Developed within PMTSim but it is generally useful so needs
-to be moved somewhere easier to reuse : X4? A lower level X4 ?
+to be moved somewhere easier to reuse with different 
+names (as its too much hassle to keep offline code in line 
+with Opticks developments). 
 
 **/
 
