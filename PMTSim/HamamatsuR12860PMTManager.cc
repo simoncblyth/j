@@ -138,7 +138,12 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
     declProp("UsePMTOpticalModel", m_enable_optical_model=false);
-    declProp("UseRealSurface", m_useRealSurface=true);
+
+    bool useRealSurface = true ; 
+#ifdef PMTSIM_STANDALONE
+    useRealSurface = getenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE") == nullptr ? true : false  ;
+#endif
+    declProp("UseRealSurface", m_useRealSurface=useRealSurface );
 }
 
 std::string HamamatsuR12860PMTManager::desc() const 
