@@ -48,13 +48,13 @@ G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
 {
     if(!m_logical_pmt) init();
     G4LogicalVolume* lv = nullptr ;  
-    if(StartsWithPrefix(name, "logical_pmt")) lv = m_logical_pmt ; 
-    if(StartsWithPrefix(name, "body_log"))    lv = body_log ; 
-    if(StartsWithPrefix(name, "inner1_log"))  lv = inner1_log ; 
-    if(StartsWithPrefix(name, "inner2_log"))  lv = inner2_log ; 
+    if(StartsWithPrefix(name, "LogicalPMT")) lv = m_logical_pmt ; 
+    if(StartsWithPrefix(name, "BodyLog"))    lv = body_log ; 
+    if(StartsWithPrefix(name, "Inner1Log"))  lv = inner1_log ; 
+    if(StartsWithPrefix(name, "Inner2Log"))  lv = inner2_log ; 
 
-    if(StartsWithPrefix(name, "dynode_log"))  lv = dynode_log ; 
-    if(StartsWithPrefix(name, "logical_cover")) lv = m_logical_cover ; 
+    if(StartsWithPrefix(name, "DynodeLog"))  lv = dynode_log ; 
+    if(StartsWithPrefix(name, "LogicalCover")) lv = m_logical_cover ; 
     return lv ; 
 }
 
@@ -62,10 +62,10 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
 {
     if(!m_logical_pmt) init();
     G4PVPlacement* pv = nullptr ; 
-    if(StartsWithPrefix(name, "body_phys"))   pv = body_phys ; 
-    if(StartsWithPrefix(name, "inner1_phys")) pv = inner1_phys ; 
-    if(StartsWithPrefix(name, "inner2_phys")) pv = inner2_phys ; 
-    if(StartsWithPrefix(name, "dynode_phys")) pv = dynode_phys ; 
+    if(StartsWithPrefix(name, "BodyPhys"))   pv = body_phys ; 
+    if(StartsWithPrefix(name, "Inner1Phys")) pv = inner1_phys ; 
+    if(StartsWithPrefix(name, "Inner2Phys")) pv = inner2_phys ; 
+    if(StartsWithPrefix(name, "DynodePhys")) pv = dynode_phys ; 
     return pv ; 
 }
 

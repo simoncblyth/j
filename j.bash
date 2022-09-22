@@ -18,6 +18,110 @@ How to test compilation without Opticks ?
 6. ntds0 
 
 
+IHEP git setup
+---------------
+
+0. access instructions using un:j/pw:j 
+
+* https://juno.ihep.ac.cn/~offline/Doc/user-guide/appendix/tools.html#git-a-version-control-system
+
+1. add id_rsa.pub key from Precision workstation into gitlab web interface 
+
+   * https://code.ihep.ac.cn/-/profile
+
+2. check the key from precision workstation::
+
+    N[blyth@localhost ~]$ ssh -T git@code.ihep.ac.cn
+    Welcome to GitLab, @blyth!
+    N[blyth@localhost ~]$ 
+
+3. check from epsilon before and after adding "Epsilon.Laptop.blyth" key thru web interface::
+
+    epsilon:opticks blyth$ ssh -T git@code.ihep.ac.cn
+    git@code.ihep.ac.cn: Permission denied (publickey).
+
+    epsilon:~ blyth$ ssh -T git@code.ihep.ac.cn
+    Welcome to GitLab, @blyth!
+
+4. check clone from Precision and Epsilon::
+
+    N[blyth@localhost ~]$ git clone git@code.ihep.ac.cn:JUNO/offline/junosw.git
+    Cloning into 'junosw'...
+    remote: Enumerating objects: 3614, done.
+    remote: Counting objects: 100% (26/26), done.
+    remote: Compressing objects: 100% (26/26), done.
+    remote: Total 3614 (delta 10), reused 0 (delta 0), pack-reused 3588
+    Receiving objects: 100% (3614/3614), 6.38 MiB | 11.16 MiB/s, done.
+    Resolving deltas: 100% (637/637), done.
+    N[blyth@localhost ~]$ 
+    N[blyth@localhost ~]$ l junosw/
+    total 68
+     0 drwxrwxr-x.  8 blyth blyth  163 Sep 22 17:10 .git
+     4 drwxrwxr-x. 25 blyth blyth 4096 Sep 22 17:10 .
+     4 drwxrwxr-x.  3 blyth blyth 4096 Sep 22 17:10 cmake
+     4 -rw-rw-r--.  1 blyth blyth 1749 Sep 22 17:10 setup.sh
+     4 -rwxrwxr-x.  1 blyth blyth  681 Sep 22 17:10 build_Doc.sh
+    ..
+
+    epsilon:~ blyth$ git clone git@code.ihep.ac.cn:JUNO/offline/junosw.git
+    Cloning into 'junosw'...
+    remote: Enumerating objects: 3614, done.
+    remote: Counting objects: 100% (26/26), done.
+    remote: Compressing objects: 100% (26/26), done.
+    remote: Total 3614 (delta 10), reused 0 (delta 0), pack-reused 3588
+    Receiving objects: 100% (3614/3614), 6.38 MiB | 268.00 KiB/s, done.
+    Resolving deltas: 100% (637/637), done.
+    epsilon:~ blyth$ l junosw/
+    total 72
+     0 drwxr-xr-x   13 blyth  staff    416 Sep 22 10:11 .git
+     8 -rw-r--r--    1 blyth  staff   1749 Sep 22 10:11 setup.sh
+     0 drwxr-xr-x   33 blyth  staff   1056 Sep 22 10:11 .
+     0 drwxr-xr-x   13 blyth  staff    416 Sep 22 10:11 cmake
+     8 -rwxr-xr-x    1 blyth  staff     63 Sep 22 10:11 build_RelWithDebInfo.sh
+     8 -rwxr-xr-x    1 blyth  staff    681 Sep 22 10:11 build_Doc.sh
+
+
+5. move junosw under junotop on Epsilon (this is just for looking at code, not building) and change jo bash function::
+
+    epsilon:~ blyth$ mv junosw junotop/
+    epsilon:~ blyth$ t jo
+    jo () 
+    { 
+        cd_func $JUNOTOP/junosw && pwd && git status
+    }
+
+
+
+
+IHEP Git instructions
+------------------------
+
+Clone code from official repository::
+
+    git clone git@code.ihep.ac.cn:JUNO/offline/junosw.git
+
+Clone code from user repository (you should fork the official repository)::
+
+    git clone git@code.ihep.ac.cn:YOURNAME/junosw.git
+
+Add additional repository (mine is an alias name, then following the user repository)::
+
+    git remote add mine git@code.ihep.ac.cn:YOURNAME/junosw.git
+
+Sync local repository and remote repository (sync the local main branch)::
+
+    git push mine main   # push your local changes to a branch in remote repository
+    git pull origin main # merge the remote branch main into local repository
+
+Switch branch::
+
+    git checkout main          # switch to an existing branch
+    git checkout -b new-branch # creatie a new branch
+    git branch -d new-branch   # delete a branch
+
+
+
+
 JUNO Offline Moved to Git : Mail from Tao : Sep 16, 2022
 -----------------------------------------------------------
 
@@ -1773,15 +1877,15 @@ jdiff(){
 
    : j/j.bash 
    : Compares files from current directory specified by stem arguments
-   : to files with same stems found under JUNOTOP/offline
+   : to files with same stems found under JUNOTOP/junosw   (formerly offline)
    : NB this must be run from the directory such as j/PMTSim with the modified files
 
    local iwd=$PWD
    local dst=$iwd
-   local src=$JUNOTOP/offline
+   local src=$JUNOTOP/junosw
    cd $src
    local rels=$(jcl $*)
-   : rels are JUNOTOP/offline relative paths 
+   : rels are JUNOTOP/junosw relative paths 
 
    local rel 
    local name 
@@ -1958,7 +2062,8 @@ jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and 
  
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
-jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
+#jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
+jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
 jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  } 
