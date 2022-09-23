@@ -7,6 +7,16 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
+* https://code.ihep.ac.cn/JUNO/offline/junosw/
+
+
+Installation instructions are still using SVN ?
+-------------------------------------------------
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+* https://code.ihep.ac.cn/JUNO/offline/junoenv
+
+
 How to test compilation without Opticks ? 
 ------------------------------------------
 
@@ -18,12 +28,14 @@ How to test compilation without Opticks ?
 6. ntds0 
 
 
+junosw #10 : prefix commits "WIP: #10 "
+---------------------------------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/10
 
 
 Tao advice
 ------------
-
-* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/10
 
 
 
@@ -1919,10 +1931,10 @@ jdiff(){
 
    local iwd=$PWD
    local dst=$iwd
-   local src=$JUNOTOP/junosw
+   local src=$JUNOTOP/offline
    cd $src
    local rels=$(jcl $*)
-   : rels are JUNOTOP/junosw relative paths 
+   : rels are JUNOTOP/offline relative paths 
 
    local rel 
    local name 
@@ -2099,8 +2111,7 @@ jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and 
  
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
-#jo(){ cd $JUNOTOP/offline && pwd && svn status ; } 
-jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
+jo(){ cd $JUNOTOP/offline && pwd && git status ; } 
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
 jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  } 
