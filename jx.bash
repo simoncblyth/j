@@ -101,9 +101,10 @@ jx-extlib()
    cd $JUNOTOP/junoenv
 
    if [ ! -d "$JUNOTOP/ExternalLibs" ]; then 
-       local jver=J22.2.x
-       #local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/$jver/ExternalLibs
-       local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/$jver/ExternalLibs
+
+       local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs
+
+       #local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs
        # needs corresponding compiler setup in .local
 
        [ ! -d "$oldtop" ] && echo $msg oldtop $oldtop does not exist && return 3

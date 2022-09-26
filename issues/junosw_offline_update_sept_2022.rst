@@ -2,6 +2,94 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+With CUDA 10.1 and gcc 11.2 (CUDA 10.1 max supported GCC is 8, to work with gcc 11 would need CUDA 11.5)::
+
+    [  1%] Generating OpticksGenstep_Enum.ini
+    In file included from /usr/local/cuda/include/cuda_runtime.h:83,
+                     from <command-line>:
+    /usr/local/cuda/include/crt/host_config.h:129:2: error: #error -- unsupported GNU version! gcc versions later than 8 are not supported!
+      129 | #error -- unsupported GNU version! gcc versions later than 8 are not supported!
+          |  ^~~~~
+    [2022-09-26 21:30:19,444] p349597 {/data/bl
+
+
+* https://rotadev.com/cuda-incompatible-with-my-gcc-version-dev/
+
+
+
+
+Dwarf Error::
+
+
+    N[blyth@localhost junosw]$ which gdb
+    /usr/bin/gdb
+
+
+    gdb -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 0 --no-guide_tube --evtmax 2 gun
+    Mon Sep 26 20:59:43 CST 2022
+    GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-114.el7
+    Copyright (C) 2013 Free Software Foundation, Inc.
+    License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+    This is free software: you are free to change and redistribute it.
+    There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+    and "show warranty" for details.
+    This GDB was configured as "x86_64-redhat-linux-gnu".
+    For bug reporting instructions, please see:
+    <http://www.gnu.org/software/gdb/bugs/>...
+    Reading symbols from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Python/3.9.14/bin/python3.9...Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Python/3.9.14/bin/python3.9]
+    (no debugging symbols found)...done.
+    Starting program: /data/blyth/junotop/ExternalLibs/Python/3.9.14/bin/python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 0 --no-guide_tube --evtmax 2 gun
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/libpython3.9.so.1.0]
+    [Thread debugging using libthread_db enabled]
+    Using host libthread_db library "/lib64/libthread_db.so.1".
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/_heapq.cpython-39-x86_64-linux-gnu.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/zlib.cpython-39-x86_64-linux-gnu.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/_bz2.cpython-39-x86_64-linux-gnu.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/_lzma.cpython-39-x86_64-linux-gnu.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/grp.cpython-39-x86_64-linux-gnu.so]
+    Namespace(help_more=False, loglevel='Info', evtmax=2, input=None, input_list=None, output='sample_detsim.root', user_output='sample_detsim_user.root', profiling=True, seed=42, start_evtid=0, restore_seed_status=None, dbtype='File', mac='run.mac', vis=False, vis_mac='vis.mac', detoption='Acrylic', qescale=1.0, light_yield=None, gdml=False, dae=False, splittrack=False, track_split_mode='PrimaryTrack', track_split_time=3000.0, pelletron=False, source=False, source_weights=False, source_weight_QC=False, ACU_source_weight_QC=False, CLS_source_weight_QC=False, K40_ACU_source_weight_QC=False, submarine=False, OffsetInZ=0, OffsetInX=0, OffsetInY=0, GT_source_theta=0, guide_tube=False, dfball_tube=False, simplify_calib_anchor=True, cd_enabled=True, real_surface_in_cd_enabled=True, strut_surface_enabled=True, real_mask_tail=True, mask_tail_surface_enabled=True, optical_surface_in_cd_enabled=True, check_overlap_in_cd_enabled=False, wp_enabled=True, wp_pmt_enabled=True, wp_latticed_enabled=True, tt_enabled=True, shutter=False, commissioning_enabled=False, below_z_is_water=0.0, pmt20inch=True, pmt20inch_name='PMTMask', additionacrylic_simplify_csg=False, pmt20inch_obsolete_torus_neck=False, pmt20inch_profligate_tail_cut=False, debug_disable_sticks=False, pmt20inch_plus_dynode=False, pmt20inch_extra='TWO-mask', pmtmask_top_thick=10.0, pmt3inch=True, pmt3inch_name='Tub3inchV3', pmt3inch_offset=-50.0, ranges_pmt_enabled=None, ranges_pmt_constructed=None, new_optical_model=False, MaterialDataDir=None, pmtsd_v2=True, ce_mode='20inch', ce_flat_value=0.9, ce_func=None, ce_func_par=None, pmtsd_merge_twindow=0.0, useoptical=True, cerenkov_only=False, cerenkov=True, cerenkov_type='modified', cerenkov_yield_factor=1.0, pmt_optical_model=True, track_op_first=True, deferred_op=False, deferred_op_testing_ratio=1.0, opticks_mode=0, opticks_anamgr=False, replace_param=None, usepmtsimsvc=True, quenching=True, pmt_hit_type=1, pmt_disable_process=False, photon_conversion=False, nphotonsperparticle=10, fixed_energy=None, physics_list='JUNO', positronium=True, enableIonPHP=True, flag_struts_fasteners='none', anamgr_grdm=True, stopAtPa234m=True, anamgr_edm=False, anamgr_edm_v2=True, split_maxhits=None, anamgr_simtrack=True, anamgr_edm_gen=True, anamgr_tt=False, anamgr_normal=True, anamgr_normal_hit=False, anamgr_muon=False, anamgr_atmo=False, anamgr_genevt=True, anamgr_deposit=True, anamgr_deposit_tt=True, anamgr_interesting_process=True, anamgr_neutron_inelastic=False, anamgr_optical_parameter=True, anamgr_timer=True, anamgr_photon_tracking=False, anamgr_g4tracking_verbose=None, anamgr_g4tracking_evtlist=None, anamgr_list=[], anamgr_config_file=None, voxel_fast_sim=False, voxel_merge_flag=False, voxel_merge_twin=1, voxel_fill_ntuple=False, voxel_fast_dir=None, voxel_geom_file='geom-geom-20pmt.root', voxel_npe_file='npehist3d_single.root', voxel_time_file='dist_tres_single.root', voxel_gen_npe=True, voxel_gen_time=True, voxel_save_hits=True, voxel_pmts_structs=True, voxel_quenching_scale=0.93, global_time_begin='1970-01-01 00:00:01', global_time_end='2038-01-19 03:14:07', global_event_rate=0.0, gentool_mode='gun', material='None', volume='None', volume_radius_min=0.0, volume_radius_max=0.0, volume_z_min=None, volume_z_max=None, volume_x_min=None, volume_x_max=None, volume_y_min=None, volume_y_max=None, volume_rock_depth=None, global_position=None, particles='gamma', momentums=1.0, momentums_mode='Fix', momentums_extra_params=None, momentums_interp='Momentum', positions=[(0, 0, 0)], times=None, directions=None)
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/lib64/libstdc++.so.6]
+    warning: File "/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/lib64/libstdc++.so.6.0.29-gdb.py" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load:/usr/bin/mono-gdb.py".
+    To enable execution of this file add
+        add-auto-load-safe-path /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/lib64/libstdc++.so.6.0.29-gdb.py
+    line to your configuration file "/home/blyth/.gdbinit".
+    To completely disable this security protection add
+        set auto-load safe-path /
+    line to your configuration file "/home/blyth/.gdbinit".
+
+
+
+
+    ine to your configuration file "/home/blyth/.gdbinit".
+    For more information about this security protection see the
+    "Auto-loading safe path" section in the GDB manual.  E.g., run from the shell:
+        info "(gdb)Auto-loading safe path"
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/lib64/libgcc_s.so.1]
+    **************************************************
+    Welcome to SNiPER v2.1.0
+    Running @ localhost.localdomain on Mon Sep 26 20:59:44 2022
+    **************************************************
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Python/3.9.14/lib/python3.9/lib-dynload/_json.cpython-39-x86_64-linux-gnu.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/tbb/2020.3/lib/libtbb.so.2]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/sqlite3/3.38.5/lib/libsqlite3.so.0]
+    == ROOT IO Svc ==
+    == Buffer Memory Management ==
+    == Random Svc ==
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/CLHEP/2.4.1.0/lib/libCLHEP-2.4.1.0.so]
+    == Root Writer ==
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/mysql-connector-c/6.1.9/lib/libmysqlclient.so.18]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/lib64/libatomic.so.1]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/Xercesc/3.2.3/lib/libxerces-c-3.2.so]
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/frontier/2.9.1/lib/libfrontier_client.so.2]
+     == PMTSimParamSvc == 
+    GENTOOL MODE:  gun
+    Dwarf Error: wrong version in compilation unit header (is 5, should be 2, 3, or 4) [in module /data/blyth/junotop/ExternalLibs/HepMC/2.06.11/lib/libHepMC.so.4]
+    [(0, 0, 0)] None
+
+    **************************************************************
+     Geant4 version Name: geant4-10-04-patch-02 [MT]   (25-May-2018)
+
+
 
 ::
 
