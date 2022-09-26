@@ -2111,6 +2111,7 @@ jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and 
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
 jo(){ cd $JUNOTOP/offline && pwd && git status ; } 
+
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
 jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  } 

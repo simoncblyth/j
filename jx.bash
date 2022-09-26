@@ -18,6 +18,12 @@ EOU
 jx-vi(){ vi $BASH_SOURCE ; }
 
 
+
+jt(){ cd $JUNOTOP ; pwd ; } 
+je(){ cd $JUNOTOP/junoenv && pwd ; } 
+jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
+
+
 jx-runtime-env-()
 {
    : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont
