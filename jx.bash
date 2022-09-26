@@ -2,6 +2,9 @@
 # ~/j/jx.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/jx.bash
 
+jxv(){ vi $BASH_SOURCE && jxf ; }
+jxf(){ source $BASH_SOURCE ; }
+
 jx-usage(){ cat << EOU
 jx.bash
 =========
@@ -163,5 +166,54 @@ jx-offline-data()
     cd $JUNOTOP/junoenv
 }
 
+
+tds-dir(){ echo /tmp/$USER/opticks/tds ; }
+tds-cd(){ cd $(tds-dir) ; }
+
+tds-(){ 
+   type $FUNCNAME
+   local msg="=== $FUNCNAME :"
+
+   [ -z "$JX_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
+ 
+   local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
+   if [ -z "$BP" ]; then
+      H="" 
+      B="" 
+      T="-ex r" 
+   else
+      H="-ex \"set breakpoint pending on\""
+      B="" 
+      for bp in $BP ; do B="$B -ex \"break $bp\" " ; done
+      T="-ex \"info break\" -ex r" 
+   fi
+
+   local iwd=$PWD
+   local dir=$(tds-dir)
+   mkdir -p $dir
+   cd $dir
+
+   local runline
+   if [ -n "$PDB" ]; then 
+       runline="ipython --pdb $script $*"
+   else
+       runline="gdb $H $B $T --args python $script $*"
+   fi 
+
+   echo $runline
+   date
+   eval $runline 
+   date
+   cd $iwd
+
+
+}
+
+tds0(){
+   : run without opticks 
+   #local former_opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
+   local opts="--opticks-mode 0 --no-guide_tube --evtmax 2 " ;   
+   tds- $opts gun $*
+}
 
 

@@ -854,8 +854,6 @@ j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; }
 jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 
-
-
 j-scp(){  
     local target=${1:-L7} 
     local cmd="scp $(j-dir)/j.bash $target:j/j.bash" 
@@ -863,8 +861,7 @@ j-scp(){
     eval $cmd
 }
 
-
-jvi(){ vi $BASH_SOURCE && jfu ; }
+jvi(){ vi $BASH_SOURCE ~/j/jx.bash && jfu ; }
 jfu(){ source $BASH_SOURCE ; }
 
 
