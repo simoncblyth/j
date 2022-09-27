@@ -9,17 +9,59 @@ jx.bash : Started Sept 2022 : Updating to git junosw
 Update of the former j/j.bash for the git based junosw environment 
 
 
+
 EOU
 }
 
-jxv(){ vi $BASH_SOURCE && jxf ; }
+jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
 jxf(){ source $BASH_SOURCE ; }
 jx-vi(){ vi $BASH_SOURCE ; }
+
+
+jproj(){ cat << EOL
+
+Simulation/DetSimV2/PhysiSim
+Simulation/GenTools
+Simulation/DetSimV2/PMTSim
+Simulation/DetSimV2/AnalysisCode
+Simulation/DetSimV2/DetSimOptions
+
+EOL
+}
 
 
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
 jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
+
+
+# -false to end sequence of ors 
+#
+# HMM jcl jcld fails when the * shell expansion find the files in the invoking directory 
+# as that messes up the find command
+# double quoting the f gets some way but somehow messes up other things
+# HENCE: use jcl jfi from top level where shell expansion will not find the files in the invoking directory 
+
+jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+
+
+jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
+jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
+
+jcv(){ cd $JUNOTOP/junosw ; jcv- $* ; : edit files identified by stem ;  } 
+jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; } 
+
+jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; } 
+jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
+
+jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
+jgl(){ cd $JUNOTOP/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
+ 
+
+
+
 
 
 jx-runtime-env-()
@@ -190,13 +232,18 @@ jx-offline()
     cd $JUNOTOP/junoenv
 }
 
+jx-offline-config()
+{
+    cd $JUNOTOP/junosw/build
+    local installprefix=$JUNOTOP/junosw/InstallArea
+    cmake .. -DCMAKE_INSTALL_PREFIX=$installprefix -DCMAKE_CXX_STANDARD=17  
+}
 jx-offline-build()
 {
     : HUH bash junoenv offline is not rerunnable so use this
 
-    cd $JUNOTOP/junosw/build
-    local installprefix=$JUNOTOP/junosw/InstallArea
-    cmake .. -DCMAKE_INSTALL_PREFIX=$installprefix -DCMAKE_CXX_STANDARD=17  || return -1 
+    jx-offline-config || return -1  
+
     local njobs=-j$(nproc)
     cmake --build . $njobs || return -1 
     cmake --install . || return -1

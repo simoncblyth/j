@@ -2,6 +2,343 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+BP=DsG4Scintillation::PostStepDoIt ntds3 looks like NumTracks is coming up zero at lot::
+
+    (gdb) c
+    Continuing.
+
+    Breakpoint 11, DsG4Scintillation::PostStepDoIt (this=0x1697a7950, aTrack=..., aStep=...) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:437
+    437	        G4double MeanNumberOfTracks= MeanNumberOfPhotons/fPhotonWeight; 
+    (gdb) p MeanNumberOfPhotons
+    $7 = 7.0174652758266295e-07
+    (gdb) 
+
+     459     // G4cerr<<"Scint weight is "<<weight<<G4endl;
+     460     if (NumTracks <= 0) {
+     461         // return unchanged particle and no secondaries 
+     462         aParticleChange.SetNumberOfSecondaries(0);
+     463         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
+     464     }
+     465 
+
+    (gdb) b 462
+    Breakpoint 13 at 0x7fffd0949922: file /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc, line 462.
+    (gdb) c
+    Continuing.
+
+    Breakpoint 13, DsG4Scintillation::PostStepDoIt (this=0x1697a7950, aTrack=..., aStep=...) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:462
+    462	        aParticleChange.SetNumberOfSecondaries(0);
+    (gdb) 
+
+
+
+
+
+Not getting any gensteps::
+
+    ntds3
+    ...
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize
+    2022-09-27 21:51:06.243 DEBUG [456601] [junoSD_PMT_v2_Opticks::Initialize@119]  eventID 0 wavelength (null) tool 0 input_photons 0 input_photon_repeat 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+    [ junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    2022-09-27 21:51:06.247 DEBUG [456601] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 0 m_opticksMode 3
+    2022-09-27 21:51:06.247 FATAL [456601] [QEvent::setGenstep@151] Must SEvt::AddGenstep before calling QEvent::setGenstep 
+    2022-09-27 21:51:06.247 ERROR [456601] [QSim::simulate@296]  QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate 
+    python: /data/blyth/junotop/opticks/qudarap/QEvent.cc:356: void QEvent::gatherPhoton(NP*) const: Assertion `p->has_shape(evt->num_photon, 4, 4)' failed.
+
+    Program received signal SIGABRT, Aborted.
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd14c8bbb in QEvent::gatherPhoton (this=0x165f41f20, p=0x1fb970ad0) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:356
+    #5  0x00007fffd14c8d68 in QEvent::gatherPhoton (this=0x165f41f20) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:364
+    #6  0x00007fffd14caf75 in QEvent::gatherComponent_ (this=0x165f41f20, comp=4) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:579
+    #7  0x00007fffd14cacfa in QEvent::gatherComponent (this=0x165f41f20, comp=4) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:566
+    #8  0x00007fffd10f44e2 in SEvt::gather (this=0x1653db940) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1423
+    #9  0x00007fffd454e59f in G4CXOpticks::simulate (this=0x718f9c0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:335
+    #10 0x00007fffcedd731a in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5948df0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:185
+    #11 0x00007fffcedd5612 in junoSD_PMT_v2::EndOfEvent (this=0x59485f0, HCE=0x2b93720) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1094
+    #12 0x00007fffdd61bc95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #13 0x00007fffdf7268cd in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #14 0x00007fffd021a45d in G4SvcRunManager::SimulateEvent (this=0x90ee50, i_event=0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+    #15 0x00007fffd0447e9b in DetSimAlg::execute (this=0xaf5800) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+    #16 0x00007fffee52384a in Task::execute() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #17 0x00007fffee528855 in TaskWatchDog::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #18 0x00007fffee523574 in Task::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #19 0x00007fffee9da7a3 in boost::python::objects::caller_py_function_impl<boost::python::detail::caller<bool (Task::*)(), boost::python::default_call_policies, b
+
+
+
+
+
+
+
+
+
+::
+
+    epsilon:junosw blyth$ find . -name CMakeLists.txt -exec grep -H Opticks {} \;
+    ./Simulation/GenTools/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}> 
+    ./Simulation/DetSimV2/PhysiSim/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}>
+    ./Simulation/DetSimV2/PMTSim/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}>  
+    ./Simulation/DetSimV2/DetSimOptions/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}>
+    ./Simulation/DetSimV2/AnalysisCode/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}>
+    ./Generator/GenGenie/CMakeLists.txt:        $<$<BOOL:${Opticks_FOUND}>:${Opticks_TARGET}> 
+
+
+cmake/Modules/FindOpticks.cmake::
+
+     48 #find_package(G4OK CONFIG QUIET)
+     49 find_package(G4CX CONFIG QUIET)
+     50 
+     51 if(G4CX_FOUND)
+     52     #add_compile_definitions(WITH_G4OPTICKS)
+     53     add_compile_definitions(WITH_G4CXOPTICKS)
+     54 
+     55     if(Opticks_VERBOSE)
+     56         message(STATUS "${Opticks_MODULE} : PLog_INCLUDE_DIR :${PLog_INCLUDE_DIR} ")
+     57     endif()
+     58     include_directories(${PLog_INCLUDE_DIR})  ## WHY NOT AUTOMATIC ? Maybe because plog is header only ?
+     59 
+     60     set(Opticks_TARGET "Opticks::G4CX")
+     61     set(Opticks_FOUND "YES")
+     62 
+     63 else()
+     64     set(Opticks_FOUND "NO")
+     65 endif()
+     66 
+
+
+
+Same again after jx-offline-build so the mechanism to switch on WITH_G4CXOPTICKS cannot be working ?
+
+But ntds3 still fails::
+
+    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /data/blyth/junotop/data/Simulation/DetSim
+    junotoptask:PMTSimParamSvc.init_file  INFO: Loading parameters from file: /data/blyth/junotop/data/Simulation/SimSvc/PMTSimParamSvc/PMTParam_CD_LPMT.root
+    Detaching after fork from child process 450370.
+    junotoptask:PMTSimParamSvc.init_file_SPMT  INFO: Loading parameters from file: /data/blyth/junotop/data/Simulation/SimSvc/PMTSimParamSvc/PMTParam_CD_SPMT.root
+     m_all_pmtID.size = 45612
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::initializeOpticks m_opticksMode 3 **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS 
+    junotoptask:DetSim0Svc.initializeOpticks ERROR:  FATAL : non-zero opticksMode **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS  
+    python: /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:315: bool DetSim0Svc::initializeOpticks(): Assertion `0' failed.
+
+
+
+
+Seems to work::
+
+    N[blyth@localhost junoenv]$ l /data/blyth/junotop/junosw/InstallArea/lib64/
+    total 274664
+       16 drwxrwxr-x. 3 blyth blyth    12288 Sep 27 20:42 .
+     5108 -rwxr-xr-x. 1 blyth blyth  5226832 Sep 27 20:42 libDetSimOptions.so
+    12868 -rwxr-xr-x. 1 blyth blyth 13174744 Sep 27 20:42 libAnalysisCode.so
+    12420 -rwxr-xr-x. 1 blyth blyth 12715296 Sep 27 20:42 libPMTSim.so
+     9640 -rwxr-xr-x. 1 blyth blyth  9868208 Sep 27 20:42 libGenTools.so
+     7628 -rwxr-xr-x. 1 blyth blyth  7809344 Sep 27 20:42 libPhysiSim.so
+        0 drwxrwxr-x. 6 blyth blyth       92 Sep 27 19:39 ..
+     2948 -rwxr-xr-x. 1 blyth blyth  3014712 Sep 27 19:39 libDetSimMTUtil.so
+     1024 -rwxr-xr-x. 1 blyth blyth  1046176 Sep 27 19:39 libSPMTCalibAlg.so
+      992 -rwxr-xr-x. 1 blyth blyth  1012888 Sep 27 19:39 libWpPMTCalibAlg.so
+     1348 -rwxr-xr-x. 1 blyth blyth  1378376 Sep 27 19:38 libOPSimulator.so
+    11956 -rwxr-xr-x. 1 blyth blyth 12239168 Sep 27 19:38 libElecSimAlg.so
+
+
+
+Need to update the touchbuild::
+
+    N[blyth@localhost junosw]$ find . -type f -exec grep -l OPTICKS {} \;
+    ./Doc/oum/source/releasenotes/J22.1.0.md
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+    ./Simulation/DetSimV2/AnalysisCode/include/G4OpticksAnaMgr.hh
+    ./Simulation/DetSimV2/AnalysisCode/src/G4OpticksAnaMgr.cc
+    ./Simulation/DetSimV2/DetSimMTUtil/src/DetFactorySvc.cc
+    ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+    ./Simulation/DetSimV2/PMTSim/include/PMTEfficiencyCheck.hh
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+    ./Simulation/DetSimV2/PMTSim/src/PMTEfficiencyCheck.cc
+    ./Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+    ./Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h
+    ./Simulation/DetSimV2/PhysiSim/include/LocalG4Cerenkov1042.hh
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+    ./Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+    ./Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+    ./Simulation/GenTools/GenTools/GtOpticksTool.h
+    ./Simulation/GenTools/src/GtOpticksTool.cc
+    ./cmake/JUNODependencies.cmake
+    ./build/python/Tutorial/JUNODetSimModule.py
+    ./build/Simulation/GenTools/CMakeFiles/GenTools.dir/src/GtOpticksTool.cc.o
+    ./build/Simulation/DetSimV2/PMTSim/CMakeFiles/PMTSim.dir/src/junoSD_PMT_v2.cc.o
+    ./build/Simulation/DetSimV2/PhysiSim/CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o
+    ./build/Simulation/DetSimV2/DetSimOptions/CMakeFiles/DetSimOptions.dir/src/DetSim0Svc.cc.o
+    ./build/Simulation/DetSimV2/DetSimMTUtil/CMakeFiles/DetSimMTUtil.dir/src/DetFactorySvc.cc.o
+    ./build/lib/libPhysiSim.so
+    ./build/lib/libGenTools.so
+    ./build/lib/libPMTSim.so
+    ./build/lib/libDetSimOptions.so
+    ./build/lib/libDetSimMTUtil.so
+    ./InstallArea/include/GenTools/GtOpticksTool.h
+    ./InstallArea/lib64/libGenTools.so
+    ./InstallArea/lib64/libPMTSim.so
+    ./InstallArea/lib64/libPhysiSim.so
+    ./InstallArea/lib64/libDetSimOptions.so
+    ./InstallArea/lib64/libDetSimMTUtil.so
+    ./InstallArea/lib64/cmake/junosw/JUNODependencies.cmake
+    ./InstallArea/python/Tutorial/JUNODetSimModule.py
+    ./InstallArea/python/Tutorial/__pycache__/JUNODetSimModule.cpython-38.pyc
+    N[blyth@localhost junosw]$ 
+
+
+
+
+
+ntds3 again, now with debug build::
+
+    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /data/blyth/junotop/data/Simulation/DetSim
+    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /data/blyth/junotop/data/Simulation/DetSim
+    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /data/blyth/junotop/data/Simulation/DetSim
+    junotoptask:PMTSimParamSvc.init_file  INFO: Loading parameters from file: /data/blyth/junotop/data/Simulation/SimSvc/PMTSimParamSvc/PMTParam_CD_LPMT.root
+    Detaching after fork from child process 432245.
+    junotoptask:PMTSimParamSvc.init_file_SPMT  INFO: Loading parameters from file: /data/blyth/junotop/data/Simulation/SimSvc/PMTSimParamSvc/PMTParam_CD_SPMT.root
+     m_all_pmtID.size = 45612
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::initializeOpticks m_opticksMode 3 **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS 
+    junotoptask:DetSim0Svc.initializeOpticks ERROR:  FATAL : non-zero opticksMode **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS  
+    python: /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:315: bool DetSim0Svc::initializeOpticks(): Assertion `0' failed.
+
+    Program received signal SIGABRT, Aborted.
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd32be0cc in DetSim0Svc::initializeOpticks (this=0xadc530) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:315
+    #5  0x00007fffd32bce63 in DetSim0Svc::initialize (this=0xadc530) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:104
+    #6  0x00007fffee50d266 in DleSupervisor::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #7  0x00007fffee5235a9 in Task::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #8  0x00007fffee52c187 in TopTask::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #9  0x00007fffee527a2b in TaskWatchDog::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #10 0x00007fffee523568 in Task::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+
+Check ntds0, it works without incident::
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize
+    Begin of Event --> 0
+    junoSD_PMT_v2::EndOfEvent NOT WITH OPTICKS
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 14 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (1) 
+    junoSD_PMT_v2::Initialize
+    Begin of Event --> 1
+    junoSD_PMT_v2::EndOfEvent NOT WITH OPTICKS
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 8 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 2           7.47800        3.73900      3.26200      
+    DetSimAlg                2           59.47800       29.73900     15.52500     
+    Sum of junotoptask       2           67.11800       33.55900     18.85800     
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+    junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+    junotoptask.finalize            INFO: events processed 2
+    Delete G4SvcRunManager
+
+    **************************************************
+    Terminating @ localhost.localdomain on Tue Sep 27 19:42:53 2022
+    SNiPER::Context Running Mode = { BASIC }
+    SNiPER::Context Terminated Successfully
+    [Inferior 1 (process 432072) exited normally]
+    Missing separate debuginfos, use: debuginfo-install bzip2-libs-1.0.6-13.el7.x86_64 cyrus-sasl-lib-2.1.26-23.el7.x86_64 expat-2.1.0-10.el7_3.x86_64 freetype-2.8-12.el7_6.1.x86_64 glibc-2.17-307.el7.1.x86_64 keyutils-libs-1.5.8-3.el7.x86_64 krb5-libs-1.15.1-37.el7_6.x86_64 libICE-1.0.9-9.el7.x86_64 libSM-1.2.2-2.el7.x86_64 libX11-1.6.7-4.el7_9.x86_64 libXau-1.0.8-2.1.el7.x86_64 libXext-1.3.3-3.el7.x86_64 libXmu-1.1.2-2.el7.x86_64 libXt-1.1.5-3.el7.x86_64 libcom_err-1.42.9-13.el7.x86_64 libcurl-7.29.0-59.el7_9.1.x86_64 libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64 libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64 libicu-50.2-4.el7_7.x86_64 libidn-1.28-4.el7.x86_64 libpng-1.5.13-7.el7_2.x86_64 libselinux-2.5-14.1.el7.x86_64 libssh2-1.8.0-3.el7.x86_64 libuuid-2.23.2-59.el7_6.1.x86_64 libxcb-1.13-1.el7.x86_64 mesa-libGLU-9.0.0-4.el7.x86_64 ncurses-libs-5.9-14.20130511.el7_4.x86_64 nspr-4.19.0-1.el7_5.x86_64 nss-3.36.0-7.1.el7_6.x86_64 nss-softokn-freebl-3.36.0-5.el7_5.x86_64 nss-util-3.36.0-1.1.el7_6.x86_64 openldap-2.4.44-25.el7_9.x86_64 openssl-libs-1.0.2k-25.el7_9.x86_64 pcre-8.32-17.el7.x86_64 readline-6.2-11.el7.x86_64 xz-libs-5.2.2-1.el7.x86_64 zlib-1.2.7-18.el7.x86_64
+    (gdb) 
+
+
+
+Build debug::
+
+     jo
+     ./build_Debug.sh 
+
+
+ntds3 SEGV::
+
+    Correlated gamma emission flag                      0
+    Max 2J for sampling of angular correlations         10
+    =======================================================================
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize
+
+    Program received signal SIGSEGV, Segmentation fault.
+    0x00007fffd2b2faa1 in PMTHitMerger::init(G4THitsCollection<junoHit_PMT>*) () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    Missing separate debuginfos, use: debuginfo-install bzip2-libs-1.0.6-13.el7.x86_64 cyrus-sasl-lib-2.1.26-23.el7.x86_64 expat-2.1.0-10.el7_3.x86_64 freetype-2.8-12.el7_6.1.x86_64 glibc-2.17-307.el7.1.x86_64 keyutils-libs-1.5.8-3.el7.x86_64 krb5-libs-1.15.1-37.el7_6.x86_64 libICE-1.0.9-9.el7.x86_64 libSM-1.2.2-2.el7.x86_64 libX11-1.6.7-4.el7_9.x86_64 libXau-1.0.8-2.1.el7.x86_64 libXext-1.3.3-3.el7.x86_64 libXmu-1.1.2-2.el7.x86_64 libXt-1.1.5-3.el7.x86_64 libcom_err-1.42.9-13.el7.x86_64 libcurl-7.29.0-59.el7_9.1.x86_64 libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64 libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64 libicu-50.2-4.el7_7.x86_64 libidn-1.28-4.el7.x86_64 libpng-1.5.13-7.el7_2.x86_64 libselinux-2.5-14.1.el7.x86_64 libssh2-1.8.0-3.el7.x86_64 libuuid-2.23.2-59.el7_6.1.x86_64 libxcb-1.13-1.el7.x86_64 mesa-libGLU-9.0.0-4.el7.x86_64 ncurses-libs-5.9-14.20130511.el7_4.x86_64 nspr-4.19.0-1.el7_5.x86_64 nss-3.36.0-7.1.el7_6.x86_64 nss-softokn-freebl-3.36.0-5.el7_5.x86_64 nss-util-3.36.0-1.1.el7_6.x86_64 openldap-2.4.44-25.el7_9.x86_64 openssl-libs-1.0.2k-25.el7_9.x86_64 pcre-8.32-17.el7.x86_64 readline-6.2-11.el7.x86_64 xz-libs-5.2.2-1.el7.x86_64 zlib-1.2.7-18.el7.x86_64
+    (gdb) bt
+    #0  0x00007fffd2b2faa1 in PMTHitMerger::init(G4THitsCollection<junoHit_PMT>*) () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    #1  0x00007fffd2b8a123 in junoSD_PMT_v2::Initialize(G4HCofThisEvent*) () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    #2  0x00007fffdd919c25 in G4SDStructure::Initialize(G4HCofThisEvent*) [clone .localalias.79] () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #3  0x00007fffdd917b5d in G4SDManager::PrepareNewEvent() () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #4  0x00007fffdfa240a6 in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #5  0x00007fffd3dbed20 in G4SvcRunManager::SimulateEvent(int) () from /data/blyth/junotop/junosw/InstallArea/lib64/libG4Svc.so
+    #6  0x00007fffd3fca339 in DetSimAlg::execute() () from /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimAlg.so
+    #7  0x00007fffee52384a in Task::execute() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #8  0x00007fffee528855 in TaskWatchDog::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #9  0x00007fffee523574 in Task::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #10 0x00007fffee9da7a3 in boost::python::objects::caller_py_function_impl<boost::python::detail::caller<bool (Task::*)(), boost::python::default_call_policies, boost::mpl::vector2<bool, Task&> > >::operator()(_object*, _object*) () from /data/blyth/junotop/sniper/InstallArea/python/Sniper/libSniperPython.so
+    #11 0x00007fffee2c9c5d in boost::python::objects::function::call(_object*, _object*) const () from /data/blyth/junotop/ExternalLibs/Boost/1.78.0/lib/libboost_python38.so.1.78.0
+    #12 0x00007fffee2c9ee8 in boost::detail::function::void_function_ref_invoker0<boost::python::objects::(anonymous namespace)::bind_ret
+
+
+
+Tidy up after accepted MR is merged and close issue in web interface::
+
+    N[blyth@localhost junosw]$ git s
+    # On branch blyth-handle-genie-API-change-in-backwards-compatible-manner
+    nothing to commit, working directory clean
+    N[blyth@localhost junosw]$ git checkout main
+    Switched to branch 'main'
+    N[blyth@localhost junosw]$ git s
+    # On branch main
+    nothing to commit, working directory clean
+    N[blyth@localhost junosw]$ git branch
+      blyth-handle-genie-API-change-in-backwards-compatible-manner
+    * main
+    N[blyth@localhost junosw]$ git pull 
+    remote: Enumerating objects: 1, done.
+    remote: Counting objects: 100% (1/1), done.
+    remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 0
+    Unpacking objects: 100% (1/1), done.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+       216c922..4efaaf7  main       -> origin/main
+    Updating 216c922..4efaaf7
+    Fast-forward
+     Generator/GenGenie/src/ghep2hepmc.cc | 8 ++++++++
+     1 file changed, 8 insertions(+)
+    N[blyth@localhost junosw]$ git branch
+      blyth-handle-genie-API-change-in-backwards-compatible-manner
+    * main
+    N[blyth@localhost junosw]$ git branch -d blyth-handle-genie-API-change-in-backwards-compatible-manner
+    Deleted branch blyth-handle-genie-API-change-in-backwards-compatible-manner (was f305ec5).
+    N[blyth@localhost junosw]$ 
+
+
+
+
+
+
+
+
 Make MR for GenGenie change::
 
     N[blyth@localhost junosw]$ git s
