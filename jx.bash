@@ -52,7 +52,6 @@ jx-runtime-env()
    fi
 }
 
-
 jre(){  
    jx-runtime-env 
    jo 
@@ -65,20 +64,11 @@ jre(){
 jre-(){ jx-runtime-env- ; }
 
 
-
-
-
-
-
-
-
-
-
-
-
 jx-all()
 {
-   jx-junoenv
+   jx-oldtop
+   jx-junoenv-latest
+   jx-extlib-collection
    jx-extlib
    jx-env
    jx-sniper
@@ -86,13 +76,61 @@ jx-all()
    jx-offline-data
 }
 
-jx-junoenv()
+
+jx-ccbase()
+{
+   local ccbase=$(dirname $(dirname $(dirname $(dirname $(dirname $CC)))))
+   echo $ccbase
+}
+
+jx-extlib-oldtop()
+{
+   local ccbase=$(jx-ccbase)
+   local oldtop
+   case $ccbase in
+       #/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830) oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs ;;
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830) oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs ;;
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120) oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs  ;;
+   esac
+   echo $msg CC $CC ccbase $ccbase oldtop $oldtop
+   [ ! -d "$oldtop" ] && echo $msg oldtop $oldtop does not exist && return 3
+   export JUNO_EXTLIB_OLDTOP=$oldtop
+}
+
+jx-extlib-collection()
+{
+   local ccbase=$(jx-ccbase)
+   local collection
+   case $ccbase in
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830) collection=22.1  ;;
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120) collection=22.2 ;;
+   esac
+   export JUNO_EXTLIB_COLLECTION=$JUNOTOP/junoenv/collections/$collection.sh
+}
+
+jx-junotop()
 {
    local msg="=== $BASH_SOURCE $FUNCNAME "
    [ -z "$JUNOTOP" ] && echo $msg JUNOTOP is not defined && return 1 
    cd $JUNOTOP
+}
+
+jx-junoenv-latest()
+{
+   jx-junotop
+   local msg="=== $BASH_SOURCE $FUNCNAME "
    [ ! -d "junoenv" ] && git clone git@code.ihep.ac.cn:JUNO/offline/junoenv.git 
    [ ! -d "junoenv" ] && echo $msg junoenv dir does not exist && return 2 
+}
+
+jx-junoenv-linked()
+{
+   local msg="=== $BASH_SOURCE $FUNCNAME "
+   jx-junotop
+   jx-extlib-oldtop 
+
+   local oldtop=$(dirname $JUNO_EXTLIB_OLDTOP)
+   ln -s $oldtop/junoenv junoenv
 }
 
 jx-extlib()
@@ -100,15 +138,8 @@ jx-extlib()
    local msg="=== $BASH_SOURCE $FUNCNAME "
    cd $JUNOTOP/junoenv
 
+
    if [ ! -d "$JUNOTOP/ExternalLibs" ]; then 
-
-       local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs
-
-       #local oldtop=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs
-       # needs corresponding compiler setup in .local
-
-       [ ! -d "$oldtop" ] && echo $msg oldtop $oldtop does not exist && return 3
-       export JUNO_EXTLIB_OLDTOP=$oldtop
        bash junoenv libs reuse allpkgs
    else
        echo $msg JUNOTOP/ExternalLibs exists already 

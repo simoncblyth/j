@@ -2,6 +2,186 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+
+
+
+Try collections/22.1.sh::
+
+
+
+
+
+Clean up branch following accepted merge request::
+
+    N[blyth@localhost junoenv]$ git s
+    # On branch blyth-add-junoenv-libs-vlist
+    nothing to commit, working directory clean
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ git help branch 
+    N[blyth@localhost junoenv]$ git branch -d 
+    fatal: branch name required
+    N[blyth@localhost junoenv]$ git branch -d blyth-add-junoenv-libs-vlist
+    error: Cannot delete the branch 'blyth-add-junoenv-libs-vlist' which you are currently on.
+    N[blyth@localhost junoenv]$ git checkout main
+    Switched to branch 'main'
+    Your branch is behind 'origin/main' by 14 commits, and can be fast-forwarded.
+      (use "git pull" to update your local branch)
+    N[blyth@localhost junoenv]$ git branch -d blyth-add-junoenv-libs-vlist
+    warning: deleting branch 'blyth-add-junoenv-libs-vlist' that has been merged to
+             'refs/remotes/origin/blyth-add-junoenv-libs-vlist', but not yet merged to HEAD.
+    Deleted branch blyth-add-junoenv-libs-vlist (was 592668b).
+    N[blyth@localhost junoenv]$ git pull 
+    Updating 0e0aad5..877fc01
+    Fast-forward
+     collections/22.1.sh      |  35 ++++++++++++++++++++
+     collections/22.2.sh      |  35 ++++++++++++++++++++
+     git-junoenv/git-junoenv  | 308 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+     junoenv                  |  12 +++++++
+     junoenv-external-libs.sh |  23 ++++++++++---
+     5 files changed, 409 insertions(+), 4 deletions(-)
+     create mode 100644 collections/22.1.sh
+     create mode 100644 collections/22.2.sh
+     create mode 100755 git-junoenv/git-junoenv
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ 
+
+
+
+
+::
+
+    N[blyth@localhost junoenv]$ git add . 
+    N[blyth@localhost junoenv]$ git commit -m "add junoenv libs vlist to facilitate version overriding"
+    [blyth-add-junoenv-libs-vlist 592668b] add junoenv libs vlist to facilitate version overriding
+     1 file changed, 19 insertions(+), 4 deletions(-)
+    N[blyth@localhost junoenv]$ git push 
+    fatal: The current branch blyth-add-junoenv-libs-vlist has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-add-junoenv-libs-vlist
+
+    N[blyth@localhost junoenv]$ git push --set-upstream origin blyth-add-junoenv-libs-vlist
+    Counting objects: 255, done.
+    Delta compression using up to 48 threads.
+    Compressing objects: 100% (62/62), done.
+    Writing objects: 100% (224/224), 23.26 KiB | 0 bytes/s, done.
+    Total 224 (delta 138), reused 217 (delta 132)
+    remote: Resolving deltas: 100% (138/138), completed with 31 local objects.
+    remote: 
+    remote: To create a merge request for blyth-add-junoenv-libs-vlist, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-add-junoenv-libs-vlist
+    remote: 
+    To git@code.ihep.ac.cn:JUNO/offline/junoenv.git
+     * [new branch]      blyth-add-junoenv-libs-vlist -> blyth-add-junoenv-libs-vlist
+    Branch blyth-add-junoenv-libs-vlist set up to track remote branch blyth-add-junoenv-libs-vlist from origin.
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ 
+
+
+
+
+
+
+::
+
+     282 function juno-ext-libs-PKG-version {
+     283     local curpkg=$1
+     284     # check override
+     285     type -t juno-ext-libs-${curpkg}-version- >& /dev/null
+     286     if [ "$?" = "0" ]; then
+     287         # user defined 
+     288         echo $(juno-ext-libs-${curpkg}-version-)
+     289     else
+     290         echo $(juno-ext-libs-${curpkg}-version-default)
+     291     fi
+     292 }
+
+
+
+
+
+::
+
+    N[blyth@localhost junotop]$ jx-extlib
+    = The junoenv is in /data/blyth/junotop/junoenv
+    = main
+    = THE JUNOTOP is /data/blyth/junotop
+    = THE JUNOENVDIR is /data/blyth/junotop/junoenv
+    == setup-juno-basic-preq: ================================================================
+    == setup-juno-basic-preq: GLOBAL Environment Variables:
+    == setup-juno-basic-preq: $JUNOTOP is "/data/blyth/junotop"
+    == setup-juno-basic-preq: $JUNO_EXTLIB_OLDTOP: "/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs"
+    == setup-juno-basic-preq: $JUNOARCHIVEGET: ""
+    == setup-juno-basic-preq: $JUNOARCHIVEURL: ""
+    == setup-juno-basic-preq: $JUNO_USE_PYTHON2: ""
+    == setup-juno-basic-preq: $JUNO_USE_PYTHON3: ""
+    == setup-juno-basic-preq: $CMTEXTRATAGS: ""
+    == setup-juno-basic-preq: ================================================================
+    == setup-juno-external-libs
+    === junoenv-external-libs: allpkgs will be loaded
+    === junoenv-external-libs: git cmake python python-setuptools python-pip python-cython python-numpy libyaml python-yaml boost xercesc gsl fftw3 sqlite3 mysql-connector-c mysql-connector-cpp pacparser frontier log4cpp libxml2 LHAPDF pythia6 tbb clhep xrootd ROOT hepmc geant4 genie nuwro talys gibuu libmore libonnxruntime
+    === junoenv-external-libs: command: reuse
+    === junoenv-external-libs: packages: git cmake python python-setuptools python-pip python-cython python-numpy libyaml python-yaml boost xercesc gsl fftw3 sqlite3 mysql-connector-c mysql-connector-cpp pacparser frontier log4cpp libxml2 LHAPDF pythia6 tbb clhep xrootd ROOT hepmc geant4 genie nuwro talys gibuu libmore libonnxruntime
+    === junoenv-external-libs: create function juno-ext-libs-git-version- to override default
+    === junoenv-external-libs: juno-ext-libs-check-init git
+    ==== juno-ext-libs-check-init: setup dependencies for git
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup git: create log directory /data/blyth/junotop/junoenv/logs/git
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup git: create function juno-ext-libs-git-version- to override default
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup git: source /data/blyth/junotop/junoenv/packages/git.sh
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup git: After source: git
+    === junoenv-external-libs: juno-ext-libs-check-is-reused git
+    === junoenv-external-libs: juno-ext-libs-reuse git
+    ==== juno-ext-libs-reuse: git oldpath: /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Git/2.37.3
+    ==== juno-ext-libs-reuse: git newpath: /data/blyth/junotop/ExternalLibs/Git/2.37.3
+    ==== juno-ext-libs-reuse: git oldpath "/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Git/2.37.3" does not exist.
+    === junoenv-external-libs: create function juno-ext-libs-cmake-version- to override default
+    === junoenv-external-libs: juno-ext-libs-check-init cmake
+    ==== juno-ext-libs-check-init: setup dependencies for cmake
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup cmake: create log directory /data/blyth/junotop/junoenv/logs/cmake
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup cmake: create function juno-ext-libs-cmake-version- to override default
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup cmake: source /data/blyth/junotop/junoenv/packages/cmake.sh
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup cmake: After source: cmake
+    === junoenv-external-libs: juno-ext-libs-check-is-reused cmake
+    === junoenv-external-libs: juno-ext-libs-reuse cmake
+    ==== juno-ext-libs-reuse: cmake oldpath: /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Cmake/3.24.1
+    ==== juno-ext-libs-reuse: cmake newpath: /data/blyth/junotop/ExternalLibs/Cmake/3.24.1
+    ==== juno-ext-libs-reuse: cmake oldpath "/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Cmake/3.24.1" does not exist.
+    === junoenv-external-libs: create function juno-ext-libs-python-version- to override default
+    === junoenv-external-libs: juno-ext-libs-check-init python
+    ==== juno-ext-libs-check-init: setup dependencies for python
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python: create log directory /data/blyth/junotop/junoenv/logs/python
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python: create function juno-ext-libs-python-version- to override default
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python: source /data/blyth/junotop/junoenv/packages/python.sh
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python: After source: python
+    === junoenv-external-libs: juno-ext-libs-check-is-reused python
+    === junoenv-external-libs: juno-ext-libs-reuse python
+    ==== juno-ext-libs-reuse: python oldpath: /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Python/3.9.14
+    ==== juno-ext-libs-reuse: python newpath: /data/blyth/junotop/ExternalLibs/Python/3.9.14
+    ==== juno-ext-libs-reuse: python oldpath "/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Python/3.9.14" does not exist.
+    === junoenv-external-libs: create function juno-ext-libs-python-setuptools-version- to override default
+    === junoenv-external-libs: juno-ext-libs-check-init python-setuptools
+    ==== juno-ext-libs-check-init: setup dependencies for python-setuptools
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python-setuptools: create log directory /data/blyth/junotop/junoenv/logs/python-setuptools
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python-setuptools: create function juno-ext-libs-python-setuptools-version- to override default
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python-setuptools: source /data/blyth/junotop/junoenv/packages/python-setuptools.sh
+    ==== juno-ext-libs-dependencies-setup-rec-impl: # setup python-setuptools: After source: python-setuptools
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: create function juno-ext-libs-python-version- to override default
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: source /data/blyth/junotop/junoenv/packages/python.sh
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: After source: python
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: status: 0 python
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: can not find /data/blyth/junotop/ExternalLibs/Python/3.9.14/bashrc
+    ==== juno-ext-libs-dependencies-setup-rec-impl: ## setup python: Please install python first.
+    N[blyth@localhost junoenv]$ l /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Git/2.37.3
+    ls: cannot access /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/Git/2.37.3: No such file or directory
+    N[blyth@localhost junoenv]$ l /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.0-rc4/ExternalLibs/
+    total 26
+    5 drwxr-xr-x.  9 cvmfs cvmfs 4096 Sep  8 23:04 ..
+
+
+
+
+
+
 With CUDA 10.1 and gcc 11.2 (CUDA 10.1 max supported GCC is 8, to work with gcc 11 would need CUDA 11.5)::
 
     [  1%] Generating OpticksGenstep_Enum.ini
@@ -14,6 +194,10 @@ With CUDA 10.1 and gcc 11.2 (CUDA 10.1 max supported GCC is 8, to work with gcc 
 
 
 * https://rotadev.com/cuda-incompatible-with-my-gcc-version-dev/
+
+
+
+
 
 
 
