@@ -2,10 +2,214 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+Make MR for GenGenie change::
+
+    N[blyth@localhost junosw]$ git s
+    # On branch main
+    # Changes not staged for commit:
+    #   (use "git add <file>..." to update what will be committed)
+    #   (use "git checkout -- <file>..." to discard changes in working directory)
+    #
+    #	modified:   Generator/GenGenie/src/ghep2hepmc.cc
+    #
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junosw]$ git checkout -b blyth-handle-genie-API-change-in-backwards-compatible-manner
+    M	Generator/GenGenie/src/ghep2hepmc.cc
+    Switched to a new branch 'blyth-handle-genie-API-change-in-backwards-compatible-manner'
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git add . 
+    N[blyth@localhost junosw]$ git commit -m "WIP: #16 handle genie API transition using GVersion.h GRELCODE "
+    [blyth-handle-genie-API-change-in-backwards-compatible-manner f305ec5] WIP: #16 handle genie API transition using GVersion.h GRELCODE
+     1 file changed, 8 insertions(+)
+    N[blyth@localhost junosw]$ git push 
+    fatal: The current branch blyth-handle-genie-API-change-in-backwards-compatible-manner has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-handle-genie-API-change-in-backwards-compatible-manner
+
+    N[blyth@localhost junosw]$ git push --set-upstream origin blyth-handle-genie-API-change-in-backwards-compatible-manner
+    Counting objects: 11, done.
+    Delta compression using up to 48 threads.
+    Compressing objects: 100% (6/6), done.
+    Writing objects: 100% (6/6), 617 bytes | 0 bytes/s, done.
+    Total 6 (delta 5), reused 0 (delta 0)
+    remote: 
+    remote: To create a merge request for blyth-handle-genie-API-change-in-backwards-compatible-manner, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-handle-genie-API-change-in-backwards-compatible-manner
+    remote: 
+    To git@code.ihep.ac.cn:JUNO/offline/junosw
+     * [new branch]      blyth-handle-genie-API-change-in-backwards-compatible-manner -> blyth-handle-genie-API-change-in-backwards-compatible-manner
+    Branch blyth-handle-genie-API-change-in-backwards-compatible-manner set up to track remote branch blyth-handle-genie-API-change-in-backwards-compatible-manner from origin.
+    N[blyth@localhost junosw]$ 
+
+    N[blyth@localhost junosw]$ git s
+    # On branch blyth-handle-genie-API-change-in-backwards-compatible-manner
+    nothing to commit, working directory clean
+    N[blyth@localhost junosw]$ 
 
 
 
-Try collections/22.1.sh::
+
+
+Missed some env setup for sniper due to genie interrupted build::
+
+    N[blyth@localhost build]$ cmake --build . -j48
+    ...
+
+
+    [100%] Building CXX object Simulation/DetSimV2/DetSimMTUtil/CMakeFiles/DetSimMTUtil.dir/src/GlobalDetSimOutAlg.cc.o
+    [100%] Building CXX object Simulation/DetSimV2/DetSimMTUtil/CMakeFiles/DetSimMTUtil.dir/src/LSExpMTEventAction.cc.o
+    [100%] Building CXX object Simulation/DetSimV2/DetSimMTUtil/CMakeFiles/DetSimMTUtil.dir/src/DetFactorySvc.cc.o
+    In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimMTUtil/src/JUNOEventUserInfo.hh:7,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimMTUtil/src/LSExpMTEventAction.cc:43:
+    /data/blyth/junotop/junosw/Utilities/MtUtilities/MtUtilities/EventContext.h:5:10: fatal error: SniperMuster/GlobalStream.h: No such file or directory
+     #include "SniperMuster/GlobalStream.h"
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    compilation terminated.
+    gmake[2]: *** [Simulation/DetSimV2/DetSimMTUtil/CMakeFiles/DetSimMTUtil.dir/src/LSExpMTEventAction.cc.o] Error 1
+    gmake[2]: *** Waiting for unfinished jobs....
+    In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimMTUtil/src/GlobalDetSimOutAlg.h:8,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimMTUtil/src/GlobalDetSimOutAlg.cc:2:
+    /data/blyth/junotop/junosw/Utilities/MtUtilities/MtUtilities/EventContext.h:5:10: fatal error: SniperMuster/GlobalStream.h: No such file or directory
+     #include "SniperMuster/GlobalStream.h"
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As that header is there::
+
+    N[blyth@localhost SniperMuster]$ l
+    total 28
+    0 drwxrwxr-x. 2 blyth blyth  145 Jun  6 15:28 .
+    0 drwxrwxr-x. 6 blyth blyth   86 Jun  6 15:28 ..
+    8 -rw-rw-r--. 1 blyth blyth 5250 Jun  6 15:28 GlobalBuffer.h
+    4 -rw-rw-r--. 1 blyth blyth 1524 Jun  6 15:28 GlobalStream4Any.h
+    4 -rw-rw-r--. 1 blyth blyth 1676 Jun  6 15:28 GlobalStreamBase.h
+    4 -rw-rw-r--. 1 blyth blyth 3926 Jun  6 15:28 GlobalStream.h
+    4 -rw-rw-r--. 1 blyth blyth 1952 Jun  6 15:28 MtDagTask.h
+    4 -rw-rw-r--. 1 blyth blyth 1182 Jun  6 15:28 ThreadAssistor.h
+    N[blyth@localhost SniperMuster]$ vi GlobalStream.h
+    N[blyth@localhost SniperMuster]$ pwd
+    /data/blyth/junotop/mt.sniper/SniperMuster/SniperMuster
+    N[blyth@localhost SniperMuster]$ 
+
+
+
+
+
+
+
+
+/data/blyth/junotop/ExternalLibs/genie/3.00.06/include/GENIE/Framework/Conventions/GVersion.h::
+
+     01 #ifndef _GVERSION_H_ 
+      2 #define _GVERSION_H_ 
+      3 /* 
+      4  * Version information automatically generated by the GENIE installer 
+      5  * 
+      6  * These macros can be used in the following way (as the ones at ROOT's RVersion.h): 
+      7  * #if __GENIE_RELEASE_CODE__ >= GRELCODE(2,4,11) 
+      8  * #include <newheader.h>
+      9  * #else
+     10  * #include <oldheader.h>
+     11  * #endif
+     12 */
+     13 
+     14 #define GRELCODE(a,b,c) (((a) << 16) + ((b) << 8) + (c)) 
+     15 
+     16 #define __GENIE_RELEASE__      "3.0.6"
+     17 #define __GENIE_RELEASE_CODE__ GRELCODE(3,0,6) 
+     18 
+     19 #define __GENIE_GIT_REVISION__ "-1" 
+     20 
+     21 #endif
+     22 
+
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/commit/4a768f6cba50dbc8d1479783926ba647f4f34ebd
+
+
+
+
+::
+
+    [ 91%] Linking CXX shared library ../../../lib/libPMTSimParamSvc.so
+    [ 91%] Building CXX object Simulation/DetSimV2/PMTSim/CMakeFiles/PMTSim.dir/src/R12860PMTManager.cc.o
+    [ 91%] Building CXX object Simulation/DetSimV2/PMTSim/CMakeFiles/PMTSim.dir/src/R12860TorusPMTManager.cc.o
+    /data/blyth/junotop/junosw/Generator/GenGenie/src/ghep2hepmc.cc: In function 'bool ghep2hepmc(genie::EventRecord&, HepMC::GenEvent&)':
+    /data/blyth/junotop/junosw/Generator/GenGenie/src/ghep2hepmc.cc:83:32: error: 'const class genie::ProcessInfo' has no member named 'IsCoherentProduction'; did you mean 'IsCoherent'?
+         bool is_coh    = proc_info.IsCoherentProduction();
+                                    ^~~~~~~~~~~~~~~~~~~~
+                                    IsCoherent
+
+
+
+
+collections/22.2.sh::
+
+    function juno-ext-libs-python-version- { echo 3.9.14 ; }
+    function juno-ext-libs-boost-version- { echo 1.78.0 ; }
+
+collections/22.1.sh::
+
+    function juno-ext-libs-python-version- { echo 3.8.12 ; }
+    function juno-ext-libs-boost-version- { echo 1.78.0 ; }
+    
+::
+
+    epsilon:collections blyth$ diff -y  22.1.sh 22.2.sh 
+    function juno-ext-libs-git-version- { echo 2.34.1 ; }	      |	function juno-ext-libs-git-version- { echo 2.37.3 ; }
+    function juno-ext-libs-cmake-version- { echo 3.22.1 ; }	      |	function juno-ext-libs-cmake-version- { echo 3.24.1 ; }
+    function juno-ext-libs-python-version- { echo 3.8.12 ; }      |	function juno-ext-libs-python-version- { echo 3.9.14 ; }
+    function juno-ext-libs-python-setuptools-version- { echo 58.0 |	function juno-ext-libs-python-setuptools-version- { echo 58.1
+    function juno-ext-libs-python-pip-version- { echo 21.2.4 ; }  |	function juno-ext-libs-python-pip-version- { echo 22.2.2 ; }
+    function juno-ext-libs-python-cython-version- { echo 0.29.24  |	function juno-ext-libs-python-cython-version- { echo 0.29.28 
+    function juno-ext-libs-python-numpy-version- { echo 1.21.4 ;  |	function juno-ext-libs-python-numpy-version- { echo 1.22.3 ; 
+    function juno-ext-libs-libyaml-version- { echo 0.2.4 ; }	    function juno-ext-libs-libyaml-version- { echo 0.2.4 ; }
+    function juno-ext-libs-python-yaml-version- { echo 5.4.1.1 ; 	function juno-ext-libs-python-yaml-version- { echo 5.4.1.1 ; 
+    function juno-ext-libs-boost-version- { echo 1.78.0 ; }		    function juno-ext-libs-boost-version- { echo 1.78.0 ; }
+    function juno-ext-libs-xercesc-version- { echo 3.2.2 ; }      |	function juno-ext-libs-xercesc-version- { echo 3.2.3 ; }
+    function juno-ext-libs-gsl-version- { echo 2.5 ; }	          |	function juno-ext-libs-gsl-version- { echo 2.7 ; }
+    function juno-ext-libs-fftw3-version- { echo 3.3.8 ; }	      |	function juno-ext-libs-fftw3-version- { echo 3.3.10 ; }
+    function juno-ext-libs-sqlite3-version- { echo 3.35.5 ; }     |	function juno-ext-libs-sqlite3-version- { echo 3.38.5 ; }
+    function juno-ext-libs-mysql-connector-c-version- { echo 6.1.	function juno-ext-libs-mysql-connector-c-version- { echo 6.1.
+    function juno-ext-libs-mysql-connector-cpp-version- { echo 1.	function juno-ext-libs-mysql-connector-cpp-version- { echo 1.
+    function juno-ext-libs-pacparser-version- { echo 1.3.7 ; }	    function juno-ext-libs-pacparser-version- { echo 1.3.7 ; }
+    function juno-ext-libs-frontier-version- { echo 2.9.1 ; }	    function juno-ext-libs-frontier-version- { echo 2.9.1 ; }
+    function juno-ext-libs-log4cpp-version- { echo 1.1.3 ; }	    function juno-ext-libs-log4cpp-version- { echo 1.1.3 ; }
+    function juno-ext-libs-libxml2-version- { echo 2.9.12 ; }	    function juno-ext-libs-libxml2-version- { echo 2.9.12 ; }
+    function juno-ext-libs-LHAPDF-version- { echo 6.3.0 ; }		    function juno-ext-libs-LHAPDF-version- { echo 6.3.0 ; }
+    function juno-ext-libs-pythia6-version- { echo 6.4.28 ; }	    function juno-ext-libs-pythia6-version- { echo 6.4.28 ; }
+    function juno-ext-libs-tbb-version- { echo 2020.3 ; }		    function juno-ext-libs-tbb-version- { echo 2020.3 ; }
+    function juno-ext-libs-clhep-version- { echo 2.4.1.0 ; }	    function juno-ext-libs-clhep-version- { echo 2.4.1.0 ; }
+    function juno-ext-libs-xrootd-version- { echo 5.3.4 ; }	      |	function juno-ext-libs-xrootd-version- { echo 5.4.3 ; }
+    function juno-ext-libs-ROOT-version- { echo 6.24.06 ; }	      |	function juno-ext-libs-ROOT-version- { echo 6.26.06 ; }
+    function juno-ext-libs-hepmc-version- { echo 2.06.09 ; }      |	function juno-ext-libs-hepmc-version- { echo 2.06.11 ; }
+    function juno-ext-libs-geant4-version- { echo 10.04.p02.juno 	function juno-ext-libs-geant4-version- { echo 10.04.p02.juno 
+
+    function juno-ext-libs-genie-version- { echo 3.00.06 ; }      |	function juno-ext-libs-genie-version- { echo 3.02.00 ; }
+
+    function juno-ext-libs-nuwro-version- { echo 19.02.2 ; }	    function juno-ext-libs-nuwro-version- { echo 19.02.2 ; }
+    function juno-ext-libs-talys-version- { echo 1.95 ; }		    function juno-ext-libs-talys-version- { echo 1.95 ; }
+    function juno-ext-libs-gibuu-version- { echo r2021_01 ; }	    function juno-ext-libs-gibuu-version- { echo r2021_01 ; }
+    function juno-ext-libs-libmore-version- { echo 0.8.3 ; }	    function juno-ext-libs-libmore-version- { echo 0.8.3 ; }
+    function juno-ext-libs-libmore-data-version- { echo 20140630 	function juno-ext-libs-libmore-data-version- { echo 20140630 
+    function juno-ext-libs-libonnxruntime-version- { echo 1.11.1 	function juno-ext-libs-libonnxruntime-version- { echo 1.11.1 
+    epsilon:collections blyth$ 
+
+
+Now which sniper version to use with junoenv/collections/22.1.sh ?::
+
+   cd /tmp
+   curl -L -O https://github.com/SNiPER-Framework/sniper/archive/v2.2.2.tar.gz
+   curl -L -O https://github.com/SNiPER-Framework/sniper/archive/v2.2.1.tar.gz
+   tar zxvf v2.2.2.tar.gz 
+   tar zxvf v2.2.1.tar.gz 
+
+
+* Sniper 2.2.2, Boost 1.67 : so it should work with both collections
+
+
 
 
 

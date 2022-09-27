@@ -2,12 +2,9 @@
 # ~/j/jx.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/jx.bash
 
-jxv(){ vi $BASH_SOURCE && jxf ; }
-jxf(){ source $BASH_SOURCE ; }
-
 jx-usage(){ cat << EOU
-jx.bash
-=========
+jx.bash : Started Sept 2022 : Updating to git junosw
+=========================================================
 
 Update of the former j/j.bash for the git based junosw environment 
 
@@ -15,8 +12,9 @@ Update of the former j/j.bash for the git based junosw environment
 EOU
 }
 
+jxv(){ vi $BASH_SOURCE && jxf ; }
+jxf(){ source $BASH_SOURCE ; }
 jx-vi(){ vi $BASH_SOURCE ; }
-
 
 
 jt(){ cd $JUNOTOP ; pwd ; } 
@@ -34,8 +32,6 @@ jx-runtime-env-()
    source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh   
    source $JUNOTOP/mt.sniper/InstallArea/bashrc
    source $JUNOTOP/junosw/InstallArea/setup.sh
-
-
    echo $msg
 }
 
@@ -66,16 +62,17 @@ jre-(){ jx-runtime-env- ; }
 
 jx-all()
 {
-   jx-oldtop
+   jx-extlib-oldtop
    jx-junoenv-latest
    jx-extlib-collection
    jx-extlib
    jx-env
    jx-sniper
+   jx-sniper-env
    jx-offline
    jx-offline-data
+   jx-opticks
 }
-
 
 jx-ccbase()
 {
@@ -95,17 +92,6 @@ jx-extlib-oldtop()
    echo $msg CC $CC ccbase $ccbase oldtop $oldtop
    [ ! -d "$oldtop" ] && echo $msg oldtop $oldtop does not exist && return 3
    export JUNO_EXTLIB_OLDTOP=$oldtop
-}
-
-jx-extlib-collection()
-{
-   local ccbase=$(jx-ccbase)
-   local collection
-   case $ccbase in
-       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830) collection=22.1  ;;
-       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120) collection=22.2 ;;
-   esac
-   export JUNO_EXTLIB_COLLECTION=$JUNOTOP/junoenv/collections/$collection.sh
 }
 
 jx-junotop()
@@ -133,11 +119,21 @@ jx-junoenv-linked()
    ln -s $oldtop/junoenv junoenv
 }
 
+jx-extlib-collection()
+{
+   local ccbase=$(jx-ccbase)
+   local collection
+   case $ccbase in
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830) collection=22.1  ;;
+       /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120) collection=22.2 ;;
+   esac
+   export JUNO_EXTLIB_COLLECTION=$JUNOTOP/junoenv/collections/$collection.sh
+}
+
 jx-extlib()
 {
    local msg="=== $BASH_SOURCE $FUNCNAME "
    cd $JUNOTOP/junoenv
-
 
    if [ ! -d "$JUNOTOP/ExternalLibs" ]; then 
        bash junoenv libs reuse allpkgs
@@ -170,9 +166,13 @@ jx-sniper()
         echo $msg JUNOTOP/sniper exists already 
     fi
 
+    cd $JUNOTOP/junoenv
+}
+
+jx-sniper-env()
+{
     cd $JUNOTOP/sniper/InstallArea
     source bashrc 
-
     cd $JUNOTOP/junoenv
 }
 
@@ -181,13 +181,27 @@ jx-offline()
     local msg="=== $BASH_SOURCE $FUNCNAME "
     cd $JUNOTOP/junoenv
 
-    if [ ! -d "$JUNOTOP/offline" ]; then
+    if [ ! -d "$JUNOTOP/junosw" ]; then
         bash junoenv offline 
     else
-        echo $msg JUNOTOP/offline exists already 
+        echo $msg JUNOTOP/junosw exists already 
     fi  
 
     cd $JUNOTOP/junoenv
+}
+
+jx-offline-build()
+{
+    : HUH bash junoenv offline is not rerunnable so use this
+
+    cd $JUNOTOP/junosw/build
+    local installprefix=$JUNOTOP/junosw/InstallArea
+    cmake .. -DCMAKE_INSTALL_PREFIX=$installprefix -DCMAKE_CXX_STANDARD=17  || return -1 
+    local njobs=-j$(nproc)
+    cmake --build . $njobs || return -1 
+    cmake --install . || return -1
+
+    return 0 
 }
 
 jx-offline-data() 
@@ -203,6 +217,23 @@ jx-offline-data()
 
     cd $JUNOTOP/junoenv
 }
+
+
+jx-opticks()
+{
+    local msg="=== $BASH_SOURCE $FUNCNAME "
+    cd $JUNOTOP/junoenv
+
+    if [ ! -d "$JUNOTOP/opticks" ]; then
+        bash junoenv opticks 
+    else
+        echo $msg JUNOTOP/opticks exists already 
+    fi  
+    cd $JUNOTOP/junoenv
+}
+
+
+
 
 
 tds-dir(){ echo /tmp/$USER/opticks/tds ; }
@@ -249,9 +280,72 @@ tds-(){
 
 tds0(){
    : run without opticks 
-   #local former_opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
    local opts="--opticks-mode 0 --no-guide_tube --evtmax 2 " ;   
    tds- $opts gun $*
 }
+
+
+
+anamgr(){ cat << EOU
+--opticks-anamgr
+--no-anamgr-normal
+--no-anamgr-genevt
+--no-anamgr-edm-v2
+--no-anamgr-grdm
+--no-anamgr-deposit
+--no-anamgr-deposit-tt
+--no-anamgr-interesting-process
+--no-anamgr-optical-parameter
+--no-anamgr-timer
+EOU
+}
+
+
+
+ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
+ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
+#ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
+                                    #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
+ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
+{
+   env | grep =INFO
+
+   local args=$*     
+   local msg="=== $FUNCNAME :"
+   local evtmax=${EVTMAX:-2}
+   local mode=${OPTICKS_MODE:-3}
+
+   export SCRIPT=${SCRIPT:-$FUNCNAME} 
+
+   local opts="" 
+   opts="$opts --opticks-mode $mode"   
+   opts="$opts --no-guide_tube"
+   opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --disable-pmt-optical-model"
+   opts="$opts --evtmax $evtmax"
+   opts="$opts $(anamgr) "
+
+   if [ -n "$DEBUG_DISABLE_STICKS" ]; then
+       opts="$opts --debug-disable-sticks"
+   fi 
+
+   local trgs=""
+   trgs="$trgs gun"
+
+   echo $msg opts : $opts 
+   echo $msg trgs : $trgs 
+   echo $msg args : atrgs 
+
+   #BASE=/tmp/$USER/opticks/$SCRIPT   
+   BASE=.opticks/$SCRIPT   
+
+   case $(uname) in 
+      Linux) tds- $opts $trgs $args  ;;
+      Darwin) source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
+   esac
+   env | grep =INFO
+}
+
+ninfo(){ env | grep =INFO ; }
 
 
