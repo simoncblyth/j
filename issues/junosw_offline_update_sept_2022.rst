@@ -2,6 +2,282 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+
+
+
+
+
+Cleanup after accepted MR::
+
+    N[blyth@localhost junoenv]$ git diff 
+    diff --git a/junoenv-opticks.sh b/junoenv-opticks.sh
+    index e50602d..ad07798 100644
+    --- a/junoenv-opticks.sh
+    +++ b/junoenv-opticks.sh
+    @@ -259,10 +259,9 @@ function junoenv-opticks-url {
+         if [ "${version:0:1}" == "v" ]; then
+             echo https://github.com/simoncblyth/opticks/archive/refs/tags/$version.tar.gz 
+         else
+    -        case $USER in
+    -             blyth) echo git@bitbucket.org:simoncblyth/opticks.git  ;; 
+    -                 *) echo https://bitbucket.org/simoncblyth/opticks  ;;
+    -        esac
+    +        echo https://bitbucket.org/simoncblyth/opticks 
+    +        #echo git@bitbucket.org:simoncblyth/opticks.git 
+    +        # access from IHEP to bitbucket.org over ssh has become unreliable since Aug 2022
+         fi 
+         return 0 
+     }
+    N[blyth@localhost junoenv]$ git s
+    On branch blyth-update-junoenv-opticks-for-CMake
+    Your branch is up to date with 'origin/blyth-update-junoenv-opticks-for-CMake'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   junoenv-opticks.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ git checkout . 
+    Updated 1 path from the index
+    N[blyth@localhost junoenv]$ git s
+    On branch blyth-update-junoenv-opticks-for-CMake
+    Your branch is up to date with 'origin/blyth-update-junoenv-opticks-for-CMake'.
+
+    nothing to commit, working tree clean
+    N[blyth@localhost junoenv]$ git checkout main
+    Switched to branch 'main'
+    Your branch is up to date with 'origin/main'.
+    N[blyth@localhost junoenv]$ git branch 
+      blyth-update-junoenv-opticks-for-CMake
+    * main
+    N[blyth@localhost junoenv]$ git branch -d blyth-update-junoenv-opticks-for-CMake
+    warning: deleting branch 'blyth-update-junoenv-opticks-for-CMake' that has been merged to
+             'refs/remotes/origin/blyth-update-junoenv-opticks-for-CMake', but not yet merged to HEAD.
+    Deleted branch blyth-update-junoenv-opticks-for-CMake (was 3fbca14).
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ 
+
+
+
+
+
+::
+
+
++        echo https://bitbucket.org/simoncblyth/opticks 
++        #echo git@bitbucket.org:simoncblyth/opticks.git 
++        # access from IHEP to bitbucket.org over ssh has become unreliable since Aug 2022
+
+
+    N[blyth@localhost opticks]$ git remote -v
+    origin	git@bitbucket.org:simoncblyth/opticks.git (fetch)
+    origin	git@bitbucket.org:simoncblyth/opticks.git (push)
+    N[blyth@localhost opticks]$ git remote set-url origin https://bitbucket.org/simoncblyth/opticks 
+    N[blyth@localhost opticks]$ git remote -v
+    origin	https://bitbucket.org/simoncblyth/opticks (fetch)
+    origin	https://bitbucket.org/simoncblyth/opticks (push)
+    N[blyth@localhost opticks]$ 
+
+
+
+::
+
+    N[blyth@localhost PhysiSim]$ mkdir /tmp/ntds3
+    N[blyth@localhost PhysiSim]$ mkdir /tmp/ntds0
+    N[blyth@localhost PhysiSim]$ export DsG4Scintillation_Debug_SaveDir=/tmp/ntds3
+
+
+
+Try using *DsG4Scintillation_Debug* to compare ntds3 and ntds0::
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize
+    2022-09-28 01:04:45.016 DEBUG [17812] [junoSD_PMT_v2_Opticks::Initialize@119]  eventID 0 wavelength (null) tool 0 input_photons 0 input_photon_repeat 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+    [ junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    2022-09-28 01:04:45.020 DEBUG [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 0 m_opticksMode 3
+    2022-09-28 01:04:45.021 FATAL [17812] [QEvent::setGenstep@151] Must SEvt::AddGenstep before calling QEvent::setGenstep 
+    2022-09-28 01:04:45.021 ERROR [17812] [QSim::simulate@296]  QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate 
+    2022-09-28 01:04:45.021 INFO  [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@190]  eventID 0 num_hit 4294967295 way_enabled 0
+    2022-09-28 01:04:45.021 INFO  [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@258] ] num_hit 4294967295 merged_count  0 savehit_count  0 m_merged_total 0 m_savehit_total 0 m_opticksMode 3 LEVEL 5:DEBUG
+    2022-09-28 01:04:45.021 INFO  [17812] [junoSD_PMT_v2_Opticks::TerminateEvent@307]  invoking SEvt::Clear as no U4Recorder detected 
+    ] junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 0 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (1) 
+    junoSD_PMT_v2::Initialize
+    2022-09-28 01:04:45.026 DEBUG [17812] [junoSD_PMT_v2_Opticks::Initialize@119]  eventID 1 wavelength (null) tool 0 input_photons 0 input_photon_repeat 0 LEVEL 5:DEBUG
+    Begin of Event --> 1
+    [ junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    2022-09-28 01:04:45.026 DEBUG [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 1 m_opticksMode 3
+    2022-09-28 01:04:45.026 FATAL [17812] [QEvent::setGenstep@151] Must SEvt::AddGenstep before calling QEvent::setGenstep 
+    2022-09-28 01:04:45.026 ERROR [17812] [QSim::simulate@296]  QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate 
+    2022-09-28 01:04:45.026 ERROR [17812] [SEvt::gather@1413] gather_done already skip gather 
+    2022-09-28 01:04:45.026 INFO  [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@190]  eventID 1 num_hit 4294967295 way_enabled 0
+    2022-09-28 01:04:45.026 INFO  [17812] [junoSD_PMT_v2_Opticks::EndOfEvent@258] ] num_hit 4294967295 merged_count  0 savehit_count  0 m_merged_total 0 m_savehit_total 0 m_opticksMode 3 LEVEL 5:DEBUG
+    2022-09-28 01:04:45.026 INFO  [17812] [junoSD_PMT_v2_Opticks::TerminateEvent@307]  invoking SEvt::Clear as no U4Recorder detected 
+    ] junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 0 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 2           7.07200        3.53600      3.12600      
+    DetSimAlg                2           16.71300       8.35650      4.29350      
+    Sum of junotoptask       2           23.92400       11.96200     7.48100      
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::finalizeOpticks m_opticksMode 3 WITH_G4CXOPTICKS 
+
+
+
+
+
+
+
+Supect G4OpticksAnaMgr no longer needed::
+
+    N[blyth@localhost junoenv]$ cd /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/
+    N[blyth@localhost src]$ vi G4OpticksAnaMgr.cc 
+     
+
+
+::
+
+    N[blyth@localhost PhysiSim]$ DsG4Scintillation_verboseLevel=1 ntds3
+
+    junoSD_PMT_v2::Initialize
+    2022-09-27 23:02:04.010 DEBUG [458322] [junoSD_PMT_v2_Opticks::Initialize@119]  eventID 0 wavelength (null) tool 0 input_photons 0 input_photon_repeat 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+     TotalEnergyDeposit 1.756e-05 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 1.32622e-07
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 8.99e-06 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 9.48931e-08
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 1.756e-05 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 1.32622e-07
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 1.361e-05 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 1.16757e-07
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 8.99e-06 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 9.48931e-08
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 0.00029101 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 7.01747e-07
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 1.756e-05 material LS
+     MaterialPropertyVectors: Fast_Intensity 0x56f1690 Slow_Intensity 0x56f0c20 Reemission_Prob 0x56fb510
+     Generated 0 scint photons. mean(scint photons) = 1.32622e-07
+     set scint photon weight to 1 after multiplying original weight by fPhotonWeight 1 NumTracks = 0
+     TotalEnergyDeposit 1.756e-05 material LS
+    TotalEnergyDeposit 0 material LS
+    [ junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    2022-09-27 23:02:04.015 DEBUG [458322] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 0 m_opticksMode 3
+    2022-09-27 23:02:04.016 FATAL [458322] [QEvent::setGenstep@151] Must SEvt::AddGenstep before calling QEvent::setGenstep 
+    2022-09-27 23:02:04.016 ERROR [458322] [QSim::simulate@296]  QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate 
+    python: /data/blyth/junotop/opticks/qudarap/QEvent.cc:356: void QEvent::gatherPhoton(NP*) const: Assertion `p->has_shape(evt->num_photon, 4, 4)' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff696e387 in raise () from /lib64/libc.so.6
+
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd14c8bbb in QEvent::gatherPhoton (this=0x165f30de0, p=0x1fb972e00) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:356
+    #5  0x00007fffd14c8d68 in QEvent::gatherPhoton (this=0x165f30de0) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:364
+    #6  0x00007fffd14caf75 in QEvent::gatherComponent_ (this=0x165f30de0, comp=4) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:579
+    #7  0x00007fffd14cacfa in QEvent::gatherComponent (this=0x165f30de0, comp=4) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:566
+    #8  0x00007fffd10f44e2 in SEvt::gather (this=0x1653dc3b0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1423
+    #9  0x00007fffd454e59f in G4CXOpticks::simulate (this=0x718fa80) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:335
+    #10 0x00007fffcedc031a in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5949020) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:185
+    #11 0x00007fffcedbe612 in junoSD_PMT_v2::EndOfEvent (this=0x5948820, HCE=0x2b93950) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1094
+    #12 0x00007fffdd61bc95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #13 0x00007fffdf7268cd in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #14 0x00007fffd020345d in G4SvcRunManager::SimulateEvent (this=0x90ef70, i_event=0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+
+
+    #50 0x000000000040065e in _start ()
+    (gdb) f 4
+    #4  0x00007fffd14c8bbb in QEvent::gatherPhoton (this=0x165f30de0, p=0x1fb972e00) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:356
+    356	    assert( p->has_shape(evt->num_photon, 4, 4) ); 
+    (gdb) p evt->num_photon
+    $1 = 0
+    (gdb) p p->sstr()
+    $2 = {static npos = 18446744073709551615, _M_dataplus = {<std::allocator<char>> = {<__gnu_cxx::new_allocator<char>> = {<No data fields>}, <No data fields>}, _M_p = 0x7fffffff0360 "(4, 4, )"}, 
+      _M_string_length = 8, {_M_local_buf = "(4, 4, )\000:\233\366\377\177\000", _M_allocated_capacity = 2963417157199475752}}
+    (gdb) 
+
+::
+
+    562 NP* QEvent::gatherComponent(unsigned comp) const
+    563 {
+    564     LOG(LEVEL) << "[ comp " << comp ;
+    565     unsigned mask = SEventConfig::CompMask();
+    566     bool proceed = (mask & comp) != 0 ;
+    567     NP* a = proceed ? gatherComponent_(comp) : nullptr ;
+    568     LOG(LEVEL) << "[ comp " << comp << " proceed " << proceed << " a " <<  a ;
+    569     return a ;
+    570 }
+    571 NP* QEvent::gatherComponent_(unsigned comp) const
+    572 {
+    573     NP* a = nullptr ;
+    574     switch(comp)
+    575     {
+    576         case SCOMP_GENSTEP:   a = getGenstep()     ; break ;
+    577         case SCOMP_DOMAIN:    a = gatherDomain()      ; break ;
+    578         case SCOMP_INPHOTON:  a = getInputPhoton() ; break ;
+    579 
+    580         case SCOMP_PHOTON:    a = gatherPhoton()   ; break ;
+    581         case SCOMP_RECORD:    a = gatherRecord()   ; break ;
+    582         case SCOMP_REC:       a = gatherRec()      ; break ;
+    583         case SCOMP_SEQ:       a = gatherSeq()      ; break ;
+    584         case SCOMP_PRD:       a = gatherPrd()      ; break ;
+    585         case SCOMP_SEED:      a = gatherSeed()     ; break ;
+
+    362 NP* QEvent::gatherPhoton() const
+    363 {
+    364     NP* p = NP::Make<float>( evt->num_photon, 4, 4);
+    365     gatherPhoton(p);
+    366     return p ;
+    367 }
+    368 
+
+
+
+
+
+
+
+g4-cls G4VProcess::
+
+    361  public: // with description
+    362    void  SetVerboseLevel(G4int value);
+    363    G4int GetVerboseLevel() const;
+    364    // set/get controle flag for output message
+    365    //  0: Silent
+    366    //  1: Warning message
+    367    //  2: More
+    368 
+    369 
+    370  protected:
+    371    G4int verboseLevel;
+    372    // controle flag for output message
+    373 
+
+
+
 BP=DsG4Scintillation::PostStepDoIt ntds3 looks like NumTracks is coming up zero at lot::
 
     (gdb) c
@@ -77,6 +353,46 @@ Not getting any gensteps::
 
 
 
+
+
+junoenv opticks update for CMake::
+
+    N[blyth@localhost junoenv]$ git s
+    # On branch main
+    # Changes not staged for commit:
+    #   (use "git add <file>..." to update what will be committed)
+    #   (use "git checkout -- <file>..." to discard changes in working directory)
+    #
+    #	modified:   junoenv-opticks.sh
+    #
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junoenv]$ git checkout -b blyth-update-junoenv-opticks-for-CMake
+    M	junoenv-opticks.sh
+    Switched to a new branch 'blyth-update-junoenv-opticks-for-CMake'
+    N[blyth@localhost junoenv]$ git add . 
+    N[blyth@localhost junoenv]$ git commit -m "WIP: #3 update junoenv opticks for CMake based junosw"
+    [blyth-update-junoenv-opticks-for-CMake 3fbca14] WIP: #3 update junoenv opticks for CMake based junosw
+     1 file changed, 76 insertions(+), 25 deletions(-)
+    N[blyth@localhost junoenv]$ git push 
+    fatal: The current branch blyth-update-junoenv-opticks-for-CMake has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-update-junoenv-opticks-for-CMake
+
+    N[blyth@localhost junoenv]$ git push --set-upstream origin blyth-update-junoenv-opticks-for-CMake
+    Counting objects: 5, done.
+    Delta compression using up to 48 threads.
+    Compressing objects: 100% (3/3), done.
+    Writing objects: 100% (3/3), 1.37 KiB | 0 bytes/s, done.
+    Total 3 (delta 2), reused 0 (delta 0)
+    remote: 
+    remote: To create a merge request for blyth-update-junoenv-opticks-for-CMake, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-update-junoenv-opticks-for-CMake
+    remote: 
+    To git@code.ihep.ac.cn:JUNO/offline/junoenv.git
+     * [new branch]      blyth-update-junoenv-opticks-for-CMake -> blyth-update-junoenv-opticks-for-CMake
+    Branch blyth-update-junoenv-opticks-for-CMake set up to track remote branch blyth-update-junoenv-opticks-for-CMake from origin.
+    N[blyth@localhost junoenv]$ 
 
 
 

@@ -14,9 +14,9 @@ EOU
 }
 
 jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
-jxf(){ source $BASH_SOURCE ; }
 jx-vi(){ vi $BASH_SOURCE ; }
-
+jxf(){ source $BASH_SOURCE ; }
+jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
 
 jproj(){ cat << EOL
 
@@ -27,6 +27,35 @@ Simulation/DetSimV2/AnalysisCode
 Simulation/DetSimV2/DetSimOptions
 
 EOL
+}
+
+
+
+jx-isim(){ jx-sub Simulation/DetSimV2/PhysiSim ; }
+jx-pmts(){ jx-sub Simulation/DetSimV2/PMTSim ; }
+jx-sub()
+{
+   local msg="=== $BASH_SOURCE $FUNCNAME"
+   local rel=${1:-Simulation/DetSimV2/PhysiSim} 
+   local sdir=$JUNOTOP/junosw/$rel
+   local bdir=$JUNOTOP/junosw/build/$rel
+
+   if [ ! -d "$sdir" ]; then 
+      echo $msg sdir $sdir for rel $rel does not exist
+      return -1
+   fi 
+   if [ ! -d "$bdir" ]; then 
+      echo $msg bdir $bdir for rel $rel does not exist
+      return -1
+   fi 
+
+   cd $bdir ; pwd
+
+   local njobs=-j$(nproc)
+   cmake --build . $njobs || return -1 
+   cmake --install . || return -1
+
+   cd $sdir ; pwd
 }
 
 
