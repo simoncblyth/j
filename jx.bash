@@ -6,7 +6,7 @@ jx-usage(){ cat << EOU
 jx.bash : Started Sept 2022 : Updating to git junosw
 =========================================================
 
-Update of the former j/j.bash for the git based junosw environment 
+Update of the former j/j.bash for the git+CMake based junosw environment 
 
 
 
@@ -392,16 +392,12 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
+   local tmpdir=/tmp/scintcheck/ntds$mode
 
    if [ -n "$DEBUG_SCINT" ]; then 
-       local SaveDir=""
-       case $mode in
-       0) SaveDir=/tmp/ntds0 ;;
-       3) SaveDir=/tmp/ntds3 ;;
-       esac  
-       export U4Scintillation_Debug_SaveDir=$SaveDir
+       export U4Scintillation_Debug_SaveDir=$tmpdir
        export U4Scintillation_Debug=INFO
-       echo $msg DEBUG_SCINT enabled SaveDir $SaveDir
+       echo $msg DEBUG_SCINT enabled U4Scintillation_Debug_SaveDir $tmpdir
    else
        echo $msg DEBUG_SCINT NOT-enabled 
    fi 
@@ -428,7 +424,8 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    echo $msg args : atrgs 
 
    #BASE=/tmp/$USER/opticks/$SCRIPT   
-   BASE=.opticks/$SCRIPT   
+   #BASE=.opticks/$SCRIPT   
+   BASE=$tmpdir
 
    case $(uname) in 
       Linux) tds- $opts $trgs $args  ;;
