@@ -392,14 +392,16 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
-   local tmpdir=/tmp/scintcheck/ntds$mode
+   local tmpdir=/tmp/u4debug/ntds$mode
 
-   if [ -n "$DEBUG_SCINT" ]; then 
+   if [ -n "$U4DEBUG" ]; then 
        export U4Scintillation_Debug_SaveDir=$tmpdir
+       export U4Cerenkov_Debug_SaveDir=$tmpdir
        export U4Scintillation_Debug=INFO
-       echo $msg DEBUG_SCINT enabled U4Scintillation_Debug_SaveDir $tmpdir
+       export U4Cerenkov_Debug=INFO
+       echo $msg U4DEBUG enabled tmpdir $tmpdir
    else
-       echo $msg DEBUG_SCINT NOT-enabled 
+       echo $msg U4DEBUG NOT-enabled 
    fi 
 
    export SCRIPT=${SCRIPT:-$FUNCNAME} 
