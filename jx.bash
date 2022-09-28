@@ -378,6 +378,7 @@ EOU
 
 
 
+
 ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
 ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
 #ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
@@ -385,11 +386,25 @@ ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the o
 ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
+ 
 
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
+
+   if [ -n "$DEBUG_SCINT" ]; then 
+       local SaveDir=""
+       case $mode in
+       0) SaveDir=/tmp/ntds0 ;;
+       3) SaveDir=/tmp/ntds3 ;;
+       esac  
+       export U4Scintillation_Debug_SaveDir=$SaveDir
+       export U4Scintillation_Debug=INFO
+       echo $msg DEBUG_SCINT enabled SaveDir $SaveDir
+   else
+       echo $msg DEBUG_SCINT NOT-enabled 
+   fi 
 
    export SCRIPT=${SCRIPT:-$FUNCNAME} 
 
