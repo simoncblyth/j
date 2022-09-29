@@ -30,30 +30,35 @@ EOL
 }
 
 
-
+jx-up(){ 
+   jx-isim
+   jx-pmts 
+}
 jx-isim(){ jx-sub Simulation/DetSimV2/PhysiSim ; }
 jx-pmts(){ jx-sub Simulation/DetSimV2/PMTSim ; }
 jx-sub()
 {
    local msg="=== $BASH_SOURCE $FUNCNAME"
    local rel=${1:-Simulation/DetSimV2/PhysiSim} 
+   [ -z "$JX_RUNTIME_ENV" ] && echo $msg MUST RUN jre BEFORE jx-sub $rel && return 1 
+
    local sdir=$JUNOTOP/junosw/$rel
    local bdir=$JUNOTOP/junosw/build/$rel
 
    if [ ! -d "$sdir" ]; then 
       echo $msg sdir $sdir for rel $rel does not exist
-      return -1
+      return 1
    fi 
    if [ ! -d "$bdir" ]; then 
       echo $msg bdir $bdir for rel $rel does not exist
-      return -1
+      return 1
    fi 
 
    cd $bdir ; pwd
 
    local njobs=-j$(nproc)
-   cmake --build . $njobs || return -1 
-   cmake --install . || return -1
+   cmake --build . $njobs || return 1 
+   cmake --install . || return 1
 
    cd $sdir ; pwd
 }
@@ -82,10 +87,13 @@ jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " 
 jcv(){ cd $JUNOTOP/junosw ; jcv- $* ; : edit files identified by stem ;  } 
 jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; } 
 
-jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; } 
-jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
+#jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; } 
+#jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
 
-jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
+jgr-(){ find . -not -path "./build/*" -a -not -path "./InstallArea/*" -a -not -path "./.git/*" -type f -exec grep -H "${1:-G4CXOPTICKS}" {} \; ; } 
+jgl-(){ find . -not -path "./build/*" -a -not -path "./InstallArea/*" -a -not -path "./.git/*" -type f -exec grep -l "${1:-G4CXOPTICKS}" {} \; ; } 
+
+jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
 jgl(){ cd $JUNOTOP/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
  
 
@@ -271,11 +279,11 @@ jx-offline-build()
 {
     : HUH bash junoenv offline is not rerunnable so use this
 
-    jx-offline-config || return -1  
+    jx-offline-config || return 1  
 
     local njobs=-j$(nproc)
-    cmake --build . $njobs || return -1 
-    cmake --install . || return -1
+    cmake --build . $njobs || return 1 
+    cmake --install . || return 1
 
     return 0 
 }
@@ -386,7 +394,6 @@ ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the o
 ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
- 
 
    local args=$*     
    local msg="=== $FUNCNAME :"
@@ -394,11 +401,13 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local mode=${OPTICKS_MODE:-3}
    local tmpdir=/tmp/u4debug/ntds$mode
 
+   U4DEBUG=1 
    if [ -n "$U4DEBUG" ]; then 
-       export U4Scintillation_Debug_SaveDir=$tmpdir
-       export U4Cerenkov_Debug_SaveDir=$tmpdir
+       export U4Debug_SaveDir=$tmpdir
        export U4Scintillation_Debug=INFO
        export U4Cerenkov_Debug=INFO
+       export U4Hit_Debug=INFO
+       export U4Debug=INFO
        echo $msg U4DEBUG enabled tmpdir $tmpdir
    else
        echo $msg U4DEBUG NOT-enabled 

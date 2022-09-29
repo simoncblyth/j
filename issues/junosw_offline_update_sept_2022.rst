@@ -3,8 +3,89 @@ junosw_offline_update_sept_2022
 
 
 
+Need to get changes tucked into branches::
+
+    N[blyth@localhost junosw]$ git s
+    On branch main
+    Your branch is up to date with 'origin/main'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+        modified:   Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junosw]$ 
 
 
+* Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc              Call U4Cerenkov_Debug::EndOfEvent U4Scintillation_Debug::EndOfEvent
+* Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc        Using U4Scintillation_Debug
+* Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc      Using U4Cerenkov_Debug
+
+* Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h     EInt
+* Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc        TMP Cerenkov pinning, EInt implementation
+
+
+Almost all is debug, so tuck under WITH_G4CXOPTICKS_DEBUG 
+
+
+    
+
+How to control the debug ? Perhaps WITH_G4CXOPTICKS_DEBUG which comes from Opticks:cmake/Modules/FindOpticks.cmake::
+
+     49 find_package(G4CX CONFIG QUIET)
+     50 
+     51 if(G4CX_FOUND)
+     52     #add_compile_definitions(WITH_G4OPTICKS)
+     53     add_compile_definitions(WITH_G4CXOPTICKS)
+     54     add_compile_definitions(WITH_G4CXOPTICKS_DEBUG)
+     55     
+
+
+U4Cerenkov_Debug
+U4Scintillation_Debug
+   records cerenkov and scintillation steps, 
+   for investigating a lack of gensteps for example 
+
+U4Hit_Debug
+   records labels of hits with gs indices
+
+
+To make the connection between the debug steps and labels ? 
+Not so simple because the purposes are different.  
+Want to record steps that yield no gensteps in order to 
+understand lack of gensteps. 
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+DONE : Fix whacky num_hit SEvt::getNumHit::
+
+    junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    2022-09-29 00:51:15.867 DEBUG [62180] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 1 m_opticksMode 3
+    2022-09-29 00:51:15.867 FATAL [62180] [QEvent::setGenstep@151] Must SEvt::AddGenstep before calling QEvent::setGenstep 
+    2022-09-29 00:51:15.867 ERROR [62180] [QSim::simulate@296]  QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate 
+    2022-09-29 00:51:15.867 ERROR [62180] [SEvt::gather@1413] gather_done already skip gather 
+    2022-09-29 00:51:15.867 INFO  [62180] [junoSD_PMT_v2_Opticks::EndOfEvent@190]  eventID 1 num_hit 4294967295 way_enabled 0
+    2022-09-29 00:51:15.867 INFO  [62180] [junoSD_PMT_v2_Opticks::EndOfEvent@258] ] num_hit 4294967295 merged_count  0 savehit_count  0 m_merged_total 0 m_savehit_total 0 m_opticksMode 3 LEVEL 5:DEBUG
+    2022-09-29 00:51:15.867 INFO  [62180] [junoSD_PMT_v2_Opticks::TerminateEvent@307]  invoking SEvt::Clear as no U4Recorder detected 
+    ] junoSD_PMT_v2::EndOfEvent m_opticksMode  3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 8 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
 
 
 Cleanup after accepted MR::
