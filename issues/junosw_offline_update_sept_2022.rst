@@ -2,6 +2,201 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+Developing the U4Debug machinery
+------------------------------------
+
+u4/tests::
+
+    epsilon:tests blyth$ ./U4Debug.sh 
+    Fold : symbol f30 base /tmp/u4debug/ntds3/000 
+    Fold : symbol f31 base /tmp/u4debug/ntds3/001 
+    f30c     (8, 8) f30s    (47, 8) f30h    (14, 4) 
+    f31c     (7, 8) f31s    (51, 8) f31h     (8, 4) 
+        
+Not the expected labels, probably due to omitted U4::GenPhotonAncestor(&aTrack) in G4Cerenkov_modified::
+
+    In [1]: f30h
+    Out[1]: 
+    array([[ 0,  0,  0,  1],
+           [ 0,  0,  0,  4],
+           [ 0,  0,  0,  3],
+           [ 0,  0,  0,  3],
+           [ 0,  0,  0,  2],
+           [ 0,  0,  0,  3],
+           [ 0,  0,  0,  7],
+           [ 0,  0,  0,  8],
+           [ 0,  0,  0,  9],
+           [ 0,  0,  0,  8],
+           [ 0,  0,  0,  8],
+           [ 0,  0,  0, 15],
+           [ 0,  0,  0, 13],
+           [ 0,  0,  0, 14]], dtype=int32)
+
+    In [2]: f31h
+    Out[2]: 
+    array([[ 0,  0,  0, 15],
+           [ 0,  0,  0, 15],
+           [ 0,  0,  0, 19],
+           [ 0,  0,  0, 16],
+           [ 0,  0,  0, 16],
+           [ 0,  0,  0, 19],
+           [ 0,  0,  0, 21],
+           [ 0,  0,  0, 20]], dtype=int32)
+
+
+After adding U4::GenPhotonAncestor(&aTrack) to Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc
+get more reasonable labels. As the ancestor is getting reset for each genstep::
+
+    epsilon:tests blyth$ ./U4Debug.sh 
+    Fold : symbol f30 base /tmp/u4debug/ntds3/000 
+    Fold : symbol f31 base /tmp/u4debug/ntds3/001 
+    f30c     (8, 8) f30s    (47, 8) f30h    (14, 4) 
+    f31c     (7, 8) f31s    (51, 8) f31h     (8, 4) 
+
+    In [1]: f30h
+    Out[1]: 
+    array([[ 0, 15, 15,  0],
+           [ 0, 22, 22,  2],
+           [ 0, 10, 10,  1],
+           [ 0,  8,  8,  1],
+           [ 0,  3,  3,  0],
+           [ 0,  2,  2,  1],
+           [ 0,  3,  3,  2],
+           [ 0, 41, 41,  1],
+           [ 0, 36, 36,  2],
+           [ 0, 29, 29,  1],
+           [ 0, 19, 19,  1],
+           [ 0, 26, 26,  4],
+           [ 0,  7,  7,  1],
+           [ 0,  2,  2,  1]], dtype=int32)
+
+    In [2]: f31h
+    Out[2]: 
+    array([[ 0, 67, 67,  1],
+           [ 0, 28, 28,  1],
+           [ 0, 18, 18,  5],
+           [ 0, 28, 28,  1],
+           [ 0, 10, 10,  1],
+           [ 0,  5,  5,  1],
+           [ 0,  6,  6,  2],
+           [ 0,  0,  0,  1]], dtype=int32)
+
+
+Note that having reemission generations larger than zero 
+does not mean the photon originally came from scint. 
+In this case I think there are no photons coming from scint, 
+but reemission of initially Cerenkov photons is happening. 
+
+NB this are the labels of just the hits, so should not 
+expect to see the same lineage repeated across reemission generations. 
+
+Need to SetOpticksMode to get genstep indices to raise above zero. 
+Doing that gives more normal labels::
+
+    epsilon:tests blyth$ ./U4Debug.sh 
+    Fold : symbol f30 base /tmp/u4debug/ntds3/000 
+    Fold : symbol f31 base /tmp/u4debug/ntds3/001 
+    f30c     (8, 8) f30s    (47, 8) f30h    (14, 4) 
+    f31c     (7, 8) f31s    (51, 8) f31h     (8, 4) 
+
+    In [1]: f30h
+    Out[1]: 
+    array([[  0,  15,  15,   0],
+           [  1,  22,  56,   2],
+           [  1,  10,  44,   1],
+           [  1,   8,  42,   1],
+           [  1,   3,  37,   0],
+           [  1,   2,  36,   1],
+           [  2,   3,  60,   2],
+           [  3,  41, 102,   1],
+           [  3,  36,  97,   2],
+           [  3,  29,  90,   1],
+           [  3,  19,  80,   1],
+           [  4,  26, 157,   4],
+           [  5,   7, 174,   1],
+           [  6,   2, 195,   1]], dtype=int32)
+
+    ## hits coming from 7 distinct gensteps : I think origins are all Cerenkov
+
+    In [2]: f31h
+    Out[2]: 
+    array([[  0,  67,  67,   1],
+           [  0,  28,  28,   1],
+           [  0,  18,  18,   5],
+           [  1,  28, 103,   1],
+           [  1,  10,  85,   1],
+           [  2,   5, 123,   1],
+           [  3,   6, 155,   2],
+           [  3,   0, 149,   1]], dtype=int32)
+
+    ## hits coming from 4 distinct gensteps : I think origins are all Cerenkov
+
+The debug info identifies exactly which photon from which genstep 
+is the originating photon and how many reemission generations are undergone. 
+HMM need genstep labels to identify original C or S of the hits.
+Added SEvt::SaveGenstepLabels to U4Debug::Save::
+
+    epsilon:tests blyth$ ./U4Debug.sh 
+    Fold : symbol f30 base /tmp/u4debug/ntds3/000 
+    f30c     (8, 8) f30s    (47, 8) f30h    (14, 4) f30g     (8, 4) 
+    Fold : symbol f31 base /tmp/u4debug/ntds3/001 
+    f31c     (7, 8) f31s    (51, 8) f31h     (8, 4) f31g     (7, 4) 
+
+    In [1]: f30g
+    Out[1]: 
+    array([[  0,  34,   0,  18],
+           [  1,  23,  34,  18],
+           [  2,   4,  57,  18],
+           [  3,  70,  61,  18],
+           [  4,  36, 131,  18],
+           [  5,  26, 167,  18],
+           [  6,   4, 193,  18],
+           [  7,   1, 197,  18]], dtype=int32)
+
+    In [2]: f31g
+    Out[2]: 
+    array([[  0,  75,   0,  18],
+           [  1,  43,  75,  18],
+           [  2,  31, 118,  18],
+           [  3,  14, 149,  18],
+           [  4,   8, 163,  18],
+           [  5,   1, 171,  18],
+           [  6,   2, 172,  18]], dtype=int32)
+
+
+As expected origins of all hits are OpticksGenstep_G4Cerenkov_modified = 18::
+
+     19 enum
+     20 {
+     21     OpticksGenstep_INVALID                  = 0,
+     22     OpticksGenstep_G4Cerenkov_1042          = 1,
+     23     OpticksGenstep_G4Scintillation_1042     = 2,
+     24     OpticksGenstep_DsG4Cerenkov_r3971       = 3,
+     25     OpticksGenstep_DsG4Scintillation_r3971  = 4,
+     26     OpticksGenstep_DsG4Scintillation_r4695  = 5,
+     27     OpticksGenstep_TORCH                    = 6,
+     28     OpticksGenstep_FABRICATED               = 7,
+     29     OpticksGenstep_EMITSOURCE               = 8,
+     30     OpticksGenstep_NATURAL                  = 9,
+     31     OpticksGenstep_MACHINERY                = 10,
+     32     OpticksGenstep_G4GUN                    = 11,
+     33     OpticksGenstep_PRIMARYSOURCE            = 12,
+     34     OpticksGenstep_GENSTEPSOURCE            = 13,
+     35     OpticksGenstep_CARRIER                  = 14,
+     36     OpticksGenstep_CERENKOV                 = 15,
+     37     OpticksGenstep_SCINTILLATION            = 16,
+     38     OpticksGenstep_FRAME                    = 17,
+     39     OpticksGenstep_G4Cerenkov_modified      = 18,
+     40     OpticksGenstep_INPUT_PHOTON             = 19,
+     41     OpticksGenstep_NumType                  = 20
+     42 };
+
+
+
+
+
+
+
 
 Need to get changes tucked into branches::
 
