@@ -29,16 +29,33 @@ Simulation/DetSimV2/DetSimOptions
 EOL
 }
 
+jx-phy(){ jx-sub Simulation/DetSimV2/PhysiSim ; }
+jx-pmt(){ jx-sub Simulation/DetSimV2/PMTSim ; }
+jx-dso(){ jx-sub Simulation/DetSimV2/DetSimOptions ; }
 
-jx-up(){ 
-   jx-isim
-   jx-pmts 
+jx-gen(){ jx-sub Simulation/GenTools ; }
+jx-ana(){ jx-sub Simulation/DetSimV2/AnalysisCode ; }
+
+
+jx-all(){
+   jx-phy
+   jx-gen
+   jx-pmt
+   jx-ana
+   jx-dso
 }
-jx-isim(){ jx-sub Simulation/DetSimV2/PhysiSim ; }
-jx-pmts(){ jx-sub Simulation/DetSimV2/PMTSim ; }
+jx-up(){ 
+   jx-phy
+   jx-pmt
+   jx-dso
+
+}
+
+
+
 jx-sub()
 {
-   local msg="=== $BASH_SOURCE $FUNCNAME"
+   local msg="=== $BASH_SOURCE $FUNCNAME :"
    local rel=${1:-Simulation/DetSimV2/PhysiSim} 
    [ -z "$JX_RUNTIME_ENV" ] && echo $msg MUST RUN jre BEFORE jx-sub $rel && return 1 
 
@@ -55,10 +72,13 @@ jx-sub()
    fi 
 
    cd $bdir ; pwd
-
    local njobs=-j$(nproc)
-   cmake --build . $njobs || return 1 
-   cmake --install . || return 1
+
+   cmake --build . $njobs 
+   [ $? -ne 0 ] && echo $msg build fail && cd $sdir && pwd && return 1
+
+   cmake --install . 
+   [ $? -ne 0 ] && echo $msg install fail && cd $sdir && pwd && return 1
 
    cd $sdir ; pwd
 }

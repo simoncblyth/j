@@ -2,6 +2,21 @@ junosw_offline_update_sept_2022
 ==================================
 
 
+opticks merger naming is confusing 
+--------------------------------------
+
+* rearrange naming to make clearer and consistent between::
+
+    junoSD_PMT_v2
+    junoSD_PMT_v2_Opticks
+
+
+FIXED : Why is the CK origin flag not dumped ? Added sphoton::add_flag to qcerenkov::generate qscint::generate
+--------------------------------------------------------------------------------------------------------------------
+
+* ~/opticks/notes/issues/OpticksPhoton_FlagMask_string_omits_generation_flag_CK_SI_TO.rst
+
+
 Developing the U4Debug machinery
 ------------------------------------
 
