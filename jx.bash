@@ -37,7 +37,7 @@ jx-gen(){ jx-sub Simulation/GenTools ; }
 jx-ana(){ jx-sub Simulation/DetSimV2/AnalysisCode ; }
 
 
-jx-all(){
+jx-touch(){
    jx-phy
    jx-gen
    jx-pmt
@@ -96,9 +96,9 @@ jo(){ cd $JUNOTOP/junosw && pwd && git status ; }
 # double quoting the f gets some way but somehow messes up other things
 # HENCE: use jcl jfi from top level where shell expansion will not find the files in the invoking directory 
 
-jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
-jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
-jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './InstallArea/*' -a ! -path './build/*' ; } 
+jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './InstallArea/*' -a ! -path './build/*' ; } 
+jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './InstallArea/*' -a ! -path './build/*' ; } 
 
 
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
