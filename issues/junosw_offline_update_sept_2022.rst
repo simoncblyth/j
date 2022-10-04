@@ -2,8 +2,42 @@ junosw_offline_update_sept_2022
 ==================================
 
 
-opticks merger naming is confusing 
---------------------------------------
+
+Review changes
+-----------------
+
+::
+     
+        Simulation/DetSimV2/PMTSim/PMTSim/
+        Simulation/DetSimV2/PMTSim/src/OK_PMTSIM_LOG.cc
+
+        modified:   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction_Opticks.hh  ## LEVEL
+        modified:   Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc                             ## PMTSim/OK_PMTSIM_LOG.hh hookup
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc      ## PLOG->SLOG
+        modified:   Simulation/GenTools/src/GtOpticksTool.cc                                        ## PLOG->SLOG
+
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc                ## separated WITH_G4CXOPTICKS_DEBUG
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+
+        new file:   Utilities/EGet/CMakeLists.txt
+        new file:   Utilities/EGet/EGet/EGet.h
+        modified:   Utilities/CMakeLists.txt                                       ## EGet
+        modified:   Simulation/DetSimV2/PhysiSim/CMakeLists.txt                    ## EGet 
+        modified:   Simulation/DetSimV2/PhysiSim/include/G4Cerenkov_modified.hh    ## SetOpticksMode/GetOpticksMode
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc          ## SEP Debug, PLOG->SLOG
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc          ## EGet::Get<int> for verboseLevel
+        modified:   Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc        ## MOVED IN Opticks 
+        modified:   Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc        ## TODO: Delete this
+
+
+
+
+
+
+
+
+TODO : opticks merger naming is confusing 
+-------------------------------------------
 
 * rearrange naming to make clearer and consistent between::
 

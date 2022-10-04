@@ -29,6 +29,8 @@ Simulation/DetSimV2/DetSimOptions
 EOL
 }
 
+jx-util(){ jx-sub Utilities ; }
+
 jx-phy(){ jx-sub Simulation/DetSimV2/PhysiSim ; }
 jx-pmt(){ jx-sub Simulation/DetSimV2/PMTSim ; }
 jx-dso(){ jx-sub Simulation/DetSimV2/DetSimOptions ; }
@@ -421,16 +423,24 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local mode=${OPTICKS_MODE:-3}
    local tmpdir=/tmp/u4debug/ntds$mode
 
-   U4DEBUG=1 
-   if [ -n "$U4DEBUG" ]; then 
+
+   #DEBUG=1 
+   if [ -n "$DEBUG" ]; then 
        export U4Debug_SaveDir=$tmpdir
        export U4Scintillation_Debug=INFO
        export U4Cerenkov_Debug=INFO
        export U4Hit_Debug=INFO
        export U4Debug=INFO
-       echo $msg U4DEBUG enabled tmpdir $tmpdir
+
+       export SOpticksResource=INFO
+       export junoSD_PMT_v2_Opticks=INFO
+       export junoSD_PMT_v2=INFO
+       export DsG4Scintillation=INFO
+       export G4Cerenkov_modified=INFO
+
+       echo $msg DEBUG enabled tmpdir $tmpdir
    else
-       echo $msg U4DEBUG NOT-enabled 
+       echo $msg DEBUG NOT-enabled 
    fi 
 
    export SCRIPT=${SCRIPT:-$FUNCNAME} 
