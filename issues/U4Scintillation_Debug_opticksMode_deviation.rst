@@ -16,11 +16,129 @@ opticksMode:0
 opticksMode:3
     both CPU and GPU propagations, the CPU ones should be the same as opticksMode:0
 
-
-
 Hmm although am looking at Scintillation the culprit may well be 
 a difference in Cerenkov random consumption between the modes. 
 Check this by arranging for Cerenkov to be the same in the two modes.
+
+* NB : remember the simulations will have different numbers of hits unless align the randoms 
+* YES : but the input steps should always match between opticksMode, as that happens before the "fork"  
+
+
+Switch on WITH_G4CXOPTICKS_DEBUG from opticks/cmake/Modules/FindOpticks.cmake
+---------------------------------------------------------------------------------
+
+* hmm : a less disruptive way of doing this would be good
+
+
+Like-with-like hit comparison could do with a reverse convert from JUNO hits into sphoton 
+-------------------------------------------------------------------------------------------
+
+YES: but photon-photon A-B comparison is more useful and already exists. 
+
+
+
+
+Compare logging between opticksMode
+---------------------------------------
+
+console::
+
+    =======================================================================
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    Begin of Event --> 0
+    2022-10-04 21:31:40.559 INFO  [454769] [junoSD_PMT_v2::EndOfEvent@1136] [ m_opticksMode  3
+    2022-10-04 21:31:40.559 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 0 m_opticksMode 3
+    2022-10-04 21:31:40.590 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@190]  eventID 0 num_genstep 8 num_photon 198 num_hit 27 way_enabled 0
+    2022-10-04 21:31:40.591 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@260] 
+         0 gp.x  -13840.08 gp.y   -8162.24 gp.z  -10659.09 gp.R   19281.76 pmt   13743          CK|RE|SD|BT
+         1 gp.x  -13331.45 gp.y   -7860.98 gp.z  -11652.90 gp.R   19372.99 pmt   14076          CK|RE|SD|BT
+         2 gp.x   -7827.26 gp.y  -16841.33 gp.z    5141.73 gp.R   19270.02 pmt    6269          CK|RE|SD|BT
+         3 gp.x    4013.39 gp.y   18846.77 gp.z    -557.95 gp.R   19277.43 pmt    9155          CK|RE|SD|BT
+         4 gp.x   11006.93 gp.y    1139.18 gp.z   15895.42 gp.R   19367.88 pmt    1389       CK|RE|SC|SD|BT
+         5 gp.x    7690.82 gp.y   -3541.02 gp.z  -17384.95 gp.R   19337.11 pmt   16847             CK|SD|BT
+         6 gp.x    4684.89 gp.y   -5573.78 gp.z  -17938.22 gp.R   19359.62 pmt   16987             CK|SD|BT
+         7 gp.x  -12764.92 gp.y    4749.99 gp.z  -13713.54 gp.R   19327.88 pmt   15195             CK|SD|BT
+         8 gp.x   -5851.42 gp.y  -10440.19 gp.z   15212.75 gp.R   19356.25 pmt    1731          CK|RE|SD|BT
+         9 gp.x    -691.47 gp.y   -7847.75 gp.z   17595.27 gp.R   19278.46 pmt     667          CK|RE|SD|BT
+        10 gp.x   -9707.40 gp.y  -10428.95 gp.z   13029.62 gp.R   19307.19 pmt    2738          CK|RE|SD|BT
+        11 gp.x  -15516.48 gp.y  -10178.67 gp.z    5478.87 gp.R   19349.02 pmt    6063          CK|RE|SD|BT
+        12 gp.x    -122.60 gp.y   13468.08 gp.z  -13786.96 gp.R   19273.94 pmt   15324             CK|SD|BT
+        13 gp.x   -4878.42 gp.y     572.70 gp.z  -18668.98 gp.R   19304.35 pmt   17368          CK|RE|SD|BT
+        14 gp.x   -8272.88 gp.y      -5.72 gp.z  -17387.26 gp.R   19255.06 pmt   16808          CK|RE|SD|BT
+        15 gp.x   -9965.39 gp.y   -7149.86 gp.z  -14860.47 gp.R   19268.18 pmt   15659       CK|RE|SC|SD|BT
+        16 gp.x   -2736.98 gp.y  -18782.29 gp.z   -3344.45 gp.R   19273.07 pmt   10332          CK|SC|SD|BT
+        17 gp.x  -17931.17 gp.y    5115.71 gp.z   -5171.71 gp.R   19350.55 pmt   11367          CK|RE|SD|BT
+        18 gp.x  -18328.21 gp.y    3982.93 gp.z    4665.50 gp.R   19327.54 pmt    6660          CK|RE|SD|BT
+        19 gp.x   -9390.79 gp.y   -5545.32 gp.z  -15898.02 gp.R   19279.12 pmt   16170             CK|SD|BT
+
+
+
+    2022-10-04 21:31:40.591 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@262] ] num_hit 27 merged_count  0 savehit_count  27 m_merged_total 0 m_savehit_total 0 m_opticksMode 3
+    2022-10-04 21:31:40.591 INFO  [454769] [junoSD_PMT_v2_Opticks::TerminateEvent@314]  invoking SEvt::Clear as no U4Recorder detected 
+    2022-10-04 21:31:40.592 INFO  [454769] [junoSD_PMT_v2::EndOfEvent@1142] ] m_opticksMode  3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 41 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (1) 
+    junoSD_PMT_v2::Initialize eventID 1
+    Begin of Event --> 1
+    2022-10-04 21:31:40.609 INFO  [454769] [junoSD_PMT_v2::EndOfEvent@1136] [ m_opticksMode  3
+    2022-10-04 21:31:40.609 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@169] [ eventID 1 m_opticksMode 3
+    2022-10-04 21:31:40.619 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@190]  eventID 1 num_genstep 7 num_photon 174 num_hit 28 way_enabled 0
+    2022-10-04 21:31:40.620 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@260] 
+         0 gp.x     840.38 gp.y   19245.69 gp.z    1502.42 gp.R   19322.53 pmt    8114             CK|SD|BT
+         1 gp.x  -13430.50 gp.y   -7767.71 gp.z  -11408.74 gp.R   19258.11 pmt   14076          CK|RE|SD|BT
+         2 gp.x  -14922.10 gp.y   11530.04 gp.z    4201.58 gp.R   19320.04 pmt    6864          CK|RE|SD|BT
+         3 gp.x  -15151.85 gp.y    5609.26 gp.z   10628.09 gp.R   19339.04 pmt    3868          CK|RE|SD|BT
+         4 gp.x   10853.07 gp.y    1425.27 gp.z   15936.91 gp.R   19334.06 pmt    1390       CK|RE|SC|SD|BT
+         5 gp.x   11710.61 gp.y   14482.46 gp.z   -5129.43 gp.R   19318.16 pmt   11299             CK|SD|BT
+         6 gp.x  -17505.01 gp.y    6837.48 gp.z   -4430.66 gp.R   19308.22 pmt   10926          CK|RE|SD|BT
+         7 gp.x    5155.31 gp.y   17928.19 gp.z   -5137.70 gp.R   19349.24 pmt   11313       CK|RE|SC|SD|BT
+         8 gp.x   -4309.12 gp.y    6244.47 gp.z   17786.38 gp.R   19336.94 pmt     640          CK|RE|SD|BT
+         9 gp.x   18004.06 gp.y   -1181.39 gp.z    6883.82 gp.R   19311.37 pmt    5532          CK|RE|SD|BT
+        10 gp.x   -6796.09 gp.y  -17821.26 gp.z    2825.18 gp.R   19281.23 pmt    7360       CK|RE|SC|SD|BT
+        11 gp.x     402.42 gp.y   13634.73 gp.z   13677.00 gp.R   19316.53 pmt    2522             CK|SD|BT
+        12 gp.x    -375.25 gp.y   -7398.15 gp.z   17840.73 gp.R   19317.48 pmt     590          CK|RE|SD|BT
+        13 gp.x    3970.24 gp.y   18829.30 gp.z   -2085.23 gp.R   19355.97 pmt    9813          CK|RE|SD|BT
+        14 gp.x     613.82 gp.y    5148.76 gp.z  -18582.24 gp.R   19292.12 pmt   17353          CK|RE|SD|BT
+        15 gp.x   -9336.95 gp.y  -10053.78 gp.z   13517.45 gp.R   19260.80 pmt    2424          CK|RE|SD|BT
+        16 gp.x  -15324.87 gp.y   -9948.44 gp.z    6100.48 gp.R   19262.37 pmt    5860          CK|RE|SD|BT
+        17 gp.x    6492.38 gp.y  -17771.98 gp.z    3689.73 gp.R   19277.15 pmt    6953       CK|RE|SC|SD|BT
+        18 gp.x  -10800.15 gp.y   15883.43 gp.z   -2041.98 gp.R   19315.70 pmt    9841          CK|RE|SD|BT
+        19 gp.x   11743.43 gp.y   12659.67 gp.z    8629.24 gp.R   19303.86 pmt    4771             CK|SD|BT
+
+    2022-10-04 21:31:40.620 INFO  [454769] [junoSD_PMT_v2_Opticks::EndOfEvent@262] ] num_hit 28 merged_count  0 savehit_count  28 m_merged_total 0 m_savehit_total 27 m_opticksMode 3
+    2022-10-04 21:31:40.620 INFO  [454769] [junoSD_PMT_v2_Opticks::TerminateEvent@314]  invoking SEvt::Clear as no U4Recorder detected 
+    2022-10-04 21:31:40.620 INFO  [454769] [junoSD_PMT_v2::EndOfEvent@1142] ] m_opticksMode  3
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 3 hitCollection 36 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 2           7.12800        3.56400      3.16100      
+    DetSimAlg                2           93.24000       46.62000     19.13000     
+    Sum of junotoptask       2           100.50200      50.25100     22.35000     
+    #############################################################################
+
+
+
+opticksMode:0::
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    Begin of Event --> 0
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 14 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (1) 
+    junoSD_PMT_v2::Initialize eventID 1
+    Begin of Event --> 1
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 8 hitCollection_muon 0 hitCollection_opticks 0
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+
+
+
 
 
 Pinning Cerenkov to be the same in two modes

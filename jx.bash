@@ -421,8 +421,9 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
-   local tmpdir=/tmp/u4debug/ntds$mode
-
+   local script=ntds$mode
+   local tmpdir=/tmp/u4debug/$script
+   export SCRIPT=${SCRIPT:-$script}  ## SCRIPT controls name of logfile 
 
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
@@ -442,8 +443,6 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    else
        echo $msg DEBUG NOT-enabled 
    fi 
-
-   export SCRIPT=${SCRIPT:-$FUNCNAME} 
 
    local opts="" 
    opts="$opts --opticks-mode $mode"   

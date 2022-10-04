@@ -12,6 +12,317 @@ Common source for JUNO high level bash functions
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
 
 
+Adding documentation
+-----------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/main/Doc/oum
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/main/Doc/oum/source/appendix
+* https://juno.ihep.ac.cn/~offline/Doc/user-guide/appendix/oum.html
+
+
+JUNOSW Workflow for getting local changes into main 
+-----------------------------------------------------
+
+If have lots of changes, decide how to group them into issues/branches. 
+
+
+1. create issue describing what will do using webinterface
+
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues
+
+2. create branch to hold the changes for review using web interface
+
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches
+   * blyth-22-simplify-Cerenkov-genstep-collection
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-22-simplify-Cerenkov-genstep-collection
+
+   * note, do not create the merge request yet : will do that after making some commits onto the branch 
+
+3. now I already have some working copy changes (against main branch) 
+   that I want to be the the branch I just created for this issue
+
+   * leave working copy changes asis, and checkout the branch:
+
+Examples::
+
+   * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
+   * git checkout -b blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
+    
+::
+
+    N[blyth@localhost junosw]$ git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
+    Switched to a new branch 'blyth-22-simplify-Cerenkov-genstep-collection'
+    N[blyth@localhost junosw]$ 
+
+
+4. now make a series of commits to the branch, prefix commit messages "WIP: #22 "  or "WIP: #23 "
+   keep each commit small such that can describe the change succinctly in commit message.
+
+Build up the commits, each with related changes that make sense (and compile) together.::
+
+    git diff ..
+    git add  ..
+    git diff ..
+    git add ..
+    git commit -m "WIP: #22 add Utilities/EGet header for grabbing values from environment, prepare to use this from PhysiSim "
+
+Note, there is no need to push after every commit. Do that after a sequence of commits. 
+
+    git commit -m "WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042 " 
+
+
+
+::
+
+    N[blyth@localhost junosw]$ git push 
+    fatal: The current branch blyth-22-simplify-Cerenkov-genstep-collection has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-22-simplify-Cerenkov-genstep-collection
+
+    N[blyth@localhost junosw]$ git push --set-upstream origin blyth-22-simplify-Cerenkov-genstep-collection
+    To code.ihep.ac.cn:JUNO/offline/junosw
+     ! [rejected]        blyth-22-simplify-Cerenkov-genstep-collection -> blyth-22-simplify-Cerenkov-genstep-collection (fetch first)
+    error: failed to push some refs to 'code.ihep.ac.cn:JUNO/offline/junosw'
+    hint: Updates were rejected because the remote contains work that you do
+    hint: not have locally. This is usually caused by another repository pushing
+    hint: to the same ref. You may want to first integrate the remote changes
+    hint: (e.g., 'git pull ...') before pushing again.
+    hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git pull 
+    remote: Enumerating objects: 23, done.
+    remote: Counting objects: 100% (23/23), done.
+    remote: Compressing objects: 100% (17/17), done.
+    remote: Total 23 (delta 12), reused 16 (delta 6), pack-reused 0
+    Unpacking objects: 100% (23/23), 5.66 KiB | 263.00 KiB/s, done.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * [new branch]      J22.2.x                                       -> origin/J22.2.x
+     * [new branch]      blyth-22-simplify-Cerenkov-genstep-collection -> origin/blyth-22-simplify-Cerenkov-genstep-collection
+       4efaaf7..91d0968  main                                          -> origin/main
+     * [new tag]         J22.2.0-rc0                                   -> J22.2.0-rc0
+    There is no tracking information for the current branch.
+    Please specify which branch you want to merge with.
+    See git-pull(1) for details.
+
+        git pull <remote> <branch>
+
+    If you wish to set tracking information for this branch you can do so with:
+
+        git branch --set-upstream-to=origin/<branch> blyth-22-simplify-Cerenkov-genstep-collection
+
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    hint: You have divergent branches and need to specify how to reconcile them.
+    hint: You can do so by running one of the following commands sometime before
+    hint: your next pull:
+    hint: 
+    hint:   git config pull.rebase false  # merge (the default strategy)
+    hint:   git config pull.rebase true   # rebase
+    hint:   git config pull.ff only       # fast-forward only
+    hint: 
+    hint: You can replace "git config" with "git config --global" to set a default
+    hint: preference for all repositories. You can also pass --rebase, --no-rebase,
+    hint: or --ff-only on the command line to override the configured default per
+    hint: invocation.
+    fatal: Need to specify how to reconcile divergent branches.
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git config pull.ff only  
+    N[blyth@localhost junosw]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    fatal: Not possible to fast-forward, aborting.
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git config pull.rebase false
+    N[blyth@localhost junosw]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    fatal: Not possible to fast-forward, aborting.
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git config pull.rebase true
+    N[blyth@localhost junosw]$ git pull origin main
+    error: cannot pull with rebase: You have unstaged changes.
+    error: please commit or stash them.
+    N[blyth@localhost junosw]$ 
+
+
+The changes remaining are all related to logging changes::
+
+    N[blyth@localhost junosw]$ jo
+    /data/blyth/junotop/junosw
+    On branch blyth-22-simplify-Cerenkov-genstep-collection
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction_Opticks.hh
+        modified:   Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+        modified:   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+        modified:   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+        modified:   Simulation/GenTools/src/GtOpticksTool.cc
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+        Simulation/DetSimV2/PMTSim/PMTSim/
+        Simulation/DetSimV2/PMTSim/src/OK_PMTSIM_LOG.cc
+        Simulation/DetSimV2/PhysiSim/PhysiSim/
+        Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git stash 
+    Saved working directory and index state WIP on blyth-22-simplify-Cerenkov-genstep-collection: 58b435f WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git s
+    On branch blyth-22-simplify-Cerenkov-genstep-collection
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+        Simulation/DetSimV2/PMTSim/PMTSim/
+        Simulation/DetSimV2/PMTSim/src/OK_PMTSIM_LOG.cc
+        Simulation/DetSimV2/PhysiSim/PhysiSim/
+        Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
+
+    nothing added to commit but untracked files present (use "git add" to track)
+    N[blyth@localhost junosw]$ l Simulation/DetSimV2/PMTSim/PMTSim/
+    total 4
+    0 drwxrwxr-x. 2 blyth blyth  30 Oct  3 03:22 .
+    4 -rw-rw-r--. 1 blyth blyth 568 Oct  3 02:51 OK_PMTSIM_LOG.hh
+    0 drwxrwxr-x. 5 blyth blyth  68 Sep 30 23:10 ..
+
+
+    N[blyth@localhost junosw]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    fatal: Not possible to fast-forward, aborting.
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git help pull 
+    N[blyth@localhost junosw]$ git pull --rebase origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    Successfully rebased and updated refs/heads/blyth-22-simplify-Cerenkov-genstep-collection.
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+
+
+
+
+    N[blyth@localhost junosw]$ git push --set-upstream origin blyth-22-simplify-Cerenkov-genstep-collection
+    Enumerating objects: 34, done.
+    Counting objects: 100% (34/34), done.
+    Delta compression using up to 48 threads
+    Compressing objects: 100% (20/20), done.
+    Writing objects: 100% (22/22), 3.13 KiB | 535.00 KiB/s, done.
+    Total 22 (delta 14), reused 0 (delta 0), pack-reused 0
+    remote: 
+    remote: To create a merge request for blyth-22-simplify-Cerenkov-genstep-collection, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-22-simplify-Cerenkov-genstep-collection
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw
+       91d0968..c46d86a  blyth-22-simplify-Cerenkov-genstep-collection -> blyth-22-simplify-Cerenkov-genstep-collection
+    Branch 'blyth-22-simplify-Cerenkov-genstep-collection' set up to track remote branch 'blyth-22-simplify-Cerenkov-genstep-collection' from 'origin'.
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git stash show
+     .../include/LSExpDetectorConstruction_Opticks.hh   |  8 +++
+     .../DetSimV2/DetSimOptions/src/DetSim0Svc.cc       |  4 ++
+     .../src/LSExpDetectorConstruction_Opticks.cc       | 11 +--
+     .../DetSimV2/PMTSim/include/junoSD_PMT_v2.hh       |  6 ++
+     .../PMTSim/include/junoSD_PMT_v2_Opticks.hh        |  5 +-
+     Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc    | 80 +++++++++++++++++-----
+     .../DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc   | 51 ++++++++------
+     .../DetSimV2/PhysiSim/src/DsG4Scintillation.cc     | 37 +++++++---
+     .../DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc   |  7 +-
+     Simulation/GenTools/src/GtOpticksTool.cc           | 10 +--
+     10 files changed, 154 insertions(+), 65 deletions(-)
+    N[blyth@localhost junosw]$ 
+
+    N[blyth@localhost junosw]$ git stash apply 
+    On branch blyth-22-simplify-Cerenkov-genstep-collection
+    Your branch is up to date with 'origin/blyth-22-simplify-Cerenkov-genstep-collection'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction_Opticks.hh
+        modified:   Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+        modified:   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+        modified:   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+        modified:   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+        modified:   Simulation/DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc
+        modified:   Simulation/GenTools/src/GtOpticksTool.cc
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+        Simulation/DetSimV2/PMTSim/PMTSim/
+        Simulation/DetSimV2/PMTSim/src/OK_PMTSIM_LOG.cc
+        Simulation/DetSimV2/PhysiSim/PhysiSim/
+        Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    N[blyth@localhost junosw]$ 
+
+
+Now following the merge of the MR, tidy up : by deleting the now merged branch.
+
+
+
+1. hop to main: git checkout main   (working copy changes are safe)
+
+2. list branches, and delete the old one::
+     
+    N[blyth@localhost junosw]$ git branch 
+      blyth-22-simplify-Cerenkov-genstep-collection
+    * main
+
+
+    N[blyth@localhost junosw]$ git branch -d blyth-22-simplify-Cerenkov-genstep-collection
+    warning: deleting branch 'blyth-22-simplify-Cerenkov-genstep-collection' that has been merged to
+             'refs/remotes/origin/blyth-22-simplify-Cerenkov-genstep-collection', but not yet merged to HEAD.
+    Deleted branch blyth-22-simplify-Cerenkov-genstep-collection (was c46d86a).
+    N[blyth@localhost junosw]$ 
+
+
+3. pull the upstream updates
+
+    N[blyth@localhost junosw]$ git pull 
+    error: cannot pull with rebase: You have unstaged changes.
+    error: please commit or stash them.
+    N[blyth@localhost junosw]$ git stash    # clear decks of local changes, other than untracked which are still lying around
+    N[blyth@localhost junosw]$ git pull     # now can pull from upstream
+    N[blyth@localhost junosw]$ git stash apply   # get back local changes 
+
+
+* so now are back on main branch with local changes ready to be incorporated in another branch 
+* check can build OK : jx-touch 
+
+
+
+
+
+
+
 Installation instructions are still using SVN ?
 -------------------------------------------------
 
