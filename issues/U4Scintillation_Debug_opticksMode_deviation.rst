@@ -29,6 +29,20 @@ Switch on WITH_G4CXOPTICKS_DEBUG from opticks/cmake/Modules/FindOpticks.cmake
 
 * hmm : a less disruptive way of doing this would be good
 
+::
+
+    N[blyth@localhost DetSimOptions]$ l /tmp/u4debug/ntds3/000/
+    total 16
+    4 -rw-rw-r--. 1 blyth blyth  256 Oct  5 00:44 gsl.npy
+    4 -rw-rw-r--. 1 blyth blyth  640 Oct  5 00:44 U4Cerenkov_Debug.npy
+    4 -rw-rw-r--. 1 blyth blyth  352 Oct  5 00:44 U4Hit_Debug.npy
+    4 -rw-rw-r--. 1 blyth blyth 3136 Oct  5 00:44 U4Scintillation_Debug.npy
+    0 drwxr-xr-x. 2 blyth blyth  105 Sep 30 00:03 .
+
+
+
+
+
 
 Like-with-like hit comparison could do with a reverse convert from JUNO hits into sphoton 
 -------------------------------------------------------------------------------------------

@@ -341,9 +341,8 @@ jx-opticks()
 
 
 
-
-tds-dir(){ echo /tmp/$USER/opticks/tds ; }
-tds-cd(){ cd $(tds-dir) ; }
+tds-dir(){ echo ${TDS_DIR:-/tmp/$USER/opticks/tds} ; }
+tds-cd(){  cd $(tds-dir) ; }
 
 tds-(){ 
    type $FUNCNAME
@@ -422,8 +421,11 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
    local script=ntds$mode
-   local tmpdir=/tmp/u4debug/$script
+   local base=/tmp/u4debug
+   local tmpdir=$base/$script
    export SCRIPT=${SCRIPT:-$script}  ## SCRIPT controls name of logfile 
+   export TDS_DIR=$tmpdir
+   echo $msg TDS_DIR $TDS_DIR
 
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
@@ -465,7 +467,7 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
 
    #BASE=/tmp/$USER/opticks/$SCRIPT   
    #BASE=.opticks/$SCRIPT   
-   BASE=$tmpdir
+   BASE=$base
 
    case $(uname) in 
       Linux) tds- $opts $trgs $args  ;;
