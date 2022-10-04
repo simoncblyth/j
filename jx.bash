@@ -425,7 +425,7 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local tmpdir=$base/$script
    export SCRIPT=${SCRIPT:-$script}  ## SCRIPT controls name of logfile 
    export TDS_DIR=$tmpdir
-   echo $msg TDS_DIR $TDS_DIR
+   echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT
 
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
