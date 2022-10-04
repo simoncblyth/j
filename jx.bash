@@ -423,13 +423,13 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    local script=ntds$mode
    local base=/tmp/u4debug
    local tmpdir=$base/$script
-   export SCRIPT=${SCRIPT:-$script}  ## SCRIPT controls name of logfile 
+   export SCRIPT=$script       ## SCRIPT controls name of logfile 
    export TDS_DIR=$tmpdir
-   echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT
+   export U4Debug_SaveDir=$tmpdir
+   echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT U4Debug_SaveDir ${U4Debug_SaveDir}
 
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
-       export U4Debug_SaveDir=$tmpdir
        export U4Scintillation_Debug=INFO
        export U4Cerenkov_Debug=INFO
        export U4Hit_Debug=INFO
@@ -440,6 +440,8 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
        export junoSD_PMT_v2=INFO
        export DsG4Scintillation=INFO
        export G4Cerenkov_modified=INFO
+
+       export SLOG=1
 
        echo $msg DEBUG enabled tmpdir $tmpdir
    else
