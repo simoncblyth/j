@@ -11,17 +11,183 @@ Would expect opticksMode 0 and 3 to have exact same steps in DsG4Scintillation
 but notice a deviation ?  Is there some difference in random consumption ? 
 First event starts matches then deviates after 35 scint steps. 
 
-opticksMode:0
-    as if thre is no Opticks there
-opticksMode:3
-    both CPU and GPU propagations, the CPU ones should be the same as opticksMode:0
-
 Hmm although am looking at Scintillation the culprit may well be 
 a difference in Cerenkov random consumption between the modes. 
 Check this by arranging for Cerenkov to be the same in the two modes.
 
 * NB : remember the simulations will have different numbers of hits unless align the randoms 
-* YES : but the input steps should always match between opticksMode, as that happens before the "fork"  
+* YES : but the input steps should always match between opticksMode (other than opticksMode 1), 
+  as that happens before the "fork"  
+
+
+About opticksMode
+----------------------
+
+opticksMode:0
+    as if there is no Opticks there
+
+opticksMode:1
+    only GPU propagation, CPU photon generation is skipped
+    (NB because this changes the Geant4 random consumption the C+S steps will
+    not match those obtained wih opticksMode 0)
+
+opticksMode:3
+    both CPU and GPU propagations, the CPU ones should be the same as opticksMode:0
+    (NB because the Geant4 random consumption of the C+S steps is unchanged
+    there should be an exact step match between opticksMode 0 and 3)
+
+
+What about matching between opticksModes 0 and 1 ?
+-------------------------------------------------------
+
+Notice that there will not be a match between mode 0 and mode 1
+because mode 1 is meant to skip the CPU photon generation 
+whereas mode 0 does it as normal. 
+So the random consumption will not be matching. 
+
+
+U4Debug.sh : Comparing steps between the modes
+------------------------------------------------
+
+
+
+
+::
+
+     40 if __name__ == '__main__':
+     41     base = "/tmp/u4debug"
+     42     
+     43     x00 = U4Debug.Create("ntds0/000", symbol="x00", base=base)
+     44     x01 = U4Debug.Create("ntds0/001", symbol="x01", base=base)
+     45     
+     46     x10 = U4Debug.Create("ntds1/000", symbol="x10", base=base)
+     47     x11 = U4Debug.Create("ntds1/001", symbol="x11", base=base)
+     48     
+     49     x30 = U4Debug.Create("ntds3/000", symbol="x30", base=base)
+     50     x31 = U4Debug.Create("ntds3/001", symbol="x31", base=base)
+     51      
+     52     if not x00 is None and not x30 is None:
+     53         assert np.all( x00.c == x30.c )
+     54         assert np.all( x00.s == x30.s )
+     55     else:
+     56         print("one of x00 or x30 is None")
+     57     pass
+     58     if not x01 is None and not x31 is None:
+     59         assert np.all( x01.c == x31.c )
+     60         assert np.all( x01.s == x31.s )
+     61     else:
+     62         print("one of x01 or x31 is None")
+     63     pass
+
+
+::
+
+    In [1]: x00,x10,x30
+    Out[1]: 
+    (           ntds0/000 c     (8, 8) s    (47, 8) h    (14, 4) g          - ,
+                ntds1/000 c     (7, 8) s    (49, 8) h     (1, 4) g     (7, 4) ,
+                ntds3/000 c     (8, 8) s    (47, 8) h    (14, 4) g     (8, 4) )
+
+    In [2]: x01,x11,x31
+    Out[2]: 
+    (           ntds0/001 c     (7, 8) s    (51, 8) h     (8, 4) g          - ,
+                ntds1/001 c     (6, 8) s    (41, 8) h     (8, 4) g     (6, 4) ,
+                ntds3/001 c     (7, 8) s    (51, 8) h     (8, 4) g     (7, 4) )
+
+
+Mode 0 and 3 scint and cerenkov steps all matching in first two events::
+
+    In [25]: np.all( x00.s == x30.s )
+    Out[25]: True
+
+    In [26]: np.all( x00.c == x30.c )
+    Out[26]: True
+
+    In [29]: np.all( x01.c == x31.c )
+    Out[29]: True
+
+    In [30]: np.all( x01.s == x31.s )
+    Out[30]: True
+
+
+
+
+BUT mode 1 looses match to mode 0 after 1st cerenkov step, 33rd scint step (that suggests Cerenkov issue with mode 1)::
+
+    In [3]: x10.c
+    Out[3]: 
+    array([[  53.764,  -89.174, -212.824,    0.815,    1.283,    0.394,   37.924,   34.   ],
+           [  53.854,  -89.508, -212.887,    0.817,    1.378,    0.31 ,   19.4  ,   21.   ],
+           [  53.991,  -89.643, -213.075,    0.818,    1.555,    0.245,    3.555,    4.   ],
+           [  42.551,  -71.68 , -206.441,    0.743,    1.222,    0.474,   58.641,   67.   ],
+           [  42.491,  -71.6  , -206.856,    0.744,    1.289,    0.386,   36.177,   32.   ],
+           [  42.27 ,  -71.474, -207.087,    0.746,    1.386,    0.305,   18.42 ,   22.   ],
+           [  42.419,  -71.383, -207.286,    0.747,    1.553,    0.241,    3.577,    2.   ]])
+
+    In [4]: x00.c
+    Out[4]: 
+    array([[  53.764,  -89.174, -212.824,    0.815,    1.283,    0.394,   37.924,   34.   ],
+           [  53.854,  -89.508, -212.887,    0.817,    1.368,    0.31 ,   20.278,   23.   ],
+           [  53.991,  -89.643, -213.075,    0.818,    1.504,    0.255,    6.834,    4.   ],
+           [  42.551,  -71.68 , -206.441,    0.743,    1.218,    0.474,   59.591,   70.   ],
+           [  42.491,  -71.6  , -206.856,    0.744,    1.27 ,    0.397,   40.393,   36.   ],
+           [  42.203,  -71.571, -207.061,    0.746,    1.346,    0.33 ,   23.966,   26.   ],
+           [  42.094,  -71.577, -207.329,    0.747,    1.479,    0.265,    9.393,    4.   ],
+           [  42.012,  -71.536, -207.533,    0.748,    1.664,    0.144,    0.564,    1.   ]])
+
+    In [6]: np.all( x10.c[:1] == x00.c[:1] )
+    Out[6]: True
+
+    In [7]: np.all( x10.c[:2] == x00.c[:2] )
+    Out[7]: False
+
+Mode 0 and 1 step match lost after 34th scint step::
+
+    In [12]: x00.s[:5]
+    Out[12]: 
+    array([[   0.   ,    0.   ,    0.   ,    0.   , 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  42.551,  -71.68 , -206.441,    0.743, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  53.764,  -89.174, -212.824,    0.815, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  66.251,  -69.446, -217.664,    0.895, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  63.812,  -79.847, -230.84 ,    0.951, 9846.   ,    0.   ,    0.   ,    0.   ]])
+
+    In [13]: x10.s[:5]
+    Out[13]: 
+    array([[   0.   ,    0.   ,    0.   ,    0.   , 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  42.551,  -71.68 , -206.441,    0.743, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  53.764,  -89.174, -212.824,    0.815, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  66.251,  -69.446, -217.664,    0.895, 9846.   ,    0.   ,    0.   ,    0.   ],
+           [  63.812,  -79.847, -230.84 ,    0.951, 9846.   ,    0.   ,    0.   ,    0.   ]])
+
+
+    In [15]: np.all( x00.s[:10]  == x10.s[:10]  )
+    Out[15]: True
+
+    In [16]: np.all( x00.s[:20]  == x10.s[:20]  )
+    Out[16]: True
+
+    In [17]: np.all( x00.s[:40]  == x10.s[:40]  )
+    Out[17]: False
+
+    In [18]: np.all( x00.s[:30]  == x10.s[:30]  )
+    Out[18]: True
+
+    In [19]: np.all( x00.s[:35]  == x10.s[:35]  )
+    Out[19]: False
+
+    In [20]: np.all( x00.s[:32]  == x10.s[:32]  )
+    Out[20]: True
+
+    In [21]: np.all( x00.s[:33]  == x10.s[:33]  )
+    Out[21]: True
+
+    In [22]: np.all( x00.s[:34]  == x10.s[:34]  )
+    Out[22]: False
+
+
+
+
+
 
 
 Switch on WITH_G4CXOPTICKS_DEBUG from opticks/cmake/Modules/FindOpticks.cmake

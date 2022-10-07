@@ -12,6 +12,19 @@ Common source for JUNO high level bash functions
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
 
 
+
+
+How to test compilation without Opticks ? 
+------------------------------------------
+
+1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
+2. close terminal session and start a new one
+3. get into env : jre  (the "o" command should not be found, showing opticks not hookedup)
+4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
+5. ntds3 should fail at DetSim0Svc::initializeOpticks 
+6. ntds0 should complete 
+
+
 Adding documentation
 -----------------------
 
@@ -58,6 +71,13 @@ Examples::
 4. now make a series of commits to the branch, prefix commit messages "WIP: #22 "  or "WIP: #23 "
    keep each commit small such that can describe the change succinctly in commit message.
 
+   * WIP will indicate the MR is still under developement. 
+   * For your final commit, you just just remove WIP.
+   * As pipeline is triggered when you sync the repository, so you can wait to push the commits until it is ready.
+   * But we could also add some special rules to disable the pipeline, you can see the example in JUNOSW:
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/blob/main/.gitlab-ci.yml#L20
+
+
 Build up the commits, each with related changes that make sense (and compile) together.::
 
     git diff ..
@@ -66,7 +86,7 @@ Build up the commits, each with related changes that make sense (and compile) to
     git add ..
     git commit -m "WIP: #22 add Utilities/EGet header for grabbing values from environment, prepare to use this from PhysiSim "
 
-Note, there is no need to push after every commit. Do that after a sequence of commits. 
+Note, there is no need to push after every commit. Do that after a sequence of commits, when ready for the pipelines to run. 
 
     git commit -m "WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042 " 
 
@@ -223,7 +243,6 @@ The changes remaining are all related to logging changes::
 
 
 
-
     N[blyth@localhost junosw]$ git push --set-upstream origin blyth-22-simplify-Cerenkov-genstep-collection
     Enumerating objects: 34, done.
     Counting objects: 100% (34/34), done.
@@ -296,12 +315,24 @@ Now following the merge of the MR, tidy up : by deleting the now merged branch.
       blyth-22-simplify-Cerenkov-genstep-collection
     * main
 
-
     N[blyth@localhost junosw]$ git branch -d blyth-22-simplify-Cerenkov-genstep-collection
     warning: deleting branch 'blyth-22-simplify-Cerenkov-genstep-collection' that has been merged to
              'refs/remotes/origin/blyth-22-simplify-Cerenkov-genstep-collection', but not yet merged to HEAD.
     Deleted branch blyth-22-simplify-Cerenkov-genstep-collection (was c46d86a).
     N[blyth@localhost junosw]$ 
+
+
+Another example::
+
+    N[blyth@localhost junosw]$ git branch 
+      blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
+    * main
+    N[blyth@localhost junosw]$ git branch -d blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
+    Deleted branch blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages (was 003c978).
+    N[blyth@localhost junosw]$ 
+
+
+
 
 
 3. pull the upstream updates
@@ -328,18 +359,6 @@ Installation instructions are still using SVN ?
 
 * https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
 * https://code.ihep.ac.cn/JUNO/offline/junoenv
-
-
-How to test compilation without Opticks ? 
-------------------------------------------
-
-1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
-2. close terminal session and start a new one
-3. get into env : jre  (the "o" command should not be found, showing opticks not hookedup)
-4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
-5. ntds3 should fail at DetSim0Svc::initializeOpticks 
-6. ntds0 
-
 
 junosw #10 : prefix commits "WIP: #10 "
 ---------------------------------------------

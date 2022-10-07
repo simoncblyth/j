@@ -448,6 +448,12 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
        echo $msg DEBUG NOT-enabled 
    fi 
 
+   if [ -n "$SAVE" ]; then 
+      export G4CXOpticks__setGeometry_saveGeometry=1
+      export G4CXOpticks=INFO   # to see the directory 
+   fi 
+
+
    local opts="" 
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
@@ -480,4 +486,7 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
 
 ninfo(){ env | grep =INFO ; }
 
-
+getgeom(){
+   BASE=/tmp/$USER/opticks/GEOM/${GEOM:-ntds3}/G4CXOpticks 
+   source $OPTICKS_HOME/bin/rsync.sh $BASE
+}

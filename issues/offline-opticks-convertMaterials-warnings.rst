@@ -2,6 +2,282 @@ offline-opticks-convertMaterials-warnings
 ============================================
 
 
+Isolate the GPropertyMap
+--------------------------
+
+Looks like almost none of them are suitable for table grouping::
+
+    CMDLINE:/Users/blyth/opticks/ggeo/tests/GPropertyMap_make_table_Test.py
+    f.base:/tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/GGeo/GScintillatorLib/LS
+
+      : f.OpticalCONSTANT                                  :               (1, 2) : 3:55:16.733011 
+      : f.PPOTIMECONSTANT                                  :               (2, 2) : 3:55:16.551690 
+      : f.bisMSBTIMECONSTANT                               :               (2, 2) : 3:55:16.544841 
+      : f.NeutronCONSTANT                                  :               (4, 2) : 3:55:16.733407 
+      : f.GammaCONSTANT                                    :               (4, 2) : 3:55:16.733748 
+      : f.AlphaCONSTANT                                    :               (4, 2) : 3:55:16.735665 
+      : f.RAYLEIGH                                         :              (11, 2) : 3:55:16.550867 
+      : f.PPOREEMISSIONPROB                                :              (15, 2) : 3:55:16.552482 
+      : f.RINDEX                                           :              (18, 2) : 3:55:16.548323 
+      : f.GROUPVEL                                         :              (18, 2) : 3:55:16.734160 
+      : f.bisMSBREEMISSIONPROB                             :              (23, 2) : 3:55:16.545193 
+      : f.REEMISSIONPROB                                   :              (28, 2) : 3:55:16.549931 
+      : f.PPOCOMPONENT                                     :             (200, 2) : 3:55:16.553065 
+
+      : f.SLOWCOMPONENT                                    :             (275, 2) : 3:55:16.546837 
+      : f.FASTCOMPONENT                                    :             (275, 2) : 3:55:16.734891 
+      : f.bisMSBCOMPONENT                                  :             (275, 2) : 3:55:16.545712 
+      ## these 3 are all the same
+
+      : f.bisMSBABSLENGTH                                  :             (375, 2) : 3:55:16.546123 
+      : f.ABSLENGTH                                        :             (497, 2) : 3:55:16.736174 
+
+      : f.RESOLUTIONSCALE                                  :             (761, 2) : 3:55:16.549046 
+      : f.SCINTILLATIONYIELD                               :             (761, 2) : 3:55:16.547890 
+      ## these 2 have same domain
+
+      : f.PPOABSLENGTH                                     :             (770, 2) : 3:55:16.553745 
+
+
+Actually 2 of the props have the same domain, and 3 are all the same::
+
+    In [3]: np.all( f.RESOLUTIONSCALE[:,0] == f.SCINTILLATIONYIELD[:,0] )
+    Out[3]: True
+
+    In [4]: np.all( f.bisMSBCOMPONENT == f.SLOWCOMPONENT )
+    Out[4]: True
+
+
+
+
+
+    In [2]: f.NeutronCONSTANT
+    Out[2]: 
+    array([[0.   , 0.064],
+           [0.   , 0.09 ],
+           [0.   , 0.232],
+           [0.   , 0.614]])
+
+    In [3]: f.NeutronCONSTANT[:,0]
+    Out[3]: array([0., 0., 0., 0.])
+
+    In [4]: f.NeutronCONSTANT[:,0]*1e9 
+    Out[4]: array([  3378.316,  16270.891,  78970.82 , 275520.417])
+
+    In [5]: f.NeutronCONSTANT[:,1]
+    Out[5]: array([0.064, 0.09 , 0.232, 0.614])
+
+    In [6]: f.NeutronCONSTANT[:,1].sum()
+    Out[6]: 1.0
+
+
+
+
+::
+
+    epsilon:tests blyth$ ./GPropertyMap_make_table_Test.sh
+    2022-10-05 14:01:06.977 INFO  [22013264] [main@18] desc_table numProperties 21 [ 
+                    ABSLENGTH    len:  497 range: 0.00296154 : 125372
+              NeutronCONSTANT    len:    4 range: 0.064 : 0.614
+                     GROUPVEL    len:   18 range: 53.4699 : 285.98
+              PPOTIMECONSTANT C  len:    2 constant: 1.6
+                       RINDEX    len:   18 range: 1.0483 : 1.793
+           bisMSBTIMECONSTANT C  len:    2 constant: 1.4
+                SLOWCOMPONENT    len:  275 range: 0 : 1
+               REEMISSIONPROB    len:   28 range: 0 : 0.8022
+              bisMSBCOMPONENT    len:  275 range: 0 : 1
+              bisMSBABSLENGTH    len:  375 range: 27.42 : 1.5e+08
+                     RAYLEIGH    len:   11 range: 546.429 : 321429
+                FASTCOMPONENT    len:  275 range: 0 : 1
+                GammaCONSTANT    len:    4 range: 0.028 : 0.707
+         bisMSBREEMISSIONPROB    len:   23 range: 0 : 0.932
+                 PPOABSLENGTH    len:  770 range: 0.02 : 1.3029e+07
+                 PPOCOMPONENT    len:  200 range: 0 : 0.0187
+              RESOLUTIONSCALE C  len:  761 constant: 1
+            PPOREEMISSIONPROB    len:   15 range: 0 : 0.93
+              OpticalCONSTANT C  len:    1 constant: 1
+                AlphaCONSTANT    len:    4 range: 0.0812 : 0.4982
+           SCINTILLATIONYIELD C  len:  761 constant: 9846
+
+    epsilon:tests blyth$ 
+
+
+
+
+Warnings are from scintillator properties
+--------------------------------------------
+
+commented make_table that is giving lots of warnings from GPropertyLib::descRaw
+and add desc_table to see why 
+
+The small length properties are a fractional "misuse" of Geant4 properties
+where the domain is not energy/wavelength. This isnt handled in the table making
+causing the mismatch domain warnings. 
+
+HOW TO FIX : recognize atypical properties and exclude them 
+instead of asserting that all domains match and emitting all the warnings. 
+
+
+::
+
+    2022-10-05 12:48:18.890 INFO  [21895712] [GPropertyLib::dumpRaw@976] X4PhysicalVolume::collectScintillatorMaterials
+    [ nraw 1 component LS
+     pmap.desc_table 
+    desc_table numProperties 21 [ 
+                       RINDEX    len:   18 range: 1.0483 : 1.793
+                     GROUPVEL    len:   18 range: 53.4699 : 285.98
+                     RAYLEIGH    len:   11 range: 546.429 : 321429
+                    ABSLENGTH    len:  497 range: 0.00296154 : 125372
+                FASTCOMPONENT    len:  275 range: 0 : 1
+                SLOWCOMPONENT    len:  275 range: 0 : 1
+               REEMISSIONPROB    len:   28 range: 0 : 0.8022
+              OpticalCONSTANT C  len:    1 constant: 1
+                GammaCONSTANT    len:    4 range: 0.028 : 0.707
+                AlphaCONSTANT    len:    4 range: 0.0812 : 0.4982
+              NeutronCONSTANT    len:    4 range: 0.064 : 0.614
+                 PPOABSLENGTH    len:  520 range: 0.11 : 1.3029e+07
+            PPOREEMISSIONPROB    len:   15 range: 0 : 0.93
+                 PPOCOMPONENT    len:  200 range: 0 : 0.0187
+              PPOTIMECONSTANT C  len:    2 constant: 1.6
+              bisMSBABSLENGTH    len:  375 range: 27.42 : 1.5e+08
+         bisMSBREEMISSIONPROB    len:   23 range: 0 : 0.932
+              bisMSBCOMPONENT    len:  275 range: 0 : 1
+           bisMSBTIMECONSTANT C  len:    2 constant: 1.4
+           SCINTILLATIONYIELD C  len:    2 constant: 9846
+              RESOLUTIONSCALE C  len:    2 constant: 1
+
+    ] nraw 1
+
+
+
+
+
+
+arrange for local conversion to investigate warnings
+-------------------------------------------------------
+
+* g4cx/tests/G4CXOpticks_setGeometry_Test.sh 
+
+GProperty_SIGINT::
+
+
+    (lldb) f 8
+    frame #8: 0x0000000100466451 libExtG4.dylib`X4PhysicalVolume::convertScintillators(this=0x00007ffeefbfccc8) at X4PhysicalVolume.cc:439
+       436 	void X4PhysicalVolume::convertScintillators()
+       437 	{
+       438 	    LOG(LEVEL) << "[" ; 
+    -> 439 	    collectScintillatorMaterials(); 
+       440 	    createScintillatorGeant4InterpolatedICDF(); 
+       441 	    LOG(LEVEL) << "]" ; 
+       442 	}
+    (lldb) f 7
+    frame #7: 0x0000000100468e2c libExtG4.dylib`X4PhysicalVolume::collectScintillatorMaterials(this=0x00007ffeefbfccc8) at X4PhysicalVolume.cc:391
+       388 	        m_sclib->addRawOriginal(pmap);      
+       389 	    }
+       390 	
+    -> 391 	    m_sclib->dump("X4PhysicalVolume::collectScintillatorMaterials"); 
+       392 	    LOG(LEVEL) << "]" ; 
+       393 	}
+       394 	
+    (lldb) f 6
+    frame #6: 0x000000010679bbcf libGGeo.dylib`GScintillatorLib::dump(this=0x0000000111a4a6e0, msg="X4PhysicalVolume::collectScintillatorMaterials") at GScintillatorLib.cc:61
+       58  	void GScintillatorLib::dump(const char* msg)
+       59  	{
+       60  	    Summary(msg); 
+    -> 61  	    dumpRaw(msg); 
+       62  	}
+       63  	
+       64  	void GScintillatorLib::save()
+    (lldb) f 5
+    frame #5: 0x0000000106762714 libGGeo.dylib`GPropertyLib::dumpRaw(this=0x0000000111a4a6e0, msg="X4PhysicalVolume::collectScintillatorMaterials") const at GPropertyLib.cc:964
+       961 	    {
+       962 	        GPropertyMap<double>* pmap = m_raw[i] ;
+       963 	        LOG(info) << " component " << pmap->getName() ;
+    -> 964 	        LOG(info) << " table " << pmap->make_table() ;
+       965 	    }
+       966 	    LOG(info) << "] nraw " << nraw << " " << msg ; 
+       967 	}
+    (lldb) 
+
+    (lldb) f 4
+    frame #4: 0x00000001067439d7 libGGeo.dylib`GPropertyMap<double>::make_table(this=0x0000000111a53ae0, fw=20, dscale=1, dreciprocal=false) at GPropertyMap.cc:1007
+       1004	
+       1005	   unsigned int cfw = 10 + fw ; 
+       1006	
+    -> 1007	   if(vprops.size() > 0) ss << GProperty<T>::make_table( fw, dscale, dreciprocal, false,vprops, vtitles ) ;
+       1008	   if(cprops.size() > 0) ss << GProperty<T>::make_table( cfw, dscale, dreciprocal, true ,cprops, ctitles )  ;
+       1009	   if(dprops.size() > 0) ss << GProperty<T>::make_table( cfw, dscale, dreciprocal, true ,dprops, dtitles )  ;
+       1010	   if(eprops.size() > 0) ss << GProperty<T>::make_table( cfw, dscale, dreciprocal, true ,eprops, etitles )  ;
+    (lldb) p vprops
+    (std::__1::vector<GProperty<double> *, std::__1::allocator<GProperty<double> *> >) $0 = size=16 {
+      [0] = 0x0000000111a53de0
+      [1] = 0x0000000111a53dc0
+      [2] = 0x0000000111a54810
+      [3] = 0x0000000111a54b10
+      [4] = 0x0000000111a54bb0
+      [5] = 0x0000000111a548b0
+      [6] = 0x0000000111a54f10
+      [7] = 0x0000000111a55560
+      [8] = 0x0000000111a54fa0
+      [9] = 0x0000000111a55720
+      [10] = 0x0000000111a55950
+      [11] = 0x0000000111a55da0
+      [12] = 0x0000000111a55b90
+      [13] = 0x0000000111a55f60
+      [14] = 0x0000000111a56660
+      [15] = 0x0000000111a55480
+    }
+    (lldb) 
+
+    (lldb) f 3
+    frame #3: 0x00000001067080f1 libGGeo.dylib`GProperty<double>::make_table(fw=20, dscale=1, dreciprocal=false, constant=false, columns=size=16, titles=size=16) at GProperty.cc:507
+       504 	                            << " " << b->brief(titles[c].c_str())
+       505 	                            ; 
+       506 	
+    -> 507 	                 if(SSys::getenvvar("GProperty_SIGINT")) std::raise(SIGINT); 
+       508 	
+       509 	                 hasSameDomain(a,b, delta, true); // dump
+       510 	            }
+    (lldb) 
+
+
+Grab GDML
+--------------
+
+::
+
+    240 const bool G4CXOpticks::setGeometry_saveGeometry = SSys::getenvbool("G4CXOpticks__setGeometry_saveGeometry") ;    
+
+
+::
+
+    2022-10-05 18:21:47.757 INFO  [68203] [G4CXOpticks::setGeometry@260] ] CSGOptiX::Create 
+    2022-10-05 18:21:47.757 INFO  [68203] [G4CXOpticks::setGeometry@262]  cx 0x165f39b40 qs 0x165e9fbe0 QSim::Get 0x165e9fbe0
+    2022-10-05 18:21:47.757 INFO  [68203] [G4CXOpticks::setGeometry@267] [ G4CXOpticks__setGeometry_saveGeometry 
+    2022-10-05 18:21:47.757 INFO  [68203] [G4CXOpticks::saveGeometry@427] dir [$DefaultOutputDir
+    SOpticksResource::ExecutableName exe0 python3.8 is_python 1 script ntds3 exe ntds3 result ntds32022-10-05 18:21:47.758 INFO  [68203] [G4CXOpticks::saveGeometry_@438] [ /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks
+    2022-10-05 18:21:52.330 INFO  [68203] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/GGeo/GItemList
+    2022-10-05 18:21:52.423 INFO  [68203] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/GGeo/GNodeLib
+    2022-10-05 18:21:52.683 INFO  [68203] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/GGeo/GScintillatorLib/LS
+    2022-10-05 18:21:52.685 INFO  [68203] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/GGeo/GScintillatorLib/LS_ori
+    2022-10-05 18:21:54.801 INFO  [68203] [U4GDML::write@148]  ekey U4GDML_GDXML_FIX_DISABLE U4GDML_GDXML_FIX_DISABLE 0 U4GDML_GDXML_FIX 1
+    G4GDML: Writing '/tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/origin_raw.gdml'...
+    G4GDML: Writing definitions...
+    G4GDML: Writing materials...
+    G4GDML: Writing solids...
+    G4GDML: Writing structure...
+    G4GDML: Writing setup...
+    G4GDML: Writing surfaces...
+    G4GDML: Writing '/tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/origin_raw.gdml' done !
+    2022-10-05 18:21:58.041 INFO  [68203] [U4GDML::write@159]  Apply GDXML::Fix  rawpath /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/origin_raw.gdml dstpath /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks/origin.gdml
+    2022-10-05 18:21:58.041 INFO  [68203] [G4CXOpticks::saveGeometry_@444] ] /tmp/blyth/opticks/GEOM/ntds3/G4CXOpticks
+    2022-10-05 18:21:58.041 INFO  [68203] [G4CXOpticks::setGeometry@269] ] G4CXOpticks__setGeometry_saveGeometry 
+    2022-10-05 18:21:58.041 INFO  [68203] [G4CXOpticks::setGeometry@272] ] fd 0x162eb89b0
+    2022-10-05 18:21:58.041 INFO  [68203] [LSExpDetectorConstruction_Opticks::Setup@31] ] WITH_G4CXOPTICKS 
+
+
+
+
 local checking of new geometry conversion
 --------------------------------------------
 
