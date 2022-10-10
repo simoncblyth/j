@@ -4,6 +4,67 @@ jdiff_jPMTSIM_changes
 TODO : review j/PMTSim changes and get some of them into JUNOSW branches
 --------------------------------------------------------------------------
 
+HMM: j/PMTSim having a separate sources that are manually synced like
+are doing below is not a longterm solution..
+
+Want to be able to do the Opticks PMTSim build based off the 
+junosw sources. So move the local copies aside::
+
+    epsilon:PMTSim blyth$ mkdir aside
+    epsilon:PMTSim blyth$ mv HamamatsuMaskManager.hh aside/
+    epsilon:PMTSim blyth$ mv HamamatsuMaskManager.cc aside/
+
+And try j/PMTSim CMake building with some JUNOTOP sources::
+
+     17 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
+     18 
+     19 set(SOURCES)
+     20 set(HEADERS)
+     21 
+     22 list(APPEND SOURCES
+     23      
+     24      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+     25      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
+     26      
+     27      # TRYING to move to having common sources for junosw/PMTSim and j/PMTSim : just different options
+     28      #HamamatsuMaskManager.cc
+     29      #NNVTMaskManager.cc
+     30      
+     31      NNVTMCPPMTManager.cc
+     32      HamamatsuR12860PMTManager.cc
+     33      Hamamatsu_R12860_PMTSolid.cc
+     34      NNVT_MCPPMT_PMTSolid.cc
+     35      
+     36      LowerChimney.cc
+     37      LowerChimneyMaker.cc
+     38      
+     39      
+     40      PMTSim.cc
+     41      P4Volume.cc
+     42      ZSolid.cc
+     43      MaterialSvc.cc
+     44      DetectorConstruction.cc
+     45 )    
+
+
+
+
+
+
+::
+
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh 
+
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    epsilon:junosw blyth$ scp P:junotop/junosw/Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh Simulation/DetSimV2/PMTSim/include/
+
+
+
+
 
 * blyth-10-standalone-mask-geometry-debug-interface
 

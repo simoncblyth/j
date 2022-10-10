@@ -202,6 +202,60 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     N[blyth@localhost junosw]$ 
 
 
+
+
+
+Same problem again::
+
+    N[blyth@localhost PMTSim]$ git push 
+    fatal: The current branch blyth-10-standalone-mask-geometry-debug-interface has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-10-standalone-mask-geometry-debug-interface
+
+    N[blyth@localhost PMTSim]$ git push --set-upstream origin blyth-10-standalone-mask-geometry-debug-interface
+    To code.ihep.ac.cn:JUNO/offline/junosw
+     ! [rejected]        blyth-10-standalone-mask-geometry-debug-interface -> blyth-10-standalone-mask-geometry-debug-interface (fetch first)
+    error: failed to push some refs to 'code.ihep.ac.cn:JUNO/offline/junosw'
+    hint: Updates were rejected because the remote contains work that you do
+    hint: not have locally. This is usually caused by another repository pushing
+    hint: to the same ref. You may want to first integrate the remote changes
+    hint: (e.g., 'git pull ...') before pushing again.
+    hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$ git pull 
+    remote: Enumerating objects: 101, done.
+    remote: Counting objects: 100% (28/28), done.
+    remote: Total 101 (delta 28), reused 28 (delta 28), pack-reused 73
+    Receiving objects: 100% (101/101), 27.50 KiB | 5.50 MiB/s, done.
+    Resolving deltas: 100% (55/55), completed with 17 local objects.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * [new branch]      IOConsiderSplit                                   -> origin/IOConsiderSplit
+     * [new branch]      blyth-10-standalone-mask-geometry-debug-interface -> origin/blyth-10-standalone-mask-geometry-debug-interface
+     * [new branch]      luoxj-UpdatePSDToolsTraining-branch               -> origin/luoxj-UpdatePSDToolsTraining-branch
+       537668f..1b26cb0  main                                              -> origin/main
+    There is no tracking information for the current branch.
+    Please specify which branch you want to rebase against.
+    See git-pull(1) for details.
+
+        git pull <remote> <branch>
+
+    If you wish to set tracking information for this branch you can do so with:
+
+        git branch --set-upstream-to=origin/<branch> blyth-10-standalone-mask-geometry-debug-interface
+
+    N[blyth@localhost PMTSim]$ 
+
+    N[blyth@localhost PMTSim]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    fatal: Not possible to fast-forward, aborting.
+    N[blyth@localhost PMTSim]$ 
+
+
+
+
+
 The changes remaining are all related to logging changes::
 
     N[blyth@localhost junosw]$ jo
@@ -267,6 +321,46 @@ The changes remaining are all related to logging changes::
     N[blyth@localhost junosw]$ 
     N[blyth@localhost junosw]$ 
 
+    N[blyth@localhost PMTSim]$ git config pull.rebase true
+    N[blyth@localhost PMTSim]$ git pull origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    fatal: Not possible to fast-forward, aborting.
+    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$ git pull --rebase origin main
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * branch            main       -> FETCH_HEAD
+    Successfully rebased and updated refs/heads/blyth-10-standalone-mask-geometry-debug-interface.
+    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$ git push 
+    fatal: The current branch blyth-10-standalone-mask-geometry-debug-interface has no upstream branch.
+    To push the current branch and set the remote as upstream, use
+
+        git push --set-upstream origin blyth-10-standalone-mask-geometry-debug-interface
+
+    N[blyth@localhost PMTSim]$ git push --set-upstream origin blyth-10-standalone-mask-geometry-debug-interface
+    Enumerating objects: 54, done.
+    Counting objects: 100% (54/54), done.
+    Delta compression using up to 48 threads
+    Compressing objects: 100% (40/40), done.
+    Writing objects: 100% (40/40), 13.06 KiB | 1.00 MiB/s, done.
+    Total 40 (delta 33), reused 0 (delta 0), pack-reused 0
+    remote: 
+    remote: To create a merge request for blyth-10-standalone-mask-geometry-debug-interface, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-10-standalone-mask-geometry-debug-interface
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw
+       1b26cb0..32b2d18  blyth-10-standalone-mask-geometry-debug-interface -> blyth-10-standalone-mask-geometry-debug-interface
+    Branch 'blyth-10-standalone-mask-geometry-debug-interface' set up to track remote branch 'blyth-10-standalone-mask-geometry-debug-interface' from 'origin'.
+    N[blyth@localhost PMTSim]$ 
+
+
+
+
+
+
+
 
 
     N[blyth@localhost junosw]$ git push --set-upstream origin blyth-22-simplify-Cerenkov-genstep-collection
@@ -284,6 +378,18 @@ The changes remaining are all related to logging changes::
        91d0968..c46d86a  blyth-22-simplify-Cerenkov-genstep-collection -> blyth-22-simplify-Cerenkov-genstep-collection
     Branch 'blyth-22-simplify-Cerenkov-genstep-collection' set up to track remote branch 'blyth-22-simplify-Cerenkov-genstep-collection' from 'origin'.
     N[blyth@localhost junosw]$ 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     N[blyth@localhost junosw]$ git stash show

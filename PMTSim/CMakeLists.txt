@@ -14,40 +14,45 @@ find_package(G4    REQUIRED MODULE)
 find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
 
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
+
 set(SOURCES)
 set(HEADERS)
 
 list(APPEND SOURCES
-     PMTSim.cc
-     P4Volume.cc
 
-     Hamamatsu_R12860_PMTSolid.cc
-     HamamatsuR12860PMTManager.cc 
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/NNVT_MCPPMT_PMTSolid.cc
 
-     NNVT_MCPPMT_PMTSolid.cc
-     NNVTMCPPMTManager.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc 
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
 
-     ZSolid.cc
-     MaterialSvc.cc
-     DetectorConstruction.cc
+     # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
 
      LowerChimney.cc
      LowerChimneyMaker.cc
+     ZSolid.cc
+     MaterialSvc.cc
 
-     HamamatsuMaskManager.cc
-     NNVTMaskManager.cc
+     PMTSim.cc
+     P4Volume.cc
+     DetectorConstruction.cc
 )
 
+
 list(APPEND HEADERS
+     PMTSIM_API_EXPORT.hh
+
      PMTSim.hh
      P4Volume.hh
-     PMTSIM_API_EXPORT.hh
+     DetectorConstruction.hh
 
      SCanvas.hh
      ZSolid.h
 
      MaterialSvc.hh
-     DetectorConstruction.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
