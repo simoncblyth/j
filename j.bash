@@ -12,8 +12,6 @@ Common source for JUNO high level bash functions
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
 
 
-
-
 How to test compilation without Opticks ? 
 ------------------------------------------
 
@@ -52,6 +50,9 @@ having to deal with merge issues.
 JUNOSW Workflow for getting local changes into main 
 -----------------------------------------------------
 
+Web interface setup
+~~~~~~~~~~~~~~~~~~~~~~~
+
 If have lots of changes, decide how to group them into issues/branches. 
 
 
@@ -65,22 +66,32 @@ If have lots of changes, decide how to group them into issues/branches.
    * blyth-22-simplify-Cerenkov-genstep-collection
    * https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-22-simplify-Cerenkov-genstep-collection
 
+   * blyth-10-standalone-mask-geometry-debug-interface
+
    * note, do not create the merge request yet : will do that after making some commits onto the branch 
 
-3. now I already have some working copy changes (against main branch) 
-   that I want to be the the branch I just created for this issue
 
-   * leave working copy changes asis, and checkout the branch:
+Working copy setup
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Even if I already have some working copy changes (against main branch) 
+can still switch to the branch just created via web interface.
+
+* this leave working copy changes asis (but if there are lots of them could use stash for safety)
 
 Examples::
 
    * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
    * git checkout -b blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
    * git checkout -b blyth-24-DsG4Scintillation-debug-machinery
+   * git checkout -b blyth-10-standalone-mask-geometry-debug-interface
     
     N[blyth@localhost junosw]$ git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
     Switched to a new branch 'blyth-22-simplify-Cerenkov-genstep-collection'
-    N[blyth@localhost junosw]$ 
+
+    N[blyth@localhost junosw]$ git checkout -b blyth-10-standalone-mask-geometry-debug-interface
+    Switched to a new branch 'blyth-10-standalone-mask-geometry-debug-interface'
+
 
 
 4. now make a series of commits to the branch, prefix commit messages "WIP: #22 "  or "WIP: #23 "
@@ -318,9 +329,11 @@ The changes remaining are all related to logging changes::
     N[blyth@localhost junosw]$ 
 
 
+
+Following a merge tidy up the obsolete branch
+-------------------------------------------------
+
 Now following the merge of the MR, tidy up : by deleting the now merged branch.
-
-
 
 1. hop to main: git checkout main   (working copy changes are safe)
 
@@ -2239,7 +2252,7 @@ jcopyback(){
 
    local iwd=$PWD
    local src=$iwd
-   local dst=$JUNOTOP/offline
+   local dst=$JUNOTOP/junosw
    cd $dst
 
    local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments 
