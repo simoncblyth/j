@@ -33,6 +33,22 @@ Adding documentation
 * https://juno.ihep.ac.cn/~offline/Doc/user-guide/appendix/oum.html
 
 
+Thoughts on optimizing workflow
+----------------------------------
+
+Having branches live for the shortest possible time avoids 
+having to deal with merge issues. 
+
+* So build up changes in working copy, and only when a change is 
+  ready to go, create the branch and do the commits and make 
+  the merge request all within a short time. 
+
+* Also working at a time when other people are not helps with this. 
+  17:00 BST is 00:00 CST : so aim to do such uploading admin 
+  in the evening to have a quiet repo
+
+
+
 JUNOSW Workflow for getting local changes into main 
 -----------------------------------------------------
 
@@ -60,9 +76,8 @@ Examples::
 
    * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
    * git checkout -b blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
+   * git checkout -b blyth-24-DsG4Scintillation-debug-machinery
     
-::
-
     N[blyth@localhost junosw]$ git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
     Switched to a new branch 'blyth-22-simplify-Cerenkov-genstep-collection'
     N[blyth@localhost junosw]$ 
@@ -2260,10 +2275,10 @@ jdiff(){
 
    local iwd=$PWD
    local dst=$iwd
-   local src=$JUNOTOP/offline
+   local src=$JUNOTOP/junosw
    cd $src
    local rels=$(jcl $*)
-   : rels are JUNOTOP/offline relative paths 
+   : rels are JUNOTOP/junosw relative paths 
 
    local rel 
    local name 

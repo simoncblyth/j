@@ -428,6 +428,7 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    export U4Debug_SaveDir=$tmpdir
    echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT U4Debug_SaveDir ${U4Debug_SaveDir}
 
+
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
        export U4Scintillation_Debug=INFO
@@ -445,6 +446,17 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
 
        echo $msg DEBUG enabled tmpdir $tmpdir
    else
+       unset U4Scintillation_Debug
+       unset U4Cerenkov_Debug
+       unset U4Hit_Debug
+       unset U4Debug
+
+       unset SOpticksResource
+       unset junoSD_PMT_v2_Opticks
+       unset DsG4Scintillation
+       unset G4Cerenkov_modified
+
+       unset SLOG
        echo $msg DEBUG NOT-enabled 
    fi 
 
