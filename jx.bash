@@ -500,7 +500,10 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
 
 ninfo(){ env | grep =INFO ; }
 
-getgeom(){
-   BASE=/tmp/$USER/opticks/GEOM/${GEOM:-J004}
-   source $OPTICKS_HOME/bin/rsync.sh $BASE
-}
+getgeomtmp(){ source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/${GEOM:-J004} ; : j/jx.bash ;  }
+
+getgeom(){    source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-J004} ; : j/jx.bash ; }  
+
+
+
+

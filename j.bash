@@ -3249,11 +3249,11 @@ okt(){
    mkdir -p $dir
    cd $dir
 
-   gdb_ $args 
+   gdb__ $args 
 }
 
-gdb_(){
-   : prepares and invokes gdb - sets up breakpoints based on BP envvar containing space delimited symbols 
+gdb__(){
+   : j/j.bash prepares and invokes gdb - sets up breakpoints based on BP envvar containing space delimited symbols 
    if [ -z "$BP" ]; then
       H="" 
       B="" 
