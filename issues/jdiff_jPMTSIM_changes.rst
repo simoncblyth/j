@@ -1,7 +1,7 @@
 jdiff_jPMTSIM_changes
 =========================
 
-TODO : review j/PMTSim changes and get some of them into JUNOSW branches
+DONE : review j/PMTSim changes and get some of them into JUNOSW branches
 --------------------------------------------------------------------------
 
 HMM: j/PMTSim having a separate sources that are manually synced like

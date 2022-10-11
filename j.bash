@@ -74,10 +74,14 @@ If have lots of changes, decide how to group them into issues/branches.
 Working copy setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* FIRST UPDATE main :  with "git pull" : suspect that the need to rebase might be due to forgetting to do this 
+
 Even if I already have some working copy changes (against main branch) 
 can still switch to the branch just created via web interface.
 
 * this leave working copy changes asis (but if there are lots of them could use stash for safety)
+
+
 
 Examples::
 
@@ -202,10 +206,7 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     N[blyth@localhost junosw]$ 
 
 
-
-
-
-Same problem again::
+Same problem again, push is rejected due to another repo having pushed::
 
     N[blyth@localhost PMTSim]$ git push 
     fatal: The current branch blyth-10-standalone-mask-geometry-debug-interface has no upstream branch.
@@ -222,7 +223,7 @@ Same problem again::
     hint: to the same ref. You may want to first integrate the remote changes
     hint: (e.g., 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-    N[blyth@localhost PMTSim]$ 
+
     N[blyth@localhost PMTSim]$ git pull 
     remote: Enumerating objects: 101, done.
     remote: Counting objects: 100% (28/28), done.
@@ -465,6 +466,63 @@ Another example::
     Deleted branch blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages (was 003c978).
     N[blyth@localhost junosw]$ 
 
+
+Another::
+
+    N[blyth@localhost junosw]$ git checkout main 
+    Switched to branch 'main'
+    Your branch is behind 'origin/main' by 15 commits, and can be fast-forwarded.
+      (use "git pull" to update your local branch)
+    N[blyth@localhost junosw]$ git pull 
+    remote: Enumerating objects: 18, done.
+    remote: Counting objects: 100% (18/18), done.
+    remote: Compressing objects: 100% (9/9), done.
+    remote: Total 18 (delta 9), reused 15 (delta 9), pack-reused 0
+    Unpacking objects: 100% (18/18), 3.54 KiB | 191.00 KiB/s, done.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+       1b26cb0..5bbe1b4  main       -> origin/main
+    Updating 537668f..5bbe1b4
+    Fast-forward
+     .gitlab-ci.yml                                                 |  21 ++++-
+     Examples/Tutorial/tests/test_detsim.py                         |  80 ++++++++++++-------
+     Examples/Tutorial/tests/test_sim2rec.py                        |   2 +-
+     RootIO/RootIOSvc/RootIOSvc/RootOutputSvc.h                     |   2 +
+     RootIO/RootIOSvc/src/RootOutputSvc.cc                          |   5 ++
+     RootIO/RootIOTools/CMakeLists.txt                              |   1 +
+     RootIO/RootIOTools/share/merge.py                              |  37 +++++----
+     RootIO/RootIOTools/share/merge_old.py                          |  38 +++++++++
+     RootIO/RootIOTools/src/HaddAlg.cc                              |  73 +++++++++++++++++
+     RootIO/RootIOTools/src/HaddAlg.h                               |  24 ++++++
+     Simulation/DetSimV2/MCParamsSvc/python/MCParamsSvc/__init__.py |   7 ++
+     Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh     |  43 +++++++++-
+     Simulation/DetSimV2/PMTSim/include/NNVTMaskManager.hh          |  52 +++++++++++-
+     Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh     |   5 ++
+     Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc         | 436 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------
+     Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc    |  74 +++++++++--------
+     Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc            |  51 +++++++-----
+     Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc              | 398 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------
+     Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc                |  14 +---
+     Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc          |  52 ++++++++----
+     Simulation/ElecSimV3/ElecSimAlg/src/ElecSimSvc.cc              |  35 +++++++--
+     21 files changed, 1263 insertions(+), 187 deletions(-)
+     create mode 100644 RootIO/RootIOTools/share/merge_old.py
+     create mode 100644 RootIO/RootIOTools/src/HaddAlg.cc
+     create mode 100644 RootIO/RootIOTools/src/HaddAlg.h
+     create mode 100644 Simulation/DetSimV2/MCParamsSvc/python/MCParamsSvc/__init__.py
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git branch 
+      blyth-10-standalone-mask-geometry-debug-interface
+    * main
+
+    N[blyth@localhost junosw]$ git branch -d blyth-10-standalone-mask-geometry-debug-interface
+    Deleted branch blyth-10-standalone-mask-geometry-debug-interface (was 32b2d18).
+
+    N[blyth@localhost junosw]$ git s
+    On branch main
+    Your branch is up to date with 'origin/main'.
+
+    nothing to commit, working tree clean
+    N[blyth@localhost junosw]$ 
 
 
 

@@ -3,6 +3,17 @@ set(name PMTSim)
 project(${name} VERSION 0.1.0)
 include(OpticksBuildOptions)
 
+#[=[
+To avoid duplication of sources many of the
+geometry providing .cc and .hh are "stolen" from junosw repo, 
+so remember to pull from there to update::
+
+    $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include
+    $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src
+
+#]=]
+
+
 if(PMTSim_VERBOSE)
 message(STATUS "j/PMTSim/CMakeLists.txt find_packge... " )
 endif()

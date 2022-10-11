@@ -1,7 +1,7 @@
 U4Scintillation_Debug_lack_of_photons
 ========================================
 
-
+FIXED : Was typo in BirksConstant1
 
 ::
 

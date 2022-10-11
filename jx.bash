@@ -460,9 +460,11 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
        echo $msg DEBUG NOT-enabled 
    fi 
 
-   if [ -n "$SAVE" ]; then 
-      export G4CXOpticks__setGeometry_saveGeometry=1
-      export G4CXOpticks=INFO   # to see the directory 
+   if [ -n "$GEOM" ]; then 
+       export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
+       export G4CXOpticks=INFO   # to see the directory 
+   else
+       echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
 
@@ -499,6 +501,6 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
 ninfo(){ env | grep =INFO ; }
 
 getgeom(){
-   BASE=/tmp/$USER/opticks/GEOM/${GEOM:-ntds3}/G4CXOpticks 
+   BASE=/tmp/$USER/opticks/GEOM/${GEOM:-J004}
    source $OPTICKS_HOME/bin/rsync.sh $BASE
 }
