@@ -96,6 +96,11 @@ Examples::
     N[blyth@localhost junosw]$ git checkout -b blyth-10-standalone-mask-geometry-debug-interface
     Switched to a new branch 'blyth-10-standalone-mask-geometry-debug-interface'
 
+    epsilon:junosw blyth$ git checkout -b blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    M	Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
+    Switched to a new branch 'blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual'
+
+
 
 
 4. now make a series of commits to the branch, prefix commit messages "WIP: #22 "  or "WIP: #23 "
@@ -140,6 +145,27 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     hint: (e.g., 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
     N[blyth@localhost junosw]$ 
+
+
+    epsilon:junosw blyth$ git push --set-upstream origin blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    Counting objects: 7, done.
+    Delta compression using up to 8 threads.
+    Compressing objects: 100% (7/7), done.
+    Writing objects: 100% (7/7), 936 bytes | 936.00 KiB/s, done.
+    Total 7 (delta 6), reused 0 (delta 0)
+    remote: 
+    remote: To create a merge request for blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw.git
+       dad6f3d..bd1e2ad  blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual -> blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    Branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual set up to track remote branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual from origin.
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ 
+
+
+
+
 
 
     N[blyth@localhost junosw]$ git pull 

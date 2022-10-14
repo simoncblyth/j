@@ -24,6 +24,240 @@ The changes are
 
 
 
+HAMA Fix #33
+--------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/33
+
+* NNVT : BodySolid and MaskTail : ellipsoids look to share centers with just scale difference. 
+* HAMA : BodySolid and MaskTail : ellipsoids appear offset causing crossover 
+
+Find how NNVT ellipsoids get tied together. 
+
+* suspect just by using same params, not by using a common source 
+
+
+
+Manual "fitting" ellipses to the NNVT PMT works easily without any offsets::
+
+    ELLIPSE0=249,179 ./mct.sh ## NNVT pmt_in
+    ELLIPSE0=254,184 ./mct.sh ## NNVT pmt_out  +5
+    ELLIPSE0=256,186 ./mct.sh ## NNVT mask_in  +5+2
+    ELLIPSE0=264,194 ./mct.sh ## NNVT mask_out +5+2+8
+
+HAMA PMT top hemi also works easily::
+
+    ELLIPSE0=249,185      ELLIPSE0_OPT=top ./mct.sh  ##        HAMA pmt_in   
+    ELLIPSE0=254,190      ELLIPSE0_OPT=top ./mct.sh  ## +5     HAMA pmt_out 
+    ELLIPSE0=256,192      ELLIPSE0_OPT=top ./mct.sh  ## +5+2   HAMA mask_in  
+    ELLIPSE0=264,200      ELLIPSE0_OPT=top ./mct.sh  ## +5+2+8 HAMA mask_out
+
+HAMA PMT bottom hemi, not so easy, needs -5 offset for PMT but not for mask::
+
+    ELLIPSE0=249,185,0,-5 ELLIPSE0_OPT=bot ./mct.sh  ## HAMA pmt_in 
+    ELLIPSE0=254,190,0,-5 ELLIPSE0_OPT=bot ./mct.sh  ## HAMA pmt_out 
+    ELLIPSE0=256,192      ELLIPSE0_OPT=bot ./mct.sh  ## HAMA mask_in 
+    ELLIPSE0=264,200      ELLIPSE0_OPT=bot ./mct.sh  ## HAMA mask_out 
+
+The need for offset ellipse for PMT but not for mask explains the problem. 
+
+
+To match the HAMA PMT shape the mask will need the 
+thin equatorial cylinder ? To offset shift the ellipsoid downwards ?
+
+HMM : But 
+
+::
+
+    146 G4VSolid* Hamamatsu_R12860_PMTSolid::GetSolid(G4String solidname, double thickness, char mode)
+    147 {
+    148     G4VSolid* pmt_solid = NULL;
+    149 
+    150     double P_I_R = m1_r + thickness;
+    151     double P_I_H = m1_h + thickness;
+    152 
+    153     G4VSolid* solid_I = new G4Ellipsoid(
+    154                     solidname+"_I",
+    155                     P_I_R,
+    156                     P_I_R,
+    157                     P_I_H,
+    158                     0, // pzBottomCut -> equator
+    159                     P_I_H // pzTopCut -> top
+    160                     );
+    161 
+    162     G4VSolid* solid_II = new G4Tubs(
+    163                     solidname+"_II",
+    164                     0.0,
+    165                     P_I_R,
+    166                     m2_h/2,
+    167                     0.*deg,
+    168                     360.*deg
+    169                     );
+    170     G4cout << __FILE__ << ":" <<  __LINE__ << G4endl;
+    171     // I+II
+    172 
+    173     if( mode == ' ' || mode == 'H' )   // head mode 'H' doesnt care, as solid_I is returned  
+    174     {
+    175         pmt_solid = new G4UnionSolid(
+    176                  solidname+"_1_2",
+    177                  solid_I,     // upper hemi-ellipsoid
+    178                  solid_II,    // thin equatorial cylinder, pushed down in z, top at z=0
+    179                  0,
+    180                  G4ThreeVector(0,0,-m2_h/2)
+    181                  );
+    182     }
+    ...
+    207 
+    208     G4VSolid* solid_III = new G4Ellipsoid(
+    209                       solidname+"_III",
+    210                       P_I_R,
+    211                       P_I_R,
+    212                       P_I_H,
+    213                       -P_I_H,
+    214                       0);
+    215 
+    216     // +III
+    217     pmt_solid = new G4UnionSolid(
+    218                  solidname+"_1_3",
+    219                  pmt_solid,
+    220                  solid_III,
+    221                  0,
+    222                  G4ThreeVector(0,0,-m2_h)
+    223                  );
+    224 
+
+
+HMM: there is no need for the waist tubs just need to arrange to push the ellipsoids down by 5mm  
+
+* suppose could do that by using G4Polycone for
+
+
+The structure of mask inner and outer is::
+
+
+     Tail_outer_I   : Union ( Tail_outer_I_Ellipsoid ,  Tail_outer_I_Tube )
+
+     Tail_outer_II_Tube 
+
+     Tail_outer     : Union( Tail_outer_I , Tail_outer_II_Tube ) 
+
+
+     Tail_outer  :    Union( Union( Tail_outer_I_Ellipsoid ,  Tail_outer_I_Tube ),  Tail_outer_II_Tube ) 
+
+
+
+
+                                                Tail_outer
+                                              /             \
+
+                             Tail_outer_I                  Tail_outer_II_Tube
+
+                            /             \
+                             
+          Tail_outer_I_Ellipsoid        Tail_outer_I_Tube         
+
+
+
+
+Union of two tubs and an ellipsoid : with offsets for every RHS (so ellipsoid doesnt get a transform)
+
+* BUT the ellipsoid needs dz -5 mm  
+* could flip the ellipsoid tubs union using polycone for the tubs to place it 
+  and then can shift the ellipsoid
+
+
+
+* TODO: PMTSIM_STANDALONE addValue in NNVTMCPPMTManager, HamamatsuR12860PMTManager
+
+
+jcv NNVTMaskManager NNVTMCPPMTManager::
+
+    207 void NNVTMCPPMTManager::init_variables()
+    208 {
+    209     m_pmt_r = 254.*mm;
+    210     m_pmt_h = 570.*mm;
+    211     m_z_equator = 184.*mm; // From top to equator
+    212 
+    213     // Reduce the height of PMT
+    214     // Tao Lin, 09 Aug 2021
+    215     if (m_useRealSurface) {
+    216         const double radInnerWaterRealSurface = 19.629*m;
+    217         const double r = m_pmt_r + 1.*cm; // 1cm is the mask
+    218         double pmt_eq_to_bottom = sqrt(radInnerWaterRealSurface*radInnerWaterRealSurface
+    219                                        -r*r) - 19.434*m; // at z equator
+    220         // then, subtract the thickness of mask
+    221         pmt_eq_to_bottom -= 10.*mm;
+    222 
+    223         // avoid the overlap between PMT tail and innerWater
+    224         const double safety_distance = 1.*cm;
+    225         pmt_eq_to_bottom -= safety_distance;
+    226 
+    227 
+    228 
+    229         m_pmt_equator_to_bottom = pmt_eq_to_bottom ;
+    230 
+    231         double pmt_h = pmt_eq_to_bottom + m_z_equator ;
+    232         LogInfo << "Option RealSurface is enabled in Central Detector. "
+    233                 << " Reduce the m_pmt_h from "
+    234                 << m_pmt_h << " to " << pmt_h
+    235                 << std::endl;
+    236         m_pmt_h = pmt_h;
+    237     }
+    238 
+
+
+
+
+Compare HamamatsuMaskManager with NNVTMaskManager to fix impingement of Mask and MaskVirtual
+-------------------------------------------------------------------------------------------------
+
+Need to compare::
+
+     HamamatsuMaskManager::makeMaskTailLogical
+     NNVTMaskManager::makeMaskTailLogical
+
+This comparison led to probable NNVT fix
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/32
+
+   
+
+
+::
+
+    epsilon:CSG blyth$ GEOM=nmskSolidMaskTail__U1 ~/opticks/CSG/ct.sh ana 
+
+    In [1]: sv 
+    Out[1]: 
+    Values.sv : /tmp/blyth/opticks/GEOM/nmskSolidMaskTail__U1/Values : contains:None  
+      0 :   264.0000 : SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out 
+      1 :   194.0000 : SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out 
+      2 :  -194.0000 : SolidMaskTail.TailOuterIEllipsoid.pzBottomCut.-htop_out 
+      3 :   -39.0000 : SolidMaskTail.TailOuterIEllipsoid.pzTopCut.-height_out 
+
+      4 :   264.0000 : SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out 
+      5 :     0.1500 : SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2 
+      6 :   -39.1500 : SolidMaskTail.TailOuterITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2) 
+      ## thin lip at the top 
+
+
+      7 :   134.0000 : SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2 
+      8 :    72.1123 : SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2 
+      9 :  -111.1123 : SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2) 
+     10 :   256.0000 : SolidMaskTail.TailInnerIEllipsoid.pxySemiAxis.mask_radiu_in 
+     11 :   186.0000 : SolidMaskTail.TailInnerIEllipsoid.pzSemiAxis.htop_in 
+     12 :  -186.0000 : SolidMaskTail.TailInnerIEllipsoid.pzBottomCut.-htop_in 
+     13 :   -39.0000 : SolidMaskTail.TailInnerIEllipsoid.pzTopCut.-height_out 
+     14 :     0.5000 : SolidMaskTail.TailInnerITube.TailInnerI_uncoincide_z/2 
+     15 :   256.0000 : SolidMaskTail.TailInnerITube.outerRadius.mask_radiu_in 
+     16 :     0.6500 : SolidMaskTail.TailInnerITube.zhalfheight.paramRealMaskTail.edge_height/2 + TailInnerI_uncoincide_z/2 
+     17 :   -38.6500 : SolidMaskTail.TailInnerITube.zoffset.-(height_out+paramRealMaskTail.edge_height/2) + TailInnerI_uncoincide_z/2 
+     18 :   126.0000 : SolidMaskTail.TailInnerIITube.outerRadius.paramRealMaskTail.r2 - requator_thickness 
+     19 :    68.1123 : SolidMaskTail.TailInnerIITube.zhalfheight.(paramRealMaskTail.height-htop_thickness)/2 
+     20 :  -107.1123 : SolidMaskTail.TailInnerIITube.zoffset.-(height_out+(paramRealMaskTail.height-htop_thickness)/2) 
+
+
+
 
 WIP : review all changes from jps that want to be in offline
 --------------------------------------------------------------
