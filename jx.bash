@@ -471,6 +471,18 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
        echo $msg DISABLE-NOT-enabled
    fi 
 
+   if [ -n "$ZEROPHO" ]; then 
+       export U4__CollectGenstep_DsG4Scintillation_r4695_ZEROPHO=1
+       export U4__CollectGenstep_G4Cerenkov_modified_ZEROPHO=1
+       echo $msg ZEROPHO-enabled
+   else
+       unset U4__CollectGenstep_DsG4Scintillation_r4695_ZEROPHO
+       unset U4__CollectGenstep_G4Cerenkov_modified_ZEROPHO 
+       echo $msg ZEROPHO-NOT-enabled
+   fi 
+
+
+
 
    if [ -n "$GEOM" ]; then 
        export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
