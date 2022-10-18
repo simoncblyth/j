@@ -23,6 +23,28 @@ How to test compilation without Opticks ?
 6. ntds0 should complete 
 
 
+Setup IHEP user website 
+-------------------------
+
+* Connect from workstation using W. 
+* https://juno.ihep.ac.cn/~blyth/
+
+* https://juno.ihep.ac.cn/env/presentation/GeoChain/nmskSolidMask/G4CXSimtraceTest/ALL/figs/gxt/mpcap/nmskSolidMask_RandomSpherical10_another_zsphere_apex_miss_perhaps.png
+
+* https://juno.ihep.ac.cn/~blyth/env/presentation/GeoChain/nmskSolidMask/G4CXSimtraceTest/ALL/figs/gxt/mpcap/nmskSolidMask_RandomSpherical10_another_zsphere_apex_miss_perhaps.png
+
+
+Switch to relative image links
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+* https://simoncblyth.bitbucket.io/env/presentation/env/presentation/GEOM/hmskSolidMaskVirtual__U1/CSGSimtraceTest/ALL/figs/mct/mpcap/hmsk_hama_solids_STUVWXY_after_bug_33_fix.png
+
+* https://simoncblyth.bitbucket.io/env/presentation/GEOM/hmskSolidMaskVirtual__U1/CSGSimtraceTest/ALL/figs/mct/mpcap/hmsk_hama_solids_STUVWXY_after_bug_33_fix.png
+
+
+
+
 Adding documentation
 -----------------------
 
@@ -41,6 +63,8 @@ having to deal with merge issues.
   ready to go, create the branch and do the commits and make 
   the merge request all within a short time. 
 
+* howverr cannot "git pull" like this with working copy changes 
+
 * Also working at a time when other people are not helps with this. 
   17:00 BST is 00:00 CST : so aim to do such uploading admin 
   in the evening to have a quiet repo
@@ -49,6 +73,26 @@ having to deal with merge issues.
 
 JUNOSW Workflow for getting local changes into main 
 -----------------------------------------------------
+
+
+Getting laptop to follow an upstream branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
+    Branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap set up to track remote branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap from origin.
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ git pull 
+    Updating b57f539..3995c72
+    Fast-forward
+     Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc | 63 +++++++++++++++++++++++++++++++++++++++++++++++++--------------
+     Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh         | 45 +++++++++++++++++++++++++++++++++++++++++++++
+     2 files changed, 94 insertions(+), 14 deletions(-)
+     create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
+    epsilon:junosw blyth$ 
+
+
 
 Web interface setup
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -499,6 +543,7 @@ Another::
     Switched to branch 'main'
     Your branch is behind 'origin/main' by 15 commits, and can be fast-forwarded.
       (use "git pull" to update your local branch)
+
     N[blyth@localhost junosw]$ git pull 
     remote: Enumerating objects: 18, done.
     remote: Counting objects: 100% (18/18), done.
@@ -568,6 +613,78 @@ Another::
 
 
 
+Another Example
+~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    epsilon:issues blyth$ jo
+    /Users/blyth/junotop/junosw
+    On branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    Your branch is up-to-date with 'origin/blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual'.
+
+    nothing to commit, working tree clean
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ git checkout main 
+    Switched to branch 'main'
+    Your branch is up-to-date with 'origin/main'.
+    epsilon:junosw blyth$ git pull 
+    remote: Enumerating objects: 1, done.
+    remote: Counting objects: 100% (1/1), done.
+    remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 0
+    Unpacking objects: 100% (1/1), done.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+       dad6f3d..b57f539  main       -> origin/main
+    Updating dad6f3d..b57f539
+    Fast-forward
+     Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc | 28 +++++++++++++++++++++++-----
+     1 file changed, 23 insertions(+), 5 deletions(-)
+    epsilon:junosw blyth$ git branch 
+      blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    * main
+    epsilon:junosw blyth$ git branch -d blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
+    Deleted branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual (was 035de03).
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ git s
+    On branch main
+    Your branch is up-to-date with 'origin/main'.
+
+    nothing to commit, working tree clean
+    epsilon:junosw blyth$ 
+
+
+Another
+~~~~~~~~~~
+
+::
+
+    N[blyth@localhost junosw]$ git checkout main
+    Switched to branch 'main'
+    Your branch is up to date with 'origin/main'.
+    N[blyth@localhost junosw]$  git branch 
+      blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
+    * main
+    N[blyth@localhost junosw]$  git branch -d blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
+    warning: deleting branch 'blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap' that has been merged to
+             'refs/remotes/origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap', but not yet merged to HEAD.
+    Deleted branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap (was 3995c72).
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git pull 
+    remote: Enumerating objects: 1, done.
+    remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 1
+    Unpacking objects: 100% (1/1), 320 bytes | 160.00 KiB/s, done.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+       b57f539..b1a6af4  main                                             -> origin/main
+     * [new branch]      15-elecwaveform-edm-change-from-32-bit-to-16-bit -> origin/15-elecwaveform-edm-change-from-32-bit-to-16-bit
+    Updating b57f539..b1a6af4
+    Fast-forward
+     Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc | 63 +++++++++++++++++++++++++++++++++++++++++++++++++--------------
+     Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh         | 45 +++++++++++++++++++++++++++++++++++++++++++++
+     2 files changed, 94 insertions(+), 14 deletions(-)
+     create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
 
 
 
@@ -2658,7 +2775,8 @@ jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and 
  
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd ; } 
-jo(){ cd $JUNOTOP/offline && pwd && git status ; } 
+#jo(){ cd $JUNOTOP/offline && pwd && git status ; } 
+jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
 
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
 js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 

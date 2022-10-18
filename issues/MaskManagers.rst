@@ -1,26 +1,111 @@
 MaskManagers
 =================
 
-For a long time have had uncommitted SVN change::
 
-    N[blyth@localhost ~]$ jre
-    === j-runtime-env-:
-    === j-runtime-env-:
-    /data/blyth/junotop/offline
-    M       Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh
-    M       Simulation/DetSimV2/PMTSim/include/NNVTMaskManager.hh
-    M       Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
-    M       Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
-    N[blyth@localhost offline]$ 
 
-Need to revisit this and commit before can work on updating 
-the integration to use the new workflow. 
+blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
 
-The changes are 
+::
 
-1. addition of debugging getLV code and PMTSim standalone instrumentation : changes to header and imp
-2. substantive uncoincide additions
-3. documenation text 
+   
+    scp junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc P:junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+    scp junosw/Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh P:junosw/Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
+
+
+    epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
+    Branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap set up to track remote branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap from origin.
+
+
+
+
+
+Try putting below into Simulation/DetSimV2/SimUtil/SimUtil.hh
+------------------------------------------------------------------
+
+
+G4VSolid* MakeTubsWithPolycone( 
+                   const G4String& pName, 
+                   G4double pRMin,
+                   G4double pRMax,
+                   G4double pDz,
+                   G4double pSPhi,
+                   G4double pDPhi, 
+                   G4double zOffset=0. 
+                  )   
+{
+    G4double zPlane[] = { zOffset - pDz, zOffset + pDz } ; 
+    G4double rInner[] = { pRMin, pRMin } ; 
+    G4double rOuter[] = { pRMax, pRMax } ; 
+
+    return new G4Polycone(
+            pName,
+            pSPhi,  
+            pDPhi,  
+            2,    // numZPlanes
+            zPlane, 
+            rInner,
+            rOuter
+            );  
+}
+
+
+
+
+
+
+jgl STANDALONE
+--------------------
+
+::
+
+    epsilon:junosw blyth$ jgl STANDALONE
+    ./Simulation/DetSimV2/PMTSim/include/NNVT_MCPPMT_PMTSolid.hh
+    ./Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+    ./Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+    ./Simulation/DetSimV2/PMTSim/include/Hamamatsu_R12860_PMTSolid.hh
+    ./Simulation/DetSimV2/PMTSim/include/NNVTMaskManager.hh
+    ./Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    ./Simulation/DetSimV2/PMTSim/src/ZSolid.h
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+    epsilon:junosw blyth$ 
+
+
+
+Familiarize with shapes using CSG/ct.sh
+-----------------------------------------
+
+       
+The z range of the ellipsoid is the same as TailOuter and the SolidMaskTail::
+
+    ZZ=-40,-183.2246 GEOM=hmskTailOuter__U1 ./ct.sh 
+    ZZ=-40,-183.2246 GEOM=hmskTailOuterIEllipsoid__U1 ./ct.sh 
+    ZZ=-40,-183.2246 GEOM=hmskSolidMaskTail__U1 ./ct.sh 
+
+z=-40.15 is the midline of thin upper cylinder (so thats its z-offset in combination with the ellipsoid)::
+
+    ZZ=-40,-40.15,-183.2246 GEOM=hmskSolidMaskTail__U1 ./ct.sh 
+
+
+::
+
+    In [1]: sv
+    Out[1]: 
+    Values.sv : /tmp/blyth/opticks/GEOM/hmskTailOuter__U1/Values : contains:None  
+      0 :   264.0000 : SolidMaskTail.TailOuterIEllipsoid.pxySemiAxis.mask_radiu_out 
+      1 :   200.0000 : SolidMaskTail.TailOuterIEllipsoid.pzSemiAxis.htop_out 
+      2 :  -183.2246 : SolidMaskTail.TailOuterIEllipsoid.pzBottomCut.-(height_out+paramRealMaskTail.height) 
+      3 :   -40.0000 : SolidMaskTail.TailOuterIEllipsoid.pzTopCut.-height_out 
+      4 :   264.0000 : SolidMaskTail.TailOuterITube.outerRadius.mask_radiu_out 
+      5 :     0.1500 : SolidMaskTail.TailOuterITube.zhalfheight.paramRealMaskTail.edge_height/2 
+      6 :   -40.1500 : SolidMaskTail.TailOuterITube.zoffset.-(eight_out+paramRealMaskTail.edge_height/2) 
+      7 :   149.0000 : SolidMaskTail.TailOuterIITube.outerRadius.paramRealMaskTail.r2 
+      8 :    71.6123 : SolidMaskTail.TailOuterIITube.zhalfheight.paramRealMaskTail.height/2 
+      9 :  -111.6123 : SolidMaskTail.TailOuterIITube.zoffset.-(height_out+paramRealMaskTail.height/2) 
+
+
 
 
 

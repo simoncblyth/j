@@ -26,6 +26,7 @@ find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : b
 find_package(SysRap REQUIRED)
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
 
 set(SOURCES)
 set(HEADERS)
