@@ -2795,6 +2795,7 @@ jck(){ jcv G4Cerenkov_modified ; }
 jop(){ jcv DsPhysConsOptical ;  }
 jac(){ jcv AdditionAcrylicConstruction ; }
 jps(){  cd $HOME/j/PMTSim ; git status ; }
+jfs(){  cd $HOME/j/PMTFastSim ; git status ; }
 jpo(){  cd $HOME/j/PosFile ; git status ; }
 
 #jcvv(){ jcv NNVT_MCPPMT_PMTSolid Hamamatsu_R12860_PMTSolid ; }

@@ -1,6 +1,13 @@
 PMT_Simplification
 =====================
 
+
+First task is to get the fast sim model operational 
+in a standalone way. Then can really see whats happening. 
+
+
+
+
 ::
 
      80 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
