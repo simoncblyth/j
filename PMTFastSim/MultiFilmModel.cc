@@ -51,10 +51,35 @@ void MultiFilmModel::Calculate()
     TComplex cos_theta_1 = top->parameter.cos_theta;
     TComplex cos_theta_2 = bot->parameter.cos_theta;
 
+
+
+    /*
+    // all art members are double, ie no imaginary part 
+
     art.R_s = rs*TComplex::Conjugate(rs);
     art.R_p = rp*TComplex::Conjugate(rp);
-    art.T_s = (n2*cos_theta_2)/(n1*cos_theta_1)*ts*TComplex::Conjugate(ts);
-    art.T_p = (TComplex::Conjugate(n2)*cos_theta_2)/(TComplex::Conjugate(n1)*cos_theta_1)*tp*TComplex::Conjugate(tp);
+    art.T_s = (n2*cos_theta_2)/(n1*cos_theta_1)*ts*_TComplex::Conjugate(ts);
+    art.T_p = (_TComplex::Conjugate(n2)*cos_theta_2)/(_TComplex::Conjugate(n1)*cos_theta_1)*tp*_TComplex::Conjugate(tp);
+    */
+
+    art.R_s = _TComplex::Norm(rs);  //  z*std::conj(z) == std::norm(z) 
+    art.R_p = _TComplex::Norm(rp);
+
+    TComplex _T_s = (n2*cos_theta_2)/(n1*cos_theta_1)*ts*_TComplex::Conjugate(ts); 
+    TComplex _T_p =  (_TComplex::Conjugate(n2)*cos_theta_2)/(_TComplex::Conjugate(n1)*cos_theta_1)*tp*_TComplex::Conjugate(tp);
+
+    art.T_s = _T_s.real() ;
+    art.T_p = _T_p.real() ; 
+
+    // HUH: ROOT TComplex automatically degrades to double ?
+
+    std::cout 
+        << " _T_s.imag() " << _T_s.imag() 
+        << " _T_p.imag() " << _T_p.imag() 
+        << std::endl 
+        ;
+
+
     art.A_s = 1.-art.R_s-art.T_s;
     art.A_p = 1.-art.R_p-art.T_p;
     art.R   = (art.R_s+art.R_p)/2.;

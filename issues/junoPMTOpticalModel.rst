@@ -17,15 +17,13 @@ from gather.sh::
    Layer.h   : Matrix.h Material.h      # Layer, ThickLayer, ThinLayer 
    Layer.cc  : Layer.h  
 
-
-
    OpticalSystem.h  :   Layer.h         # vector of layers with ThickLayer top_layer bot_layer    
    OpticalSystem.cc :   TString.h       # TMath::Sin TMath::Cos TMath::Sqrt TComplex::Sqrt TString?Form 
 
-
-
    MultiFilmModel.h  :  TComplex.h           #   ART
    MultiFilmModel.cc :  MultiFilmModel.h Matrix.h OpticalSystem.h    # contains optical_system and Matrix Ms Mp  TComplex::Conjugate
+
+
                  
 
    junoPMTOpticalModel.h  : many G4 headers, Sniper, Svcs and MultiFilmSimSvc/MultiFilmModel.h   m_multi_film_model
@@ -39,6 +37,10 @@ junoPMTOpticalModel.cc
 
 * UGLY : for every G4FastStep lots of lookups and model rejig because indices depend in wavelength
 * it would be more efficient and cleaner for the model to hold arrays of properties for all wavelengths
+
+  * the reason is that are having to do the lookups for every steps of every photon
+  * of course would need to do lookups from the arrays, but at least that would
+    prevent rebuilding the model from scratch 
 
 ::
 

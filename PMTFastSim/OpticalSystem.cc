@@ -60,7 +60,7 @@ void OpticalSystem::Initialize(double wl, double theta)
     for(std::size_t i=1;i<layers.size();i++){
         TComplex layer_n = layers[i]->GetMaterial()->GetRefractiveIndex();
         layers[i]->parameter.sin_theta = top_n*top_layer->parameter.sin_theta/layer_n;
-        layers[i]->parameter.cos_theta = TComplex::Sqrt(one - layers[i]->parameter.sin_theta*layers[i]->parameter.sin_theta);
+        layers[i]->parameter.cos_theta = _TComplex::Sqrt(one - layers[i]->parameter.sin_theta*layers[i]->parameter.sin_theta);
     }
     
     for(std::size_t i=0;i<layers.size()-1;i++){
@@ -81,15 +81,15 @@ void OpticalSystem::Initialize(double wl, double theta)
 
             TComplex delta = 2. * TMath::Pi() * ni * di * layers[i]->parameter.cos_theta / wl;
             
-            Ms_00 = tmps * TComplex::Exp(-zi*delta);
-            Ms_01 = tmps * layers[i-1]->parameter.rs_ij * TComplex::Exp(zi*delta);
-            Ms_10 = tmps * layers[i-1]->parameter.rs_ij * TComplex::Exp(-zi*delta);
-            Ms_11 = tmps * TComplex::Exp(zi*delta);
+            Ms_00 = tmps * _TComplex::Exp(-zi*delta);
+            Ms_01 = tmps * layers[i-1]->parameter.rs_ij * _TComplex::Exp(zi*delta);
+            Ms_10 = tmps * layers[i-1]->parameter.rs_ij * _TComplex::Exp(-zi*delta);
+            Ms_11 = tmps * _TComplex::Exp(zi*delta);
 
-            Mp_00 = tmpp * TComplex::Exp(-zi*delta);
-            Mp_01 = tmpp * layers[i-1]->parameter.rp_ij * TComplex::Exp(zi*delta);
-            Mp_10 = tmpp * layers[i-1]->parameter.rp_ij * TComplex::Exp(-zi*delta);
-            Mp_11 = tmpp * TComplex::Exp(zi*delta);
+            Mp_00 = tmpp * _TComplex::Exp(-zi*delta);
+            Mp_01 = tmpp * layers[i-1]->parameter.rp_ij * _TComplex::Exp(zi*delta);
+            Mp_10 = tmpp * layers[i-1]->parameter.rp_ij * _TComplex::Exp(-zi*delta);
+            Mp_11 = tmpp * _TComplex::Exp(zi*delta);
         }else{
             Ms_00 = tmps;
             Ms_01 = tmps * layers[i-1]->parameter.rs_ij;
