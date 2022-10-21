@@ -9,26 +9,252 @@ from gather.sh::
 
 
    Matrix.h  : TComplex.h              # MATRIX, Matrix
-   Matrix.cc : Matrix.h  
+   Matrix.cc : Matrix.h                # four TComplex in one MATRIX
 
    Material.h  : TComplex.h 
-   Material.cc : Material.h            #  static material map 
+   Material.cc : Material.h            #  static material map, std::string name and one TComplex n (refractive index) 
+
+   # trivial to replace Material with small static array of TComplex 
+   # as there are only a few materials. Can also replace the std::string name 
+   # with implicit array index.  
 
    Layer.h   : Matrix.h Material.h      # Layer, ThickLayer, ThinLayer 
-   Layer.cc  : Layer.h  
+   Layer.cc  : Layer.h                  
+
+   # two Matrix pointers Ms, Mp 
+   # one Material pointer
+   # layer type : enum LayerType { fThin, fThick };  
+   # parameter struct with 6 TComplex
+
+       struct LayerParameter
+        {   
+            TComplex sin_theta;
+            TComplex cos_theta;
+            TComplex rs_ij;
+            TComplex rp_ij;
+            TComplex ts_ij;
+            TComplex tp_ij;     // 6*2 = 12 elem (plus 2*2 -> 12+4 = 16)
+        };  
+
+   # ThinLayer has thickness double, ThickLayer does not
+   # trivial to use single Layer type with 0./-1. thickness for ThickLayer 
+
+   # ctor takes std::string argument used for material lookup, 
+   # trivial to replace with material index 
+
+   # so Layer comprises : 6 + 4 + 4 TComplex, material_index, thickness (with convention to indicate Thick )    
+
+   # for persistency purposes should pad the 6 to 8 and use those for material_iidex, thickness
+   # so array shape for layer becomes the below where each element is (real, imag) 2-tuple  
+
+        sin_theta  cos_theta  material_idx thickness     8 
+        rs_ij      rp_ij      ts_ij        tp_ij         8
+        Ms_00      Ms_01      Ms_10        Ms_11         8
+        Mp_00      Mp_01      Mp_10        Mp_11         8
+
+   # overall array shape (4,4) complex or (4,4,2) when spelling out (real, imag)
+
+
+    In [1]: a = np.eye(4, dtype=np.complex)
+
+    In [2]: a
+    Out[2]: 
+    array([[1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+           [0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j],
+           [0.+0.j, 0.+0.j, 1.+0.j, 0.+0.j],
+           [0.+0.j, 0.+0.j, 0.+0.j, 1.+0.j]])
+
+    In [3]: a.shape
+    Out[3]: (4, 4)
+
+    In [4]: a.view(np.float64)
+    Out[4]: 
+    array([[1., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 1., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 1., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 1., 0.]])
+
+    In [5]: a.view(np.float64).shape
+    Out[5]: (4, 8)
+
+    In [6]:  
+
+
+
 
    OpticalSystem.h  :   Layer.h         # vector of layers with ThickLayer top_layer bot_layer    
    OpticalSystem.cc :   TString.h       # TMath::Sin TMath::Cos TMath::Sqrt TComplex::Sqrt TString?Form 
 
+   Note pointlessly involved layer setup with AddLayer inserting thin layers before the end. 
+   Could simply model as array and populate in layer order.  
+
+   void OpticalSystem::Initialize(double wl, double theta)   
+   # meat of layer setup setting parameters and matrix
+
+
    MultiFilmModel.h  :  TComplex.h           #   ART
    MultiFilmModel.cc :  MultiFilmModel.h Matrix.h OpticalSystem.h    # contains optical_system and Matrix Ms Mp  TComplex::Conjugate
 
+   MultiFilmModel::MultiFilmModel(int n_layer)
+       instanciate OpticalSystem(n_layer) and Ms Mp matrix  
 
-                 
+   MultiFilmModel::Calculate()
+       optical_system->Initialize(wavelength, theta);
+
+       product of matrix from all the layers    
+
+       form the ART double param from the matrix product and layer param   
+
+       0040         OpticalSystem* optical_system;
+         41 
+         42         double wavelength;
+         43         double theta;
+         44 
+         45         ART art;
+         46 
+         47         Matrix* Ms;
+         48         Matrix* Mp;
+
+
 
    junoPMTOpticalModel.h  : many G4 headers, Sniper, Svcs and MultiFilmSimSvc/MultiFilmModel.h   m_multi_film_model
    junoPMTOpticalModel.cc : m_multi_film_model = new MultiFilmModel(4);
 
+   0285 void junoPMTOpticalModel::CalculateCoefficients()
+    286 {
+    287     G4complex one(1., 0.);
+    288     _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1);
+    289     _sin_theta4 = _n1 * _sin_theta1/_n4;
+    290     _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
+    291 
+    292     m_multi_film_model->SetWL(_wavelength/m);
+    293     m_multi_film_model->SetAOI(_aoi);
+    294 
+    295     m_multi_film_model->SetLayerPar(0, _n1);
+    296     m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
+    297     m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
+    298     m_multi_film_model->SetLayerPar(3, _n4);
+    299     ART art1 = m_multi_film_model->GetART();
+    300     fR_s = art1.R_s;
+    301     fT_s = art1.T_s;
+    302     fR_p = art1.R_p;
+    303     fT_p = art1.T_p;
+    304 
+    305     m_multi_film_model->SetLayerPar(0, n_glass);
+    306     m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
+    307     m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
+    308     m_multi_film_model->SetLayerPar(3, n_vacuum);
+    309     ART art2 = m_multi_film_model->GetNormalART();
+    310     fR_n = art2.R;
+    311     fT_n = art2.T;
+    312 }
+
+
+
+Background
+------------
+
+* :google:`optics stokes jones mueller`
+
+* https://www.brown.edu/research/labs/mittleman/sites/brown.edu.research.labs.mittleman/files/uploads/lecture17_0.pdf
+
+* https://en.wikipedia.org/wiki/Jones_calculus
+
+In optics, polarized light can be described using the Jones calculus,[1]
+discovered by R. C. Jones in 1941. Polarized light is represented by a Jones
+vector, and linear optical elements are represented by Jones matrices. When
+light crosses an optical element the resulting polarization of the emerging
+light is found by taking the product of the Jones matrix of the optical element
+and the Jones vector of the incident light. Note that Jones calculus is only
+applicable to light that is already fully polarized. Light which is randomly
+polarized, partially polarized, or incoherent must be treated using Mueller
+calculus. 
+
+Thus, the Jones vector represents the amplitude and phase of the electric field
+in the x and y directions. 
+
+The sum of the squares of the absolute values of the two components of Jones
+vectors is proportional to the intensity of light. It is common to normalize it
+to 1 at the starting point of calculation for simplification. It is also common
+to constrain the first component of the Jones vectors to be a real number. This
+discards the overall phase information that would be needed for calculation of
+interference with other beams. 
+
+
+* :google:`jones calculus thin films`
+
+* https://home.strw.leidenuniv.nl/~keller/Teaching/China_2011/China2011_L04_ThinFilms.pdf
+* ~/opticks_refs/China2011_L04_ThinFilms.pdf
+
+sufficient to look at complex scalar quantities instead of full 3-D
+vector since electric field is perpendicular to wave vector and in
+plane of incidence
+
+phase factor for forward propagating wave:
+ 
+           2 pi     ~
+  delta =  ----   * n1 d1 cos(theta1) 
+           lambda
+
+
+
+Jones Waveplate Matrix
+
+* https://www.youtube.com/watch?v=y1KoLLk9C4U
+
+
+Andrew Berger : Large number of Optics Videos
+
+* https://www.youtube.com/channel/UCmex3hKJjm3UN3l2Ie9rJrQ
+* https://www.youtube.com/channel/UCmex3hKJjm3UN3l2Ie9rJrQ/videos
+
+
+3 layer system:
+
+* https://www.youtube.com/watch?v=eYQjjx-MEZc
+
+
+
+* https://physlab.org/wp-content/uploads/2016/07/Ch6-BYUOpticsBook_2013.pdf
+* ~/opticks_refs/Ch6-BYUOpticsBook_2013.pdf
+
+Reflection from an interface:
+
+   |  -r_p   0   |
+   |   0     r_s |
+
+Transmission thru an interface
+
+   |   t_p   0   |
+   |   0     t_s |
+
+   
+
+* https://arxiv.org/pdf/2204.02703.pdf
+* ~/opticks_refs/JUNO_MultiFilm_PMT_Optical_Model_2204.02703.pdf
+
+
+tmm : transfer matrix method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* https://arxiv.org/abs/1603.02720
+* ~/opticks_refs/Byrnes_Multilayer_optical_calculations_1603.02720.pdf
+
+* https://pypi.org/project/tmm/
+* https://github.com/sbyrnes321/tmm
+* http://sjbyrnes.com/science-programming.html
+* http://sjbyrnes.com/multilayer_film_optics_programs.html
+
+* :google:`bo sernelius lecture notes pdf`
+
+* http://www.phys.ubbcluj.ro/~emil.vinteler/nanofotonica/TTM/TTM_Sernelius.pdf
+* ~/opticks_refs/TTM_Sernelius.pdf
+
+
+
+
+Q:Any way to factor off a constant part of the calculation ?
+----------------------------------------------------------------
 
 
 junoPMTOpticalModel.cc

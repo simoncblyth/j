@@ -36,6 +36,26 @@ void OpticalSystem::ResetLayers()
     }
 }
 
+/**
+
+
+https://en.wikipedia.org/wiki/Fresnel_equations
+See section "Complex amplitude reflection and transmission coefficients"
+
+For s polarization, the reflection coefficient r is defined as the ratio of the
+reflected wave's complex electric field amplitude to that of the incident wave,
+whereas for p polarization r is the ratio of the waves complex magnetic field
+amplitudes (or equivalently, the negative of the ratio of their electric field
+amplitudes). The transmission coefficient t is the ratio of the transmitted
+wave's complex electric field amplitude to that of the incident wave, for
+either polarization. The coefficients r and t are generally different between
+the s and p polarizations, and even at normal incidence (where the designations
+s and p do not even apply!) the sign of r is reversed depending on whether the
+wave is considered to be s or p polarized, an artifact of the adopted sign
+convention (see graph for an air-glass interface at 0° incidence). 
+
+**/
+
 void OpticalSystem::Calculate_rt(Layer* layeri, Layer* layerj)
 {
     TComplex ni = layeri->GetMaterial()->GetRefractiveIndex();
@@ -46,6 +66,27 @@ void OpticalSystem::Calculate_rt(Layer* layeri, Layer* layerj)
     layeri->parameter.ts_ij = (2.*ni*layeri->parameter.cos_theta)/(ni*layeri->parameter.cos_theta + nj*layerj->parameter.cos_theta);
     layeri->parameter.tp_ij = (2.*ni*layeri->parameter.cos_theta)/(nj*layeri->parameter.cos_theta + ni*layerj->parameter.cos_theta);
 }
+
+
+/**
+OpticalSystem::Initialize
+----------------------------
+
+https://en.wikipedia.org/wiki/Thin-film_interference
+
+https://en.wikipedia.org/wiki/Transfer-matrix_method_(optics)
+
+
+
+In theoretical physics, a wave number, defined as the number of radians per unit distance, 
+sometimes called "angular wavenumber", is more often used:[3]
+
+          2*pi
+    k =  -------
+          lambda          lambda is the wavelength   (so units are reciprocal length eg m^-1 )
+
+
+**/
 
 void OpticalSystem::Initialize(double wl, double theta)
 {
