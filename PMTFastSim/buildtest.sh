@@ -5,6 +5,11 @@
 defkls=Layr
 kls=${1:-$defkls}
 
+if [ "$kls" == "ana" ]; then
+    ${IPYTHON:-ipython} --pdb -i LayrTest.py 
+    exit 0 
+fi 
+
 get_srcs()
 {
     local name=${1:-TComplex}
@@ -34,7 +39,13 @@ for kls in $klss ; do
         -std=c++11 -lstdc++ \
           -I. \
           -I/usr/local/cuda/include \
+          -I$HOME/np \
           -o /tmp/${kls}Test && /tmp/${kls}Test 
 done
+
+
+if [ "$kls" == "Layr" ]; then
+    ${IPYTHON:-ipython} --pdb -i LayrTest.py 
+fi 
 
 
