@@ -1,7 +1,8 @@
 #!/bin/bash -l
 
 #defkls=ALL
-defkls=MultiFilmModel
+#defkls=MultiFilmModel
+defkls=Layr
 kls=${1:-$defkls}
 
 get_srcs()
@@ -9,6 +10,7 @@ get_srcs()
     local name=${1:-TComplex}
     local srcs
     case $name in 
+                 Layr) srcs="${name}Test.cc" ;;
              TComplex) srcs="${name}Test.cc" ;;
                Matrix) srcs="$name.cc ${name}Test.cc" ;;
              Material) srcs="$name.cc ${name}Test.cc" ;;
@@ -28,7 +30,11 @@ fi
 for kls in $klss ; do 
     srcs=$(get_srcs $kls)
     echo $BASH_SOURCE kls $kls srcs $srcs
-    gcc $srcs -std=c++11 -lstdc++ -I. -o /tmp/${kls}Test && /tmp/${kls}Test 
+    gcc $srcs \
+        -std=c++11 -lstdc++ \
+          -I. \
+          -I/usr/local/cuda/include \
+          -o /tmp/${kls}Test && /tmp/${kls}Test 
 done
 
 

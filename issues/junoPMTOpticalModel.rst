@@ -17,6 +17,9 @@ from gather.sh::
    # trivial to replace Material with small static array of TComplex 
    # as there are only a few materials. Can also replace the std::string name 
    # with implicit array index.  
+   #
+   # Actually : the Material class seems pointless, just use rindex member for each layer 
+   #
 
    Layer.h   : Matrix.h Material.h      # Layer, ThickLayer, ThinLayer 
    Layer.cc  : Layer.h                  
@@ -249,6 +252,111 @@ tmm : transfer matrix method
 
 * http://www.phys.ubbcluj.ro/~emil.vinteler/nanofotonica/TTM/TTM_Sernelius.pdf
 * ~/opticks_refs/TTM_Sernelius.pdf
+
+
+::
+
+    In [1]: np.arcsin(2)
+    /Users/blyth/miniconda3/bin/ipython:1: RuntimeWarning: invalid value encountered in arcsin
+      #!/Users/blyth/miniconda3/bin/python
+    Out[1]: nan
+
+    In [2]: from numpy.lib.scimath import arcsin
+
+    In [3]: arcsin(2)
+    Out[3]: (1.5707963267948966+1.3169578969248166j)
+
+    In [4]: np.sin(arcsin(2))
+    Out[4]: (1.9999999999999998+1.0605752387249067e-16j)
+
+    In [5]: EPSILON = sys.float_info.epsilon
+
+    In [6]: EPSILON
+    Out[6]: 2.220446049250313e-16
+
+
+
+* http://www.phys.ubbcluj.ro/~emil.vinteler/nanofotonica/TTM/Fresnel_Sernelius.pdf
+
+* https://en.wikipedia.org/wiki/Transfer-matrix_method_(optics)
+
+* :google:`Abeles matrix formalism`
+
+* https://www.fzu.cz/~kuzelp/Optics/Lecture6.pdf
+
+
+
+* https://www.youtube.com/c/JordanEdmundsEECS/videos
+
+  Lots of well explained optics videos 
+
+* https://www.youtube.com/watch?v=XuSxmb9-viY
+
+  Jordan Edmunds 
+
+  Explains the transfer matrix formalism : can think of matrix for the medium separate from matrix for interfaces
+  Decalares the vectors are for (Er El)  fields travelling to right and left 
+
+  So at start of the stack:: 
+
+      | E_incident   |
+      | E_reflected  |
+
+  At end of the stack::
+
+      | E_transmitted |      # no left going expected   
+      |      0        |
+
+
+  System::  
+
+      | E_incident   |  =    |  M00    M01  |  |   E_trans  |  
+      | E_reflected  |       |  M10    M11  |  |    0       |
+
+
+
+      E_incident = M00 E_trans          E_trans/E_incident = 1/M00
+
+      E_reflected = M10 E_trans         E_refl/E_incident = M10/M00 
+
+
+* https://www.youtube.com/watch?v=dE7Yi3u9cvI
+
+  Transmission Matrix::
+            
+              
+         |  E0_r |         1    |   1     r01  |   |  E1_r |
+         |       |   =   ------ |              |   |       |
+         |  E0_l |        t01   |  r01     1   |   |  E1_l |  
+
+ 
+  Using    t01t10 - r01r10 = 1 
+
+  Works for S or P by using the corresponding r and t 
+
+
+* https://www.youtube.com/watch?v=BX_-1ei12sU
+
+  Propagation Matrix::
+
+  .         
+  EA(x) = E0 exp(i(wt-kx))
+
+  EA(x+L) = E0 exp(i(wt-k(x+L))) = E0 exp(i(wt-kx)) exp(-ikL) = EA(x) exp(-ikL)
+
+   EA(x+L)
+   ------- = exp(-ikL)
+    EA(x)
+
+    EB  = EA exp(-ikL)
+
+    EA = EB exp(ikL)
+
+  | EA_r |     |   exp(i k1 L1)      0          | |  EB_r |
+  |      |  =  |                                | |       |
+  | EA_l |     |      0         exp(-i k1 L1)   | |  EB_l |
+
+
 
 
 
