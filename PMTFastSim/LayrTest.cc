@@ -1,80 +1,86 @@
 #include "NP.hh"
 #include "Layr.h"
 
-template<typename T>
+template<typename T, int N>
 struct LayrTest
 {
-    Stack<T,4> stk ;  
-
-    Layr<T>& l0 ; 
-    Layr<T>& l1 ; 
-    Layr<T>& l2 ; 
-    Layr<T>& l3 ; 
-
-    LayrTest<T>() ; 
-    void scan(const char* path, int NI, bool reverse); 
+    const StackSpec<T> ss ; 
+    LayrTest(const StackSpec<T>& ss); 
+    void scan(const char* dir, T wl, bool reverse=false); 
 };
 
-template<typename T>
-LayrTest<T>::LayrTest()
+
+template<typename T, int N>
+LayrTest<T,N>::LayrTest(const StackSpec<T>& ss_)
     :
-    l0(stk.ll[0]),
-    l1(stk.ll[1]),
-    l2(stk.ll[2]),
-    l3(stk.ll[3])
+    ss(ss_)
 {
-    l0.n.real(1.0) ; l0.n.imag(0.0)  ; l0.d = 0. ; 
-    l1.n.real(1.0) ; l1.n.imag(0.01) ; l1.d = 500. ; // nm (same length unit as wavelength)
-    l2.n.real(1.0) ; l2.n.imag(0.01) ; l2.d = 500. ;          
-    l3.n.real(1.5) ; l3.n.imag(0.0)  ; l3.d = 0. ; 
 }
 
-template<typename T>
-void LayrTest<T>::scan(const char* dir, int NI, bool reverse)
-{
-    std::vector<ART<T>> arts(NI) ;  
-    std::vector<Layr<T>> comps(NI) ;  
-    std::vector<Layr<T>> lls(NI*4) ;  
 
-    T wl(500) ;  // nm 
+
+
+
+/**
+LayrTest::scan
+---------------
+
+Initially it feels like a cheap trick (avoiding need for rerunable object) 
+to instanciate the Stack object within the scan loop. 
+But actually thats the real situation as the refractive 
+indices depend on wavelength : so the matrix stack needs to be 
+recomputed for every wl and angle.
+Having a fixed wavelength to change angle with is purely artificial
+whilst doing angle scanning. 
+
+**/
+
+template<typename T, int N>
+void LayrTest<T,N>::scan(const char* dir, T wl, bool reverse)
+{
+    const int NI=900 ; 
+    std::vector<T> theta(NI) ; 
+    for(int i=0 ; i < NI ; i++ ) theta[i] = M_PI*0.1*T(i)/T(180) ; 
+
+    std::vector<ART<T>>   arts(NI) ;  
+    std::vector<Layr<T>> comps(NI) ;  
+    std::vector<Layr<T>> lls(NI*N) ;  
+
+    Stack<T,N> stack(wl, ss) ; 
+
     for(int i=0 ; i < NI ; i += 1 )
     {
         int j = reverse ? NI - 1 - i : i ;  
-        T th = M_PI*T(j)/T(180) ;  // radians
+        T th = theta[j] ;   // radians
 
-        stk.computeART(wl, th); 
-        arts[j] = stk.art; 
-        comps[j] = stk.comp ; 
-       
-        lls[4*j+0] = stk.ll[0] ; 
-        lls[4*j+1] = stk.ll[1] ; 
-        lls[4*j+2] = stk.ll[2] ; 
-        lls[4*j+3] = stk.ll[3] ; 
+        stack.computeART(th); 
 
-        std::cout 
-            << " i:" << i 
-            << " j:" << j 
-            << std::endl 
-            ; 
-        //std::cout << stk << std::endl ; 
-        std::cout << stk.art << std::endl ; 
+        arts[j] = stack.art; 
+        comps[j] = stack.comp ; 
+        for(int l=0 ; l < N ; l++) lls[N*j+l] = stack.ll[l]; 
+
+        std::cout << " i:" << i << " j:" << j << std::endl ; 
+        if( i == 0 || (i == NI - 1)) std::cout << stack << std::endl ; 
+        else std::cout << stack.art << std::endl ; 
     }
 
     assert( sizeof(ART<T>)/sizeof(T) == 12 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
-    NP::Write(dir,"arts.npy", (T*)arts.data(),  arts.size(), 3, 4 ) ; 
-    NP::Write(dir,"comps.npy",(T*)comps.data(), comps.size(), 4, 4, 2 ) ; 
-    NP::Write(dir,"lls.npy",(T*)lls.data(), lls.size()/4, 4, 4, 4, 2 ) ; 
+    NP::Write(dir,"arts.npy", (T*)arts.data(),  NI, 3, 4 ) ;       // one ART result (3,4) at each angle 
+    NP::Write(dir,"comps.npy",(T*)comps.data(), NI,    4, 4, 2 ) ; // 1 composite layer (4,4,2) at each angle
+    NP::Write(dir,"lls.npy",  (T*)lls.data()  , NI, 4, 4, 4, 2 ) ; // 4 layers (4,4,2) at each angle 
 }
 
 int main(int argc, char** argv)
 {
-    std::cout << sizeof(Layr<double>) << std::endl ; 
+    StackSpec<double> ss(StackSpec<double>::Default()); 
+    LayrTest<double,4> t(ss) ; 
 
-    LayrTest<double> t ; 
-    t.scan("/tmp/LayrTest0", 45, false) ;
-    t.scan("/tmp/LayrTest1", 45, true ) ;
+    double wl = U::GetE<double>("WL", 500.) ; 
+
+    t.scan("/tmp/LayrTest0", wl, false) ;
+    t.scan("/tmp/LayrTest1", wl, true ) ;
 
     return 0 ; 
 }

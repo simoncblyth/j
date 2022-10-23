@@ -40,12 +40,21 @@ for kls in $klss ; do
           -I. \
           -I/usr/local/cuda/include \
           -I$HOME/np \
-          -o /tmp/${kls}Test && /tmp/${kls}Test 
+          -o /tmp/${kls}Test 
+
+    [ $? -ne 0 ] && echo $BASH_SOURCE build error for kls $kls && exit 1
+
+    /tmp/${kls}Test 
+    [ $? -ne 0 ] && echo $BASH_SOURCE run error for kls $kls && exit 2
+
 done
 
 
 if [ "$kls" == "Layr" ]; then
     ${IPYTHON:-ipython} --pdb -i LayrTest.py 
+    [ $? -ne 0 ] && echo $BASH_SOURCE ana error for kls $kls && exit 3
 fi 
+
+exit 0 
 
 
