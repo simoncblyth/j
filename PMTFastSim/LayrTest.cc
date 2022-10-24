@@ -18,9 +18,6 @@ LayrTest<T,N>::LayrTest(const StackSpec<T>& ss_)
 }
 
 
-
-
-
 /**
 LayrTest::scan
 ---------------

@@ -39,6 +39,7 @@ for kls in $klss ; do
         -std=c++11 -lstdc++ \
           -I. \
           -I/usr/local/cuda/include \
+          -DWITH_THRUST \
           -I$HOME/np \
           -o /tmp/${kls}Test 
 

@@ -6,8 +6,8 @@ Layr.h
 Objective
 -----------
 
-Explore thin film optics math using TMM "Transfer Matrix Method" 
-by simplifting into a single header and coding in a style amenable 
+Explore thin layer stack optics math using TMM "Transfer Matrix Method" 
+by simplifying into a single header and coding in a style amenable 
 to being ported to GPU 
 
 References for Thin Film Optics Using "Transfer Matrix Method" (aka TMM)
@@ -71,8 +71,6 @@ Using    t01t10 - r01r10 = 1
 
 Works for S or P by using the corresponding r and t
 
-
-
 * https://www.youtube.com/watch?v=BX_-1ei12sU
 
 Propagation Matrix::
@@ -94,14 +92,13 @@ Propagation Matrix::
   | EA_l |     |      0         exp(-i k1 L1)   | |  EB_l |
 
 
-TODO: find CUDA standin for std::complex and arithmetic functions
---------------------------------------------------------------------
+CUDA standin for std::complex and arithmetic functions : currently thrust::complex 
+------------------------------------------------------------------------------------
 
 Need complex handling equivalent to::
 
     std::conj  # these two are trivial
     std::norm
-
     std::sin   # these need to be "official" :google:`CUDA complex arithmetics`
     std::cos
     std::sqrt
@@ -109,34 +106,23 @@ Need complex handling equivalent to::
 
 Contenders:
 
-* https://github.com/jtravs/cuda_complex
-
-  * dead project : non starter
-
 * cuComplex.h : looks real awkward and limited
 
   * https://stackoverflow.com/questions/9860711/cucomplex-h-and-exp
 
-* typedef thrust::complex<double> Complex
 * https://thrust.github.io/doc/group__complex__numbers.html
 
-  * looks like thrust::complex can do everything needed, and its included with 
-    rather old CUDA versions  
-  * examples/UseThrust/UseThrustComplex.cu 
+  * looks like thrust::complex can do everything needed, and its included with old CUDA
+  * /usr/local/cuda/include/thrust/complex.h 
+  * examples/UseThrust/basic_complex.sh 
   * THIS IS THE NOW 
-  * TODO: exercise thrust::complex 
 
 * https://github.com/NVIDIA/libcudacxx
 * https://nvidia.github.io/libcudacxx/releases.html
 
   * suggests inclusion of cuda/std/complex starts from CUDA 11.3 
-  * unconfirmed advantage that suitable simple std::complex CPU code 
-    could be ported with only namespace changes 
   * THIS IS PROBABLY THE FUTURE 
 
-* https://nvidia.github.io/cutlass/index.html
-
-  * wrong sledgehammer
 
 
 TODO : more realistic CPU testing by loading actual refractive indices and thicknesses
@@ -171,8 +157,55 @@ TODO : devise CPU/GPU counterpart paired structs for this calculation
 
 **/
 
+#ifdef WITH_THRUST
+#include <thrust/complex.h>
+#else
 #include <complex>
 #include <cmath>
+#endif
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#    define LAYR_METHOD __host__ __device__ __forceinline__
+#else
+#    define LAYR_METHOD inline 
+#endif
+
+
+#include "math_constants.h"
+
+/**
+Const
+-------
+
+The point of these Const functions is to plant 
+the desired type of constant into assembly code 
+with no runtime transients of another type.
+It is especially important to avoid double 
+on device when T=float. 
+
+The constexpr means that the conversions and 
+calulations happen at compile time, NOT runtime. 
+
+**/
+
+namespace Const
+{
+    template<typename T>  
+    LAYR_METHOD constexpr T zero(){ return T(0.0) ; } 
+ 
+    template<typename T>
+    LAYR_METHOD constexpr T one() { return T(1.0) ; } 
+
+    template<typename T>
+    LAYR_METHOD constexpr T two() { return T(2.0) ; } 
+    
+    template<typename T>
+    LAYR_METHOD constexpr T pi() { return T(CUDART_PI) ; } 
+
+    template<typename T>
+    LAYR_METHOD constexpr T twopi() { return T(2.0*CUDART_PI) ; } 
+}
+
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -184,30 +217,38 @@ TODO : devise CPU/GPU counterpart paired structs for this calculation
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-template<typename T>
-inline std::ostream& operator<<(std::ostream& os, const std::complex<T>& z)  
-{
-    os << "( " 
-       << std::setw(10) << std::fixed << std::setprecision(4) << z.real() 
-       << " "
-       << std::setw(10) << std::fixed << std::setprecision(4) << z.imag() 
-       << ")"
-       ;
-    return os; 
-}
+    #ifdef WITH_THRUST
+    template<typename T>
+    inline std::ostream& operator<<(std::ostream& os, const thrust::complex<T>& z)  
+    {
+        os << "(" << std::setw(10) << std::fixed << std::setprecision(4) << z.real() 
+           << " " << std::setw(10) << std::fixed << std::setprecision(4) << z.imag() << ")t" ; 
+        return os; 
+    }
+    #else
+    template<typename T>
+    inline std::ostream& operator<<(std::ostream& os, const std::complex<T>& z)  
+    {
+        os << "(" << std::setw(10) << std::fixed << std::setprecision(4) << z.real() 
+           << " " << std::setw(10) << std::fixed << std::setprecision(4) << z.imag() << ")s" ; 
+    }
+    #endif  // clarity is more important than brevity 
 #endif
 
 template<typename T>
 struct Matx
 {
-    std::complex<T> M00, M01 ;   // 2+2
-    std::complex<T> M10, M11 ;   // 2+2
-    void reset();                //  8 elements  
-    void dot(const Matx<T>& other); 
+#ifdef WITH_THRUST
+    thrust::complex<T> M00, M01, M10, M11 ;   
+#else
+    std::complex<T>    M00, M01, M10, M11 ;       
+#endif
+    LAYR_METHOD void reset();             
+    LAYR_METHOD void dot(const Matx<T>& other); 
 };
 
 template<typename T>
-inline void Matx<T>::reset()
+LAYR_METHOD void Matx<T>::reset()
 {
     M00.real(1) ; M00.imag(0) ; 
     M01.real(0) ; M01.imag(0) ; 
@@ -222,12 +263,17 @@ inline void Matx<T>::reset()
 
 **/
 template<typename T>
-inline void Matx<T>::dot(const Matx<T>& other)
+LAYR_METHOD void Matx<T>::dot(const Matx<T>& other)
 {
-    std::complex<T> T00(M00) ; 
-    std::complex<T> T01(M01) ; 
-    std::complex<T> T10(M10) ; 
-    std::complex<T> T11(M11) ; 
+#ifdef WITH_THRUST
+    using thrust::complex ; 
+#else
+    using std::complex ; 
+#endif
+    complex<T> T00(M00) ; 
+    complex<T> T01(M01) ; 
+    complex<T> T10(M10) ; 
+    complex<T> T11(M11) ; 
 
     M00 = T00*other.M00 + T01*other.M10;
     M01 = T00*other.M01 + T01*other.M11;
@@ -253,6 +299,12 @@ inline std::ostream& operator<<(std::ostream& os, const Matx<T>& m)
 Layr
 -----
 
+32 elements : persisted into shape (4,4,2) 
+
+Thickness of all layers::
+
+    a.lls[0,:,0,0,0]  
+
 List layer thickness and complex refractive indices::
 
     In [20]: np.c_[a.lls[0,:,0,0,0],a.lls[0,:,0,1]]
@@ -266,34 +318,32 @@ List layer thickness and complex refractive indices::
 template<typename T>
 struct Layr
 {
-    T  d ; T padding = 0 ;   // 2      a.lls[0,:,0,0,0]  d of the 4 layers 
-    std::complex<T> n ;      // 2      a.lls[0,:,0,1]    n (re,im) of the 4 layers
-    std::complex<T> st ;     // 2
-    std::complex<T> ct ;     // 2
+    T  d ;                                          // 1 elem
+    T  padding = 0 ;                                // 1 elem
+#ifdef WITH_THRUST 
+    thrust::complex<T> n, st, ct, rs, rp, ts, tp ;  // 2*7 = 14 elem
+#else
+    std::complex<T>    n, st, ct, rs, rp, ts, tp ; 
+#endif
 
-    std::complex<T> rs ;     // 2
-    std::complex<T> rp ;     // 2
-    std::complex<T> ts ;     // 2
-    std::complex<T> tp ;     // 2
+    Matx<T> S ;                                    // 4*2 = 8  elem 
+    Matx<T> P ;                                    // 4*2 = 8  elem
+                                                   // TOTAL : 2+14 + 16 = 32 elem
 
-    Matx<T> S ;              // 8  
-
-    Matx<T> P ;              // 8
-
-                             // 32 elements : persisted into shape (4,4,2) 
-    void reset(); 
-    void zero(); 
+    LAYR_METHOD void reset(); 
+  //  LAYR_METHOD void zero(); 
 };
 
 template<typename T>
-inline void Layr<T>::reset()
+LAYR_METHOD void Layr<T>::reset()
 {
     S.reset(); 
     P.reset(); 
 }
 
+/*
 template<typename T>
-inline void Layr<T>::zero()
+LAYR_METHOD void Layr<T>::zero()
 {
     d = 0      ;  padding = 0 ; 
     n.real(0)  ;  n.imag(0) ; 
@@ -310,6 +360,7 @@ inline void Layr<T>::zero()
     S.reset() ; 
     P.reset() ;     
 }
+*/
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -354,13 +405,13 @@ struct ART
 
     F A_s;     // A_s = a.arts[:,1,0]
     F A_p;     // A_p = a.arts[:,1,1]
-    F R;       // R = a.arts[:,1,2]
-    F T;       // T = a.arts[:,1,3]
+    F R;       // R   = a.arts[:,1,2]
+    F T;       // T   = a.arts[:,1,3]
 
-    F A;       // A = a.arts[:,2,0]
+    F A;       // A   = a.arts[:,2,0]
     F A_R_T ;  // A_R_T = a.arts[:,2,1] 
-    F wl ;     // wl = a.arts[:,2,2]
-    F th ;     // th = a.arts[:,2,3]   
+    F wl ;     // wl  = a.arts[:,2,2]
+    F th ;     // th  = a.arts[:,2,3]   
 
     // persisted into shape (3,4) 
 };
@@ -402,16 +453,21 @@ struct StackSpec
     T n2r, n2i, d2 ; 
     T n3r, n3i, d3 ; 
 
-    static StackSpec Default()
-    {
-        StackSpec ss ; 
-        ss.n0r = 1.f  ; ss.n0i = 0.f   ; ss.d0 =   0.f ; 
-        ss.n1r = 1.f  ; ss.n1i = 0.01f ; ss.d1 = 500.f ; 
-        ss.n2r = 1.f  ; ss.n2i = 0.01f ; ss.d2 = 500.f ; 
-        ss.n3r = 1.5f ; ss.n3i = 0.f   ; ss.d3 =   0.f ; 
-        return ss ; 
-    }
+    LAYR_METHOD static StackSpec Default() ; 
 };
+
+template<typename T>
+StackSpec<T> StackSpec<T>::Default()
+{
+    StackSpec ss ; 
+    ss.n0r = 1.f  ; ss.n0i = 0.f   ; ss.d0 =   0.f ; 
+    ss.n1r = 1.f  ; ss.n1i = 0.01f ; ss.d1 = 500.f ; 
+    ss.n2r = 1.f  ; ss.n2i = 0.01f ; ss.d2 = 500.f ; 
+    ss.n3r = 1.5f ; ss.n3i = 0.f   ; ss.d3 =   0.f ; 
+    return ss ; 
+}
+
+
 
 
 
@@ -419,88 +475,100 @@ struct StackSpec
 Stack
 -------
 
-HMM: in reality the refractive indices all depend 
-on wavelength so need to know the wavelength at instanciation
-of the stack : only the angle can sensibly be an argument
-to computeART and even that will requires re-computation 
-of almost all the parameters of the layers.
+The refractive indices all depend on wavelength so need 
+to know the wavelength at instanciation of the stack. 
 
-So the object is almost useless other than for organization, 
-as have to recompute everything every time. 
+Currently the angle is used as an argument to computeART, 
+but that is only useful in testing when want to scan angles
+for a constant wavelength.  
+Because almost everything must be recomputed when the angle 
+changes could have angle as ctor argument. 
 
-Would splitting interface and propagation matrices
-help with avoiding having to do everything everytime ?
+So this object is almost useless, other than for organization, 
+as have to recompute everything every time, so 
+could equally use a flat function. 
+
+Would splitting interface and propagation matrices help with avoiding 
+having to do everything everytime ? NO, it seems unavoidable.  
+
+In real situation will need to do property or texture 
+lookups to get the indices using the wavelength. 
+The thicknesses at least are constant, so they could
+be accessed CPU side and planted into the GPU counterpart struct
+and then uploaded ready to hit-ground-running.
+
+NB wavelength and layer thickness must use same length unit, 
+are using nm currently 
 
 **/
 
 template <typename T, int N>
 struct Stack
 {
-    Stack(T wl, const StackSpec<T>& ss);
- 
-    const StackSpec<T> ss ; 
     Layr<T> ll[N] ;  
-    Layr<T> comp ; 
+    Layr<T> comp ;  // composite for the N layers 
     ART<T>  art ; 
 
-    void computeART(T th); 
+    LAYR_METHOD Stack(T wl, const StackSpec<T>& ss);
+    LAYR_METHOD void computeART(T th); 
 };
 
-/**
-Stack
--------
-in reality will need to do property or texture 
-lookups here to get the indices using the wavelength
-(the thicknesses at least are constant, so they could
-be accessed CPU side and planted into the GPU counterpart struct
-and then uploaded ready to hit-ground-running)
 
-nm (same length unit as wavelength)
-
-**/
 
 template<typename T, int N>
-Stack<T,N>::Stack(T wl, const StackSpec<T>& ss_) 
-    :
-    ss(ss_)
+LAYR_METHOD Stack<T,N>::Stack(T wl, const StackSpec<T>& ss ) 
 {
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
     assert( N == 4 ); 
-    Layr<T>& l0 = ll[0] ; 
-    Layr<T>& l1 = ll[1] ; 
-    Layr<T>& l2 = ll[2] ; 
-    Layr<T>& l3 = ll[3] ; 
-
-    l0.n.real(ss.n0r) ; l0.n.imag(ss.n0i) ; l0.d = ss.d0 ; 
-    l1.n.real(ss.n1r) ; l1.n.imag(ss.n1i) ; l1.d = ss.d1 ; 
-    l2.n.real(ss.n2r) ; l2.n.imag(ss.n2i) ; l2.d = ss.d2 ;          
-    l3.n.real(ss.n3r) ; l3.n.imag(ss.n3i) ; l3.d = ss.d3 ; 
-
+#endif
+    ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
+    ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 
+    ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
+    ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
     art.wl = wl ; 
 }
 
-
 template <typename T, int N>
-void Stack<T,N>::computeART(T th )
+LAYR_METHOD void Stack<T,N>::computeART(T th )
 {
-    const T zero(0) ; 
-    const T one(1) ; 
-    const T two(2) ; 
-    const T twopi(two*M_PI) ; 
-    // how to avoid transient double on GPU when T=float ?
-    const std::complex<T> zO(one,zero); 
-    const std::complex<T> zI(zero,one); 
-      
+#ifdef WITH_THRUST
+    using thrust::complex ; 
+    using thrust::norm ; 
+    using thrust::conj ; 
+    using thrust::exp ; 
+    using thrust::sqrt ; 
+    using thrust::sin ; 
+    using thrust::cos ; 
+#else
+    using std::complex ; 
+    using std::norm ; 
+    using std::conj ; 
+    using std::exp ; 
+    using std::sqrt ; 
+    using std::sin ; 
+    using std::cos ; 
+#endif
 
-    // Snell : set st,ct of all layers 
-    // (depending on indices(hence wl) and incident angle) 
+    const T zero(Const::zero<T>()) ; 
+    const T one(Const::one<T>()) ; 
+    const T two(Const::two<T>()) ; 
+    const T twopi(Const::twopi<T>()) ; 
+
+    const complex<T> zO(one,zero); 
+    const complex<T> zI(zero,one); 
+    const complex<T> theta(th);     // simpler for everything to be complex
+
+    // Snell : set st,ct of all layers (depending on indices(hence wl) and incident angle) 
     Layr<T>& l0 = ll[0] ; 
-    l0.st = std::sin(th) ; 
-    l0.ct = std::cos(th) ;
+    l0.st = sin(theta) ;  
+    l0.ct = cos(theta) ;
+
     for(int idx=1 ; idx < N ; idx++)
     {
         Layr<T>& l = ll[idx] ; 
         l.st = l0.n * l0.st / l.n  ; 
-        l.ct = std::sqrt( zO - l.st*l.st );
+        l.ct = sqrt( zO - l.st*l.st );
     }     
 
     // Fresnel : set rs/rp/ts/tp for N-1 interfaces between N layers
@@ -528,14 +596,14 @@ void Stack<T,N>::computeART(T th )
         const Layr<T>& i = ll[idx-1] ;          
         Layr<T>& j = ll[idx] ;          
 
-        std::complex<T> tmp_s = one/i.ts ; 
-        std::complex<T> tmp_p = one/i.tp ; 
+        complex<T> tmp_s = one/i.ts ; 
+        complex<T> tmp_p = one/i.tp ; 
 
         // thick layers have d = 0. 
         // thin layers have thickness presumably comparable to art.wl (WITH SAME LENGTH UNIT: nm)
-        std::complex<T> delta         = j.d == zero ? zero : twopi*j.n*j.d*j.ct/art.wl ; 
-        std::complex<T> exp_neg_delta = j.d == zero ? one  : std::exp(-zI*delta) ; 
-        std::complex<T> exp_pos_delta = j.d == zero ? one  : std::exp( zI*delta) ; 
+        complex<T> delta         = j.d == zero ? zero : twopi*j.n*j.d*j.ct/art.wl ; 
+        complex<T> exp_neg_delta = j.d == zero ? one  : exp(-zI*delta) ; 
+        complex<T> exp_pos_delta = j.d == zero ? one  : exp( zI*delta) ; 
 
         j.S.M00 = tmp_s*exp_neg_delta      ; j.S.M01 = tmp_s*i.rs*exp_pos_delta ; 
         j.S.M10 = tmp_s*i.rs*exp_neg_delta ; j.S.M11 =      tmp_s*exp_pos_delta ; 
@@ -597,12 +665,12 @@ void Stack<T,N>::computeART(T th )
     //  https://en.wikipedia.org/wiki/Fresnel_equations  has _T_s 
     //  https://www.brown.edu/research/labs/mittleman/sites/brown.edu.research.labs.mittleman/files/uploads/lecture13_0.pdf
 
-    std::complex<T> _T_s = (b.n*b.ct)/(t.n*t.ct)*std::norm(comp.ts) ;  
-    std::complex<T> _T_p = (std::conj(b.n)*b.ct)/(std::conj(t.n)*t.ct)*std::norm(comp.tp) ; 
+    complex<T> _T_s = (b.n*b.ct)/(t.n*t.ct)*norm(comp.ts) ;  
+    complex<T> _T_p = (conj(b.n)*b.ct)/(conj(t.n)*t.ct)*norm(comp.tp) ; 
     // _T_p top and bot layers usually with real index ? so the conj above just noise ?
 
-    art.R_s = std::norm(comp.rs) ; 
-    art.R_p = std::norm(comp.rp) ; 
+    art.R_s = norm(comp.rs) ; 
+    art.R_p = norm(comp.rp) ; 
     art.T_s = _T_s.real() ; 
     art.T_p = _T_p.real() ; 
 
