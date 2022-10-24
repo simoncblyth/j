@@ -1,14 +1,17 @@
 #!/bin/bash -l
+usage(){ cat << EOU
+buildtest.sh 
+==============
+
+
+
+EOU
+}
 
 #defkls=ALL
 #defkls=MultiFilmModel
 defkls=Layr
 kls=${1:-$defkls}
-
-if [ "$kls" == "ana" ]; then
-    ${IPYTHON:-ipython} --pdb -i LayrTest.py 
-    exit 0 
-fi 
 
 get_srcs()
 {
@@ -31,6 +34,7 @@ if [ "$kls" == "ALL" ]; then
 else
     klss="$kls"
 fi 
+          
 
 for kls in $klss ; do 
     srcs=$(get_srcs $kls)
@@ -39,8 +43,8 @@ for kls in $klss ; do
         -std=c++11 -lstdc++ \
           -I. \
           -I/usr/local/cuda/include \
-          -DWITH_THRUST \
           -I$HOME/np \
+          -DWITH_THRUST \
           -o /tmp/${kls}Test 
 
     [ $? -ne 0 ] && echo $BASH_SOURCE build error for kls $kls && exit 1

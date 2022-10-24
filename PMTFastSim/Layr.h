@@ -13,7 +13,9 @@ to being ported to GPU
 References for Thin Film Optics Using "Transfer Matrix Method" (aka TMM)
 ----------------------------------------------------------------------------
 
+* https://en.wikipedia.org/wiki/Thin-film_optics
 * https://en.wikipedia.org/wiki/Transfer-matrix_method_(optics)
+* https://www.patarnott.com/atms749/pdf/FresnelEquations.pdf
 
 * https://arxiv.org/abs/1603.02720
 * ~/opticks_refs/Byrnes_Multilayer_optical_calculations_1603.02720.pdf

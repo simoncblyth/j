@@ -6,12 +6,21 @@ from opticks.ana.fold import Fold
 if __name__ == '__main__':
     a = Fold.Load("/tmp/LayrTest0", symbol="a")
     b = Fold.Load("/tmp/LayrTest1", symbol="b")
+    a_brief = a.arts_meta.d["brief"] 
+    b_brief = b.arts_meta.d["brief"] 
+
+    print(a_brief)
     print(repr(a))
+
+    print(b_brief)
     print(repr(b))
 
-    assert  np.all( a.lls == b.lls ) 
-    assert  np.all( a.comps == b.comps ) 
-    assert  np.all( a.arts == b.arts ) 
+    if not a is None and not b is None:
+        print("compare a and b") 
+        assert  np.all( a.lls == b.lls ) 
+        assert  np.all( a.comps == b.comps ) 
+        assert  np.all( a.arts == b.arts ) 
+    pass
 
 
     R_s = a.arts[:,0,0]
@@ -29,9 +38,8 @@ if __name__ == '__main__':
     wl = a.arts[:,2,2] 
     th = a.arts[:,2,3]
 
-    
 
-    title = "LayrTest.py wl:%s " % wl[0] 
+    title = a_brief
     dd_nn = str(np.c_[a.lls[0,:,0,0,0],a.lls[0,:,0,1]])
 
     SIZE = np.array([1280, 720])
