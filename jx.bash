@@ -481,8 +481,12 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
        echo $msg ZEROPHO-NOT-enabled
    fi 
 
-
-
+   if [ -n "$SAVE" ]; then
+       export G4CXOpticks__simulate_saveEvent=1
+       export G4CXOpticks=INFO  
+   else
+       echo $msg SAVE not defined 
+   fi 
 
    if [ -n "$GEOM" ]; then 
        export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
