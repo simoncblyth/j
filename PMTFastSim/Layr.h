@@ -173,6 +173,13 @@ TODO : devise CPU/GPU counterpart paired structs for this calculation
 #endif
 
 
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+    #include <cassert>
+#endif
+
+
+
 #include "math_constants.h"
 
 /**
@@ -333,7 +340,6 @@ struct Layr
                                                    // TOTAL : 2+14 + 16 = 32 elem
 
     LAYR_METHOD void reset(); 
-  //  LAYR_METHOD void zero(); 
 };
 
 template<typename T>
@@ -342,27 +348,6 @@ LAYR_METHOD void Layr<T>::reset()
     S.reset(); 
     P.reset(); 
 }
-
-/*
-template<typename T>
-LAYR_METHOD void Layr<T>::zero()
-{
-    d = 0      ;  padding = 0 ; 
-    n.real(0)  ;  n.imag(0) ; 
-
-    st.real(0) ; st.imag(0) ; 
-    ct.real(0) ; ct.imag(0) ; 
-
-    rs.real(0) ; rs.imag(0) ; 
-    rp.real(0) ; rp.imag(0) ; 
-
-    ts.real(0) ; ts.imag(0) ; 
-    tp.real(0) ; tp.imag(0) ; 
-
-    S.reset() ; 
-    P.reset() ;     
-}
-*/
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -481,7 +466,7 @@ The refractive indices all depend on wavelength so need
 to know the wavelength at instanciation of the stack. 
 
 Currently the angle is used as an argument to computeART, 
-but that is only useful in testing when want to scan angles
+but that is only useful during testing when want to scan angles
 for a constant wavelength.  
 Because almost everything must be recomputed when the angle 
 changes could have angle as ctor argument. 
@@ -495,6 +480,7 @@ having to do everything everytime ? NO, it seems unavoidable.
 
 In real situation will need to do property or texture 
 lookups to get the indices using the wavelength. 
+So will need an object to hold onto the props or textures. 
 The thicknesses at least are constant, so they could
 be accessed CPU side and planted into the GPU counterpart struct
 and then uploaded ready to hit-ground-running.

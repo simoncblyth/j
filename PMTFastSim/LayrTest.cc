@@ -2,15 +2,31 @@
 
 int main(int argc, char** argv)
 {
-    LayrTest<double,4> t0 ; 
-    t0.scan() ;
-    t0.save("/tmp/LayrTest0") ;
-    std::cout << t0.desc() << std::endl ; 
+    {
+        StackSpec<float> spec(StackSpec<float>::Default()); 
+        LayrTest<float,4> t ; 
+        t.scan_cpu(spec) ;
+    }
+    
+    {
+        StackSpec<float> spec(StackSpec<float>::Default()); 
+        LayrTest<float,4> t ; 
+        t.scan_gpu(spec) ;
+    }
 
-    LayrTest<float,4> t1 ; 
-    t1.scan() ;
-    t1.save("/tmp/LayrTest1") ;
-    std::cout << t1.desc() << std::endl ; 
+    {
+        StackSpec<double> spec(StackSpec<double>::Default()); 
+        LayrTest<double,4> t ; 
+        t.scan_cpu(spec) ;
+    }
+
+    /*
+    {
+        StackSpec<double> spec(StackSpec<double>::Default()); 
+        LayrTest<double,4> t ; 
+        t.scan_gpu(spec) ;
+    }
+    */
 
     return 0 ; 
 }

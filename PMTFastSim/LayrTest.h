@@ -10,24 +10,32 @@ for both CPU and GPU testing ?
    to the arrays which can be passed to device holding 
    the device pointers. 
 
+2. for nvcc compilation just need the layout of the structs, not the methods
 
 **/
 
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+
 #include "NP.hh"
 #include "SU.hh"
+#include <cuda_runtime.h>
+
+#endif
+
 #include "Layr.h"
 
 template<typename T, int N>
 struct LayrTestData
 {
-    int      ni ;   // number of angles 
-    T        wl ; 
+    int      ni ;     // number of items : currently angles 
+    T        wl ;     // hmm could vary wl, by making this an array 
     T*       theta ; 
     ART<T>*  arts ; 
     Layr<T>* comps ;  
     Layr<T>* lls ; 
 };
-
 
 template<typename T, int N>
 struct LayrTest
@@ -35,24 +43,34 @@ struct LayrTest
     LayrTestData<T,N> h ; // host
     LayrTestData<T,N> d ; // device
     LayrTestData<T,N>* d_ptr ; 
+    bool             gpu ; 
+    const char*      base ; 
 
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
     LayrTest(int ni=90, T wl=0);
 
     void upload(); 
     void download(); 
 
-    void scan(); 
-    void scan(const StackSpec<T>& ss, bool reverse=false); 
+    void scan_gpu(const StackSpec<T>& spec); 
+    void scan_cpu(const StackSpec<T>& spec); 
 
-    void save(const char* dir) const ; 
+    const char* get_dir() const ; 
+    void save() const ; 
     std::string desc() const ; 
     std::string brief() const ; 
+#endif
 };
 
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
 template<typename T, int N>
 inline LayrTest<T,N>::LayrTest(int ni, T wl)
     :
-    d_ptr(nullptr)
+    d_ptr(nullptr),
+    gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
+    base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest"))
 {
     h.ni = ni ; 
     h.wl = wl > 0 ? wl : U::GetE<double>("WL", 500.) ; 
@@ -97,9 +115,28 @@ inline void LayrTest<T,N>::download()
 }
 
 
+
+
+template <typename T, int N>
+extern void LayrTest_launch( LayrTest<T,N>& t, const StackSpec<T>& spec ); 
+
+
+template<typename T, int N>
+inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
+{
+    gpu = true ; 
+    upload(); 
+
+    LayrTest_launch<T,N>(*this, spec) ; 
+
+    cudaDeviceSynchronize();
+    download();
+    save(); 
+}
+
 /**
-LayrTest::scan
----------------
+LayrTest::scan_cpu
+---------------------
 
 Initially it feels like a cheap trick (avoiding need for rerunable object) 
 to instanciate the Stack object within the scan loop. 
@@ -113,21 +150,16 @@ Get very large mismatch between float and double in lls and comp for th pi/2 (90
 TODO: look into details to see if this glancing edge case needs some special treatment. 
 
 **/
-
-template<typename T, int N>
-inline void LayrTest<T,N>::scan()
-{
-    StackSpec<T> spec(StackSpec<T>::Default()); 
-    scan(spec); 
-}
  
 template<typename T, int N>
-inline void LayrTest<T,N>::scan(const StackSpec<T>& spec, bool reverse)
+inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
 {
-    Stack<T,N> stack(h.wl, spec) ; 
+    gpu = false ; 
+    bool reverse = false ; 
+    Stack<T,N> stack(h.wl, spec ) ; 
     for(int i=0 ; i < h.ni ; i++ )
     {
-        int j = reverse ? h.ni - 1 - i : i ;   // reverse is just a debugging trick 
+        int j = reverse ? h.ni - 1 - i : i ; 
         stack.computeART(h.theta[j]); 
 
         h.arts[j] = stack.art; 
@@ -137,6 +169,7 @@ inline void LayrTest<T,N>::scan(const StackSpec<T>& spec, bool reverse)
         //std::cout << stack << std::endl ; 
         //std::cout << "j:" << j << std::endl << stack.art << std::endl ; 
     }
+    save(); 
 }
 
 template<typename T, int N>
@@ -156,23 +189,24 @@ inline std::string LayrTest<T,N>::desc() const
     return s ; 
 }
 
-
 template<typename T, int N>
 inline std::string LayrTest<T,N>::brief() const 
 {
+    const char* dir = get_dir() ; 
     std::stringstream ss ; 
     ss
-        << "LayrTest<"  << ( sizeof(T) == 8 ? "double" : "float" ) << "," << N << ">"   
+        << "LayrTest"
+        << "<"  
+        << ( sizeof(T) == 8 ? "double" : "float" ) 
+        << "," 
+        << N 
+        << ">"   
 #ifdef WITH_THRUST
         << " WITH_THRUST "
 #else
         << " not-WITH_THRUST "
 #endif
-#if defined(__CUDACC__) || defined(__CUDABE__)
-        << " (GPU) "
-#else
-        << " (CPU) "
-#endif
+        << " dir " << dir 
         << " ni " << h.ni         
         << " wl " << h.wl         
         << " theta[0] " << h.theta[0]
@@ -183,21 +217,39 @@ inline std::string LayrTest<T,N>::brief() const
 }
 
 template<typename T, int N>
-inline void LayrTest<T,N>::save(const char* dir) const 
+inline const char* LayrTest<T,N>::get_dir() const 
 {
+    std::stringstream ss ; 
+    ss << base 
+       << "/" 
+       << "scan_" 
+       << ( gpu ? "gpu" : "cpu" ) 
+       << "_" 
+       << ( sizeof(T) == 8 ? "double" : "float" ) 
+       ;
+    std::string s = ss.str(); 
+    return strdup(s.c_str()) ; 
+}
+
+template<typename T, int N>
+inline void LayrTest<T,N>::save() const 
+{
+    std::string br = brief(); 
+    std::cout << br << std::endl ;  
+
     assert( sizeof(ART<T>)/sizeof(T) == 12 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
-    NP::Write(dir,"comps.npy",(T*)h.comps, h.ni, 4, 4, 2 ) ;    // 1 composite layer (4,4,2) at each angle
-    NP::Write(dir,"lls.npy",  (T*)h.lls  , h.ni, 4, 4, 4, 2 ) ; // 4 layers (4,4,2) at each angle 
+    const char* dir = get_dir() ; 
+    NP::Write(dir,"comps.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
+    NP::Write(dir,"lls.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
 
     // use manual way for _arts so can set metadata
-    NP* _arts = NP::Make<T>( h.ni, 3, 4 ); // one ART result (3,4) at each angle 
+    NP* _arts = NP::Make<T>( h.ni, 3, 4 );
     _arts->read2( (T*)h.arts ); 
-    _arts->set_meta<std::string>("brief", brief()); 
+    _arts->set_meta<std::string>("brief", br); 
     _arts->set_meta<T>("wl", h.wl); 
     _arts->save(dir, "arts.npy" ); 
 }
-
-
+#endif
 

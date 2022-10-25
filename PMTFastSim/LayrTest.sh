@@ -1,6 +1,8 @@
 #!/bin/bash -l 
 
 usage(){ cat << EOU
+LayrTest.sh
+=============
 
 
 EOU
@@ -33,19 +35,6 @@ if [ "${arg/build}" != "$arg" ]; then
     eval $cmd
     [ $? -ne 0 ] && echo $BASH_SOURCE : nvcc link error  && exit 3
 fi
-
-if [ "${arg/simple}" != "$arg" ]; then
-
-    cmd="nvcc $name.cu $opt $linkflags  -DWITH_CUDA_LAUNCH_MAIN -o /tmp/$name/${name}_simple"
-    echo $cmd
-    eval $cmd
-    [ $? -ne 0 ] && echo $BASH_SOURCE : nvcc simple build error  && exit 4
-
-    /tmp/$name/${name}_simple
-    [ $? -ne 0 ] && echo $BASH_SOURCE : nvcc simple run error  && exit 5
-fi 
-
-
 
 if [ "${arg/run}" != "$arg" ]; then
     /tmp/$name/$name
