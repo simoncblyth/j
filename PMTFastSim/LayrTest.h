@@ -88,9 +88,10 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl)
 }
 
 template<typename T, int N>
-inline void LayrTest<T,N>::upload()
+inline void LayrTest<T,N>::upload()   // prepare device side arrays
 {
-    // prepare device side arrays
+    printf("[upload\n"); 
+
     int ni = h.ni ; 
     d.ni = ni ; 
     d.wl = h.wl ;
@@ -102,6 +103,8 @@ inline void LayrTest<T,N>::upload()
     SU::copy_host_to_device_sizeof( (char*)d.theta, (char*)h.theta, ni, sizeof(T) ); 
 
     d_ptr = (LayrTestData<T,N>*)SU::upload_array_sizeof(  (char*)&d, 1, sizeof(LayrTestData<T,N>) );  
+
+    printf("]upload d_ptr %p \n", d_ptr ); 
 }
 
 template<typename T, int N>

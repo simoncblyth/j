@@ -1,5 +1,4 @@
-//#include "stdio.h"
-
+#include "stdio.h"
 #include <cassert>
 #include "Layr.h"
 #include "LayrTest.h"
@@ -7,13 +6,13 @@
 #define LAYRTEST_API  __attribute__ ((visibility ("default")))
 
 template<typename T, int N>
-__global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T>& spec )
+__global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T> spec )
 { 
     unsigned idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx >= ltd->ni) return ;  
+    //printf("// ltd.ni %d idx %d spec.n1i %10.4f \n", ltd->ni, idx, spec.n1i ); 
 
     T th = ltd->theta[idx] ; 
-    //StackSpec<T> spec = StackSpec<T>::Default() ;  // TODO: pass this in 
 
     Stack<T,N> stk(ltd->wl, spec) ; 
     stk.computeART(th); 
@@ -39,11 +38,13 @@ void ConfigureLaunch(dim3& numBlocks, dim3& threadsPerBlock, unsigned width )
 template<typename T, int N>
 void LayrTest_launch(LayrTest<T,N>& t, const StackSpec<T>& spec )
 {
+    //printf("[LayrTest_launch t.d_ptr %p \n", t.d_ptr ); 
     assert( t.d_ptr ); 
     dim3 numBlocks ; 
     dim3 threadsPerBlock ; 
     ConfigureLaunch(numBlocks, threadsPerBlock, t.d.ni );  
     Stack_computeART_gpu<T,N><<<numBlocks,threadsPerBlock>>>(t.d_ptr, spec) ; 
+    //printf("]LayrTest_launch t.d_ptr %p \n", t.d_ptr ); 
 }
 
 template LAYRTEST_API void LayrTest_launch(LayrTest<float, 4>&, const StackSpec<float>&  ); 
