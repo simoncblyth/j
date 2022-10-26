@@ -1,8 +1,10 @@
 #!/bin/bash -l 
-
 usage(){ cat << EOU
 LayrTest.sh
 =============
+
+SysRap lib only needed for WITH_THRUST GPU running 
+by the NP.hh header is needed in both cases
 
 
 EOU
@@ -14,12 +16,22 @@ defarg=build_run_ana
 arg=${1:-$defarg}
 
 opt="-std=c++11 -I. -I/usr/local/cuda/include -I$OPTICKS_PREFIX/include/SysRap"
-opt="$opt -DWITH_THRUST"
+linkflags="-lstdc++"
 
-linkflags="-lstdc++ -L$OPTICKS_PREFIX/lib -lSysRap"
+WITH_THRUST=1  # comment for CPU only test
+
+if [ -n "$WITH_THRUST" ]; then 
+    opt="$opt -DWITH_THRUST"
+    linkflags="$linkflags -L$OPTICKS_PREFIX/lib -lSysRap"
+    echo $BASH_SOURCE : WITH_THRUST config  
+else
+    echo $BASH_SOURCE : not WITH_THRUST config 
+fi
+
 
 fold=/tmp/$USER/opticks/$name
 export LAYRTEST_BASE=$fold
+
 
 if [ "${arg/clean}" != "$arg" ]; then
     rm -rf $fold
@@ -30,7 +42,7 @@ if [ "${arg/build}" != "$arg" ]; then
     mkdir -p $fold
     if [ "${opt/WITH_THRUST}" != "$opt" ]; then
 
-        cmds=( "gcc -c $name.cc $opt -o  $fold/$name.o"
+        cmds=( "gcc  -c $name.cc $opt -o $fold/$name.o"
                "nvcc -c $name.cu $opt -o $fold/${name}_cu.o"
                "nvcc -o $fold/$name $linkflags $fold/$name.o $fold/${name}_cu.o " 
                "rm $fold/$name.o $fold/${name}_cu.o "

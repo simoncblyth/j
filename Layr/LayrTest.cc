@@ -3,7 +3,8 @@
 int main(int argc, char** argv)
 {
     {
-        StackSpec<float> spec(StackSpec<float>::Default()); 
+        StackSpec<float> spec(StackSpec<float>::EGet()); 
+        std::cout << spec << std::endl ; 
 
         LayrTest<float,4> t0 ; 
         t0.scan_cpu(spec) ;
@@ -15,7 +16,8 @@ int main(int argc, char** argv)
     }
 
     {
-        StackSpec<double> spec(StackSpec<double>::Default()); 
+        StackSpec<double> spec(StackSpec<double>::EGet()); 
+        std::cout << spec << std::endl ; 
 
         LayrTest<double,4> t0 ; 
         t0.scan_cpu(spec) ;

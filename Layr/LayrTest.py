@@ -57,6 +57,7 @@ class LayrTest(object):
         pass
         self.label = label
         self.title = title
+        self.symbol = f.symbol
     def __repr__(self):
         return self.title
 
@@ -76,6 +77,8 @@ class LayrTestSet(object):
             name = self.NAMES[idx]
             symbol = self.SYMBOLS[idx]
             test = LayrTest(Fold.Load(self.BASE, name,  symbol=symbol))
+            test.name = name 
+
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
 
@@ -99,9 +102,8 @@ class LayrTestSet(object):
 
 
 
-class AB(object):
+class CF(object):
     def __init__(self, A, B):
-
         self.A = A 
         self.B = B 
 
@@ -113,7 +115,8 @@ class AB(object):
              return "CANNOT COMPARE"
         pass
 
-        lines = ["AB"]
+        CF_label = "CF(%s,%s) : %s vs %s " % (A.symbol, B.symbol, A.name, B.name ) 
+        lines = [CF_label]
         lines += [A.label]
         lines += [B.label]
 
@@ -165,11 +168,9 @@ class ARTPlot(object):
 
 if __name__ == '__main__':
 
-
     ts = LayrTestSet()  
     print(repr(ts))
-
-    print(repr(AB(a,b)))
+    print(repr(CF(a,b)))
 
 pass
 

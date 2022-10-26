@@ -21,6 +21,7 @@ See Layr.rst for notes on TMM method theory and implementation on CPU nd GPU
 #include <sstream>
 #include <string>
 #include <cassert>
+#include "ssys.h"
 #endif
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
@@ -261,6 +262,13 @@ struct StackSpec
     T n3r, n3i, d3 ; 
 
     LAYR_METHOD static StackSpec Default() ; 
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+    LAYR_METHOD static StackSpec EGet() ; 
+#endif
+
+
 };
 
 template<typename T>
@@ -273,6 +281,75 @@ StackSpec<T> StackSpec<T>::Default()
     ss.n3r = 1.5f ; ss.n3i = 0.f   ; ss.d3 =   0.f ; 
     return ss ; 
 }
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+template<typename T>
+LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
+{
+    std::vector<T>* l0 = ssys::getenvvec<T>("L0", "1,0,0") ;    
+    std::vector<T>* l1 = ssys::getenvvec<T>("L1", "1,0.01,500") ;    
+    std::vector<T>* l2 = ssys::getenvvec<T>("L2", "1,0.01,500") ;    
+    std::vector<T>* l3 = ssys::getenvvec<T>("L3", "1.5,0,0") ;    
+
+    assert( l0 && l0->size() <= 3u ); 
+    assert( l1 && l1->size() <= 3u ); 
+    assert( l2 && l2->size() <= 3u ); 
+    assert( l3 && l3->size() <= 3u ); 
+
+    const T zero(0) ; 
+    StackSpec ss ;
+ 
+    ss.n0r = l0->size() > 0u ? (*l0)[0] : zero ; 
+    ss.n0i = l0->size() > 1u ? (*l0)[1] : zero ; 
+    ss.d0  = l0->size() > 2u ? (*l0)[2] : zero ; 
+
+    ss.n1r = l1->size() > 0u ? (*l1)[0] : zero ; 
+    ss.n1i = l1->size() > 1u ? (*l1)[1] : zero ; 
+    ss.d1  = l1->size() > 2u ? (*l1)[2] : zero ; 
+
+    ss.n2r = l2->size() > 0u ? (*l2)[0] : zero ;
+    ss.n2i = l2->size() > 1u ? (*l2)[1] : zero ; 
+    ss.d2  = l2->size() > 2u ? (*l2)[2] : zero ; 
+
+    ss.n3r = l3->size() > 0u ? (*l3)[0] : zero ; 
+    ss.n3i = l3->size() > 1u ? (*l3)[1] : zero ; 
+    ss.d3  = l3->size() > 2u ? (*l3)[2] : zero ; 
+     
+    return ss ; 
+} 
+
+template<typename T>
+LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T>& ss )  
+{
+    os 
+        << "StackSpec<" << ( sizeof(T) == 8 ? "double" : "float" ) << ">"  
+        << std::endl 
+        << "L0 (" 
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n0r << " "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n0i << " ; "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d0  << ")"
+        << std::endl 
+        << "L1 (" 
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n1r << " "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n1i << " ; "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d1  << ")"
+        << std::endl 
+        << "L2 (" 
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n2r << " "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n2i << " ; " 
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d2  << ")"
+        << std::endl 
+        << "L3 (" 
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n3r << " "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n3i << " ; "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d3  << ")"
+        << std::endl 
+        ;
+    return os; 
+}
+
+#endif
 
 
 /**
@@ -441,7 +518,6 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss )
     art.A_R_T = art.A + art.R + art.T ;  
 }
 
-
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
 template <typename T, int N>
@@ -459,5 +535,4 @@ inline std::ostream& operator<<(std::ostream& os, const Stack<T,N>& stk )
     return os; 
 }
 #endif
-
 
