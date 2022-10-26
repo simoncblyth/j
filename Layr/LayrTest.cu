@@ -10,12 +10,11 @@ __global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T> 
 { 
     unsigned idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx >= ltd->ni) return ;  
-    //printf("// ltd.ni %d idx %d spec.n1i %10.4f \n", ltd->ni, idx, spec.n1i ); 
+ 
+    const T th = ltd->theta[idx] ; 
+    //printf("// ltd.ni %d idx %d spec.n1i %10.4f th %10.4f   \n", ltd->ni, idx, spec.n1i, th ); 
 
-    T th = ltd->theta[idx] ; 
-
-    Stack<T,N> stk(ltd->wl, spec) ; 
-    stk.computeART(th); 
+    Stack<T,N> stk(ltd->wl, th, spec) ; 
 
     ltd->arts[idx] = stk.art ; 
     ltd->comps[idx] = stk.comp ; 

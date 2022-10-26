@@ -36,8 +36,9 @@ LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_double 
 
 """
 
-import numpy as np
+import os, builtins, numpy as np
 from opticks.ana.fold import Fold 
+SIZE = np.array([1280, 720])
 
 
 def both(x,y):
@@ -59,19 +60,66 @@ class LayrTest(object):
     def __repr__(self):
         return self.title
 
-    @classmethod
-    def Compare(cls, x, y, cflabel):
-        if x is None or y is None or x.f is None or y.f is None:
-             return "skip comparison : %s " % cflabel 
+
+class LayrTestSet(object):
+    BASE = os.environ.get("LAYRTEST_BASE", "/tmp/LayrTest")
+    NAMES = list(filter(lambda name:name.startswith("scan_"),os.listdir(BASE))) 
+    SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
+
+    def __init__(self):
+
+        tests = []
+        names = [] 
+        symbols = []
+
+        for idx in range(len(self.NAMES)):
+            name = self.NAMES[idx]
+            symbol = self.SYMBOLS[idx]
+            test = LayrTest(Fold.Load(self.BASE, name,  symbol=symbol))
+            setattr(builtins, symbol, test)
+            setattr(self, symbol, test) 
+
+            tests.append(test)
+            names.append(name)
+            symbols.append(symbol) 
+        pass
+        self.tests = tests
+        self.symbols = symbols
+        self.names = names
+
+    def __repr__(self):
+        lines = []
+        lines.append("CFLayrTest")
+        for idx in range(len(self.tests)):
+            symbol = self.symbols[idx]
+            name = self.names[idx]
+            lines.append("%2s : %s " % (symbol, name))    
+        pass
+        return "\n".join(lines)
+
+
+
+class AB(object):
+    def __init__(self, A, B):
+
+        self.A = A 
+        self.B = B 
+
+    def __repr__(self):
+        A = self.A
+        B = self.B 
+
+        if A is None or B is None or A.f is None or B.f is None:
+             return "CANNOT COMPARE"
         pass
 
-        lines = ["compare : %s " % cflabel ]
-        lines += [x.label]
-        lines += [y.label]
+        lines = ["AB"]
+        lines += [A.label]
+        lines += [B.label]
 
-        xy_lls   = x.f.lls - y.f.lls
-        xy_comps = x.f.comps - y.f.comps
-        xy_arts  = x.f.arts - y.f.arts
+        xy_lls   = A.f.lls - B.f.lls
+        xy_comps = A.f.comps - B.f.comps
+        xy_arts  = A.f.arts - B.f.arts
 
         lines += [ "%10s : %s : %s  " % ("lls",   xy_lls.max(),   xy_lls.min()) ]
         lines += [ "%10s : %s : %s "  % ("comps", xy_comps.max(), xy_comps.min()) ]  
@@ -79,57 +127,49 @@ class LayrTest(object):
 
         return "\n".join(lines)
 
+
+class ARTPlot(object):
+    def __init__(self, test):
+
+        f = test.f
+        title = test.title 
+
+        R_s = f.arts[:,0,0]
+        R_p = f.arts[:,0,1]
+        T_s = f.arts[:,0,2]
+        T_p = f.arts[:,0,3]
+
+        A_s = f.arts[:,1,0]
+        A_p = f.arts[:,1,1]
+        R = f.arts[:,1,2]
+        T = f.arts[:,1,3]
+
+        A = f.arts[:,2,0]
+        A_R_T = f.arts[:,2,1]
+        wl = f.arts[:,2,2] 
+        th = f.arts[:,2,3]
+
+        fig, ax = plt.subplots(1, figsize=SIZE/100.)
+        fig.suptitle(title)   
+
+        ax.plot(th, R, label="R")
+        ax.plot(th, T, label="T")
+        ax.plot(th, A, label="A")
+        ax.plot(th, A_R_T, label="A_R_T")
+
+        ax.legend() 
+        fig.show()                
+
+
+
+
 if __name__ == '__main__':
 
-    base= os.environ.get("LAYRTEST_BASE", "/tmp/LayrTest")
-    a = LayrTest(Fold.Load(base, "scan_cpu_float",  symbol="a"))
-    b = LayrTest(Fold.Load(base, "scan_gpu_float",  symbol="b"))
-    c = LayrTest(Fold.Load(base, "scan_cpu_double", symbol="c"))
-    d = LayrTest(Fold.Load(base, "scan_gpu_double", symbol="d"))
 
-    print(repr(a))
-    print(repr(b))
-    print(repr(c))
-    print(repr(d))
-    pass
+    ts = LayrTestSet()  
+    print(repr(ts))
 
-    print(LayrTest.Compare(a,b,"(a,b) cpu vs gpu (float)"))
-    print(LayrTest.Compare(c,d,"(c,d) cpu vs gpu (double)"))
-    print(LayrTest.Compare(a,c,"(a,c) float vs double (cpu)"))
-    print(LayrTest.Compare(b,d,"(b,d) float vs double (gpu)"))
-
-
-    f = a.f
-    title = a.title 
-
-
-    R_s = f.arts[:,0,0]
-    R_p = f.arts[:,0,1]
-    T_s = f.arts[:,0,2]
-    T_p = f.arts[:,0,3]
-
-    A_s = f.arts[:,1,0]
-    A_p = f.arts[:,1,1]
-    R = f.arts[:,1,2]
-    T = f.arts[:,1,3]
-
-    A = f.arts[:,2,0]
-    A_R_T = f.arts[:,2,1]
-    wl = f.arts[:,2,2] 
-    th = f.arts[:,2,3]
-
-
-    SIZE = np.array([1280, 720])
-    fig, ax = plt.subplots(1, figsize=SIZE/100.)
-    fig.suptitle(title)   
-
-    ax.plot(th, R, label="R")
-    ax.plot(th, T, label="T")
-    ax.plot(th, A, label="A")
-    ax.plot(th, A_R_T, label="A_R_T")
-
-    ax.legend() 
-    fig.show()                
+    print(repr(AB(a,b)))
 
 pass
 

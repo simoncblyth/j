@@ -3,31 +3,22 @@
 LayrTest.h
 ===========
 
-HMM: how to arrange to allow most of this to be reused 
-for both CPU and GPU testing ?
+Note structure allowing reuse of the same code for CPU and GPU running. 
 
-1. Pull out a simpler struct LayrTestData that just holds pointers
-   to the arrays which can be passed to device holding 
-   the device pointers. 
-
-2. for nvcc compilation just need the layout of the structs, not the methods
+* nvcc compilation just need the layout of the structs, not the methods
 
 **/
 
-
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-
 #include "NP.hh"
 #include "SU.hh"
 #include <cuda_runtime.h>
-
 #endif
-
 #include "Layr.h"
 
 template<typename T, int N>
-struct LayrTestData
+struct LayrTestData    // LayrScanData  better name ?
 {
     int      ni ;     // number of items : currently angles 
     T        wl ;     // hmm could vary wl, by making this an array 
@@ -40,9 +31,11 @@ struct LayrTestData
 template<typename T, int N>
 struct LayrTest
 {
-    LayrTestData<T,N> h ; // host
-    LayrTestData<T,N> d ; // device
-    LayrTestData<T,N>* d_ptr ; 
+    LayrTestData<T,N> h ;      // host side struct with arrays populated by scan_cpu (OR download from scan_gpu)  
+
+    LayrTestData<T,N> d ;      // host side preparation of device side struct containing device pointers
+    LayrTestData<T,N>* d_ptr ; // device pointer to uploaded copy of above d struct, populated by scan_gpu 
+
     bool             gpu ; 
     const char*      base ; 
 
@@ -56,7 +49,7 @@ struct LayrTest
     void scan_gpu(const StackSpec<T>& spec); 
     void scan_cpu(const StackSpec<T>& spec); 
 
-    const char* get_dir() const ; 
+    const char* get_name() const ; 
     void save() const ; 
     std::string desc() const ; 
     std::string brief() const ; 
@@ -72,43 +65,44 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl)
     gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
     base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest"))
 {
+    assert( sizeof(T) == 4 || sizeof(T) == 8 ); 
     h.ni = ni ; 
-    h.wl = wl > 0 ? wl : U::GetE<double>("WL", 500.) ; 
+    h.wl = wl > 0. ? wl : U::GetE<double>("WL", 500.) ; 
     h.theta = new T[ni] ; 
     h.arts  = new ART<T>[ni] ; 
     h.comps = new Layr<T>[ni] ; 
     h.lls   = new Layr<T>[N*ni] ; 
 
-    assert( sizeof(T) == 4 || sizeof(T) == 8 ); 
+    bool all = false ; 
     for(int i=0 ; i < ni ; i++ ) 
     {
-        //h.theta[i] = T(i)/T(ni-1)*M_PI/T(2) ; // ni angles from 0 to pi/2 radians
-        h.theta[i] = T(i)/T(ni)*M_PI/T(2) ;     // ni angles from 0 to (89/90)*pi/2 radians : NOT QUITE ALL THE WAY
+        h.theta[i] = T(i)/T(all ? ni-1 :ni)*M_PI/T(2) ; 
+        // ni angles  0 -> (all?1:89/90) * pi/2  radians
     }
+    // Avoiding pi/2 (glancing incidence) as get very large float/double mismatch in lls and comps 
+    // TODO: look into details to see if this glancing edge case needs some special treatment. 
 }
 
 template<typename T, int N>
 inline void LayrTest<T,N>::upload()   // prepare device side arrays
 {
-    printf("[upload\n"); 
-
     int ni = h.ni ; 
     d.ni = ni ; 
     d.wl = h.wl ;
-    d.theta = (T*)SU::device_alloc_sizeof(ni, sizeof(T)) ;     
+
+    d.theta =       (T*)SU::device_alloc_sizeof(ni, sizeof(T)) ;     
     d.arts  = ( ART<T>*)SU::device_alloc_sizeof(ni, sizeof(ART<T>) ); 
     d.comps = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>) ); 
     d.lls   = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>)*N ); 
 
+    printf("// upload h.theta[0] %10.4f h.theta[ni-1] %10.4f \n", h.theta[0], h.theta[ni-1] ); 
     SU::copy_host_to_device_sizeof( (char*)d.theta, (char*)h.theta, ni, sizeof(T) ); 
 
-    d_ptr = (LayrTestData<T,N>*)SU::upload_array_sizeof(  (char*)&d, 1, sizeof(LayrTestData<T,N>) );  
-
-    printf("]upload d_ptr %p \n", d_ptr ); 
+    d_ptr = (LayrTestData<T,N>*)SU::upload_array_sizeof((char*)&d, 1, sizeof(LayrTestData<T,N>) );  
 }
 
 template<typename T, int N>
-inline void LayrTest<T,N>::download()
+inline void LayrTest<T,N>::download() // d->h : copy device side arrays down into host side 
 {
     int ni = d.ni ; 
     assert( d_ptr != nullptr ); // must upload before download
@@ -117,41 +111,28 @@ inline void LayrTest<T,N>::download()
     SU::copy_device_to_host_sizeof( (char*)h.lls  , (char*)d.lls  , ni, sizeof(Layr<T>)*N ); 
 }
 
-
-
-
 template <typename T, int N>
 extern void LayrTest_launch( LayrTest<T,N>& t, const StackSpec<T>& spec ); 
-
 
 template<typename T, int N>
 inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
 {
     gpu = true ; 
-    upload(); 
+    upload();  // prepare device side arrays
 
-    LayrTest_launch<T,N>(*this, spec) ; 
+    LayrTest_launch<T,N>(*this, spec) ; // populate them 
 
     cudaDeviceSynchronize();
-    download();
-    save(); 
+    download();   // copy d->h (would overwrite any prior scan, from scan_cpu OR scan_gpu)
+    save();       // persist the h arrays 
 }
 
 /**
 LayrTest::scan_cpu
 ---------------------
 
-Initially it feels like a cheap trick (avoiding need for rerunable object) 
-to instanciate the Stack object within the scan loop. 
-But actually thats the real situation as the refractive 
-indices depend on wavelength : so the matrix stack needs to be 
-recomputed for every wl and angle.
-Having a fixed wavelength to change angle with is purely artificial
-whilst doing angle scanning. 
-
-Get very large mismatch between float and double in lls and comp for th pi/2 (90 degrees). 
-TODO: look into details to see if this glancing edge case needs some special treatment. 
-
+Stack does everything in ctor because any change in wl or th 
+demands almost everything is recomputed anyhow 
 **/
  
 template<typename T, int N>
@@ -159,11 +140,10 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
 {
     gpu = false ; 
     bool reverse = false ; 
-    Stack<T,N> stack(h.wl, spec ) ; 
     for(int i=0 ; i < h.ni ; i++ )
     {
         int j = reverse ? h.ni - 1 - i : i ; 
-        stack.computeART(h.theta[j]); 
+        Stack<T,N> stack(h.wl, h.theta[j], spec ) ; 
 
         h.arts[j] = stack.art; 
         h.comps[j] = stack.comp ; 
@@ -195,7 +175,7 @@ inline std::string LayrTest<T,N>::desc() const
 template<typename T, int N>
 inline std::string LayrTest<T,N>::brief() const 
 {
-    const char* dir = get_dir() ; 
+    const char* name = get_name() ; 
     std::stringstream ss ; 
     ss
         << "LayrTest"
@@ -209,7 +189,7 @@ inline std::string LayrTest<T,N>::brief() const
 #else
         << " not-WITH_THRUST "
 #endif
-        << " dir " << dir 
+        << " name " << name
         << " ni " << h.ni         
         << " wl " << h.wl         
         << " theta[0] " << h.theta[0]
@@ -220,13 +200,18 @@ inline std::string LayrTest<T,N>::brief() const
 }
 
 template<typename T, int N>
-inline const char* LayrTest<T,N>::get_dir() const 
+inline const char* LayrTest<T,N>::get_name() const 
 {
     std::stringstream ss ; 
-    ss << base 
-       << "/" 
+    ss 
        << "scan_" 
        << ( gpu ? "gpu" : "cpu" ) 
+       << "_" 
+#ifdef WITH_THRUST
+       << "thr"
+#else
+       << "std"
+#endif
        << "_" 
        << ( sizeof(T) == 8 ? "double" : "float" ) 
        ;
@@ -243,16 +228,17 @@ inline void LayrTest<T,N>::save() const
     assert( sizeof(ART<T>)/sizeof(T) == 12 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
-    const char* dir = get_dir() ; 
-    NP::Write(dir,"comps.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
-    NP::Write(dir,"lls.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
+    const char* name = get_name() ; 
+    NP::Write(base, name,"comps.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
+    NP::Write(base, name,"lls.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
 
     // use manual way for _arts so can set metadata
     NP* _arts = NP::Make<T>( h.ni, 3, 4 );
     _arts->read2( (T*)h.arts ); 
     _arts->set_meta<std::string>("brief", br); 
+    _arts->set_meta<std::string>("name", name); 
     _arts->set_meta<T>("wl", h.wl); 
-    _arts->save(dir, "arts.npy" ); 
+    _arts->save(base, name, "arts.npy" ); 
 }
 #endif
 
