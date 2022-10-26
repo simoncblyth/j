@@ -8,8 +8,10 @@ int main(int argc, char** argv)
         LayrTest<float,4> t0 ; 
         t0.scan_cpu(spec) ;
     
+#ifdef WITH_THRUST
         LayrTest<float,4> t1 ; 
         t1.scan_gpu(spec) ;
+#endif
     }
 
     {
@@ -18,8 +20,10 @@ int main(int argc, char** argv)
         LayrTest<double,4> t0 ; 
         t0.scan_cpu(spec) ;
 
+#ifdef WITH_THRUST
         LayrTest<double,4> t1 ; 
         t1.scan_gpu(spec) ;
+#endif
     }
 
     return 0 ; 

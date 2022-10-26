@@ -12,8 +12,12 @@ Note structure allowing reuse of the same code for CPU and GPU running.
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
 #include "NP.hh"
+
+#ifdef WITH_THRUST
 #include "SU.hh"
 #include <cuda_runtime.h>
+#endif
+
 #endif
 #include "Layr.h"
 
@@ -43,10 +47,14 @@ struct LayrTest
 #else
     LayrTest(int ni=90, T wl=0);
 
+
+#ifdef WITH_THRUST
     void upload(); 
     void download(); 
-
     void scan_gpu(const StackSpec<T>& spec); 
+#else
+    // without thrust::complex cannot run on GPU 
+#endif
     void scan_cpu(const StackSpec<T>& spec); 
 
     const char* get_name() const ; 
@@ -83,6 +91,7 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl)
     // TODO: look into details to see if this glancing edge case needs some special treatment. 
 }
 
+#ifdef WITH_THRUST
 template<typename T, int N>
 inline void LayrTest<T,N>::upload()   // prepare device side arrays
 {
@@ -126,6 +135,8 @@ inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
     download();   // copy d->h (would overwrite any prior scan, from scan_cpu OR scan_gpu)
     save();       // persist the h arrays 
 }
+#endif
+
 
 /**
 LayrTest::scan_cpu
