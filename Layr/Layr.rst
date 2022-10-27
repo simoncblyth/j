@@ -194,6 +194,173 @@ jcv junoPMTOpticalModel::
     184     d_photocathode  = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "PHC_THICKNESS")/m;
 
 
+    036         void setPMTSimParamSvc(IPMTSimParamSvc* svc) { m_PMTSimParSvc = svc; }
+     37         IPMTSimParamSvc* getPMTSimParamSvc() const { return m_PMTSimParSvc; }
+     38 
+     39         void setPMTParamSvc(IPMTParamSvc* svc) { m_PMTParamSvc = svc; }
+     40         IPMTParamSvc* getPMTParamSvc() const { return m_PMTParamSvc; }
+
+    093         IPMTParamSvc* m_PMTParamSvc;
+     94         IPMTSimParamSvc* m_PMTSimParSvc;
+     95         MultiFilmModel* m_multi_film_model;
+
+
+    epsilon:junosw blyth$ jgr setPMTSimParamSvc
+    ./Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh:        void setPMTSimParamSvc(IPMTSimParamSvc* svc) { m_PMTSimParSvc = svc; }
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        void setPMTSimParamSvc(IPMTSimParamSvc* para){ m_PMTSimParsvc=para; }
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:    pmtOpticalModel->setPMTSimParamSvc(m_pmt_sim_param_svc);
+    ./Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc:        sd->setPMTSimParamSvc(m_pmt_sim_param_svc);
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc:    pmtOpticalModel->setPMTSimParamSvc(m_pmt_sim_param_svc);
+    epsilon:junosw blyth$ 
+
+jcv HamamatsuR12860PMTManager::
+
+    1000     m_pmt_sim_param_svc = 0;
+    1001     LogInfo << "Retrieving PMTSimParamSvc." << std::endl;
+    1002     SniperPtr<IPMTSimParamSvc> simsvc(*getParent(), "PMTSimParamSvc");
+    1003     if(simsvc.invalid()){
+    1004         LogError << "Can't get PMTSimParamSvc. We can't initialize PMT." << std::endl;
+    1005         assert(0);
+    1006         exit(EXIT_FAILURE);
+    1007     }else{
+    1008         LogInfo <<"Retrieve PMTSimParamSvc successfully." << std::endl;
+    1009         m_pmt_sim_param_svc = simsvc.data();
+    1010     }
+    1011     pmtOpticalModel->setPMTSimParamSvc(m_pmt_sim_param_svc);
+
+jcv PMTSimParamSvc::
+
+    1278 double PMTSimParamSvc::get_pmtcat_prop(int pmtcat, const std::string& prop_name, double val){
+    1279     assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    1280 
+    1281     auto iter1 = m_PMT_MPT.find(pmtcat);
+    1282     assert(iter1 != m_PMT_MPT.end());
+    1283     auto iter2 = iter1->second.find(prop_name);
+    1284     assert(iter2 != iter1->second.end());
+    1285 
+    1286     return iter2->second->Value(val);
+    1287 }
+    1288 
+    1289 double PMTSimParamSvc::get_pmtcat_const_prop(int pmtcat, const std::string& prop_name){
+    1290     bool check = ( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    1291     if (!check) {
+    1292         LogError << "Failed to find the PMTCAT Const Prop with "
+    1293                  << " pmtcat: " << pmtcat
+    1294                  << " prop_name: " << prop_name
+    1295                  << std::endl;
+    1296         return 0.0;
+    1297     }
+    1298 
+    1299     auto iter1 = m_PMT_CONST.find(pmtcat);
+    1300     if (iter1 != m_PMT_CONST.end()) {
+    1301         auto iter2 = iter1->second.find(prop_name);
+    1302         if (iter2 != iter1->second.end()) {
+    1303             return iter2->second;
+    1304         }
+    1305     }
+    1306 
+    1307     LogError << "Failed to find the PMTCAT Const Prop with "
+    1308              << " pmtcat: " << pmtcat
+    1309              << " prop_name: " << prop_name
+    1310              << std::endl;
+    1311 
+    1312     return 0.0;
+    1313 }
+
+
+::
+
+    343   std::map<int, std::map<std::string, G4MaterialPropertyVector*>> m_PMT_MPT;
+    344   std::map<int, std::map<std::string, G4double>> m_PMT_CONST;
+
+
+    288 bool PMTSimParamSvc::init_default() {
+    289 
+
+    0290     SniperPtr<IPMTParamSvc> svc(*getParent(), "PMTParamSvc");
+     291        if (svc.invalid()) {
+     292            LogError << "Can't get PMTParamSvc. We can't initialize PMT." << std::endl;
+     293            assert(0);
+     294         } else {
+     295            LogInfo << "Retrieve PMTParamSvc successfully." << std::endl;
+     296            m_PMTParamSvc = svc.data();
+     297         }
+     298 
+     299    SniperPtr<IMCParamsSvc> mcgt(getParent(), "MCParamsSvc");
+     300    if (mcgt.invalid()) {
+     301       std::cout << "Can't find MCParamsSvc." << std::endl;
+     302       assert(0);
+     303    }
+
+    0322   helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["ARC_RINDEX"], mcgt.data(), "PMTProperty.R12860.ARC_RINDEX");
+     323   helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["ARC_KINDEX"], mcgt.data(), "PMTProperty.R12860.ARC_KINDEX");
+     324   helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["PHC_RINDEX"], mcgt.data(), "PMTProperty.R12860.PHC_RINDEX");
+     325   helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["PHC_KINDEX"], mcgt.data(), "PMTProperty.R12860.PHC_KINDEX");
+
+    0251 bool PMTSimParamSvc::helper_pmt_mpt(G4MaterialPropertyVector*& vec, IMCParamsSvc* params, const std::string& name){
+     252     IMCParamsSvc::vec_d2d props;
+     253     bool st = params->Get(name, props);
+     254     if (!st) {
+     255         LogError << "can't find material property: " << name << std::endl;
+     256         return false;
+     257     }
+     258     vec = new G4MaterialPropertyVector(0,0,0);
+     259 
+     260     int N = props.size();
+     261     if (!N) {
+     262         LogError << "empty material property: " << name << std::endl;
+     263         return false;
+     264     }
+     265     for (int i = 0; i < N; ++i) {
+     266         vec->InsertValues(props[i].get<0>(), props[i].get<1>());
+     267     }
+     268 
+     269 
+     270     LogDebug<<"******** name = "<< name<<" ***********" <<std::endl;
+     271     for (int i = 0; i < N; i++){
+     272           LogDebug<<"energy = " << vec->Energy(i) <<" value = " << (*vec)[i] <<std::endl;
+     273     }
+     274    
+     275  
+     276    return true;
+     277 }
+
+Added NP methods to duplicate this::
+
+    NP* a = NP::ArrayFromTxt<double>("PMTProperty.R12860.PHC_KINDEX") ; 
+    double v = NP::ReadKV_Value<double>("PMTProperty.R12860.THICKNESS", "THICKNESS_PHC") ;  
+
+
+
+
+
+jcv MCParamsFileSvc::
+
+     42 bool
+     43 MCParamsFileSvc::Get(const std::string& param, vec_d2d& props)
+     44 {
+     45      const std::string path = GetPath( param );
+     46     return get_implv1(path, props);
+     47 }
+         
+
+TODO: Need low dependency access to properties from::
+
+    N[blyth@localhost ~]$ l $JUNOTOP/data/Simulation/DetSim/PMTProperty/
+    total 0
+    0 drwxrwxr-x. 6 blyth blyth  76 Sep 27 18:32 ..
+    0 drwxrwxr-x. 2 blyth blyth  45 Sep 27 18:32 WP_PMT
+    0 drwxrwxr-x. 9 blyth blyth 111 Sep 27 18:32 .
+    0 drwxrwxr-x. 2 blyth blyth 134 Sep 27 18:32 NNVTMCP
+    0 drwxrwxr-x. 2 blyth blyth 134 Sep 27 18:32 R12860
+    0 drwxrwxr-x. 2 blyth blyth  16 Sep 27 18:32 Dynode
+    0 drwxrwxr-x. 2 blyth blyth  16 Sep 27 18:32 MCP
+    0 drwxrwxr-x. 2 blyth blyth 134 Sep 27 18:32 NNVTMCP_HiQE
+    0 drwxrwxr-x. 2 blyth blyth  35 Sep 27 18:32 HZC_3inch
+    N[blyth@localhost ~]$ 
+
+
+
 
 
 Using persisted Layr from NumPy
