@@ -22,6 +22,7 @@ See Layr.rst for notes on TMM method theory and implementation on CPU nd GPU
 #include <string>
 #include <cassert>
 #include "ssys.h"
+#include "NPFold.h"
 #endif
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
@@ -266,8 +267,8 @@ struct StackSpec
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
     LAYR_METHOD static StackSpec EGet() ; 
+    LAYR_METHOD static StackSpec FromFold(const NPFold* pmt, const NPFold* mat, T energy_eV); 
 #endif
-
 
 };
 
@@ -318,6 +319,14 @@ LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
      
     return ss ; 
 } 
+
+template<typename T>
+LAYR_METHOD StackSpec<T> StackSpec<T>::FromFold(const NPFold* pmt, const NPFold* mat, T energy_eV)
+{
+    StackSpec ss ;
+    return ss ; 
+}
+
 
 template<typename T>
 LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T>& ss )  
