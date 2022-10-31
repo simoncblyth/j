@@ -344,7 +344,16 @@ jcv MCParamsFileSvc::
      47 }
          
 
-TODO: Need low dependency access to properties from::
+DONE : Added low dependency access to properties by additions to NP.hh NPFold.h 
+------------------------------------------------------------------------------------
+
+Especially::
+
+   NP::LoadFromString 
+   NP::LoadFromTxtFile
+   NPFold::load_dir
+
+::
 
     N[blyth@localhost ~]$ l $JUNOTOP/data/Simulation/DetSim/PMTProperty/
     total 0
@@ -358,7 +367,6 @@ TODO: Need low dependency access to properties from::
     0 drwxrwxr-x. 2 blyth blyth 134 Sep 27 18:32 NNVTMCP_HiQE
     0 drwxrwxr-x. 2 blyth blyth  35 Sep 27 18:32 HZC_3inch
     N[blyth@localhost ~]$ 
-
 
 
 
@@ -386,5 +394,109 @@ List layer thickness and complex refractive indices::
 
 TODO : devise CPU/GPU counterpart paired structs for this calculation
 -------------------------------------------------------------------------
+
+How to organize the refractive indices as function of energy for use on GPU ? 
+
+Basically how to port PrepStackSpec into an array::
+
+     30 struct PrepStackSpec
+     31 {
+     32     static constexpr const char* HAMA = "R12860" ;
+     33     static constexpr const char* NNVT = "NNVTMCP" ;
+     34     static constexpr const char* NNVTQ = "NNVTMCP_HiQE" ;
+     35 
+     36     NPFold* pmt ;
+     37     NPFold* mat0 ;
+     38     NPFold* mat3 ;
+     39 
+     40     const NP* thickness ;
+     41     const NP* n0r ;
+     42     const NP* n1r ;
+     43     const NP* n1i ;
+     44     const NP* n2r ;
+     45     const NP* n2i ;
+     46     const NP* n3r ;
+     47 
+     48     double last_wavelength_nm ;
+     49     double last_energy_eV ;
+     50 
+     51     PrepStackSpec(const char* pmtname=NNVT );
+     52     std::string desc() const ;
+     53 
+     54     template<typename T>
+     55     StackSpec<T> get(T wavelength_nm) ;  // not const as sets last_*
+     56 
+     57 };
+
+
+Considerations:
+
+1. enum pmt category (3,)
+2. reverse stack for backwards photons 
+
+   * same info used in reverse order 
+
+3. rindex common energy domain or not ? 
+
+   * close enough to glue them together in common domain 
+     and remove energy from the array like with texture ?
+
+   * hmm given that there are potentially 3*4 = 12 different energy domains
+     would only be able to go for common domain by doing pre-interpolation
+     (like with textures)
+ 
+   * OR use NP::Combine NP::combine_interp to carry multiple domains 
+
+
+Array layout:
+
+0. thickness (3 pmtcat, 4 layers, 1 )    
+1. rindex    (3 pmtcat, 4 layers, 2 prop ,  ~15  ,  2 )   
+                                  |                 |
+                                  RINDEX  1+mx_itm  dom
+                                  KINDEX            val  
+
+Could also combine the RINDEX, KINDEX within the 
+item but keeping them separate is more generic for 
+expansion to other situations and 
+will allow an easy extension to NP::Combine to 
+create these arrays. 
+
+Also this layout could be turned into a float2 texture. 
+
+Will need to generalize interp to work with high dimensions ?
+
+
+First 3 dimensions of rindex are equivalent to the iprop in the 
+below ? How to split the API to avoid lots of duplication ?
+
+::
+
+    2672 
+    2673 template<typename T> inline T NP::combined_interp(unsigned iprop, T x) const
+    2674 {
+    2675     unsigned ndim = shape.size() ;
+    2677     assert( ndim == 3 && shape[ndim-1] >= 2 && iprop < shape[0] && shape[1] > 1 );
+    2678     unsigned nj = shape[ndim-1] ;  // normally 2 with (dom, val)
+    2679 
+
+
+
+ 
+
+Relevant:
+
+LayrTest.cc 
+    PrepStackSpec 
+
+NP::Combine NP::combined_interp
+    CPU preparation of the arrays 
+
+QProp.hh
+qprop.h 
+    will need to extend these to work with 4D arrays  
+
+
+
 
 

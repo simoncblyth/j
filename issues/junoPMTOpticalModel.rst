@@ -1,6 +1,14 @@
 junoPMTOpticalModel
 ======================
 
+Questions
+-----------
+
+1. in junoPMTOpticalModel::DoIt why is _qe set to zero for vacuum to glass photons ?
+   this means that will get no hits from photons that enter the PMT and get reflected 
+   back to the photocathode ?  
+
+
 
 Tree of dependencies
 ------------------------
@@ -511,4 +519,41 @@ Because the indices depend on wavelength are rejiging the model at every step::
     310     fR_n = art2.R;
     311     fT_n = art2.T;
     312 }
+
+
+
+_qe and "jcv PMTSimParamSvc"
+------------------------------
+
+::
+
+    176     _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
+
+
+    epsilon:issues blyth$ jgr get_pmtid_qe
+    ./Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc:    _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:        qe = (m_enable_optical_model && pmtID<300000) ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+    ./Simulation/SimSvc/IPMTSimParamSvc/IPMTSimParamSvc/IPMTSimParamSvc.h:     virtual double get_pmtid_qe(int pmtid, double energy) = 0;
+    ./Simulation/SimSvc/IPMTSimParamSvc/IPMTSimParamSvc/IPMTSimParamSvc.h:    // virtual std::shared_ptr<G4MaterialPropertyVector>  get_pmtid_qe_vs_energy(int pmtid) = 0;
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.h:  double get_pmtid_qe(int pmtid, double energy);
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.h:  //std::shared_ptr<G4MaterialPropertyVector> get_pmtid_qe_vs_energy(int pmtid);
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:           double qe = get_pmtid_qe(pmtID,edep);
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:double PMTSimParamSvc::get_pmtid_qe(int pmtid, double energy){
+    epsilon:junosw blyth$ 
+
+
+Looks too complicated to reproduce starting from property files, so need to harvest with::
+
+    void PMTSimParamSvc::getQEData(std::vector<double>& qe_data, double en0, double en1, unsigned num_edep  )
+
+
+* TODO: add SSim/NPFold/NP functionality to collect such data arrays into the SSim NPFold 
+ 
+
+
+
+
+
+
+
 

@@ -532,7 +532,14 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss )
 template <typename T, int N>
 inline std::ostream& operator<<(std::ostream& os, const Stack<T,N>& stk )  
 {
-    os << "Stack<" << N << ">" << std::endl ; 
+    os << "Stack"
+       << "<" 
+       << ( sizeof(T) == 8 ? "double" : "float" )
+       << ","
+       << N 
+       << ">" 
+       << std::endl
+       ; 
     for(int idx=0 ; idx < N ; idx++) os << "idx " << idx << std::endl << stk.ll[idx] ; 
     os << "comp" 
        << std::endl 
