@@ -1,12 +1,199 @@
 junoPMTOpticalModel
 ======================
 
-Questions
------------
+Question 1 : why backwards qe is zero ?
+-------------------------------------------
 
-1. in junoPMTOpticalModel::DoIt why is _qe set to zero for vacuum to glass photons ?
-   this means that will get no hits from photons that enter the PMT and get reflected 
-   back to the photocathode ?  
+In junoPMTOpticalModel::DoIt why is _qe set to zero for vacuum to glass photons ?
+this means that will get no hits from photons that enter the PMT and get reflected 
+back to the photocathode ?  
+
+Yaoguang Wang::
+
+    In the new PMT optical model, we regard the measured PDE at one point to be
+    contributed by several points on the photocathode due to inner reflections.
+    There is no doubt that the backward photons may also generate hit.
+
+    However, the PMT's PDE in simulation is provided by the Pan-Asia mass testing
+    system, the contribution from inner reflections may have been involved in the
+    PDE data. To avoid double-counting, we adopt a compromise method: the PDE data
+    from mass testing system is regarded as the real PDE of the incident point, and
+    the backward photons don't yield hits. In this case, the PDE in simulation is
+    consistent with data, and we can also take the PMT reflection into
+    consideration.
+
+    This is not the final solution, we are still working on decoupling the
+    contributions from the incident point and other points due to reflection, then
+    the contribution of inner reflections to QE can be properly handled.
+
+
+Question 2 : why different geometry
+-----------------------------------------
+
+
+I have another question regarding the reasons behind the artificial 
+Pyrex/Pyrex boundary and the -4.999 mm smaller size of PMT body solid 
+with the multifilm optical model active ?
+
+
+m_enable_optical_model == false 
+
+                             pyrex
+                             .
+          |                 | |       |           |
+     vac  |     pyrex       | | water |  acrylic  | water 
+          |                 | |       |           | 
+        inner            body pmt         mask 
+
+        -5 mm             0mm +1e-3mm  
+
+
+m_enable_optical_model == true
+ 
+           pyrex 
+           . 
+          | |                 |       |          |
+     vac  | |    pyrex        | water | acrylic  |  water 
+          | |                 |       |          | 
+      inner body             pmt         mask
+        -5 -5+1e-3            +1e-3  
+
+
+(relevant code from the PMT managers is below)
+
+
+The body_log is where ordinary Geant4 sim hands
+over to fastsim/junoPMTOpticalModel so this means that 
+the TMM calc starts from the artificial pyrex/pyrex 
+boundary which in new optical model is shifted to 1e-3 mm 
+from the vacuum. 
+
+Why the complication of the artificial Pyrex/Pyrex boundary ?
+
+Why not start the TMM from the water/pyrex boundary 
+and remove the artificial pyrex/pyrex boundary ? 
+
+GPU intersection calcs in float precision against 
+boundaries only 1e-3 mm from each other cause complications.
+Life would be easier with the GPU simulation to avoid such near coincidence 
+boundaries if possible. 
+
+If using the artificial Pyrex/Pyrex boundary is unavoidable 
+is there any reason why the nominal offset 1e-3 needs to be so small ?
+
+While 1e-3 mm is small in this context it is 16x - 30x 
+larger than the actual total thickness of the thin layers of ~30-60 nm. 
+(calculation and relevant code below)
+
+So, could this nominal thickness be 1 mm for example ? 
+That would be large enough to avoid float precision intersection issues 
+on GPU. 
+
+Simon
+
+
+::
+
+    epsilon:PMTProperty blyth$ cat R12860/THICKNESS
+    ARC_THICKNESS   36.49e-9*m
+    PHC_THICKNESS   21.13e-9*m
+    epsilon:PMTProperty blyth$ cat NNVTMCP/THICKNESS
+    ARC_THICKNESS   40.00e-9*m
+    PHC_THICKNESS   20.58e-9*m
+    epsilon:PMTProperty blyth$ cat NNVTMCP_HiQE/THICKNESS
+    ARC_THICKNESS   10.24e-9*m
+    PHC_THICKNESS   18.73e-9*m
+    epsilon:PMTProperty blyth$ 
+
+
+    In [1]: t.thickness    # ( 3 pmtcat, 4 layers, thickness nm )                                                                                                                                     
+    Out[1]: 
+    array([[[ 0.  ],
+            [36.49],
+            [21.13],
+            [ 0.  ]],
+
+           [[ 0.  ],
+            [40.  ],
+            [20.58],
+            [ 0.  ]],
+
+           [[ 0.  ],
+            [10.24],
+            [18.73],
+            [ 0.  ]]])
+
+
+    In [6]: 1e-3/(60*1e-9*1e3)
+    Out[6]: 16.666666666666664
+
+    In [7]: 1e-3/(30*1e-9*1e3)
+    Out[7]: 33.33333333333333
+
+
+
+::
+
+     340 void HamamatsuR12860PMTManager::helper_make_solid()
+     341 {
+     342     double pmt_delta = 1E-3*mm ;
+     343     double inner_delta =  -5*mm ;
+     344     double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ;
+     345 
+     346     double zcut = m_pmt_equator_to_bottom ;
+     347 
+     348     Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ;
+     349     pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
+     350     body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
+     351     inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');  // no longer used
+     352     inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
+     353     inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
+     354 
+
+
+
+    312 void NNVTMCPPMTManager::helper_make_solid()
+    313 {
+    314     double pmt_delta = 1E-3*mm ;
+    315     double inner_delta = -5*mm ;
+    316 
+    317     double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ;
+    318     // TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+    319 
+    320     double zcut = m_pmt_equator_to_bottom ;
+    321 
+    322     NNVT_MCPPMT_PMTSolid* maker = m_pmtsolid_maker ;
+    323     pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
+    324     body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
+    325     inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');
+    326     inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H'); // head
+    327     inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T'); // tail
+    328 
+
+
+
+
+
+
+How is junoPMTOpticalModel hooked up with the normal Geant4 simulation
+------------------------------------------------------------------------
+
+::
+
+    807 void
+    808 NNVTMCPPMTManager::helper_fast_sim()
+    809 {
+    810 
+    811 #ifdef PMTSIM_STANDALONE
+    812 #else
+    813 
+    814     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
+    815     body_log->SetRegion(body_region);
+    816     body_region->AddRootLogicalVolume(body_log);
+    817 
+    818     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
+    819                                                                    body_phys, body_region);
+    820 
 
 
 

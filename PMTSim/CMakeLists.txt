@@ -65,6 +65,9 @@ list(APPEND HEADERS
      ZSolid.h
 
      MaterialSvc.hh
+
+     ../Layr/Layr.h 
+     ../Layr/JPMTProp.h 
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")

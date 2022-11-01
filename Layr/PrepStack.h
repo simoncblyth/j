@@ -3,8 +3,7 @@
 PrepStack.h
 ==============
 
-This first iteration is superceeded by PMTProp.h 
-
+This first iteration is superceeded by JPMTProp.h 
 
 **/
 

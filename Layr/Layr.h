@@ -1,7 +1,12 @@
 #pragma once
 /**
-Layr.h
+Layr.h 
 =========
+
+Notes:
+
+1. nothing JUNO specific here, keep it that way.
+2. this header gets installed with PMTSim 
 
 See Layr.rst for notes on TMM method theory and implementation on CPU nd GPU 
 
@@ -324,6 +329,8 @@ template<typename T>
 LAYR_METHOD StackSpec<T> StackSpec<T>::FromFold(const NPFold* pmt, const NPFold* mat, T energy_eV)
 {
     StackSpec ss ;
+    // might as well jump to the counterpart split like PMTProp to aiming for 
+    // rather than having a CPU only method 
     return ss ; 
 }
 
@@ -388,6 +395,29 @@ struct Stack
 };
 
 
+/**
+Stack::Stack
+---------------
+
+HMM: in real usage can the StackSpec intermediary struct be eliminated ? 
+
+Instead the on device interpolation results 
+as a function of energy can directly get fed 
+into the Layr param. Perhaps via Layr<T>* parameter 
+to keep the code doing the lookups separate. 
+That code should probably be a qpmtprop.h counterpath 
+of spmtprop.h ?
+
+HMM: how to do this in a way that can work on 
+both CPU and GPU ?
+ 
+* dont need to use NP::combined_interpolate_5 
+  the GPU lookup code can be used instead  
+
+Stack could hold device pointer to the lookup instance. 
+
+**/
+
 template<typename T, int N>
 LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss ) 
 {
@@ -414,10 +444,15 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss )
     assert( N == 4 ); 
 #endif
 
+    // reversing the stack could easily be done here
+    // but all the value shuffling seems pointless 
+
     ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
     ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 
     ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
     ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
+
+
     art.wl = wl ; 
     art.th  = th ; 
 

@@ -1,25 +1,24 @@
 /**
-PMTPropTest.cc
+JPMTPropTest.cc
 ==================
 
 Usage::
 
-    ./PMTPropTest.sh 
+    ./JPMTPropTest.sh 
 
 **/
 
 #include "Layr.h"
 #include "sdomain.h"
-#include "NPFold.h"
-#include "PMTProp.h"
+#include "JPMTProp.h"
 
-void test_PMTProp()
+void test_JPMTProp()
 {
-    PMTProp pp ; 
+    JPMTProp pp ; 
     std::cout << pp.desc() << std::endl ; 
-    pp.save("/tmp/PMTPropTest"); 
+    pp.save("/tmp/JPMTPropTest"); 
 
-    int pmtcat = PMTProp::HAMA ; 
+    int pmtcat = JPMTProp::HAMA ; 
     for(double wavelength_nm=400. ; wavelength_nm <= 800. ; wavelength_nm += 100. )
     {
         StackSpec<double> spec = pp.get(pmtcat, wavelength_nm); 
@@ -29,7 +28,7 @@ void test_PMTProp()
 
 int main(int argc, char** argv)
 {
-    test_PMTProp(); 
+    test_JPMTProp(); 
     return 0 ; 
 }
 

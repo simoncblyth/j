@@ -1,29 +1,31 @@
 #pragma once
 /**
-PMTProp.h
-============
+JPMTProp.h : Specific to JUNO PMTProperty, Material layout
+============================================================
 
-An improvement over PrepStack.h paving 
-the way to doing this on GPU by 
-concentrating the data into two arrays 
+1. where should this code live longterm ? 
+2. where should it be used to harvest into SSim ?
 
+Incorporating NPFold.h and updating NP.hh in 
+offline would allow this to live in junosw, 
+if get rid of StackSpec ? 
 
-1. rindex    (3 pmtcat, 4 layers, 2 prop ,  ~15  ,  2 )   
-                                  |                 |
-                                  RINDEX  1+mx_itm  dom
-                                  KINDEX            val  
+This is aiming to be the CPU counterpart 
+to a GPU interpolator using QProp.hh/qprop.h
+by collecting the data into two arrays.  
+
 **/
 
 #include "NPFold.h"
 
-struct PMT
+struct JPMT
 {
     static constexpr const char* HAMA = "R12860" ; 
     static constexpr const char* NNVT = "NNVTMCP" ; 
     static constexpr const char* NNVTQ = "NNVTMCP_HiQE" ; 
 };
 
-struct PMTProp
+struct JPMTProp
 {
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -45,16 +47,19 @@ struct PMTProp
     NP* thickness ;   // (num_pmtcat, num_layer, 1 )
     double* tt ; 
 
-    PMTProp(); 
+    JPMTProp(); 
+    void init(); 
 
-    template<typename T>
-    StackSpec<T> get(int pmtcat, T wavelength_nm) const ; 
+    double get_thickness_nm(int pmtcat, int layer) const  ; 
+    double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
+
+    //template<typename T> StackSpec<T> get(int pmtcat, T wavelength_nm) const ; 
 
     void save(const char* dir) const ; 
     std::string desc() const ; 
 };
 
-inline PMTProp::PMTProp()
+inline JPMTProp::JPMTProp()
     :
     PMTProperty(NPFold::LoadProp("PMTProperty")),
     Pyrex( NPFold::LoadProp("Material/Pyrex")),
@@ -63,10 +68,23 @@ inline PMTProp::PMTProp()
     thickness(NP::Make<double>(NUM_PMTCAT, NUM_LAYER, 1)),
     tt(thickness->values<double>()) 
 {
+    init(); 
+}
+
+/**
+JPMTProp::init
+---------------
+
+Collect RINDEX, KINDEX as function of energy and THICKNESS properties 
+for all PMT categories and stack layers into two arrays. 
+
+**/
+inline void JPMTProp::init()
+{
     assert( PMTProperty ); 
-    pmt[HAMA]  = PMTProperty->get_subfold(PMT::HAMA) ; 
-    pmt[NNVT]  = PMTProperty->get_subfold(PMT::NNVT) ; 
-    pmt[NNVTQ] = PMTProperty->get_subfold(PMT::NNVTQ) ; 
+    pmt[HAMA]  = PMTProperty->get_subfold(JPMT::HAMA) ; 
+    pmt[NNVT]  = PMTProperty->get_subfold(JPMT::NNVT) ; 
+    pmt[NNVTQ] = PMTProperty->get_subfold(JPMT::NNVTQ) ; 
 
     for(int i=0 ; i < NUM_PMTCAT ; i++) 
     {
@@ -105,17 +123,36 @@ inline PMTProp::PMTProp()
     rindex->change_shape( NUM_PMTCAT, NUM_LAYER, NUM_PROP, shape[shape.size()-2], shape[shape.size()-1] );  
 }
 
+
+inline double JPMTProp::get_thickness_nm(int pmtcat, int layer) const  
+{
+    assert( pmtcat < NUM_PMTCAT ); 
+    assert( layer < NUM_LAYER ) ; 
+    return tt[pmtcat*NUM_LAYER+layer] ; 
+}
+
+inline double JPMTProp::get_rindex(int pmtcat, int layer, int prop, double energy_eV ) const  
+{
+    assert( pmtcat < NUM_PMTCAT ); 
+    assert( layer < NUM_LAYER ) ; 
+    assert( prop < NUM_PROP ); 
+
+    return rindex->combined_interp_5( pmtcat, layer, prop, energy_eV ) ; 
+}
+
+ 
+
+
 /**
-PMTProp::get
+JPMTProp::get
 --------------
 
 Notice that this gets all its data from two arrays: thickness and rindex
 making it straightforward to do on GPU. 
 
-**/
 
 template<typename T>
-inline StackSpec<T> PMTProp::get(int pmtcat, T wavelength_nm) const  
+inline StackSpec<T> JPMTProp::get(int pmtcat, T wavelength_nm) const  
 {
     double energy_eV = sdomain::hc_eVnm/wavelength_nm ; 
 
@@ -140,16 +177,19 @@ inline StackSpec<T> PMTProp::get(int pmtcat, T wavelength_nm) const
 
     return spec ; 
 }
+**/
 
-inline void PMTProp::save(const char* dir) const 
+
+
+inline void JPMTProp::save(const char* dir) const 
 {
     rindex->save(dir, "rindex.npy"); 
     thickness->save(dir, "thickness.npy"); 
 }
-inline std::string PMTProp::desc() const 
+inline std::string JPMTProp::desc() const 
 {
     std::stringstream ss ; 
-    ss << "PMTProp::desc"
+    ss << "JPMTProp::desc"
        << " pmt[0].desc " << pmt[0]->desc()
        << " pmt[1].desc " << pmt[1]->desc()
        << " pmt[2].desc " << pmt[2]->desc()
