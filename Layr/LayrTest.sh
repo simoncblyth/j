@@ -6,7 +6,6 @@ LayrTest.sh
 SysRap lib only needed for WITH_THRUST GPU running 
 by the NP.hh header is needed in both cases
 
-
 EOU
 }
 
@@ -64,7 +63,7 @@ if [ "${arg/run}" != "$arg" ]; then
 fi
 
 if [ "${arg/ana}" != "$arg" ]; then
-    ${IPYTHON:-ipython} --pdb -i LayrTest.py 
+    ${IPYTHON:-ipython} --pdb -i $name.py 
     [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 3
 fi 
 

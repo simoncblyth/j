@@ -5,7 +5,7 @@ LayrTest.h
 
 Note structure allowing reuse of the same code for CPU and GPU running. 
 
-* nvcc compilation just need the layout of the structs, not the methods
+* nvcc compilation just needs layout of the structs, not the methods
 
 **/
 
@@ -42,11 +42,11 @@ struct LayrTest
 
     bool             gpu ; 
     const char*      base ; 
+    const char*      label ; 
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-    LayrTest(int ni=90, T wl=0);
-
+    LayrTest(int ni=90, T wl=0, const char* label=nullptr );
 
 #ifdef WITH_THRUST
     void upload(); 
@@ -67,11 +67,12 @@ struct LayrTest
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
 template<typename T, int N>
-inline LayrTest<T,N>::LayrTest(int ni, T wl)
+inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     :
     d_ptr(nullptr),
     gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
-    base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest"))
+    base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest")),
+    label(label_ ? strdup(label_) : nullptr)
 {
     assert( sizeof(T) == 4 || sizeof(T) == 8 ); 
     h.ni = ni ; 
@@ -132,7 +133,7 @@ inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
     LayrTest_launch<T,N>(*this, spec) ; // populate them 
 
     cudaDeviceSynchronize();
-    download();   // copy d->h (would overwrite any prior scan, from scan_cpu OR scan_gpu)
+    download();   // copy d->h (overwriting any prior scan from scan_cpu OR scan_gpu)
     save();       // persist the h arrays 
 }
 #endif
@@ -144,6 +145,9 @@ LayrTest::scan_cpu
 
 Stack does everything in ctor because any change in wl or th 
 demands almost everything is recomputed anyhow 
+
+NOTE THE WL DEPENDENCY COMING IN TWICE 
+
 **/
  
 template<typename T, int N>
@@ -216,6 +220,8 @@ inline const char* LayrTest<T,N>::get_name() const
     std::stringstream ss ; 
     ss 
        << "scan_" 
+       << ( label ? label : "" )
+       << "_"
        << ( gpu ? "gpu" : "cpu" ) 
        << "_" 
 #ifdef WITH_THRUST
@@ -248,6 +254,7 @@ inline void LayrTest<T,N>::save() const
     _arts->read2( (T*)h.arts ); 
     _arts->set_meta<std::string>("brief", br); 
     _arts->set_meta<std::string>("name", name); 
+    _arts->set_meta<std::string>("label", label); 
     _arts->set_meta<T>("wl", h.wl); 
     _arts->save(base, name, "arts.npy" ); 
 }

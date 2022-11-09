@@ -48,16 +48,25 @@ class LayrTest(object):
     def __init__(self, f):
         self.f = f  
         if not f is None:
-            label = f.arts_meta.d["brief"] 
+            brief = f.arts_meta.d["brief"] 
+            name = f.arts_meta.d["name"] 
+            label = f.arts_meta.d["label"] 
+            symbol = f.symbol
             x_dd_nn = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
-            title = "\n".join([f.symbol, label, x_dd_nn])
+            title = "\n".join([symbol, brief, x_dd_nn])
         else:
+            brief = "-"
+            name = "-"
             label = "-"
+            symbol = "?"
             title = "None" 
         pass
+        self.brief = brief
+        self.name = name
         self.label = label
         self.title = title
-        self.symbol = f.symbol
+        self.symbol = symbol
+
     def __repr__(self):
         return self.title
 
@@ -115,10 +124,10 @@ class CF(object):
              return "CANNOT COMPARE"
         pass
 
-        CF_label = "CF(%s,%s) : %s vs %s " % (A.symbol, B.symbol, A.name, B.name ) 
-        lines = [CF_label]
-        lines += [A.label]
-        lines += [B.label]
+        CF_brief = "CF(%s,%s) : %s vs %s " % (A.symbol, B.symbol, A.name, B.name ) 
+        lines = [CF_brief]
+        lines += [A.brief]
+        lines += [B.brief]
 
         xy_lls   = A.f.lls - B.f.lls
         xy_comps = A.f.comps - B.f.comps
@@ -131,11 +140,11 @@ class CF(object):
         return "\n".join(lines)
 
 
-class ARTPlot(object):
-    def __init__(self, test):
 
+class ARTPlot(object):
+    @classmethod
+    def Plot(cls, ax, test):
         f = test.f
-        title = test.title 
 
         R_s = f.arts[:,0,0]
         R_p = f.arts[:,0,1]
@@ -150,18 +159,48 @@ class ARTPlot(object):
         A = f.arts[:,2,0]
         A_R_T = f.arts[:,2,1]
         wl = f.arts[:,2,2] 
-        th = f.arts[:,2,3]
+        th = f.arts[:,2,3]*180./np.pi   # convert to degrees for plotting 
+
+        ax.plot(th, R, label="R %s" % test.label)
+        ax.plot(th, T, label="T %s" % test.label)
+        ax.plot(th, A, label="A %s" % test.label)
+        ax.plot(th, A_R_T, label="A_R_T %s" % test.label )
+
+    def __init__(self, test):
 
         fig, ax = plt.subplots(1, figsize=SIZE/100.)
+
+        title = test.title 
         fig.suptitle(title)   
 
-        ax.plot(th, R, label="R")
-        ax.plot(th, T, label="T")
-        ax.plot(th, A, label="A")
-        ax.plot(th, A_R_T, label="A_R_T")
+        self.Plot(ax, test)  
 
-        ax.legend() 
+        ax.legend(loc=os.environ.get("LOC", "lower right")) 
         fig.show()                
+
+
+class MARTPlot(object):
+    def __init__(self, *tests):
+        for test in tests:
+            print(test.label)
+        pass 
+
+        fig, ax = plt.subplots(1, figsize=SIZE/100.)
+
+        title = "MARTPlot"
+        fig.suptitle(title)   
+
+        for test in tests:
+            ARTPlot.Plot(ax, test)  
+        pass
+
+        ax.legend(loc=os.environ.get("LOC", "lower right")) 
+        fig.show()                
+
+
+
+
+
 
 
 
@@ -171,6 +210,5 @@ if __name__ == '__main__':
     ts = LayrTestSet()  
     print(repr(ts))
     print(repr(CF(a,b)))
-
 pass
 

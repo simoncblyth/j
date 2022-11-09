@@ -12,6 +12,13 @@ Common source for JUNO high level bash functions
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
 
 
+juno-simulation-paper
+-----------------------
+
+* https://www.overleaf.com/project/617f56272cf66b58edaeff10
+
+
+
 How to test compilation without Opticks ? 
 ------------------------------------------
 
@@ -21,6 +28,28 @@ How to test compilation without Opticks ?
 4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
 5. ntds3 should fail at DetSim0Svc::initializeOpticks 
 6. ntds0 should complete 
+
+JUNO Groups
+---------------
+
+Dear collaborators,
+
+The mailing lists for newly established PWG have been established. Please check
+[1] and welcome to subscribe. We also have mattermost channels for regular
+communication, please check [2].  Such communication channels for AFG have also
+been set for a while, and the information is collected into the same page.
+
+The AFG and PWG conveners are now coordinating new time slots of their regular
+group meetings, to minimize meeting collisions. Info stay tuned.
+
+[1] https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Coordination_Committee#Mailing_lists
+
+[2] https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Coordination_Committee#Mattermost_Team_and_Channels
+
+Regards,
+Liangjian Wen, for ACC
+
+
 
 
 Setup IHEP user website 

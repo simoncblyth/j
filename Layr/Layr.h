@@ -8,7 +8,7 @@ Notes:
 1. nothing JUNO specific here, keep it that way.
 2. this header gets installed with PMTSim 
 
-See Layr.rst for notes on TMM method theory and implementation on CPU nd GPU 
+See Layr.rst for notes on TMM method theory and implementation on CPU and GPU 
 
 **/
 
@@ -44,7 +44,7 @@ Const
 The point of these Const functions is to plant the desired type of constant
 into assembly code with no runtime transients of another type. Important for
 avoiding expensive unintentional doubles in GPU code. The constexpr means that
-the conversions and calulations happen at compile time, NOT runtime. 
+the conversions and calculations happen at compile time, NOT runtime. 
 
 **/
 
@@ -103,7 +103,7 @@ struct Matx
 template<typename T>
 LAYR_METHOD void Matx<T>::reset()
 {
-    M00.real(1) ; M00.imag(0) ; 
+    M00.real(1) ; M00.imag(0) ; // conversion from int 
     M01.real(0) ; M01.imag(0) ; 
     M10.real(0) ; M10.imag(0) ; 
     M11.real(1) ; M11.imag(0) ; 
@@ -259,6 +259,17 @@ inline std::ostream& operator<<(std::ostream& os, const ART<T>& art )
 #endif
 
 
+/**
+StackSpec
+-----------
+
+TODO: replace this with QProp/qprop like interpolated lookups 
+
+epsilon:Layr blyth$ opticks-f Layr.h 
+./qudarap/tests/QPMTPropTest.cc:to workout how to integrate with j/Layr/Layr.h TMM calcs
+
+**/
+
 template<typename T>
 struct StackSpec
 {
@@ -272,7 +283,6 @@ struct StackSpec
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
     LAYR_METHOD static StackSpec EGet() ; 
-    LAYR_METHOD static StackSpec FromFold(const NPFold* pmt, const NPFold* mat, T energy_eV); 
 #endif
 
 };
@@ -325,14 +335,6 @@ LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
     return ss ; 
 } 
 
-template<typename T>
-LAYR_METHOD StackSpec<T> StackSpec<T>::FromFold(const NPFold* pmt, const NPFold* mat, T energy_eV)
-{
-    StackSpec ss ;
-    // might as well jump to the counterpart split like PMTProp to aiming for 
-    // rather than having a CPU only method 
-    return ss ; 
-}
 
 
 template<typename T>
@@ -399,22 +401,21 @@ struct Stack
 Stack::Stack
 ---------------
 
-HMM: in real usage can the StackSpec intermediary struct be eliminated ? 
+HMM: StackSpec needs to be replaced because the refractive indices 
+it contains depend on wavelength anyhow so it is misleading 
+as well as inconvenient to have StackSpec as parameter. 
 
-Instead the on device interpolation results 
-as a function of energy can directly get fed 
-into the Layr param. Perhaps via Layr<T>* parameter 
-to keep the code doing the lookups separate. 
-That code should probably be a qpmtprop.h counterpath 
-of spmtprop.h ?
+SO instead pass in a reference to the object "QPMT.hh/spmt.h" 
+that handles the PMT properties, and is responsible for:
 
-HMM: how to do this in a way that can work on 
-both CPU and GPU ?
- 
-* dont need to use NP::combined_interpolate_5 
-  the GPU lookup code can be used instead  
+1. holding PMT properties (or textures)
+2. doing property lookup as function of wavelenth/energy
+3. populating Layr<T>* with the results 
 
-Stack could hold device pointer to the lookup instance. 
+HMM: 
+
+* how to test the counterpair pair in a way that can work on both CPU and GPU ?
+* dont need to use NP::combined_interpolate_5 GPU compatible lookup code can be used on CPU also 
 
 **/
 
@@ -446,6 +447,7 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss )
 
     // reversing the stack could easily be done here
     // but all the value shuffling seems pointless 
+    // prefer a reverse boolean argument that flips the indices
 
     ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
     ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 

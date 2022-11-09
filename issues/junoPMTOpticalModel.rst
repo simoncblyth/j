@@ -92,6 +92,9 @@ on GPU.
 Simon
 
 
+
+
+
 ::
 
     epsilon:PMTProperty blyth$ cat R12860/THICKNESS
@@ -171,12 +174,31 @@ Simon
     328 
 
 
+Yaoguang answer
+~~~~~~~~~~~~~~~~~~~
+
+The reason that I only enable the PMT optical model at a region 4.999 mm
+smaller the PMT body solid is to make the pyrex in this region "thin" enough
+that the photon absorption can be neglected. Otherwise, I have to deal with the
+photon abosprtion in pyrex in junoPMTOpticalModel.cc
+
+In fact, the mean thickness of PMT bulb is about 3~4mm in our experience,
+smaller than the default value (5mm) in simulation. So, I think 1mm thickness
+is also acceptable.
+
+Best Regards,
+
+Yaoguang
+
+
 
 
 
 
 How is junoPMTOpticalModel hooked up with the normal Geant4 simulation
 ------------------------------------------------------------------------
+
+* https://geant4.web.cern.ch/sites/default/files/geant4/collaboration/workshops/users2002/talks/lectures/FastSimulation.pdf
 
 ::
 
@@ -194,6 +216,216 @@ How is junoPMTOpticalModel hooked up with the normal Geant4 simulation
     818     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
     819                                                                    body_phys, body_region);
     820 
+
+::
+
+     26 class junoPMTOpticalModel : public G4VFastSimulationModel
+     27 {
+     28     public:
+     29         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*);
+     30         ~junoPMTOpticalModel();
+     31 
+     32         virtual G4bool IsApplicable(const G4ParticleDefinition&);
+     33         virtual G4bool ModelTrigger(const G4FastTrack&);
+     34         virtual void DoIt(const G4FastTrack&, G4FastStep&);
+     35 
+
+     75 G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleType)
+     76 {
+     77     return (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
+     78 }
+
+     80 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
+     81 {
+
+     // HMM: its quite involved : need to debug this in operation to be confident in it 
+     //      curious about how/when/were handover between normal sim and fast sim happens 
+
+
+    epsilon:src blyth$ g4-cc ModelTrigger
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc://      2) for these, loops on the ModelTrigger() methods to find out 
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:  // Loops on the ModelTrigger() methods
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:    // Asks the ModelTrigger method if it must be trigged now.
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:    if(fApplicableModelList[iModel]->ModelTrigger(fFastTrack)) {
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:    if(fApplicableModelList[iModel]->AtRestModelTrigger(fFastTrack))
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:    case OneModelTrigger:
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:      G4cout << "OneModelTrigger" << G4endl;
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:    case NoModelTrigger:
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:      G4cout << "NoModelTrigger" << G4endl;
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/parameterisations/gflash/src/GFlashShowerModel.cc:G4bool GFlashShowerModel::ModelTrigger(const G4FastTrack & fastTrack )
+    epsilon:src blyth$ 
+
+
+g4-cls G4FastSimulationManager::
+
+    160 //------------------------------------------------------------------
+    161 // Interface trigger method for the G4ParameterisationManagerProcess
+    162 //------------------------------------------------------------------
+    163 //   G4bool GetFastSimulationManagerTrigger(const G4Track &);
+    164 //
+    165 //    This method is used to interface the G4FastSimulationManagerProcess
+    166 //    with the user Fast Simulation Models. It's called when the particle 
+    167 //    is inside the envelope.
+    168 //
+    169 //    It :
+    170 //
+    171 //      1) initialises the private members (fFastTrack and so
+    172 //         on);
+    173 //      2) loops on the IsApplicable() methods to find out the
+    174 //         ones should be applied.
+    175 //      2) for these, loops on the ModelTrigger() methods to find out 
+    176 //         perhaps one that must be applied just now.
+    177 //
+    178 //    If the a Fast Simulation Model is triggered then it returns 
+    179 //    true, false otherwise.
+    180 //
+    181 //-----------------------------------------------------------
+    182 G4bool
+    183 G4FastSimulationManager::
+    184 PostStepGetFastSimulationManagerTrigger(const G4Track& track,
+    185                     const G4Navigator* theNavigator)
+    186 {
+    ...
+    217     if(fApplicableModelList[iModel]->ModelTrigger(fFastTrack)) {
+    218       //--------------------------------------------------
+    219       // The model will be applied. Initializes the G4FastStep 
+    220       // with the current state of the G4Track and 
+    221       // same usefull parameters.
+    222       // In particular it does SetLocalEnergyDeposit(0.0).
+    223       //--------------------------------------------------  
+    224       fFastStep.Initialize(fFastTrack);
+    225      
+    226       // Keeps the FastSimulationModel pointer to call the
+    227       // DoIt() method.
+    228       fTriggedFastSimulationModel=fApplicableModelList[iModel];
+    229       return true;
+    230     }
+    231 
+    232   //--------------------------------------------
+    233   // Nobody asks to gain control, returns false
+    234   //--------------------------------------------
+    235   return false;
+    236 }
+
+
+    epsilon:src blyth$ g4-cc PostStepGetFastSimulationManagerTrigger
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:PostStepGetFastSimulationManagerTrigger(const G4Track& track,
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManager.cc:  // -- (note: compared to the PostStepGetFastSimulationManagerTrigger,
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:	  fFastSimulationTrigger = fFastSimulationManager->PostStepGetFastSimulationManagerTrigger(track, fGhostNavigator);
+    epsilon:src blyth$ 
+
+
+    239 G4double
+    240 G4FastSimulationManagerProcess::
+    241 PostStepGetPhysicalInteractionLength(const G4Track&               track,
+    242                      G4double,
+    243                      G4ForceCondition*        condition)
+    244 { 
+    245   // -- Get current volume, and check for presence of fast simulation manager.
+    246   // -- For the case of the navigator for tracking (fGhostNavigatorIndex == 0)
+    247   // -- we use the track volume. This allows the code to be valid for both
+    248   // -- cases where the PathFinder is used (G4CoupledTranportation) or not
+    249   // -- (G4Transportation).
+    250   const G4VPhysicalVolume* currentVolume(0);
+    251   if ( fIsGhostGeometry )  currentVolume = fPathFinder->GetLocatedVolume(fGhostNavigatorIndex);
+    252   else                     currentVolume = track.GetVolume();
+    253   
+    254   if ( currentVolume )
+    255     { 
+    256       fFastSimulationManager = currentVolume->GetLogicalVolume()->GetFastSimulationManager();
+    257       if( fFastSimulationManager )
+    258     { 
+    259       // Ask for trigger:
+    260       fFastSimulationTrigger = fFastSimulationManager->PostStepGetFastSimulationManagerTrigger(track, fGhostNavigator);
+    261       if( fFastSimulationTrigger )
+    262         { 
+    263           // Take control over stepping:
+    264           *condition = ExclusivelyForced;
+    265           return 0.0;
+    266         }
+    267     }
+    268     }
+    269   
+    270   // -- no fast simulation occuring there:
+    271   *condition = NotForced;
+    272   return DBL_MAX;
+    273 }
+
+
+Looks to me like the fastsim model must take reponsibility for 
+everything inside the body_log that fulfils ModelTrigger.
+But it doest look like its handling reflections or absorption 
+off the innards ? 
+
+HMM: suspect that the junoPMTOpticalModel::ModelTrigger is too 
+tightly defined such that it will not handle rays that bounce off PMT innards 
+in lower hemi and approach the photocathode from inside. 
+
+TODO: standalone debugging, following photon histories in usual Opticks recorder way
+
+So ModelTrigger is critical::
+
+    080 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
+     81 {
+     82 
+     83     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner2_phys){
+     84         return false;
+     85     }
+
+     //   exclude lower hemi, 
+     //   all the PMT innards are in lower hemi so does that 
+     //   mean that ordinary G4OpBoundaryProcess kicks in for 
+     //   reflections off the innards ? 
+
+     86 
+    ...
+    100 
+    101 #ifndef PMTSIM_STANDALONE
+    102     if(whereAmI == kInGlass){
+    103         dist1 = _inner1_solid->DistanceToIn(pos, dir);
+    104         dist2 = _inner2_solid->DistanceToIn(pos, dir);
+    105 
+    106         if(dist1 == kInfinity){
+    107             return false;
+    108         }else if(dist1>dist2){
+    109             return false;
+    110         }else{
+    111             return true;
+    112         }
+
+    ///   when in the pyrex only true (and triggered) for when the ray intersects _inner1_solid more closely than _inner2_solid
+    ///   which means the ray is pointed at the upper hemi  
+
+    113     }else{
+    114         dist1 = _inner1_solid->DistanceToOut(pos, dir);
+    115         dist2 = _inner2_solid->DistanceToIn(pos, dir);
+    116 
+    117         if(dist2 == kInfinity){
+    118             return true;
+    119         }
+
+    ///    when in vacuum only true when ray misses the lower hemi _inner2_solid
+    ///    which means that the ray origin is not inside lower hemi and ray direction
+    ///    is not pointed towards lower hemi
+    ///
+    ///    THAT SEEMS TOO TIGHT A REQUIREMENT 
+    ///
+
+    120     }
+    121     return false;
+    122 
+    123 #else
+    124     dist1 = whereAmI == kInGlass ? _inner1_solid->DistanceToIn(pos, dir) : _inner1_solid->DistanceToOut(pos, dir);
+    125     dist2 = whereAmI == kInGlass ? _inner2_solid->DistanceToIn(pos, dir) : _inner2_solid->DistanceToIn(pos, dir) ;
+    126 
+    127     bool ret =  whereAmI == kInGlass ?
+    128                        (( dist1 == kInfinity || dist1 > dist2 ) ? false : true )
+    129                 :
+    130                        (( dist2 == kInfinity ) ? true : false )
+    131                 ;
+    132 
+
+
 
 
 

@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-name=${TEST:-JPMTPropTest}
+name=${TEST:-JPMTTest}
 
 echo $BASH_SOURCE TEST $TEST name $name 
 
