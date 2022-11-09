@@ -2,15 +2,20 @@
 LayrTest.cc
 =============
 
-TODO: integrate with JPMT.h so can make realistic plots 
+DONE: integrated with JPMT.h so can make realistic plots 
+
+Currently gpu scanning is populating the StackSpec on CPU 
+using NP interpolation and then that gets passed by value 
+into the kernel launch. 
+
+TODO: getting JPMT.h info accessible on GPU, so can dispense
+      with the StackSpec (or at least create it on GPU)
 
 **/
 
 #include "sdomain.h"
-
 #include "LayrTest.h"
 #include "JPMT.h"
-
 
 template<typename T>
 void test_scan(const JPMT& jp, int wavelength, int pmtcat)
@@ -28,8 +33,11 @@ void test_scan(const JPMT& jp, int wavelength, int pmtcat)
     t0.scan_cpu(spec) ;
 
 #ifdef WITH_THRUST
+    std::cout << " WITH_THRUST " << std::endl ; 
     LayrTest<T,4> t1(ni, wavelength_nm, pmtcat_label ) ; 
     t1.scan_gpu(spec) ;
+#else
+    std::cout << " not-WITH_THRUST skip gpu scan " << std::endl ; 
 #endif
 }
 

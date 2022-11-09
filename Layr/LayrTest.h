@@ -3,23 +3,33 @@
 LayrTest.h
 ===========
 
-Note structure allowing reuse of the same code for CPU and GPU running. 
+Note simple structure making use of arrays of structs 
+to allow reuse of the same code for both CPU and GPU running. 
 
-* nvcc compilation just needs layout of the structs, not the methods
+* nvcc compilation just needs the layout of the below structs,
+  and almost none of the methods
 
 **/
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-#include "NP.hh"
-
-#ifdef WITH_THRUST
-#include "SU.hh"
-#include <cuda_runtime.h>
+    #include "NP.hh"
+    #ifdef WITH_THRUST
+        #include "SU.hh"
+        #include <cuda_runtime.h>
+    #endif
 #endif
 
-#endif
 #include "Layr.h"
+
+/**
+LayrTestData 
+--------------
+
+Retaining all the comps, lls for every test item  
+is for debugging purposes only. 
+
+**/
 
 template<typename T, int N>
 struct LayrTestData    // LayrScanData  better name ?
@@ -32,13 +42,23 @@ struct LayrTestData    // LayrScanData  better name ?
     Layr<T>* lls ; 
 };
 
+
+/**
+LayrTest
+----------
+
+* h : host side struct with arrays populated by scan_cpu (OR download from scan_gpu)  
+* d : host side preparation of device side struct containing device pointers
+* d_ptr : device pointer to uploaded copy of above d struct, populated by scan_gpu 
+
+**/
+
 template<typename T, int N>
 struct LayrTest
 {
-    LayrTestData<T,N> h ;      // host side struct with arrays populated by scan_cpu (OR download from scan_gpu)  
-
-    LayrTestData<T,N> d ;      // host side preparation of device side struct containing device pointers
-    LayrTestData<T,N>* d_ptr ; // device pointer to uploaded copy of above d struct, populated by scan_gpu 
+    LayrTestData<T,N> h ;      
+    LayrTestData<T,N> d ;      
+    LayrTestData<T,N>* d_ptr ; 
 
     bool             gpu ; 
     const char*      base ; 
@@ -128,13 +148,13 @@ template<typename T, int N>
 inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
 {
     gpu = true ; 
-    upload();  // prepare device side arrays
 
-    LayrTest_launch<T,N>(*this, spec) ; // populate them 
+    upload();                           // prepare device side arrays
+    LayrTest_launch<T,N>(*this, spec) ; // populate device side arrays
 
     cudaDeviceSynchronize();
-    download();   // copy d->h (overwriting any prior scan from scan_cpu OR scan_gpu)
-    save();       // persist the h arrays 
+    download();                         // copy d->h (overwriting any prior scan from scan_cpu OR scan_gpu)
+    save();                             // persist the h arrays 
 }
 #endif
 
@@ -146,7 +166,7 @@ LayrTest::scan_cpu
 Stack does everything in ctor because any change in wl or th 
 demands almost everything is recomputed anyhow 
 
-NOTE THE WL DEPENDENCY COMING IN TWICE 
+NOTE THE WL DEPENDENCY COMING IN TWICE : IN WL AND SPEC
 
 **/
  
