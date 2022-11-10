@@ -18,13 +18,13 @@ TODO: getting JPMT.h info accessible on GPU, so can dispense
 #include "JPMT.h"
 
 template<typename T>
-void test_scan(const JPMT& jp, int wavelength, int pmtcat)
+void test_scan(const JPMT& pmt, int wavelength, int pmtcat)
 {
-    const char* pmtcat_label = jp.get_pmtcat(pmtcat) ; 
+    const char* pmtcat_label = pmt.get_pmtcat(pmtcat) ; 
     T wavelength_nm = wavelength ; 
     std::cout << " pmtcat " << pmtcat << " pmtcat_label " << pmtcat_label << std::endl ;  
 
-    StackSpec<T> spec( pmtcat == -1 ? StackSpec<T>::EGet() : jp.get(pmtcat, wavelength_nm ) ); 
+    StackSpec<T> spec( pmtcat == -1 ? StackSpec<T>::EGet() : pmt.get(pmtcat, wavelength_nm ) ); 
     std::cout << spec << std::endl ; 
 
     int ni = 900 ; 
@@ -43,16 +43,16 @@ void test_scan(const JPMT& jp, int wavelength, int pmtcat)
 
 int main(int argc, char** argv)
 {
-    JPMT jp ; 
-    std::cout << jp.desc() << std::endl ; 
+    JPMT pmt ; 
+    std::cout << pmt.desc() << std::endl ; 
 
     int wl = 400 ; 
     //int pmtcat = JPMT::HAMA ;
     //int pmtcat = JPMT::NNVT ;
     int pmtcat = JPMT::NNVTQ ;
 
-    test_scan<double>(jp, wl, pmtcat ); 
-    test_scan<float>( jp, wl, pmtcat ); 
+    test_scan<double>(pmt, wl, pmtcat ); 
+    test_scan<float>( pmt, wl, pmtcat ); 
 
     return 0 ; 
 }

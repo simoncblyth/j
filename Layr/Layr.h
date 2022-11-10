@@ -158,7 +158,7 @@ template<typename T>
 struct Layr
 {
     T  d ;
-    T  padding = 0 ;
+    T  pad=0 ;
 #ifdef WITH_THRUST 
     thrust::complex<T> n, st, ct, rs, rp, ts, tp ;
 #else
@@ -167,6 +167,7 @@ struct Layr
     Matx<T> S, P ;
 
     LAYR_METHOD void reset(); 
+    LAYR_METHOD void load4( const T* vals ); 
 };
 
 template<typename T>
@@ -175,6 +176,17 @@ LAYR_METHOD void Layr<T>::reset()
     S.reset(); 
     P.reset(); 
 }
+
+template<typename T>
+LAYR_METHOD void Layr<T>::load4(const T* vals)
+{
+    d   = vals[0] ; 
+    pad = vals[1] ; 
+    n.real(vals[2]) ; 
+    n.imag(vals[3]) ; 
+}
+
+
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -416,6 +428,17 @@ HMM:
 
 * how to test the counterpair pair in a way that can work on both CPU and GPU ?
 * dont need to use NP::combined_interpolate_5 GPU compatible lookup code can be used on CPU also 
+
+
+HMM: more physical to use dot(photon_momentum,outward_surface_normal) 
+as "angle" parameter, the dot product is -cos(aoi)
+
+1. -1 at normal incidence against surface_normal, inwards going 
+2. +1 at normal incidence with the surface_normal, outwards going  
+3.  0 at glancing incidence (90 deg AOI) : potential for math blowouts here 
+4. sign of dot product indicates when must flip the stack of parameters
+5. angle scan plots can then use aoi 0->180 deg, which is -cos(aoi) -1->1   
+   (will there be continuity across the turnaround ?)
 
 **/
 

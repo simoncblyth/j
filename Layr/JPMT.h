@@ -7,10 +7,14 @@ Instanciating JPMT.h loads properties for all PMT types from text files
 and creates and populates two arrays : rindex and thickness 
 that contain all the PMT param needed for TMM ART calculation.   
 
-This is aiming to become the CPU counterpart 
-to a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
-starting by collecting all the param into two arrays
-ready for upload.
+This is aiming to provide the input arrays for the CPU counterpart 
+of a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
+
+What exactly is JUNO specific, can it be split off/made an argument/configuration ?
+-----------------------------------------------------------------------------------------
+
+* PMTCAT names, num layers, property keys 
+
 
 Choices
 --------
@@ -60,8 +64,10 @@ struct JPMT
     double get_thickness_nm(int pmtcat, int layer) const  ; 
     double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
 
+#ifdef WITH_STACKSPEC
     // DONT LIKE THIS METHOD : WORKING TO ELIMINATE IT AND StackSpec INTERMEDIARY
     template<typename T> StackSpec<T> get(int pmtcat, T wavelength_nm) const ; 
+#endif
 
     void save(const char* dir) const ; 
     std::string desc() const ; 
@@ -161,14 +167,11 @@ inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV
     return rindex->combined_interp_5( pmtcat, layer, prop, energy_eV ) ; 
 }
 
- 
-
-
 
 inline void JPMT::save(const char* dir) const 
 {
-    rindex->save(dir, "rindex.npy"); 
-    thickness->save(dir, "thickness.npy"); 
+    rindex->save(dir, "jpmt_rindex.npy"); 
+    thickness->save(dir, "jpmt_thickness.npy"); 
 }
 inline std::string JPMT::desc() const 
 {
@@ -195,6 +198,7 @@ inline std::string JPMT::desc() const
 
 
 
+#ifdef WITH_STACKSPEC
 /**
 JPMT::get
 --------------
@@ -203,6 +207,8 @@ DONT LIKE THIS METHOD : WORKING TO ELIMINATE IT AND StackSpec INTERMEDIARY
 
 Notice that this gets all its data from two arrays: thickness and rindex
 making it straightforward to do on GPU. 
+
+ACTUALLY WHAT I DONT LIKE IS THE SHUFFLING IN AND OUT OF THE INTERMEDIARY TYPE
 
 **/
 
@@ -230,7 +236,9 @@ inline StackSpec<T> JPMT::get(int pmtcat, T wavelength_nm) const
     spec.n3r = rindex->combined_interp_5( pmtcat, L3, RINDEX, energy_eV ) ; 
     spec.n3i = rindex->combined_interp_5( pmtcat, L3, KINDEX, energy_eV ) ; 
 
+    // HMM: could these 8 calls be consolidated ? 
+
     return spec ; 
 }
 
-
+#endif
