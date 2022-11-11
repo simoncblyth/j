@@ -152,19 +152,35 @@ inline std::ostream& operator<<(std::ostream& os, const Matx<T>& m)
 Layr : (4,4,2) 
 -----------------
 
+The comp layers do not have the 0th (4,2) filled::
+
+   assert np.all( e.f.comps[:,0] == 0 ) 
+
 **/
 
 template<typename T>
 struct Layr
 {
+    // ---------------------------------------- 0th (4,2)
     T  d ;
     T  pad=0 ;
 #ifdef WITH_THRUST 
-    thrust::complex<T> n, st, ct, rs, rp, ts, tp ;
+    thrust::complex<T>  n, st, ct ; 
 #else
-    std::complex<T>    n, st, ct, rs, rp, ts, tp ; 
+    std::complex<T>     n, st, ct ;
 #endif
-    Matx<T> S, P ;
+    // ---------------------------------------- 1st (4,2)
+
+#ifdef WITH_THRUST 
+    thrust::complex<T>  rs, rp, ts, tp ;    
+#else
+    std::complex<T>     rs, rp, ts, tp ;    
+#endif
+    // ---------------------------------------- 2nd (4,2)
+    Matx<T> S ;                             
+    // ---------------------------------------- 3rd (4,2)
+    Matx<T> P ;                               
+    // ---------------------------------------- 
 
     LAYR_METHOD void reset(); 
     LAYR_METHOD void load4( const T* vals ); 

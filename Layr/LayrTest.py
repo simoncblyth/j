@@ -84,6 +84,7 @@ Blowout at turnaround::
 
 import os, builtins, numpy as np
 from opticks.ana.fold import Fold 
+from opticks.ana.rsttable import RSTTable
 SIZE = np.array([1280, 720])
 
 
@@ -94,12 +95,28 @@ class LayrTest(object):
     """
     Thin wrapper for a LayrTest output folder 
     """
+    @classmethod
+    def Tag(cls, name):
+        """
+        scan__NNVTMCP__gpu_thr_float
+        """
+
+        tag = ""
+        if "gpu" in name: tag += "g" ; 
+        if "cpu" in name: tag += "c" ; 
+        if "thr" in name: tag += "t" ; 
+        if "std" in name: tag += "s" ; 
+        if "double" in name: tag += "d" ; 
+        if "float" in name: tag += "f" ; 
+        return tag
+
     def __init__(self, f):
         self.f = f  
         if not f is None:
             title = f.arts_meta.d["title"] 
             brief = f.arts_meta.d["brief"] 
             name = f.arts_meta.d["name"] 
+            tag = self.Tag(name)
             label = f.arts_meta.d["label"] 
             symbol = f.symbol
             layrs = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
@@ -107,6 +124,7 @@ class LayrTest(object):
             title = "-"
             brief = "-"
             name = "-"
+            tag = "?"
             label = "-"
             symbol = "?"
             layrs = "?" 
@@ -114,9 +132,13 @@ class LayrTest(object):
         self.title = title
         self.brief = brief
         self.name = name
+        self.tag = tag
         self.label = label
         self.symbol = symbol
         self.layrs = layrs
+        self.arts = f.arts
+        self.lls = f.lls
+        self.comps = f.comps
 
     def __repr__(self):
         return "%s : %s" % (self.symbol, self.title)
@@ -172,6 +194,73 @@ class LayrTestSet(object):
     def select(self, label):
         return list(filter(lambda t:t.label == label, self.tests))
 
+    def cf_table(self, tt, label, qwns="arts comps".split() ):
+        """
+        ::
+
+
+            +------------------------------+----------+----------+----------+----------+
+            |            R12860 arts\comps |     m:ctd|     n:ctf|     o:gtd|     p:gtf|
+            +==============================+==========+==========+==========+==========+
+            |                         m:ctd|         0|    0.0129| 4.547e-13|   0.01284|
+            +------------------------------+----------+----------+----------+----------+
+            |                         n:ctf| 6.101e-06|         0|    0.0129| 0.0001221|
+            +------------------------------+----------+----------+----------+----------+
+            |                         o:gtd| 1.321e-14| 6.101e-06|         0|   0.01284|
+            +------------------------------+----------+----------+----------+----------+
+            |                         p:gtf| 1.523e-06| 7.451e-06| 1.523e-06|         0|
+            +------------------------------+----------+----------+----------+----------+
+
+
+            +------------------------------+----------+----------+----------+----------+
+            |           NNVTMCP arts\comps |     i:ctd|     j:ctf|     k:gtd|     l:gtf|
+            +==============================+==========+==========+==========+==========+
+            |                         i:ctd|         0|   0.01279| 4.547e-13|   0.01279|
+            +------------------------------+----------+----------+----------+----------+
+            |                         j:ctf| 5.154e-06|         0|   0.01279| 9.155e-05|
+            +------------------------------+----------+----------+----------+----------+
+            |                         k:gtd| 1.243e-14| 5.154e-06|         0|   0.01279|
+            +------------------------------+----------+----------+----------+----------+
+            |                         l:gtf| 1.403e-06| 6.557e-06| 1.403e-06|         0|
+            +------------------------------+----------+----------+----------+----------+
+
+            +------------------------------+----------+----------+----------+----------+
+            |      NNVTMCP_HiQE arts\comps |     e:ctd|     f:ctf|     g:gtd|     h:gtf|
+            +==============================+==========+==========+==========+==========+
+            |                         e:ctd|         0|   0.01837| 2.416e-13|   0.01855|
+            +------------------------------+----------+----------+----------+----------+
+            |                         f:ctf| 7.528e-06|         0|   0.01837| 0.0001831|
+            +------------------------------+----------+----------+----------+----------+
+            |                         g:gtd| 1.754e-14| 7.528e-06|         0|   0.01855|
+            +------------------------------+----------+----------+----------+----------+
+            |                         h:gtf| 1.829e-06| 9.358e-06| 1.829e-06|         0|
+            +------------------------------+----------+----------+----------+----------+
+
+        """
+        key = "%s %s " % (label, "\\".join(qwns))
+
+        ntt = len(tt)
+        labels = [key] 
+        tab= np.zeros( [ntt,1+ntt], dtype=np.object )
+
+        for i in range(ntt):
+            ti = tt[i]
+            label = "%s:%s" % (ti.symbol, ti.tag)
+            labels.append(label)
+            tab[i,0] = label
+            for j in range(ntt):
+                if i == j: continue
+                tj = tt[j]
+                cf = CF(ti,tj)
+                qwn = qwns[0] if i > j else qwns[1]
+                cfv = np.abs( getattr(cf, qwn) ).max()
+                pass
+                tab[i,j+1] = cfv
+            pass
+        pass
+        rst = RSTTable.Rdr(tab, labels, rfm="%10.4g", left_wid=30, hfm="%10s", left_rfm="%30s", left_hfm="%30s" )
+        return rst 
+
     def __repr__(self):
         lines = []
         lines.append("CFLayrTest")
@@ -179,7 +268,7 @@ class LayrTestSet(object):
             symbol = self.symbols[idx]
             label = self.labels[idx]
             name = self.names[idx]
-            lines.append("%2s : %s : %s " % (symbol, label, name))    
+            lines.append("%2s : %15s : %s " % (symbol, label, name))    
         pass
         return "\n".join(lines)
 
@@ -192,27 +281,37 @@ class CF(object):
     def __init__(self, A, B):
         self.A = A 
         self.B = B 
+        if A is None or B is None or A.f is None or B.f is None:
+            self.lls = None
+            self.comps = None
+            self.arts = None
+        else:
+            self.lls   = A.f.lls - B.f.lls
+            self.comps = A.f.comps - B.f.comps
+            self.arts  = A.f.arts - B.f.arts
+        pass
 
     def __repr__(self):
         A = self.A
         B = self.B 
 
+        lls = self.lls
+        comps = self.comps
+        arts = self.arts
+
         if A is None or B is None or A.f is None or B.f is None:
              return "CANNOT COMPARE"
         pass
+
 
         CF_brief = "CF(%s,%s) : %s vs %s " % (A.symbol, B.symbol, A.name, B.name ) 
         lines = [CF_brief]
         lines += [A.brief]
         lines += [B.brief]
 
-        xy_lls   = A.f.lls - B.f.lls
-        xy_comps = A.f.comps - B.f.comps
-        xy_arts  = A.f.arts - B.f.arts
-
-        lines += [ "%10s : %s : %s  " % ("lls",   xy_lls.max(),   xy_lls.min()) ]
-        lines += [ "%10s : %s : %s "  % ("comps", xy_comps.max(), xy_comps.min()) ]  
-        lines += [ "%10s : %s : %s "  % ("arts",  xy_arts.max(),  xy_arts.min()) ]  
+        lines += [ "%10s : %s : %s : %s  " % ("lls",   np.abs(lls).max(),   lls.max(),   lls.min()) ]
+        lines += [ "%10s : %s : %s : %s "  % ("comps", np.abs(comps).max(), comps.max(), comps.min()) ]  
+        lines += [ "%10s : %s : %s : %s "  % ("arts",  np.abs(arts).max(),  arts.max(),  arts.min()) ]  
 
         return "\n".join(lines)
 
@@ -313,6 +412,13 @@ if __name__ == '__main__':
     if not lt is None:
         ap = ARTPlot(lt)
     pass 
+
+    if len(tt) > 0:
+        rst = ts.cf_table(tt, pmtcat)
+        print(rst)
+    pass
+
+
 
 
 

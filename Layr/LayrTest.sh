@@ -44,8 +44,8 @@ export LAYRTEST_BASE=$fold
 
 #pmtcat=R12860
 #pmtcat=NNVTMCP 
-#pmtcat=NNVTMCP_HiQE
-pmtcat=EGet
+pmtcat=NNVTMCP_HiQE
+#pmtcat=EGet
 
 export LAYRTEST_PMTCAT=$pmtcat
 export LAYRTEST_WL=440
