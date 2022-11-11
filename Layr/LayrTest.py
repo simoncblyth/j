@@ -97,27 +97,29 @@ class LayrTest(object):
     def __init__(self, f):
         self.f = f  
         if not f is None:
+            title = f.arts_meta.d["title"] 
             brief = f.arts_meta.d["brief"] 
             name = f.arts_meta.d["name"] 
             label = f.arts_meta.d["label"] 
             symbol = f.symbol
-            x_dd_nn = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
-            title = "\n".join([symbol, brief, x_dd_nn])
+            layrs = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
         else:
+            title = "-"
             brief = "-"
             name = "-"
             label = "-"
             symbol = "?"
-            title = "None" 
+            layrs = "?" 
         pass
+        self.title = title
         self.brief = brief
         self.name = name
         self.label = label
-        self.title = title
         self.symbol = symbol
+        self.layrs = layrs
 
     def __repr__(self):
-        return self.title
+        return "%s : %s" % (self.symbol, self.title)
 
 
 class LayrTestSet(object):
@@ -140,6 +142,7 @@ class LayrTestSet(object):
         assert len(self.NAMES) < len(self.SYMBOLS) 
 
         names = [] 
+        labels = [] 
         symbols = []
         folds = [] 
         tests = []
@@ -155,22 +158,28 @@ class LayrTestSet(object):
             setattr(self, symbol, test) 
 
             names.append(name)
+            labels.append(test.label)
             symbols.append(symbol) 
             folds.append(fold)
             tests.append(test)
         pass
         self.names = names
+        self.labels = labels
         self.symbols = symbols
         self.folds = folds
         self.tests = tests
+
+    def select(self, label):
+        return list(filter(lambda t:t.label == label, self.tests))
 
     def __repr__(self):
         lines = []
         lines.append("CFLayrTest")
         for idx in range(len(self.tests)):
             symbol = self.symbols[idx]
+            label = self.labels[idx]
             name = self.names[idx]
-            lines.append("%2s : %s " % (symbol, name))    
+            lines.append("%2s : %s : %s " % (symbol, label, name))    
         pass
         return "\n".join(lines)
 
@@ -228,19 +237,34 @@ class ARTPlot(object):
         A_R_T = f.arts[:,2,1]
         wl = f.arts[:,2,2] 
         mct = f.arts[:,2,3]  # minus_cos_theta 
-        th = np.arccos(-mct)*180./np.pi  
+
+        th2mct_ = lambda th:-np.cos(th*np.pi/180.)
+        mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
+
+        #th = np.arccos(-mct)*180./np.pi  
+        th = mct2th_(mct)
 
         #s = mct <= 0. 
         #s = mct >= 0. 
-        s = mct != np.nan 
+        s = slice(None)
 
-        ax.plot(th[s], R[s], label="R %s" % test.label)
-        ax.plot(th[s], T[s], label="T %s" % test.label)
-        ax.plot(th[s], A[s], label="A %s" % test.label)
-        ax.plot(th[s], A_R_T[s], label="A_R_T %s" % test.label )
+        ax.plot(th[s], R[s], label="R")
+        ax.plot(th[s], T[s], label="T")
+        ax.plot(th[s], A[s], label="A")
+        ax.plot(th[s], A_R_T[s], label="A_R_T")
+        #ax.set_title( test.label )
 
-        ax.plot( [90, 90],   [0, 1], linestyle="dashed" ) 
-        ax.plot( [180, 180], [0, 1], linestyle="dashed" ) 
+        for x in [0,90,180]:
+            ax.plot( [ x,  x],   [0, 1], linestyle="dashed" )  
+        pass
+        ax.text( 125, 0.6, test.layrs )
+
+        sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
+        sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
+
+        ax.set_xlabel('aoi [degrees] ( 90:180 : reverse stack )' )
+
+
 
     def __init__(self, test):
 
@@ -251,7 +275,7 @@ class ARTPlot(object):
 
         self.Plot(ax, test)  
 
-        ax.legend(loc=os.environ.get("LOC", "lower right")) 
+        ax.legend(loc=os.environ.get("LOC", "upper right")) 
         fig.show()                
 
 
@@ -279,5 +303,19 @@ if __name__ == '__main__':
     ts = LayrTestSet()  
     print(repr(ts))
     print(repr(CF(a,b)))
+
+    pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
+    tt = ts.select(pmtcat)
+
+    lt = tt[-1] if len(tt) > 0 else None
+    print("pmtcat:%s tt:%d lt:%s " % (pmtcat, len(tt), lt ))
+    
+    if not lt is None:
+        ap = ARTPlot(lt)
+    pass 
+
+
+
+
 pass
 

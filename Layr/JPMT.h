@@ -37,6 +37,7 @@ struct JPMT
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
     static void GetNames( std::vector<std::string>& names ); 
+    static int FindCat( const char* name ); 
 
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -80,6 +81,13 @@ inline void JPMT::GetNames( std::vector<std::string>& names ) // static
     names.push_back(_NNVTQ);  
 }
 
+inline int JPMT::FindCat( const char* name )  // static
+{
+    std::vector<std::string> names ; 
+    GetNames(names); 
+    size_t idx = std::distance( names.begin(), std::find( names.begin(), names.end(), name )); 
+    return idx >= names.size() ? -1  : int(idx) ;  
+} 
 
 
 inline JPMT::JPMT()

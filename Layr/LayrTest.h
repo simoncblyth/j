@@ -81,6 +81,7 @@ struct LayrTest
     void save() const ; 
     std::string desc() const ; 
     std::string brief() const ; 
+    std::string title() const ; 
 #endif
 };
 
@@ -245,13 +246,28 @@ inline std::string LayrTest<T,N>::brief() const
 }
 
 template<typename T, int N>
+inline std::string LayrTest<T,N>::title() const 
+{
+    const char* name = get_name() ; 
+    std::stringstream ss ; 
+    ss
+        << "j/Layr/LayrTest"
+        << " " << name
+        << " ni " << h.ni         
+        << " wl " << h.wl         
+        ; 
+    std::string s = ss.str(); 
+    return s ; 
+}
+
+template<typename T, int N>
 inline const char* LayrTest<T,N>::get_name() const 
 {
     std::stringstream ss ; 
     ss 
-       << "scan_" 
+       << "scan__" 
        << ( label ? label : "" )
-       << "_"
+       << "__"
        << ( gpu ? "gpu" : "cpu" ) 
        << "_" 
 #ifdef WITH_THRUST
@@ -269,8 +285,10 @@ inline const char* LayrTest<T,N>::get_name() const
 template<typename T, int N>
 inline void LayrTest<T,N>::save() const 
 {
+    std::string ti = title(); 
     std::string br = brief(); 
-    std::cout << br << std::endl ;  
+    std::cout << " title " << ti << std::endl ;  
+    std::cout << " brief " << br << std::endl ;  
 
     assert( sizeof(ART<T>)/sizeof(T) == 12 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
@@ -282,6 +300,7 @@ inline void LayrTest<T,N>::save() const
     // use manual way for _arts so can set metadata
     NP* _arts = NP::Make<T>( h.ni, 3, 4 );
     _arts->read2( (T*)h.arts ); 
+    _arts->set_meta<std::string>("title", ti); 
     _arts->set_meta<std::string>("brief", br); 
     _arts->set_meta<std::string>("name", name); 
     _arts->set_meta<std::string>("label", label); 

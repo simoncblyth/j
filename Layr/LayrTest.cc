@@ -20,8 +20,9 @@ TODO: getting JPMT.h info accessible on GPU, so can dispense
 template<typename T>
 void test_scan(const JPMT& pmt, int wavelength, int pmtcat)
 {
-    const char* pmtcat_label = pmt.get_pmtcat(pmtcat) ; 
     T wavelength_nm = wavelength ; 
+
+    const char* pmtcat_label = pmtcat == -1 ? "EGet" :  pmt.get_pmtcat(pmtcat) ; 
     std::cout << " pmtcat " << pmtcat << " pmtcat_label " << pmtcat_label << std::endl ;  
 
     StackSpec<T> spec( pmtcat == -1 ? StackSpec<T>::EGet() : pmt.get(pmtcat, wavelength_nm ) ); 
@@ -46,10 +47,9 @@ int main(int argc, char** argv)
     JPMT pmt ; 
     std::cout << pmt.desc() << std::endl ; 
 
-    int wl = 400 ; 
-    //int pmtcat = JPMT::HAMA ;
-    //int pmtcat = JPMT::NNVT ;
-    int pmtcat = JPMT::NNVTQ ;
+    int wl = U::GetEnvInt("LAYRTEST_WL", 440) ; 
+    const char* cat = U::GetEnv("LAYRTEST_PMTCAT", JPMT::_NNVTQ ); 
+    int pmtcat = JPMT::FindCat(cat); 
 
     test_scan<double>(pmt, wl, pmtcat ); 
     test_scan<float>( pmt, wl, pmtcat ); 

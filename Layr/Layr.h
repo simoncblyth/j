@@ -315,9 +315,10 @@ StackSpec<T> StackSpec<T>::Default()
 template<typename T>
 LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
 {
-    std::vector<T>* l0 = ssys::getenvvec<T>("L0", "1,0,0") ;    
-    std::vector<T>* l1 = ssys::getenvvec<T>("L1", "1,0.01,500") ;    
-    std::vector<T>* l2 = ssys::getenvvec<T>("L2", "1,0.01,500") ;    
+    // make the default stack symmetric to check minus_cos_theta flip 
+    std::vector<T>* l0 = ssys::getenvvec<T>("L0", "1.5,0,0") ;    
+    std::vector<T>* l1 = ssys::getenvvec<T>("L1", "2.0,2.0,20") ;    
+    std::vector<T>* l2 = ssys::getenvvec<T>("L2", "2.0,2.0,20") ;    
     std::vector<T>* l3 = ssys::getenvvec<T>("L3", "1.5,0,0") ;    
 
     assert( l0 && l0->size() <= 3u ); 
