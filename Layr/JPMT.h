@@ -36,6 +36,7 @@ struct JPMT
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
+    static void GetNames( std::vector<std::string>& names ); 
 
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -48,7 +49,6 @@ struct JPMT
     NPFold* PMTProperty ; 
     NPFold* Pyrex ; 
     NPFold* Vacuum ; 
-    NPFold* pmt[NUM_PMTCAT] ; 
 
     std::vector<const NP*> v_rindex ; 
     std::vector<const NP*> v_thickness ; 
@@ -73,6 +73,15 @@ struct JPMT
     std::string desc() const ; 
 };
 
+inline void JPMT::GetNames( std::vector<std::string>& names ) // static
+{
+    names.push_back(_HAMA);  
+    names.push_back(_NNVT);  
+    names.push_back(_NNVTQ);  
+}
+
+
+
 inline JPMT::JPMT()
     :
     PMTProperty(NPFold::LoadProp("PMTProperty")),
@@ -96,14 +105,17 @@ for all PMT categories and stack layers into two arrays.
 inline void JPMT::init()
 {
     assert( PMTProperty ); 
-    pmt[HAMA]  = PMTProperty->get_subfold(_HAMA) ; 
-    pmt[NNVT]  = PMTProperty->get_subfold(_NNVT) ; 
-    pmt[NNVTQ] = PMTProperty->get_subfold(_NNVTQ) ; 
+
+    std::vector<std::string> names ; 
+    GetNames(names); 
+    assert( names.size() == NUM_PMTCAT ); 
 
     for(int i=0 ; i < NUM_PMTCAT ; i++) 
     {
-        NPFold* p = pmt[i];  
-        const NP* p_thickness = p->get("THICKNESS") ; 
+        const char* name = names[i].c_str(); 
+        NPFold* pmt = PMTProperty->get_subfold(name); 
+        const NP* pmt_thickness = pmt->get("THICKNESS") ; 
+        // p_thickness is funny named value property array 
 
         for(int j=0 ; j < NUM_LAYER ; j++) 
         {
@@ -113,8 +125,8 @@ inline void JPMT::init()
                 switch(j)
                 {
                    case 0: a = (k == 0 ? Pyrex->get("RINDEX")  : NP::ZEROProp<double>() ) ; break ;  
-                   case 1: a = p->get( k == 0 ? "ARC_RINDEX"   : "ARC_KINDEX"   )         ; break ; 
-                   case 2: a = p->get( k == 0 ? "PHC_RINDEX"   : "PHC_KINDEX"   )         ; break ; 
+                   case 1: a = pmt->get( k == 0 ? "ARC_RINDEX"   : "ARC_KINDEX"   )         ; break ; 
+                   case 2: a = pmt->get( k == 0 ? "PHC_RINDEX"   : "PHC_KINDEX"   )         ; break ; 
                    case 3: a = (k == 0 ? Vacuum->get("RINDEX") : NP::ZEROProp<double>() ) ; break ;  
                 }
                 v_rindex.push_back(a) ; 
@@ -125,17 +137,21 @@ inline void JPMT::init()
             switch(j)
             {
                case 0: d = 0. ; break ; 
-               case 1: d = scale*p_thickness->get_named_value<double>("ARC_THICKNESS", -1) ; break ; 
-               case 2: d = scale*p_thickness->get_named_value<double>("PHC_THICKNESS", -1) ; break ; 
+               case 1: d = scale*pmt_thickness->get_named_value<double>("ARC_THICKNESS", -1) ; break ; 
+               case 2: d = scale*pmt_thickness->get_named_value<double>("PHC_THICKNESS", -1) ; break ; 
                case 3: d = 0. ; break ; 
             }
             tt[i*NUM_LAYER + j] = d ;  
         }
     }
     rindex = NP::Combine(v_rindex); 
+
     const std::vector<int>& shape = rindex->shape ; 
     assert( shape.size() == 3 ); 
     rindex->change_shape( NUM_PMTCAT, NUM_LAYER, NUM_PROP, shape[shape.size()-2], shape[shape.size()-1] );  
+
+    rindex->set_names(names); 
+    thickness->set_names(names); 
 }
 
 
@@ -177,9 +193,6 @@ inline std::string JPMT::desc() const
 {
     std::stringstream ss ; 
     ss << "JPMT::desc"
-       << " pmt[0].desc " << pmt[0]->desc()
-       << " pmt[1].desc " << pmt[1]->desc()
-       << " pmt[2].desc " << pmt[2]->desc()
        << " Pyrex.desc  " << Pyrex->desc()
        << " Vacuum.desc  " << Vacuum->desc()
        << " rindex " << ( rindex ? rindex->sstr() : "-" )

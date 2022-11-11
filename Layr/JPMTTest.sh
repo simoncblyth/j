@@ -10,7 +10,9 @@ defarg="build_run_ana"
 arg=${1:-$defarg}
 
 if [ "${arg/build}" != "$arg" ]; then
-    gcc $name.cc -std=c++11 -lstdc++ \
+
+    opt="-DWITH_STACKSPEC"
+    gcc $name.cc $opt -std=c++11 -lstdc++ \
          -I$OPTICKS_PREFIX/include/SysRap \
          -I/usr/local/cuda/include \
          -o /tmp/$name/$name 

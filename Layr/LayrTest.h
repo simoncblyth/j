@@ -6,8 +6,7 @@ LayrTest.h
 Note simple structure making use of arrays of structs 
 to allow reuse of the same code for both CPU and GPU running. 
 
-* nvcc compilation just needs the layout of the below structs,
-  and almost none of the methods
+* nvcc compilation mainly needs struct layout, rather than the methods
 
 **/
 
@@ -36,7 +35,7 @@ struct LayrTestData    // LayrScanData  better name ?
 {
     int      ni ;     // number of items : currently angles 
     T        wl ;     // hmm could vary wl, by making this an array 
-    T*       theta ; 
+    T*       mct ;    // minus_cos_theta from -1 to 1, > 0 is backwards stack
     ART<T>*  arts ; 
     Layr<T>* comps ;  
     Layr<T>* lls ; 
@@ -63,6 +62,7 @@ struct LayrTest
     bool             gpu ; 
     const char*      base ; 
     const char*      label ; 
+    bool half ; 
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -92,24 +92,34 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     d_ptr(nullptr),
     gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
     base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest")),
-    label(label_ ? strdup(label_) : nullptr)
+    label(label_ ? strdup(label_) : nullptr),
+    half(U::GetEnvInt("LAYRTEST_HALF",0) == 1)
 {
     assert( sizeof(T) == 4 || sizeof(T) == 8 ); 
     h.ni = ni ; 
     h.wl = wl > 0. ? wl : U::GetE<double>("WL", 500.) ; 
-    h.theta = new T[ni] ; 
+    h.mct = new T[ni] ; 
     h.arts  = new ART<T>[ni] ; 
     h.comps = new Layr<T>[ni] ; 
     h.lls   = new Layr<T>[N*ni] ; 
 
-    bool all = false ; 
+    T max_theta_pi = half ? T(1)/T(2) : T(1) ;  
+    bool end_one = half ? false : true ;
+
+    // HMM: when covering full 0->180 end_one does not
+    // protect from glancing 90 degree incidence 
+    //
+    // get very large float/double mismatch in lls and comps 
+    //
+    // TODO: look into details to see why glancing edge case is so bad, 
+    // needs some special treatment. 
+ 
     for(int i=0 ; i < ni ; i++ ) 
     {
-        h.theta[i] = T(i)/T(all ? ni-1 :ni)*M_PI/T(2) ; 
-        // ni angles  0 -> (all?1:89/90) * pi/2  radians
+        T frac =  T(i)/T(end_one ? ni-1 : ni) ;  
+        T theta = frac*max_theta_pi*M_PI ; 
+        h.mct[i] = -cos(theta) ;  
     }
-    // Avoiding pi/2 (glancing incidence) as get very large float/double mismatch in lls and comps 
-    // TODO: look into details to see if this glancing edge case needs some special treatment. 
 }
 
 #ifdef WITH_THRUST
@@ -120,13 +130,13 @@ inline void LayrTest<T,N>::upload()   // prepare device side arrays
     d.ni = ni ; 
     d.wl = h.wl ;
 
-    d.theta =       (T*)SU::device_alloc_sizeof(ni, sizeof(T)) ;     
+    d.mct   =       (T*)SU::device_alloc_sizeof(ni, sizeof(T)) ;     
     d.arts  = ( ART<T>*)SU::device_alloc_sizeof(ni, sizeof(ART<T>) ); 
     d.comps = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>) ); 
     d.lls   = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>)*N ); 
 
-    printf("// upload h.theta[0] %10.4f h.theta[ni-1] %10.4f \n", h.theta[0], h.theta[ni-1] ); 
-    SU::copy_host_to_device_sizeof( (char*)d.theta, (char*)h.theta, ni, sizeof(T) ); 
+    printf("// upload h.mct[0] %10.4f h.mct[ni-1] %10.4f \n", h.mct[0], h.mct[ni-1] ); 
+    SU::copy_host_to_device_sizeof( (char*)d.mct, (char*)h.mct, ni, sizeof(T) ); 
 
     d_ptr = (LayrTestData<T,N>*)SU::upload_array_sizeof((char*)&d, 1, sizeof(LayrTestData<T,N>) );  
 }
@@ -177,8 +187,8 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
     bool reverse = false ; 
     for(int i=0 ; i < h.ni ; i++ )
     {
-        int j = reverse ? h.ni - 1 - i : i ; 
-        Stack<T,N> stack(h.wl, h.theta[j], spec ) ; 
+        int j = reverse ? h.ni - 1 - i : i ; // just debugging reorder
+        Stack<T,N> stack(h.wl, h.mct[j], spec ) ; 
 
         h.arts[j] = stack.art; 
         h.comps[j] = stack.comp ; 
@@ -227,8 +237,8 @@ inline std::string LayrTest<T,N>::brief() const
         << " name " << name
         << " ni " << h.ni         
         << " wl " << h.wl         
-        << " theta[0] " << h.theta[0]
-        << " theta[ni-1] " << h.theta[h.ni-1]
+        << " mct[0] " << h.mct[0]
+        << " mct[ni-1] " << h.mct[h.ni-1]
         ; 
     std::string s = ss.str(); 
     return s ; 

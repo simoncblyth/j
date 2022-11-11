@@ -18,6 +18,7 @@ opt="-std=c++11 -I. -I/usr/local/cuda/include -I$OPTICKS_PREFIX/include/SysRap"
 linkflags="-lstdc++"
 
 WITH_THRUST=1  # comment for CPU only test
+WITH_STACKSPEC=1
 
 if [ -n "$WITH_THRUST" ]; then 
     opt="$opt -DWITH_THRUST"
@@ -27,9 +28,17 @@ else
     echo $BASH_SOURCE : not WITH_THRUST config 
 fi
 
+if [ -n "$WITH_STACKSPEC" ]; then
+    opt="$opt -DWITH_STACKSPEC"
+    echo $BASH_SOURCE : WITH_STACKSPEC config  
+else
+    echo $BASH_SOURCE : not WITH_STACKSPEC config 
+fi 
+
 
 fold=/tmp/$USER/opticks/$name
 export LAYRTEST_BASE=$fold
+#export LAYRTEST_HALF=1
 
 
 if [ "${arg/clean}" != "$arg" ]; then

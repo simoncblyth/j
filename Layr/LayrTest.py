@@ -34,6 +34,52 @@ LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_double 
       arts : 3.8496625794082195e-06 : -3.141641908288584e-06 
 
 
+
+Blowout at turnaround::
+
+    In [15]: CF(a,b)
+    Out[15]: 
+    CF(a,b) : scan_NNVTMCP_HiQE_cpu_thr_double vs scan_NNVTMCP_HiQE_cpu_thr_float 
+    LayrTest<double,4> WITH_THRUST  name scan_NNVTMCP_HiQE_cpu_thr_double ni 900 wl 400 mct[0] -1 mct[ni-1] 0.999994
+    LayrTest<float,4> WITH_THRUST  name scan_NNVTMCP_HiQE_cpu_thr_float ni 900 wl 400 mct[0] -1 mct[ni-1] 0.999994
+           lls : 6813571569456890.0 : -6813571569456890.0  
+         comps : 1.6636561207996178e+16 : -1.6636561207996178e+16 
+          arts : 1.40579499818827e-06 : -1.2922178646013194e-06 
+
+
+    In [3]: abc = a.f.comps - b.f.comps   ## difference of composite layer objects
+    In [4]: abc.shape
+    Out[4]: (900, 4, 4, 2)
+
+    In [14]: np.where( np.abs(abc) > 0.005 )   ## blowout at 90 degrees
+    Out[14]: 
+    (array([450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 451, 451]),
+     array([2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2]),
+     array([0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 2]),
+     array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0]))
+
+
+    In [16]: abl = a.f.lls - b.f.lls     
+
+    In [19]: abl.shape
+    Out[19]: (900, 4, 4, 4, 2)
+
+    In [18]: np.where(np.abs(abl) > 0.05 )
+    Out[18]: 
+    (array([450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450,
+            450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450,
+            450, 450, 450, 450, 450, 450, 450]),
+     array([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
+     array([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0,
+            0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]),
+     array([1, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 1,
+            2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3]),
+     array([0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+            0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]))
+
+
+
 """
 
 import os, builtins, numpy as np
@@ -45,6 +91,9 @@ def both(x,y):
     return not x is None and not y is None
 
 class LayrTest(object):
+    """
+    Thin wrapper for a LayrTest output folder 
+    """
     def __init__(self, f):
         self.f = f  
         if not f is None:
@@ -72,32 +121,48 @@ class LayrTest(object):
 
 
 class LayrTestSet(object):
+    """
+    Instanciation populates global scope with symbols a, b, c, ...  
+    that point to LayrTest objects loaded from LAYRTEST_BASE /tmp/blyth/opticks/LayrTest.
+    The order is obtained by lexical sorting the directory names, eg::
+
+        ['scan_NNVTMCP_HiQE_cpu_thr_double',
+         'scan_NNVTMCP_HiQE_cpu_thr_float',
+         'scan_NNVTMCP_HiQE_gpu_thr_double',
+         'scan_NNVTMCP_HiQE_gpu_thr_float']
+     
+    """
     BASE = os.environ.get("LAYRTEST_BASE", "/tmp/LayrTest")
-    NAMES = list(filter(lambda name:name.startswith("scan_"),os.listdir(BASE))) 
+    NAMES = sorted(list(filter(lambda name:name.startswith("scan_"),os.listdir(BASE)))) 
     SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
 
     def __init__(self):
+        assert len(self.NAMES) < len(self.SYMBOLS) 
 
-        tests = []
         names = [] 
         symbols = []
+        folds = [] 
+        tests = []
 
         for idx in range(len(self.NAMES)):
             name = self.NAMES[idx]
             symbol = self.SYMBOLS[idx]
-            test = LayrTest(Fold.Load(self.BASE, name,  symbol=symbol))
+            fold = Fold.Load(self.BASE, name,  symbol=symbol)
+            test = LayrTest(fold)
             test.name = name 
 
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
 
-            tests.append(test)
             names.append(name)
             symbols.append(symbol) 
+            folds.append(fold)
+            tests.append(test)
         pass
-        self.tests = tests
-        self.symbols = symbols
         self.names = names
+        self.symbols = symbols
+        self.folds = folds
+        self.tests = tests
 
     def __repr__(self):
         lines = []
@@ -112,6 +177,9 @@ class LayrTestSet(object):
 
 
 class CF(object):
+    """
+    Compare two LayrTest objects 
+    """
     def __init__(self, A, B):
         self.A = A 
         self.B = B 
@@ -159,12 +227,20 @@ class ARTPlot(object):
         A = f.arts[:,2,0]
         A_R_T = f.arts[:,2,1]
         wl = f.arts[:,2,2] 
-        th = f.arts[:,2,3]*180./np.pi   # convert to degrees for plotting 
+        mct = f.arts[:,2,3]  # minus_cos_theta 
+        th = np.arccos(-mct)*180./np.pi  
 
-        ax.plot(th, R, label="R %s" % test.label)
-        ax.plot(th, T, label="T %s" % test.label)
-        ax.plot(th, A, label="A %s" % test.label)
-        ax.plot(th, A_R_T, label="A_R_T %s" % test.label )
+        #s = mct <= 0. 
+        #s = mct >= 0. 
+        s = mct != np.nan 
+
+        ax.plot(th[s], R[s], label="R %s" % test.label)
+        ax.plot(th[s], T[s], label="T %s" % test.label)
+        ax.plot(th[s], A[s], label="A %s" % test.label)
+        ax.plot(th[s], A_R_T[s], label="A_R_T %s" % test.label )
+
+        ax.plot( [90, 90],   [0, 1], linestyle="dashed" ) 
+        ax.plot( [180, 180], [0, 1], linestyle="dashed" ) 
 
     def __init__(self, test):
 
@@ -199,14 +275,7 @@ class MARTPlot(object):
 
 
 
-
-
-
-
-
-
 if __name__ == '__main__':
-
     ts = LayrTestSet()  
     print(repr(ts))
     print(repr(CF(a,b)))

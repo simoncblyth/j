@@ -237,7 +237,7 @@ struct ART
     F A;       // A   = a.arts[:,2,0]
     F A_R_T ;  // A_R_T = a.arts[:,2,1] 
     F wl ;     // wl  = a.arts[:,2,2]
-    F th ;     // th  = a.arts[:,2,3]   
+    F mct ;    // mct  = a.arts[:,2,3]   
 
     // persisted into shape (3,4) 
 };
@@ -405,7 +405,7 @@ struct Stack
     Layr<T> comp ;  // composite for the N layers 
     ART<T>  art ; 
 
-    LAYR_METHOD Stack(T wl, T th, const StackSpec<T>& ss);
+    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
 };
 
 
@@ -443,8 +443,9 @@ as "angle" parameter, the dot product is -cos(aoi)
 **/
 
 template<typename T, int N>
-LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss ) 
+LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss ) 
 {
+    // minus_cos_theta, aka dot(mom,normal)
 #ifdef WITH_THRUST
     using thrust::complex ; 
     using thrust::norm ; 
@@ -468,38 +469,48 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T th, const StackSpec<T>& ss )
     assert( N == 4 ); 
 #endif
 
-    // reversing the stack could easily be done here
-    // but all the value shuffling seems pointless 
-    // prefer a reverse boolean argument that flips the indices
-
-    ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
-    ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 
-    ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
-    ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
-
-
-    art.wl = wl ; 
-    art.th  = th ; 
 
     const T zero(Const::zero<T>()) ; 
     const T one(Const::one<T>()) ; 
     const T two(Const::two<T>()) ; 
     const T twopi(Const::twopi<T>()) ; 
 
-    const complex<T> zO(one,zero); 
+    bool against_normal = minus_cos_theta < zero ; 
+    if(against_normal)  
+    {
+        ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
+        ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 
+        ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
+        ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
+    }
+    else   // photons with the normal 
+    {
+        ll[3].n.real(ss.n0r) ; ll[3].n.imag(ss.n0i) ; ll[3].d = ss.d0 ; 
+        ll[2].n.real(ss.n1r) ; ll[2].n.imag(ss.n1i) ; ll[2].d = ss.d1 ; 
+        ll[1].n.real(ss.n2r) ; ll[1].n.imag(ss.n2i) ; ll[1].d = ss.d2 ;          
+        ll[0].n.real(ss.n3r) ; ll[0].n.imag(ss.n3i) ; ll[0].d = ss.d3 ; 
+    }
+
+    art.wl = wl ; 
+    art.mct = minus_cos_theta ; 
+
+    const complex<T> zOne(one,zero); 
     const complex<T> zI(zero,one); 
-    const complex<T> theta(th);     // simpler for everything to be complex
+    const complex<T> mct(minus_cos_theta);  // simpler for everything to be complex
 
     // Snell : set st,ct of all layers (depending on indices(hence wl) and incident angle) 
     Layr<T>& l0 = ll[0] ; 
-    l0.st = sin(theta) ;  
-    l0.ct = cos(theta) ;
+    l0.ct = against_normal ? -mct : mct ; 
+    // flip picks +ve ct  (constrain the quadrant?) 
+    // without flip, the ART values are always outside 0->1 for mct > 0 angle > 90  
+
+    l0.st = sqrt( zOne - mct*mct ) ;  
 
     for(int idx=1 ; idx < N ; idx++)
     {
         Layr<T>& l = ll[idx] ; 
         l.st = l0.n * l0.st / l.n  ; 
-        l.ct = sqrt( zO - l.st*l.st );
+        l.ct = sqrt( zOne - l.st*l.st );
     }     
 
     // Fresnel : set rs/rp/ts/tp for N-1 interfaces between N layers
