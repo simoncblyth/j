@@ -397,36 +397,8 @@ TODO : devise CPU/GPU counterpart paired structs for this calculation
 
 How to organize the refractive indices as function of energy for use on GPU ? 
 
-Basically how to port PrepStackSpec into an array::
-
-     30 struct PrepStackSpec
-     31 {
-     32     static constexpr const char* HAMA = "R12860" ;
-     33     static constexpr const char* NNVT = "NNVTMCP" ;
-     34     static constexpr const char* NNVTQ = "NNVTMCP_HiQE" ;
-     35 
-     36     NPFold* pmt ;
-     37     NPFold* mat0 ;
-     38     NPFold* mat3 ;
-     39 
-     40     const NP* thickness ;
-     41     const NP* n0r ;
-     42     const NP* n1r ;
-     43     const NP* n1i ;
-     44     const NP* n2r ;
-     45     const NP* n2i ;
-     46     const NP* n3r ;
-     47 
-     48     double last_wavelength_nm ;
-     49     double last_energy_eV ;
-     50 
-     51     PrepStackSpec(const char* pmtname=NNVT );
-     52     std::string desc() const ;
-     53 
-     54     template<typename T>
-     55     StackSpec<T> get(T wavelength_nm) ;  // not const as sets last_*
-     56 
-     57 };
+* DONE: JPMT.h collects arrays or rindex and thickness
+* DONE: qudarap/QPMT.hh/qpmt.h propel those arrays onto GPU 
 
 
 Considerations:
@@ -464,8 +436,8 @@ create these arrays.
 
 Also this layout could be turned into a float2 texture. 
 
-Will need to generalize interp to work with high dimensions ?
-
+DONE : high dimension interpolation on CPU NP::combined_interp_5 
+DONE : high dimension interpolation on GPU qudarap/qpmt.h 
 
 First 3 dimensions of rindex are equivalent to the iprop in the 
 below ? How to split the API to avoid lots of duplication ?
@@ -479,9 +451,6 @@ below ? How to split the API to avoid lots of duplication ?
     2677     assert( ndim == 3 && shape[ndim-1] >= 2 && iprop < shape[0] && shape[1] > 1 );
     2678     unsigned nj = shape[ndim-1] ;  // normally 2 with (dom, val)
     2679 
-
-
-
  
 
 Relevant:
@@ -497,6 +466,188 @@ qprop.h
     will need to extend these to work with 4D arrays  
 
 
+Contrast Layr.h with junosw implementation 
+----------------------------------------------
 
+::
+
+    epsilon:~ blyth$ cd $JUNOTOP/junosw/Simulation/SimSvc/MultiFilmSimSvc
+    epsilon:MultiFilmSimSvc blyth$ find . 
+    .
+    ./CMakeLists.txt
+    ./python
+    ./python/MultiFilmSimSvc
+    ./python/MultiFilmSimSvc/__init__.py
+    ./MultiFilmSimSvc
+    ./MultiFilmSimSvc/MultiFilmModel.h
+    ./src
+    ./src/OpticalSystem.h
+    ./src/Layer.h
+    ./src/Material.h
+    ./src/Layer.cc
+    ./src/Matrix.h
+    ./src/OpticalSystem.cc
+    ./src/MultiFilmModel.cc
+    ./src/Material.cc
+    ./src/Matrix.cc
+    epsilon:MultiFilmSimSvc blyth$ 
+
+
+MultiFilmSimSvc/MultiFilmModel.h
+    struct ART
+    class MultiFilmModel::
+
+        OpticalSystem* optical_system;
+        double wavelength;
+        double theta;
+        ART art;
+        Matrix* Ms; 
+        Matrix* Mp; 
+
+    REPLACED WITH : template<typename T, int N> struct Stack<T,N>   
+    effectively combines MultiFilmModel, OpticalSystem
+
+src/OpticalSystem.{h,cc}
+
+    class OpticalSystem:: 
+
+        ThickLayer* top_layer;
+        ThickLayer* bot_layer;
+        std::vector<Layer*> layers;
+
+     REPLACED BY : struct Stack<T,N>  array of Layr:  Layr<T> ll[N]   
+
+src/Layer.{h,cc}
+
+    class Layer::
+
+        LayerParameter parameter;
+        Material* material;
+        LayerType type;
+        Matrix* Ms; 
+        Matrix* Mp; 
+
+    class ThickLayer : public Layer
+    class ThinLayer : public Layer::
+ 
+         double thickness; 
+
+    REPLACED WITH SINGLE STRUCT : Layr and convention thick => zero thickness 
+
+src/Material.{h,cc}
+
+    class Material::
+
+        std::string fName;
+        TComplex n;
+        static std::map<std::string, Material*> materials;
+    
+     REPLACED : Layr has refractive index member
+
+
+
+What happens to the calc at glancing incidence, mct=0 ?
+----------------------------------------------------------
+
+As the angle gets more and more glancing 
+the S and P matx for one of the layers blows up its values. 
+Because of::
+
+    618     // populate transfer matrices for both thick and thin layers  
+    619     ll[0].reset();
+    620     for(int idx=1 ; idx < N ; idx++)
+    621     {
+    622         const Layr<T>& i = ll[idx-1] ;
+    623         Layr<T>& j = ll[idx] ;
+    624 
+    625         complex<T> tmp_s = one/i.ts ;
+    626         complex<T> tmp_p = one/i.tp ;
+    627         // at glancing incidence ts, tp approach zero : blowing up tmp_s tmp_p
+    628         // which causes the S and P matrices to blow up yielding infinities at mct zero
+
+::
+
+    epsilon:Layr blyth$ MCT=-0.000001 ./LayrMinimal.sh 
+
+    idx 1
+    Layr
+      n:(    1.9200     0.0000)s  d:   36.4900
+     st:(    0.7719     0.0000)s ct:(    0.6358     0.0000)s
+     rs:(   -0.4004    -0.2878)s rp:(   -0.0105     0.1893)s
+     ts:(    0.5996    -0.2878)s tp:(    0.6582    -0.2205)s
+    S
+    | (331297.4688 -244647.9375)s (-331296.6875 -244647.3594)s |
+    | (-331296.6875 244647.3594)s (331297.4688 244647.9375)s |
+
+    P
+    | (255720.4531 -188837.7812)s (-255719.4219 -188837.0156)s |
+    | (-255719.4219 188837.0156)s (255720.4531 188837.7812)s |
+
+    ...
+
+    comp
+    Layr
+      n:(    0.0000     0.0000)s  d:    0.0000
+     st:(    0.0000     0.0000)s ct:(    0.0000     0.0000)s
+     rs:(   -1.0000    -0.0000)s rp:(   -1.0000     0.0000)s
+     ts:(    0.0000     0.0000)s tp:(    0.0000    -0.0000)s
+    S
+    | (519205.6250 -230821.5156)s (360978.0938 -610134.4375)s |
+    | (-519204.5625 230820.1875)s (-360978.4062 610133.5000)s |
+
+    P
+    | (314248.9375 56780.9961)s (-335603.5000 -440843.2188)s |
+    | (-314246.8125 -56780.5156)s (335601.6875 440842.3750)s |
+
+
+    ART
+     R_s     1.0000 R_p     1.0000
+     T_s     0.0000 T_p     0.0000
+     A_s     0.0000 A_p     0.0000
+     R       1.0000 T       0.0000 A       0.0000 A_R_T     1.0000
+     wl    440.0000
+     mct    -0.0000
+
+
+
+Very close to zero, does not give nan::
+
+    S
+    | (455426375680.0000 -1436173467648.0000)s (381454450688.0000 -315594735616.0000)s |
+    | (-455426375680.0000 1436173467648.0000)s (-381454450688.0000 315594735616.0000)s |
+
+    P
+    | (-33171656704.0000 -415557681152.0000)s (-106015178752.0000 -270847377408.0000)s |
+    | (33171656704.0000 415557681152.0000)s (106015178752.0000 270847377408.0000)s |
+
+
+    ART
+     R_s     1.0000 R_p     1.0000
+     T_s     0.0000 T_p     0.0000
+     A_s    -0.0000 A_p    -0.0000
+     R       1.0000 T       0.0000 A      -0.0000 A_R_T     1.0000
+     wl    440.0000
+     mct     0.0000
+
+
+    epsilon:Layr blyth$ MCT=0.000000000001 ./LayrMinimal.sh 
+
+
+At zero, get nan for ART::
+
+    ART
+     R_s        nan R_p        nan
+     T_s        nan T_p        nan
+     A_s        nan A_p        nan
+     R          nan T          nan A          nan A_R_T        nan
+     wl    440.0000
+     mct     0.0000
+
+
+    epsilon:Layr blyth$ MCT=0 ./LayrMinimal.sh 
+
+
+
+This blowup at glancing explains the float/double and gpu/cpu differences. 
 
 

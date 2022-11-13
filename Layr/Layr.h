@@ -1,14 +1,54 @@
 #pragma once
 /**
-Layr.h 
-=========
+Layr.h : Thin/Thick Multi-layer Stack TMM "Transfer Matrix Method" A,R,T calculation 
+======================================================================================
 
-Notes:
+1. nothing JUNO specific here
+2. header-only implementation, installed with j/PMTSim 
 
-1. nothing JUNO specific here, keep it that way.
-2. this header gets installed with PMTSim 
+See Also
+-----------
 
-See Layr.rst for notes on TMM method theory and implementation on CPU and GPU 
+Layr.rst 
+    notes/refs on TMM theory and CPU+GPU implementation 
+
+LayrTest.{h,cc,cu,py,sh} 
+    build, run cpu+gpu scans, plotting, comparisons float/double cpu/gpu std/thrust 
+
+JPMT.h
+    JUNO specific collection of PMT rindex and thickness into arrays 
+
+
+Contents of Layr.h : (persisted array shapes)
+----------------------------------------------
+
+namespace Const 
+    templated constexpr functions: zero, one, two, pi, twopi
+
+template<typename T> struct Matx : (4,2)
+    2x2 complex matrix  
+
+template<typename T> struct Layr : (4,4,2)
+    d:thickness, complex refractive index, angular and Fresnel coeff,  S+P Matx
+
+    * d = zero : indicates thick (incoherent) layer 
+
+template<typename F> struct ART : (3,4) 
+    results  
+
+template<typename T> StackSpec :  (4,3) 
+    4 sets of complex refractive index and thickness
+
+    * HMM maybe pad to (4,4) if decide to keep ?
+
+template <typename T, int N> struct Stack : (constituents persisted separately) 
+    N Layr stack : all calculations in ctor  
+
+    Layr<T> ll[N] ;   
+    Layr<T> comp ;  // composite for the N layers 
+    ART<T>  art ; 
+
+    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
 
 **/
 
@@ -26,8 +66,8 @@ See Layr.rst for notes on TMM method theory and implementation on CPU and GPU
 #include <sstream>
 #include <string>
 #include <cassert>
-#include "ssys.h"
-#include "NPFold.h"
+#include <cstdlib>
+#include <vector>
 #endif
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
@@ -48,7 +88,6 @@ the conversions and calculations happen at compile time, NOT runtime.
 
 **/
 
-#include "math_constants.h"
 namespace Const
 {
     template<typename T>  
@@ -61,10 +100,10 @@ namespace Const
     LAYR_METHOD constexpr T two() { return T(2.0) ; } 
     
     template<typename T>
-    LAYR_METHOD constexpr T pi() { return T(CUDART_PI) ; } 
+    LAYR_METHOD constexpr T pi() { return T(M_PI) ; } 
 
     template<typename T>
-    LAYR_METHOD constexpr T twopi() { return T(2.0*CUDART_PI) ; } 
+    LAYR_METHOD constexpr T twopi() { return T(2.0*M_PI) ; } 
 }
 
 
@@ -84,6 +123,7 @@ namespace Const
     {
         os << "(" << std::setw(10) << std::fixed << std::setprecision(4) << z.real() 
            << " " << std::setw(10) << std::fixed << std::setprecision(4) << z.imag() << ")s" ; 
+        return os; 
     }
     #endif  // clarity is more important than brevity 
 #endif
@@ -280,7 +320,7 @@ inline std::ostream& operator<<(std::ostream& os, const ART<T>& art )
         << " A_R_T " << std::fixed << std::setw(10) << std::setprecision(4) << art.A_R_T 
         << std::endl 
         << " wl  " << std::fixed << std::setw(10) << std::setprecision(4) << art.wl  << std::endl 
-        << " th  " << std::fixed << std::setw(10) << std::setprecision(4) << art.th  << std::endl 
+        << " mct " << std::fixed << std::setw(10) << std::setprecision(4) << art.mct << std::endl 
         ;
     return os; 
 }
@@ -328,14 +368,38 @@ StackSpec<T> StackSpec<T>::Default()
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
+
+namespace sys
+{
+    template<typename T>
+    inline std::vector<T>* getenvvec(const char* ekey, const char* fallback, char delim=',')
+    {
+        assert(fallback); 
+        std::vector<T>* vec = new std::vector<T>() ; 
+        char* line = getenv(ekey);
+        std::stringstream ss; 
+        ss.str(line ? line : fallback);
+        std::string s;
+        while (std::getline(ss, s, delim)) 
+        {   
+            std::istringstream iss(s);
+            T t ; 
+            iss >> t ; 
+            vec->push_back(t) ; 
+        }   
+        return vec ; 
+    }
+}
+
+
 template<typename T>
 LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
 {
     // make the default stack symmetric to check minus_cos_theta flip 
-    std::vector<T>* l0 = ssys::getenvvec<T>("L0", "1.5,0,0") ;    
-    std::vector<T>* l1 = ssys::getenvvec<T>("L1", "2.0,2.0,20") ;    
-    std::vector<T>* l2 = ssys::getenvvec<T>("L2", "2.0,2.0,20") ;    
-    std::vector<T>* l3 = ssys::getenvvec<T>("L3", "1.5,0,0") ;    
+    std::vector<T>* l0 = sys::getenvvec<T>("L0", "1.5,0,0") ;    
+    std::vector<T>* l1 = sys::getenvvec<T>("L1", "2.0,2.0,20") ;    
+    std::vector<T>* l2 = sys::getenvvec<T>("L2", "2.0,2.0,20") ;    
+    std::vector<T>* l3 = sys::getenvvec<T>("L3", "1.5,0,0") ;    
 
     assert( l0 && l0->size() <= 3u ); 
     assert( l1 && l1->size() <= 3u ); 
@@ -500,13 +564,15 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
         ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
         ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
     }
-    else   // photons with the normal 
+    else   // photons with the normal : "backwards" stack  
     {
         ll[3].n.real(ss.n0r) ; ll[3].n.imag(ss.n0i) ; ll[3].d = ss.d0 ; 
         ll[2].n.real(ss.n1r) ; ll[2].n.imag(ss.n1i) ; ll[2].d = ss.d1 ; 
         ll[1].n.real(ss.n2r) ; ll[1].n.imag(ss.n2i) ; ll[1].d = ss.d2 ;          
         ll[0].n.real(ss.n3r) ; ll[0].n.imag(ss.n3i) ; ll[0].d = ss.d3 ; 
     }
+    // ll[0]   is "top"     : first layer encountered 
+    // ll[N-1] is "bottom"  : last layer encountered
 
     art.wl = wl ; 
     art.mct = minus_cos_theta ; 
@@ -518,8 +584,11 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
     // Snell : set st,ct of all layers (depending on indices(hence wl) and incident angle) 
     Layr<T>& l0 = ll[0] ; 
     l0.ct = against_normal ? -mct : mct ; 
-    // flip picks +ve ct  (constrain the quadrant?) 
-    // without flip, the ART values are always outside 0->1 for mct > 0 angle > 90  
+    //
+    //  flip picks +ve ct that constrains the angle to first quadrant 
+    //  this works as : cos(pi-theta) = -cos(theta)
+    //  without flip, the ART values are non-physical : always outside 0->1 for mct > 0 angle > 90  
+    //
 
     l0.st = sqrt( zOne - mct*mct ) ;  
 
@@ -553,8 +622,10 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
         Layr<T>& j = ll[idx] ;          
 
         complex<T> tmp_s = one/i.ts ; 
-        complex<T> tmp_p = one/i.tp ; 
-
+        complex<T> tmp_p = one/i.tp ;   
+        // at glancing incidence ts, tp approach zero : blowing up tmp_s tmp_p
+        // which causes the S and P matrices to blow up yielding infinities at mct zero
+        //
         // thick layers indicated with d = 0. 
         // thin layers have thickness presumably comparable to art.wl (WITH SAME LENGTH UNIT: nm)
         complex<T> delta         = j.d == zero ? zero : twopi*j.n*j.d*j.ct/art.wl ; 
@@ -583,6 +654,11 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
         comp.S.dot(l.S) ; 
         comp.P.dot(l.P) ; 
     }
+    // at glancing incidence the matrix from 
+    // one of the layers has infinities, which 
+    // yields nan in the matrix product 
+    // and yields nan for all the below Fresnel coeffs 
+    //
     // extract amplitude factors from the composite matrix
     comp.rs = comp.S.M10/comp.S.M00 ; 
     comp.rp = comp.P.M10/comp.P.M00 ; 

@@ -22,11 +22,14 @@ to allow reuse of the same code for both CPU and GPU running.
 #include "Layr.h"
 
 /**
-LayrTestData 
---------------
+LayrTestData : acts as primary host<->device communication mechanism
+-----------------------------------------------------------------------
 
 Retaining all the comps, lls for every test item  
 is for debugging purposes only. 
+
+NB using simple pointers to arrays enables this struct 
+to be used on both device and host and copied between them
 
 **/
 
@@ -113,7 +116,7 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     // get very large float/double mismatch in lls and comps 
     //
     // TODO: look into details to see why glancing edge case is so bad, 
-    // needs some special treatment. 
+    // maybe it needs some special treatment. 
  
     for(int i=0 ; i < ni ; i++ ) 
     {
@@ -188,8 +191,8 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
     bool reverse = false ; 
     for(int i=0 ; i < h.ni ; i++ )
     {
-        int j = reverse ? h.ni - 1 - i : i ; // just debugging reorder
-        Stack<T,N> stack(h.wl, h.mct[j], spec ) ; 
+        int j = reverse ? h.ni - 1 - i : i ;      // just debugging reorder
+        Stack<T,N> stack(h.wl, h.mct[j], spec ) ; // ART calc done in ctor
 
         h.arts[j] = stack.art; 
         h.comps[j] = stack.comp ; 

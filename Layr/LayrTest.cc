@@ -8,8 +8,9 @@ Currently gpu scanning is populating the StackSpec on CPU
 using NP interpolation and then that gets passed by value 
 into the kernel launch. 
 
-TODO: getting JPMT.h info accessible on GPU, so can dispense
-      with the StackSpec (or at least create it on GPU)
+TODO: getting JPMT.h info accessible on GPU
+
+* qudarap/QPMT.hh/qpmt.h  has done most of this : needs integrating 
 
 **/
 

@@ -5,6 +5,8 @@
 
 #define LAYRTEST_API  __attribute__ ((visibility ("default")))
 
+
+// NB spec is passed by value (passing by reference with kernel calls causes crash)
 template<typename T, int N>
 __global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T> spec )
 { 
