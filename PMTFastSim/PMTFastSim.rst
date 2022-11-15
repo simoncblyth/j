@@ -108,6 +108,8 @@ and try to get the FastSim model to kick in
 
 
 
+* Proceeding with U4RecorderTest.h in u4/tests/U4PMTFastSimTest.cc
+
 
 
 

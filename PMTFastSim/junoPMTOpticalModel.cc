@@ -89,13 +89,24 @@ junoPMTOpticalModel::~junoPMTOpticalModel()
 
 G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleType)
 {
+#ifdef PMTFASTSIM_STANDALONE
+    std::cout << "junoPMTOpticalModel::IsApplicable" << std::endl ;  
+#endif
     return (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
 }
 
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
 
-    if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner2_phys){
+#ifdef PMTFASTSIM_STANDALONE
+    std::cout << "junoPMTOpticalModel::ModelTrigger" << std::endl ;  
+#endif
+
+    if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner2_phys)
+    {
+#ifdef PMTFASTSIM_STANDALONE
+        std::cout << "junoPMTOpticalModel::ModelTrigger WRONG VOLUME -> false " << std::endl ;  
+#endif
         return false;
     }
 
@@ -171,11 +182,14 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
   
     dbg.add() ; 
 */
+
+#ifdef PMTFASTSIM_STANDALONE
+    std::cout << "junoPMTOpticalModel::ModelTrigger ret " << ret  << std::endl ;  
+#endif
    
     return ret ; 
 #endif
 }
-
 
 
 #ifdef PMTFASTSIM_STANDALONE
@@ -439,6 +453,21 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     T = fT_s*E_s2 + fT_p*(1.0-E_s2);
     R = fR_s*E_s2 + fR_p*(1.0-E_s2);
     A = 1.0 - (T+R);
+
+
+#ifdef PMTFASTSIM_STANDALONE
+    std::cout 
+        << "junoPMTOpticalModel::DoIt"
+        << " dir " << dir 
+        << " norm " << norm
+        << " _cos_theta1  " << _cos_theta1 
+        << " _aoi " << _aoi 
+        << " T " << T 
+        << " R " << R 
+        << " A " << A 
+        << std::endl 
+        ; 
+#endif
 
     An = 1.0 - (fT_n+fR_n);
     escape_fac  = _qe/An;

@@ -36,6 +36,7 @@ class G4VSolid ;
 class IPMTElement ; 
 class IDetElement ; 
 class IDetElementPos ; 
+class junoPMTOpticalModel ; 
 
 
 struct PMTFASTSIM_API IGeomManager
@@ -73,6 +74,7 @@ struct PMTFASTSIM_API IGeomManager
     virtual G4LogicalVolume* getLV(const char* name) = 0 ;
     virtual G4PVPlacement*   getPV(const char* name) = 0 ;
     virtual G4VSolid*        getSolid(const char* name) = 0 ; 
+    virtual junoPMTOpticalModel* getPMTOpticalModel(const char* name) = 0 ; 
 }; 
 
 

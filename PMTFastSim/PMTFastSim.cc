@@ -107,6 +107,14 @@ G4VPhysicalVolume* PMTFastSim::GetPV(const char* name) // static
     return pv ; 
 }
 
+junoPMTOpticalModel* PMTFastSim::GetPMTOpticalModel(const char* name) // static
+{
+    PMTFastSim::SetEnvironmentSwitches(name);  
+    PMTFastSim* pfs = new PMTFastSim ; 
+    junoPMTOpticalModel* pom = pfs->getPMTOpticalModel(name); 
+    return pom ; 
+}
+
 
 PMTFastSim::PMTFastSim()
     :
@@ -320,6 +328,27 @@ G4VPhysicalVolume* PMTFastSim::getPV(const char* name)
     }
     return pv ; 
 }
+
+
+
+junoPMTOpticalModel* PMTFastSim::getPMTOpticalModel(const char* name) 
+{
+    IGeomManager* mgr = getManager(name) ; 
+    junoPMTOpticalModel* pom = mgr ? mgr->getPMTOpticalModel(name) : nullptr ; 
+
+    std::cout 
+        << "PMTFastSim::getPMTOpticalModel"
+        << " name " << ( name ? name : "-" )
+        << " mgr " << ( mgr ? "Y" : "N" )
+        << " pom " << ( pom ? "Y" : "N" )
+        << std::endl 
+        ;
+
+    return pom ; 
+}
+
+
+
 const char* PMTFastSim::Name(const char* prefix, int ix, int iy, int iz, const char* suffix)
 {
     std::stringstream ss ; 

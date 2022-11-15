@@ -552,7 +552,16 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
     return so ; 
 }
 
-
+junoPMTOpticalModel* HamamatsuR12860PMTManager::getPMTOpticalModel(const char* name) 
+{
+    std::cout 
+        << "HamamatsuR12860PMTManager::getPMTOpticalModel"
+        << " name " << ( name ? name : "-" )
+        << " pmtOpticalModel " << ( pmtOpticalModel ? "Y" : "N" ) 
+        << std::endl 
+        ;
+    return pmtOpticalModel ; 
+}
 
 
 
@@ -1008,6 +1017,16 @@ HamamatsuR12860PMTManager::helper_fast_sim()
 
     pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
                                                                    body_phys, body_region);
+
+#ifdef PMTFASTSIM_STANDALONE
+    std::cout 
+        << "HamamatsuR12860PMTManager::helper_fast_sim" 
+        << "  pmtOpticalModel " << pmtOpticalModel 
+        << std::endl 
+        ; 
+#endif
+
+
 
 #ifndef PMTFASTSIM_STANDALONE
     m_pmt_param_svc = 0;

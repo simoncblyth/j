@@ -16,6 +16,7 @@ class NNVTMCPPMTManager ;
 class HamamatsuMaskManager ; 
 class NNVTMaskManager ; 
 class LowerChimney ; 
+class junoPMTOpticalModel ; 
 
 struct IGeomManager ; 
 
@@ -43,6 +44,7 @@ struct PMTFASTSIM_API PMTFastSim
 
     static G4LogicalVolume*   GetLV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name); 
+    static junoPMTOpticalModel* GetPMTOpticalModel(const char* name); 
 
     DetectorConstruction*      m_dc ;   
     HamamatsuR12860PMTManager* m_hama ; 
@@ -60,7 +62,7 @@ struct PMTFASTSIM_API PMTFastSim
     static const int NAME_OFFSET ; 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
-
+    junoPMTOpticalModel* getPMTOpticalModel(const char* name) ; 
 
     static const char* Name(const char* prefix, int nx, int ny, int nz, const char* suffix); 
     static G4VPhysicalVolume*   WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int nz  ); 
