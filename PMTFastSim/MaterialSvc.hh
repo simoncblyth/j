@@ -16,11 +16,11 @@ Standalone access to material properties, see::
 
 class G4MaterialPropertiesTable ; 
 #include "G4MaterialPropertyVector.hh" // typedef
-#include "PMTSIM_API_EXPORT.hh"
 #include <string>
 #include "IMCParamsSvc.hh"
 
-struct PMTSIM_API MaterialSvc : public IMCParamsSvc
+#include "PMTFASTSIM_API_EXPORT.hh"
+struct PMTFASTSIM_API MaterialSvc : public IMCParamsSvc
 {
     bool Get(const std::string& param, vec_d2d& props) ;
     bool Get(const std::string& param, vec_s2d& props) ;

@@ -11,7 +11,7 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4MaterialPropertiesTable.hh"
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 #include "JPMT.h"
 #include "Layr.h"
 
@@ -20,7 +20,7 @@
 #include "Layer.h"
 #endif
 
-#ifndef PMTSIM_STANDALONE
+#ifndef PMTFASTSIM_STANDALONE
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperLog.h"
 #include "SniperKernel/SvcFactory.h"
@@ -73,7 +73,7 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     
     whereAmI        = OutOfRegion;
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     jpmt = new JPMT ; 
 #endif
 
@@ -113,7 +113,7 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
         whereAmI = kInGlass;
     }
 
-#ifndef PMTSIM_STANDALONE
+#ifndef PMTFASTSIM_STANDALONE
     if(whereAmI == kInGlass){
         dist1 = _inner1_solid->DistanceToIn(pos, dir);
         dist2 = _inner2_solid->DistanceToIn(pos, dir);
@@ -178,7 +178,7 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 
 
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 void junoPMTOpticalModel::setEnergyThickness( double energy )
 {
     _wavelength     = twopi*hbarc/energy;
@@ -358,7 +358,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     const G4Track* track = fastTrack.GetPrimaryTrack();
     int pmtid  = get_pmtid(track);
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     std::cout << "junoPMTOpticalModel::DoIt pmtid " << pmtid << std::endl ; 
     setEnergyThickness(energy); 
 #else
@@ -540,7 +540,7 @@ void junoPMTOpticalModel::InitOpticalParameters(G4VPhysicalVolume* envelope_phys
     _inner2_phys    = envelope_log->GetDaughter(1);
     _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     std::cout << "junoPMTOpticalModel::InitOpticalParameters"
               << " envelope_log " << envelope_log
               << " glass_pt " << glass_pt

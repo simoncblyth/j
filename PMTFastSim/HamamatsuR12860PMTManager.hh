@@ -8,7 +8,7 @@
  * -- Tao Lin, 2017/05/29
  */
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 #include "IGeomManager.h"
 #else
 #include "SniperKernel/ToolBase.h"
@@ -31,9 +31,9 @@ class G4Tubs;
 class junoPMTOpticalModel ; 
 class Hamamatsu_R12860_PMTSolid;
 
-#ifdef PMTSIM_STANDALONE
-#include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API HamamatsuR12860PMTManager : public IGeomManager {
+#ifdef PMTFASTSIM_STANDALONE
+#include "PMTFASTSIM_API_EXPORT.hh"
+class PMTFASTSIM_API HamamatsuR12860PMTManager : public IGeomManager {
 #else
 class HamamatsuR12860PMTManager: public IPMTElement,
                                  public ToolBase {
@@ -110,7 +110,7 @@ private:
     G4PVPlacement* inner2_phys;
     G4PVPlacement* dynode_phys;
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 #else
     IPMTParamSvc* m_pmt_param_svc;
     IPMTSimParamSvc* m_pmt_sim_param_svc;

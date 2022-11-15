@@ -29,13 +29,14 @@ find_package(SysRap REQUIRED)
 set(SOURCES)
 set(HEADERS)
 
-include_directories($ENV{HOME}/j/PMTSim)
+#include_directories($ENV{HOME}/j/PMTSim)
 include_directories($ENV{HOME}/j/Layr)
 
 #include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)
 #  $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
 
 list(APPEND SOURCES
+    DetectorConstruction.cc
     HamamatsuR12860PMTManager.cc
     Hamamatsu_R12860_PMTSolid.cc
     ZSolid.cc
@@ -45,12 +46,25 @@ list(APPEND SOURCES
     Layer.cc 
     Matrix.cc
     Material.cc
-    DetectorConstruction.cc
     MaterialSvc.cc
+    PMTFastSim.cc
 )
 
 list(APPEND HEADERS
-     PMTFASTSIM_API_EXPORT.hh
+    PMTFASTSIM_API_EXPORT.hh
+    DetectorConstruction.hh
+    HamamatsuR12860PMTManager.hh
+    IGeomManager.h
+    junoPMTOpticalModel.hh
+    MultiFilmModel.h
+    OpticalSystem.h
+    Layer.h
+    Matrix.h
+    Material.h
+    MaterialSvc.hh
+    TComplex.h 
+    ../Layr/Layr.h  
+    PMTFastSim.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
@@ -78,8 +92,6 @@ target_link_libraries(${name} PUBLIC
 )
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
-
 install(FILES ${HEADERS}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
 
 add_subdirectory(tests)

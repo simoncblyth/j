@@ -15,7 +15,7 @@
 #include "G4Track.hh"
 
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 struct JPMT ; 
 template<typename T> struct ART_ ; 
 template<typename T> struct Layr ; 
@@ -35,9 +35,9 @@ template<typename T> struct Layr ;
 enum EWhereAmI { OutOfRegion, kInGlass, kInVacuum };
 
 
-#ifdef PMTSIM_STANDALONE
-#include "PMTSIM_API_EXPORT.hh"
-class PMTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
+#ifdef PMTFASTSIM_STANDALONE
+#include "PMTFASTSIM_API_EXPORT.hh"
+class PMTFASTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
 #else
 class junoPMTOpticalModel : public G4VFastSimulationModel
 #endif
@@ -50,7 +50,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
         virtual G4bool ModelTrigger(const G4FastTrack&);
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
 
-#ifndef PMTSIM_STANDALONE
+#ifndef PMTFASTSIM_STANDALONE
         void setPMTSimParamSvc(IPMTSimParamSvc* svc) { m_PMTSimParSvc = svc; }
         IPMTSimParamSvc* getPMTSimParamSvc() const { return m_PMTSimParSvc; }
 
@@ -109,7 +109,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 
         EWhereAmI whereAmI;
         
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
         JPMT* jpmt ; 
 #else
         IPMTParamSvc* m_PMTParamSvc;
@@ -119,7 +119,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 
         void CalculateCoefficients();
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
         void setEnergyThickness( double energy );
         void setMinusCosTheta(double minus_cos_theta );
      public:

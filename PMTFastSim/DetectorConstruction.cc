@@ -1,6 +1,6 @@
 /**
 DetectorConstruction.cc
-==========================
+===================================
 
 RefBase.h
     header only templated reference holder, incorporated into PMTSim (copied from SNiPER)

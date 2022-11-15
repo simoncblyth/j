@@ -1,7 +1,7 @@
 #pragma once
 /**
 DetectorConstruction.hh
-=========================
+=====================================
 
 This is a consolidation JUNOSW DetSim Geant4 material setup
 intended to give standalone access to JUNO materials. 
@@ -9,14 +9,15 @@ intended to give standalone access to JUNO materials.
 **/
 
 #include <string>
-#include "PMTSIM_API_EXPORT.hh"
+#include "PMTFASTSIM_API_EXPORT.hh"
 
 class G4Material ; 
 class G4OpticalSurface ; 
 class IMCParamsSvc ;
 class G4MaterialPropertiesTable ;
 
-struct PMTSIM_API DetectorConstruction
+
+struct PMTFASTSIM_API DetectorConstruction
 {
      DetectorConstruction();
 

@@ -10,6 +10,7 @@ Try to setup a standlone single PMT test with junoPMTOpticalModel
 #include <iostream>
 
 #include "G4String.hh"
+
 #include "DetectorConstruction.hh"
 #include "HamamatsuR12860PMTManager.hh"
 #include "junoPMTOpticalModel.hh"
@@ -36,10 +37,11 @@ struct junoPMTOpticalModelTest
     ART_Scan<T>                h ; 
     bool                       verbose ; 
     G4String                   label ; 
+
     DetectorConstruction*      dc ; 
     HamamatsuR12860PMTManager* mgr ; 
     G4LogicalVolume*           lv ; 
-    junoPMTOpticalModel*       pmtOpticalModel ; 
+    junoPMTOpticalModel*       pom ; 
 
     junoPMTOpticalModelTest(); 
     void init(); 
@@ -56,7 +58,7 @@ junoPMTOpticalModelTest<T>::junoPMTOpticalModelTest()
     dc(nullptr),
     mgr(nullptr),
     lv(nullptr),  // calls the init
-    pmtOpticalModel(nullptr)
+    pom(nullptr)
 {
     init();
 }
@@ -80,7 +82,7 @@ void junoPMTOpticalModelTest<T>::init()
     // TODO: Hamamatsu_R12860_PMTSolid.cc does some "Ellipse_Intersect_Circle " printf not caught by redirect
 
     lv = mgr->getLV() ; 
-    pmtOpticalModel = mgr->pmtOpticalModel ; 
+    pom = mgr->pmtOpticalModel ; 
 }
 
 
@@ -118,7 +120,7 @@ void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
         Layr<T>& comp = h.comps[i] ; 
         Layr<T>* ll = &h.lls[4*i+0] ; 
 
-        pmtOpticalModel->CalculateCoefficients(art, comp, ll, energy, minus_cos_theta); 
+        pom->CalculateCoefficients(art, comp, ll, energy, minus_cos_theta); 
         //std::cout << art << std::endl ;
     }
 
@@ -151,7 +153,7 @@ std::string junoPMTOpticalModelTest<T>::desc() const
     ss << "junoPMTOpticalModelTest::desc"
        << " mgr " << ( mgr ? "Y" : "N" )
        << " lv " << ( lv ? "Y" : "N" )
-       << " pmtOpticalModel " << ( pmtOpticalModel ? "Y" : "N" )
+       << " pom " << ( pom ? "Y" : "N" )
        ;
     std::string s = ss.str(); 
     return s ; 

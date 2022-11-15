@@ -1,5 +1,5 @@
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #include "junoPMTOpticalModel.hh"
@@ -29,7 +29,7 @@
 
 using namespace CLHEP;
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
 #else
 DECLARE_TOOL(HamamatsuR12860PMTManager);
 #endif
@@ -116,7 +116,7 @@ G4ThreeVector HamamatsuR12860PMTManager::GetPosInPMT() {
 HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     (const G4String& plabel // label -- subvolume names are derived from this
     )
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     : IGeomManager(plabel),
 #else
     : ToolBase(plabel), m_label(plabel),
@@ -142,7 +142,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
     declProp("UsePMTOpticalModel", m_enable_optical_model=true);
 
     bool useRealSurface = true ; 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     std::cout << "HamamatsuR12860PMTManager::HamamatsuR12860PMTManager" << std::endl ; 
     useRealSurface = getenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE") == nullptr ? true : false  ;
 #endif
@@ -177,7 +177,7 @@ HamamatsuR12860PMTManager::~HamamatsuR12860PMTManager() {
 
 // Helper Methods
 void HamamatsuR12860PMTManager::init() {
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
     std::cout << "HamamatsuR12860PMTManager::init" << std::endl ; 
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
@@ -209,7 +209,7 @@ HamamatsuR12860PMTManager::init_material() {
      Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
      std::cout 
           << "HamamatsuR12860PMTManager::init_material" 
           << " GlassMat " << ( GlassMat ? "Y" : "N" )
@@ -320,7 +320,7 @@ HamamatsuR12860PMTManager::init_pmt
 void HamamatsuR12860PMTManager::init_pmt() 
 {
 
-#ifdef PMTSIM_STANDALONE
+#ifdef PMTFASTSIM_STANDALONE
   std::cout 
       << "HamamatsuR12860PMTManager::init_pmt" 
       << " m_enable_optical_model " << m_enable_optical_model
@@ -1009,7 +1009,7 @@ HamamatsuR12860PMTManager::helper_fast_sim()
     pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
                                                                    body_phys, body_region);
 
-#ifndef PMTSIM_STANDALONE
+#ifndef PMTFASTSIM_STANDALONE
     m_pmt_param_svc = 0;
     LogInfo << "Retrieving PMTParamSvc." << std::endl;
     SniperPtr<IPMTParamSvc> parsvc(*getParent(), "PMTParamSvc");

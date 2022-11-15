@@ -27,9 +27,9 @@ struct ZCanvas ;
 // used across compilation units (eg for tests) hence assume that 
 // the API_EXPORT is needed 
 
-#ifdef PMTSIM_STANDALONE
-#include "PMTSIM_API_EXPORT.hh"
-struct PMTSIM_API ZSolid   
+#ifdef PMTFASTSIM_STANDALONE
+#include "PMTFASTSIM_API_EXPORT.hh"
+struct PMTFASTSIM_API ZSolid   
 {
 #else
 struct ZSolid   

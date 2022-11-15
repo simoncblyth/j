@@ -95,8 +95,6 @@ target_link_libraries(${name} PUBLIC
 )
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
-
 install(FILES ${HEADERS}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
 
 add_subdirectory(tests)
