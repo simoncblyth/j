@@ -4,17 +4,12 @@ junoPMTOpticalModelTest.cc
 
 Try to setup a standlone single PMT test with junoPMTOpticalModel 
 
-NEXT:
-
-* get ../PMTSim/DetectorConstruction.cc integrated so have the materials
-
 **/
 
 #include <sstream>
 #include <iostream>
 
 #include "G4String.hh"
-
 #include "DetectorConstruction.hh"
 #include "HamamatsuR12860PMTManager.hh"
 #include "junoPMTOpticalModel.hh"
@@ -22,7 +17,6 @@ NEXT:
 #include "Layr.h"
 #include "SDirect.hh"
 #include "NP.hh"
-
 
 template<typename T>
 struct ART_Scan 
@@ -52,7 +46,6 @@ struct junoPMTOpticalModelTest
     std::string desc() const ; 
 
     void calculateCoefficients(T wavelength_nm); 
-
 }; 
 
 template<typename T>
@@ -78,20 +71,16 @@ void junoPMTOpticalModelTest<T>::init()
         cerr_redirect err_(cerrbuf.rdbuf());
    
         dc = new DetectorConstruction ; 
-
     }
-
     std::string out = coutbuf.str();
     std::string err = cerrbuf.str();
     std::cout << OutputMessage("junoPMTOpticalModelTest::init" , out, err, verbose );
-
 
     mgr = new HamamatsuR12860PMTManager(label) ;
     // TODO: Hamamatsu_R12860_PMTSolid.cc does some "Ellipse_Intersect_Circle " printf not caught by redirect
 
     lv = mgr->getLV() ; 
     pmtOpticalModel = mgr->pmtOpticalModel ; 
-
 }
 
 
@@ -133,7 +122,6 @@ void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
         //std::cout << art << std::endl ;
     }
 
-
     const char* title = "title" ; 
     const char* brief = "brief" ; 
     const char* label = "label" ; 
@@ -152,12 +140,9 @@ void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
 
     NP::Write(base, name,"comps.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
     NP::Write(base, name,"lls.npy",  (T*)h.lls  , h.ni, 4, 4, 4, 2 ) ;
-         
 
     // /tmp/blyth/opticks/LayrTest/scan__R12860__gpu_thr_float 
 }
-
-
 
 template<typename T>
 std::string junoPMTOpticalModelTest<T>::desc() const 
@@ -176,10 +161,7 @@ int main(int argc, char** argv)
 {
     junoPMTOpticalModelTest<double> t ; 
     std::cout << t.desc() << std::endl ; 
-
     t.calculateCoefficients(440.) ; 
-
-    
 
     return 0 ; 
 }

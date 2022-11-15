@@ -73,12 +73,13 @@ void MultiFilmModel::Calculate()
 
     // HUH: ROOT TComplex automatically degrades to double ?
 
+    /*
     std::cout 
         << " _T_s.imag() " << _T_s.imag() 
         << " _T_p.imag() " << _T_p.imag() 
         << std::endl 
         ;
-
+    */
 
     art.A_s = 1.-art.R_s-art.T_s;
     art.A_p = 1.-art.R_p-art.T_p;

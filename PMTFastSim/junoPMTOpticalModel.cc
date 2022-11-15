@@ -178,8 +178,6 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 
 
 
-
-
 #ifdef PMTSIM_STANDALONE
 void junoPMTOpticalModel::setEnergyThickness( double energy )
 {
@@ -196,9 +194,9 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
     k_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
     d_photocathode = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L2 ); 
 
-
+    /*
     std::cout 
-        << "junoPMTOpticalModel::setEnergy" 
+        << "junoPMTOpticalModel::setEnergyThickness" 
         << " energy " << energy
         << " energy_eV " << energy_eV
         << " _wavelength  " << _wavelength 
@@ -210,6 +208,7 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
         << " k_photocathode " << k_photocathode
         << std::endl 
         ;
+    */
 }
 
 void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta )
@@ -264,8 +263,6 @@ void junoPMTOpticalModel::CalculateCoefficients(
     m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
     m_multi_film_model->SetLayerPar(3, _n4);
 
-
-
   
     ART art1 = m_multi_film_model->GetART();
 
@@ -288,9 +285,7 @@ void junoPMTOpticalModel::CalculateCoefficients(
     art.wl   = _wavelength/nm ;
     art.mct  = minus_cos_theta ; 
 
-
     comp = {} ; 
-
     comp.rs = m_multi_film_model->rs ; 
     comp.rp = m_multi_film_model->rp ; 
     comp.ts = m_multi_film_model->ts ; 
@@ -361,13 +356,14 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     _wavelength     = twopi*hbarc/energy;
 
     const G4Track* track = fastTrack.GetPrimaryTrack();
+    int pmtid  = get_pmtid(track);
 
 #ifdef PMTSIM_STANDALONE
+    std::cout << "junoPMTOpticalModel::DoIt pmtid " << pmtid << std::endl ; 
     setEnergyThickness(energy); 
 #else
     n_glass    = _rindex_glass->Value(_photon_energy);
 
-    int pmtid  = get_pmtid(track);
     int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid);
 
     _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
@@ -564,12 +560,14 @@ void junoPMTOpticalModel::Reflect()
 {
     dir -= 2.*(dir*norm)*norm;
     pol -= 2.*(pol*norm)*norm;
+    // TODO: compare this pol with what G4OpBoundaryProcess would do 
 }
 
 void junoPMTOpticalModel::Refract()
 {
     dir = (real(_cos_theta4) - _cos_theta1*_n1/_n4)*norm + (_n1/_n4)*dir;
     pol = (pol-(pol*dir)*dir).unit();
+    // TODO: compare this pol with what G4OpBoundaryProcess would do 
 }
 
 int junoPMTOpticalModel::get_pmtid(const G4Track* track) {

@@ -25,14 +25,28 @@ find_package(G4    REQUIRED MODULE)
 find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
 
-include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)
 
 set(SOURCES)
 set(HEADERS)
 
+include_directories($ENV{HOME}/j/PMTSim)
+include_directories($ENV{HOME}/j/Layr)
+
+#include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)
+#  $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+
 list(APPEND SOURCES
+    HamamatsuR12860PMTManager.cc
+    Hamamatsu_R12860_PMTSolid.cc
+    ZSolid.cc
+    junoPMTOpticalModel.cc
     MultiFilmModel.cc
-   #  $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+    OpticalSystem.cc
+    Layer.cc 
+    Matrix.cc
+    Material.cc
+    DetectorConstruction.cc
+    MaterialSvc.cc
 )
 
 list(APPEND HEADERS
@@ -46,7 +60,7 @@ message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
 add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
 
-target_compile_definitions( ${name} PRIVATE OPTICKS_PMTFASTSIM PMTFASTSIM_STANDALONE )
+target_compile_definitions( ${name} PRIVATE OPTICKS_PMTFASTSIM PMTFASTSIM_STANDALONE PMTSIM_STANDALONE )
 
 target_include_directories(${name}
      PUBLIC
@@ -68,4 +82,4 @@ bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 install(FILES ${HEADERS}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

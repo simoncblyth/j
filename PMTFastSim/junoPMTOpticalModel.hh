@@ -34,7 +34,13 @@ template<typename T> struct Layr ;
 
 enum EWhereAmI { OutOfRegion, kInGlass, kInVacuum };
 
+
+#ifdef PMTSIM_STANDALONE
+#include "PMTSIM_API_EXPORT.hh"
+class PMTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
+#else
 class junoPMTOpticalModel : public G4VFastSimulationModel
+#endif
 {
     public:
         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*); 

@@ -11,22 +11,22 @@ bin=$BASE/$name
 
 if [ "$name" == "junoPMTOpticalModelTest" ]; then
     srcs=("$name.cc" 
-          "HamamatsuR12860PMTManager.cc" 
-          "Hamamatsu_R12860_PMTSolid.cc"
-          "ZSolid.cc"
-          "junoPMTOpticalModel.cc" 
-          "MultiFilmModel.cc" 
-          "OpticalSystem.cc" 
-          "Layer.cc" 
-          "Matrix.cc" 
-          "Material.cc"
-          "DetectorConstruction.cc"
-          "MaterialSvc.cc")
+          "../HamamatsuR12860PMTManager.cc" 
+          "../Hamamatsu_R12860_PMTSolid.cc"
+          "../ZSolid.cc"
+          "../junoPMTOpticalModel.cc" 
+          "../MultiFilmModel.cc" 
+          "../OpticalSystem.cc" 
+          "../Layer.cc" 
+          "../Matrix.cc" 
+          "../Material.cc"
+          "../DetectorConstruction.cc"
+          "../MaterialSvc.cc")
 
 elif [ "$name" == "DetectorConstructionTest" ]; then 
     srcs=("$name.cc"
-          "DetectorConstruction.cc"
-          "MaterialSvc.cc")
+          "../DetectorConstruction.cc"
+          "../MaterialSvc.cc")
 fi 
 
 opticks-
@@ -35,14 +35,14 @@ g4-
 clhep-
 
 
-#-I../PMTSim \
-
 if [ "${arg/build}" != "$arg" ]; then 
     echo $BASH_SOURCE build : ${srcs[*]}
     gcc ${srcs[*]} \
          -g -std=c++11 -lstdc++ \
          -DPMTSIM_STANDALONE \
-         -I../Layr \
+         -I.. \
+         -I../../Layr \
+         -I../../PMTSim \
          -I$HOME/opticks/sysrap \
          -I$(boost-prefix)/include \
          -I$(clhep-prefix)/include \
