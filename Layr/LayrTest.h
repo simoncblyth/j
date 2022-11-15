@@ -39,7 +39,7 @@ struct LayrTestData    // LayrScanData  better name ?
     int      ni ;     // number of items : currently angles 
     T        wl ;     // hmm could vary wl, by making this an array 
     T*       mct ;    // minus_cos_theta from -1 to 1, > 0 is backwards stack
-    ART<T>*  arts ; 
+    ART_<T>* arts ; 
     Layr<T>* comps ;  
     Layr<T>* lls ; 
 };
@@ -103,7 +103,7 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     h.ni = ni ; 
     h.wl = wl > 0. ? wl : U::GetE<double>("WL", 500.) ; 
     h.mct = new T[ni] ; 
-    h.arts  = new ART<T>[ni] ; 
+    h.arts  = new ART_<T>[ni] ; 
     h.comps = new Layr<T>[ni] ; 
     h.lls   = new Layr<T>[N*ni] ; 
 
@@ -135,7 +135,7 @@ inline void LayrTest<T,N>::upload()   // prepare device side arrays
     d.wl = h.wl ;
 
     d.mct   =       (T*)SU::device_alloc_sizeof(ni, sizeof(T)) ;     
-    d.arts  = ( ART<T>*)SU::device_alloc_sizeof(ni, sizeof(ART<T>) ); 
+    d.arts  = (ART_<T>*)SU::device_alloc_sizeof(ni, sizeof(ART_<T>) ); 
     d.comps = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>) ); 
     d.lls   = (Layr<T>*)SU::device_alloc_sizeof(ni, sizeof(Layr<T>)*N ); 
 
@@ -150,7 +150,7 @@ inline void LayrTest<T,N>::download() // d->h : copy device side arrays down int
 {
     int ni = d.ni ; 
     assert( d_ptr != nullptr ); // must upload before download
-    SU::copy_device_to_host_sizeof( (char*)h.arts , (char*)d.arts , ni, sizeof(ART<T>) ); 
+    SU::copy_device_to_host_sizeof( (char*)h.arts , (char*)d.arts , ni, sizeof(ART_<T>) ); 
     SU::copy_device_to_host_sizeof( (char*)h.comps, (char*)d.comps, ni, sizeof(Layr<T>) ); 
     SU::copy_device_to_host_sizeof( (char*)h.lls  , (char*)d.lls  , ni, sizeof(Layr<T>)*N ); 
 }
@@ -192,7 +192,7 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
     for(int i=0 ; i < h.ni ; i++ )
     {
         int j = reverse ? h.ni - 1 - i : i ;      // just debugging reorder
-        Stack<T,N> stack(h.wl, h.mct[j], spec ) ; // ART calc done in ctor
+        Stack<T,N> stack(h.wl, h.mct[j], spec ) ; // ART_ calc done in ctor
 
         h.arts[j] = stack.art; 
         h.comps[j] = stack.comp ; 
@@ -210,7 +210,7 @@ inline std::string LayrTest<T,N>::desc() const
     std::stringstream ss ; 
     for(int i=0 ; i < h.ni ; i++)
     {
-        const ART<T>& art = h.arts[i] ; 
+        const ART_<T>& art = h.arts[i] ; 
         ss << " i:" << i 
            << std::endl  
            << art 
@@ -293,7 +293,7 @@ inline void LayrTest<T,N>::save() const
     std::cout << " title " << ti << std::endl ;  
     std::cout << " brief " << br << std::endl ;  
 
-    assert( sizeof(ART<T>)/sizeof(T) == 12 ); 
+    assert( sizeof(ART_<T>)/sizeof(T) == 12 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
     const char* name = get_name() ; 

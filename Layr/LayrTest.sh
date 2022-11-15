@@ -42,9 +42,9 @@ export FOLD=$fold
 export LAYRTEST_BASE=$fold
 #export LAYRTEST_HALF=1
 
-#pmtcat=R12860
+pmtcat=R12860
 #pmtcat=NNVTMCP 
-pmtcat=NNVTMCP_HiQE
+#pmtcat=NNVTMCP_HiQE
 #pmtcat=EGet
 
 export LAYRTEST_PMTCAT=$pmtcat

@@ -4,7 +4,10 @@ defarg="build_run"
 arg=${1:-$defarg}
 
 name=${TEST:-junoPMTOpticalModelTest}
-bin=/tmp/$name
+export BASE=/tmp/$USER/opticks/LayrTest 
+
+mkdir -p $BASE
+bin=$BASE/$name
 
 if [ "$name" == "junoPMTOpticalModelTest" ]; then
     srcs=("$name.cc" 
@@ -37,6 +40,7 @@ if [ "${arg/build}" != "$arg" ]; then
          -g -std=c++11 -lstdc++ \
          -DPMTSIM_STANDALONE \
          -I../PMTSim \
+         -I../Layr \
          -I$HOME/opticks/sysrap \
          -I$(boost-prefix)/include \
          -I$(clhep-prefix)/include \

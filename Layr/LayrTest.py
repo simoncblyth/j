@@ -113,13 +113,18 @@ class LayrTest(object):
     def __init__(self, f):
         self.f = f  
         if not f is None:
-            title = f.arts_meta.d["title"] 
-            brief = f.arts_meta.d["brief"] 
-            name = f.arts_meta.d["name"] 
+            title = f.arts_meta.d.get("title","-") 
+            brief = f.arts_meta.d.get("brief","-") 
+            name = f.arts_meta.d.get("name","-") 
             tag = self.Tag(name)
-            label = f.arts_meta.d["label"] 
+            label = f.arts_meta.d.get("label","-") 
             symbol = f.symbol
-            layrs = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
+
+            if not getattr(f, "lls", None) is None:
+                layrs = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
+            else:
+                layrs = "?" 
+            pass
         else:
             title = "-"
             brief = "-"

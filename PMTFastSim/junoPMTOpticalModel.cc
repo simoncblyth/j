@@ -11,6 +11,15 @@
 #include "G4VSensitiveDetector.hh"
 #include "G4MaterialPropertiesTable.hh"
 
+#ifdef PMTSIM_STANDALONE
+#include "JPMT.h"
+#include "Layr.h"
+
+#include "OpticalSystem.h"
+#include "Matrix.h"
+#include "Layer.h"
+#endif
+
 #ifndef PMTSIM_STANDALONE
 #include "SniperKernel/SniperPtr.h"
 #include "SniperKernel/SniperLog.h"
@@ -172,16 +181,21 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 
 
 #ifdef PMTSIM_STANDALONE
-void junoPMTOpticalModel::setEnergy( double energy )
+void junoPMTOpticalModel::setEnergyThickness( double energy )
 {
     _wavelength     = twopi*hbarc/energy;
     double energy_eV = energy/eV ; 
 
     n_glass          = jpmt->get_rindex( JPMT::HAMA, JPMT::L0, JPMT::RINDEX, energy_eV ); 
+
     n_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::RINDEX, energy_eV ); 
     k_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::KINDEX, energy_eV ); 
-    n_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
-    k_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+    d_coating  = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L1 ); 
+
+    n_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    k_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+    d_photocathode = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L2 ); 
+
 
     std::cout 
         << "junoPMTOpticalModel::setEnergy" 
@@ -227,9 +241,14 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta )
     }
 } 
 
-void junoPMTOpticalModel::CalculateCoefficients(double energy, double minus_cos_theta)
+void junoPMTOpticalModel::CalculateCoefficients(
+      ART_<double>& art, 
+      Layr<double>& comp, 
+      Layr<double>* ll, 
+      double energy, 
+      double minus_cos_theta )
 {
-    setEnergy(energy); 
+    setEnergyThickness(energy); 
     setMinusCosTheta(minus_cos_theta); 
 
     G4complex one(1., 0.);
@@ -244,19 +263,85 @@ void junoPMTOpticalModel::CalculateCoefficients(double energy, double minus_cos_
     m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
     m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
     m_multi_film_model->SetLayerPar(3, _n4);
+
+
+
+  
     ART art1 = m_multi_film_model->GetART();
+
     fR_s = art1.R_s;
     fT_s = art1.T_s;
     fR_p = art1.R_p;
     fT_p = art1.T_p;
 
-    m_multi_film_model->SetLayerPar(0, n_glass);
-    m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
-    m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
-    m_multi_film_model->SetLayerPar(3, n_vacuum);
-    ART art2 = m_multi_film_model->GetNormalART();
-    fR_n = art2.R;
-    fT_n = art2.T;
+    art = {} ; 
+    art.R_s = art1.R_s ; 
+    art.R_p = art1.R_p ; 
+    art.T_s = art1.T_s ; 
+    art.T_p = art1.T_p ; 
+    art.A_s = art1.A_s ; 
+    art.A_p = art1.A_p ; 
+    art.R   = art1.R ; 
+    art.T   = art1.T ; 
+    art.A   = art1.A ; 
+    art.A_R_T = art1.A + art1.T + art1.R  ; 
+    art.wl   = _wavelength/nm ;
+    art.mct  = minus_cos_theta ; 
+
+
+    comp = {} ; 
+
+    comp.rs = m_multi_film_model->rs ; 
+    comp.rp = m_multi_film_model->rp ; 
+    comp.ts = m_multi_film_model->ts ; 
+    comp.tp = m_multi_film_model->tp ; 
+
+    Matrix* Ms = m_multi_film_model->Ms ; 
+    Matrix* Mp = m_multi_film_model->Mp ; 
+
+    comp.S.M00 = Ms->matrix.M00 ; 
+    comp.S.M01 = Ms->matrix.M01 ; 
+    comp.S.M10 = Ms->matrix.M10 ; 
+    comp.S.M11 = Ms->matrix.M11 ;
+
+    comp.P.M00 = Mp->matrix.M00 ; 
+    comp.P.M01 = Mp->matrix.M01 ; 
+    comp.P.M10 = Mp->matrix.M10 ; 
+    comp.P.M11 = Mp->matrix.M11 ;
+
+    std::vector<Layer*>& vlayers = m_multi_film_model->optical_system->layers ; 
+    assert( vlayers.size() == 4 ); 
+
+    for(int i=0 ; i < 4 ; i++)
+    {
+        Layr<double>& l = ll[i] ; 
+
+        Layer& layer = *vlayers[i] ; 
+        ThinLayer* thin  = dynamic_cast<ThinLayer*>(&layer);
+
+        l.d  = ( thin ? thin->thickness : 0. ) ;
+        l.n  = layer.material->n ; 
+        l.st = layer.parameter.sin_theta ;   
+        l.ct = layer.parameter.cos_theta ;   
+
+        l.rs = layer.parameter.rs_ij ;
+        l.rp = layer.parameter.rp_ij ;
+        l.ts = layer.parameter.ts_ij ;
+        l.tp = layer.parameter.tp_ij ;
+        
+        Matrix* Ms = layer.Ms ; 
+        Matrix* Mp = layer.Mp ; 
+
+        l.S.M00 = Ms->matrix.M00 ; 
+        l.S.M01 = Ms->matrix.M01 ;
+        l.S.M10 = Ms->matrix.M10 ;
+        l.S.M11 = Ms->matrix.M11 ;
+
+        l.P.M00 = Mp->matrix.M00 ; 
+        l.P.M01 = Mp->matrix.M01 ;
+        l.P.M10 = Mp->matrix.M10 ;
+        l.P.M11 = Mp->matrix.M11 ;
+    } 
 
     std::cout 
          << "junoPMTOpticalModel::CalculateCoefficients"
@@ -265,8 +350,6 @@ void junoPMTOpticalModel::CalculateCoefficients(double energy, double minus_cos_
          << " fT_s " << fT_s 
          << " fR_p " << fR_p 
          << " fT_p " << fT_p 
-         << " fR_n " << fR_n 
-         << " fT_n " << fT_n 
          << std::endl
          ;
 }
@@ -280,7 +363,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     const G4Track* track = fastTrack.GetPrimaryTrack();
 
 #ifdef PMTSIM_STANDALONE
-    setEnergy(energy); 
+    setEnergyThickness(energy); 
 #else
     n_glass    = _rindex_glass->Value(_photon_energy);
 

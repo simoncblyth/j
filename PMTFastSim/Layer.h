@@ -39,7 +39,7 @@ class Layer
 
         void ResetMatrix();
 
-    private:
+    public:
         Material* material;
 
         LayerType type;
@@ -74,7 +74,7 @@ class ThinLayer : public Layer
         void SetThickness(double x) { thickness = x; }
         double GetThickness() { return thickness; }
     
-    private:
+    public:
         double thickness;
 };
 

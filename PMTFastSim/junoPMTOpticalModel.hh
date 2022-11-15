@@ -16,7 +16,10 @@
 
 
 #ifdef PMTSIM_STANDALONE
-#include "JPMT.h"
+struct JPMT ; 
+template<typename T> struct ART_ ; 
+template<typename T> struct Layr ; 
+
 #include "MultiFilmModel.h"
 #else
 
@@ -111,10 +114,15 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
         void CalculateCoefficients();
 
 #ifdef PMTSIM_STANDALONE
-        void setEnergy( double energy );
+        void setEnergyThickness( double energy );
         void setMinusCosTheta(double minus_cos_theta );
      public:
-        void CalculateCoefficients(double energy, double minus_cos_theta );
+        void CalculateCoefficients(
+                 ART_<double>& art, 
+                 Layr<double>& comp, 
+                 Layr<double>* ll, 
+                 double energy, 
+                 double minus_cos_theta); 
      private:
 #endif
         

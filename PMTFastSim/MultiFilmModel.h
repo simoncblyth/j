@@ -36,13 +36,15 @@ class MultiFilmModel
 
         OpticalSystem* GetOpticalSystem() { return optical_system; }
         
-    private:
+    public:
         OpticalSystem* optical_system;
         
         double wavelength;
         double theta;
 
         ART art;
+
+        TComplex rs, rp, ts, tp ; 
 
         Matrix* Ms;
         Matrix* Mp;

@@ -18,7 +18,7 @@ class Material
         std::string GetName() { return fName; }
         static Material* GetMaterial(std::string name);
 
-    private:
+    public:
         std::string fName;
 
         TComplex n;

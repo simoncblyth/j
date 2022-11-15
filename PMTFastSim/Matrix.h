@@ -25,7 +25,7 @@ class Matrix{
         void Reset();
         void Print();
 
-    private:
+    public:
         MATRIX matrix;
 };
 

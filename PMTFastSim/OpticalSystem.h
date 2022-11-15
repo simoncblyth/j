@@ -29,7 +29,7 @@ class OpticalSystem
         void ResetLayers();
         void PrintInfo();
 
-    private:
+    public:
         ThickLayer* top_layer;
         ThickLayer* bot_layer;
 

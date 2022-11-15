@@ -33,7 +33,7 @@ template<typename T> struct Layr : (4,4,2)
 
     * d = zero : indicates thick (incoherent) layer 
 
-template<typename F> struct ART : (3,4) 
+template<typename F> struct ART_ : (3,4) 
     results  
 
 template<typename T> StackSpec :  (4,3) 
@@ -46,7 +46,7 @@ template <typename T, int N> struct Stack : (constituents persisted separately)
 
     Layr<T> ll[N] ;   
     Layr<T> comp ;  // composite for the N layers 
-    ART<T>  art ; 
+    ART_<T>  art ; 
 
     LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
 
@@ -278,7 +278,7 @@ inline std::ostream& operator<<(std::ostream& os, const Layr<T>& l)
 #endif
 
 template<typename F>
-struct ART
+struct ART_
 {   
     F R_s;     // R_s = a.arts[:,0,0]
     F R_p;     // R_p = a.arts[:,0,1]
@@ -301,10 +301,10 @@ struct ART
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
 template<typename T>
-inline std::ostream& operator<<(std::ostream& os, const ART<T>& art )  
+inline std::ostream& operator<<(std::ostream& os, const ART_<T>& art )  
 {
     os 
-        << "ART" << std::endl 
+        << "ART_" << std::endl 
         << " R_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_s 
         << " R_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_p 
         << std::endl 
@@ -484,7 +484,7 @@ struct Stack
 {
     Layr<T> ll[N] ;  
     Layr<T> comp ;  // composite for the N layers 
-    ART<T>  art ; 
+    ART_<T>  art ; 
 
     LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
 };

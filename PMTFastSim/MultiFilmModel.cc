@@ -25,7 +25,7 @@ void MultiFilmModel::Calculate()
     }
 
     optical_system->Initialize(wavelength, theta);
-    std::vector<Layer*> layers  = optical_system->GetLayers();
+    std::vector<Layer*> layers  = optical_system->GetLayers();  // bizarre : why by value ? 
 
     Ms->Reset();
     Mp->Reset();
@@ -38,10 +38,10 @@ void MultiFilmModel::Calculate()
     MATRIX ms = Ms->GetM();
     MATRIX mp = Mp->GetM();
 
-    TComplex rs = ms.M10/ms.M00;
-    TComplex rp = mp.M10/mp.M00;
-    TComplex ts = 1./ms.M00;
-    TComplex tp = 1./mp.M00;
+    rs = ms.M10/ms.M00;
+    rp = mp.M10/mp.M00;
+    ts = 1./ms.M00;
+    tp = 1./mp.M00;
 
     ThickLayer *top = optical_system->GetTop();
     ThickLayer *bot = optical_system->GetBot();
