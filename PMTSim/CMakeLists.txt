@@ -27,6 +27,7 @@ find_package(SysRap REQUIRED)
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParamsSvc)  # for IMCParamsSvc.hh
 
 set(SOURCES)
 set(HEADERS)
@@ -45,7 +46,7 @@ list(APPEND SOURCES
 
      LowerChimney.cc
      LowerChimneyMaker.cc
-     ZSolid.cc
+     ZSolid.cc          ## TODO: this is in offline too, consolidate
      MaterialSvc.cc
 
      PMTSim.cc
@@ -57,14 +58,13 @@ list(APPEND SOURCES
 list(APPEND HEADERS
      PMTSIM_API_EXPORT.hh
 
+     ZSolid.h  
+     SCanvas.hh
+     MaterialSvc.hh
+
      PMTSim.hh
      P4Volume.hh
      DetectorConstruction.hh
-
-     SCanvas.hh
-     ZSolid.h
-
-     MaterialSvc.hh
 
      ../Layr/Layr.h 
      ../Layr/JPMT.h 

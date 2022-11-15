@@ -64,12 +64,13 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     
     whereAmI        = OutOfRegion;
 
+#ifdef PMTSIM_STANDALONE
+    jpmt = new JPMT ; 
+#endif
+
     InitOpticalParameters(envelope_phys);
 
-#ifndef PMTSIM_STANDALONE
-    // temporary exclude
     m_multi_film_model = new MultiFilmModel(4);
-#endif
 
 }
 
@@ -169,6 +170,108 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 
 
 
+
+#ifdef PMTSIM_STANDALONE
+void junoPMTOpticalModel::setEnergy( double energy )
+{
+    _wavelength     = twopi*hbarc/energy;
+    double energy_eV = energy/eV ; 
+
+    n_glass          = jpmt->get_rindex( JPMT::HAMA, JPMT::L0, JPMT::RINDEX, energy_eV ); 
+    n_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::RINDEX, energy_eV ); 
+    k_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::KINDEX, energy_eV ); 
+    n_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    k_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+
+    std::cout 
+        << "junoPMTOpticalModel::setEnergy" 
+        << " energy " << energy
+        << " energy_eV " << energy_eV
+        << " _wavelength  " << _wavelength 
+        << " _wavelength/nm  " << _wavelength/nm 
+        << " n_glass " << n_glass
+        << " n_coating " << n_coating
+        << " k_coating " << k_coating
+        << " n_photocathode " << n_photocathode
+        << " k_photocathode " << k_photocathode
+        << std::endl 
+        ;
+}
+
+void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta )
+{
+    whereAmI = minus_cos_theta < 0. ? kInGlass : kInVacuum ; 
+    _cos_theta1 = minus_cos_theta < 0. ? -minus_cos_theta : minus_cos_theta ; 
+    _aoi = acos(_cos_theta1)*360./twopi;
+
+    if(whereAmI == kInGlass){
+        _n1 = n_glass;
+        _n2 = n_coating;
+        _k2 = k_coating;
+        _d2 = d_coating;
+        _n3 = n_photocathode;
+        _k3 = k_photocathode;
+        _d3 = d_photocathode;
+        _n4 = n_vacuum;
+    }else{
+        _n1 = n_vacuum;
+        _n2 = n_photocathode;
+        _k2 = k_photocathode;
+        _d2 = d_photocathode;
+        _n3 = n_coating;
+        _k3 = k_coating;
+        _d3 = d_coating;
+        _n4 = n_glass;
+
+        _qe = 0.;
+    }
+} 
+
+void junoPMTOpticalModel::CalculateCoefficients(double energy, double minus_cos_theta)
+{
+    setEnergy(energy); 
+    setMinusCosTheta(minus_cos_theta); 
+
+    G4complex one(1., 0.);
+    _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1);
+    _sin_theta4 = _n1 * _sin_theta1/_n4;
+    _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
+
+    m_multi_film_model->SetWL(_wavelength/nm);  // CHANGE TO MORE REASONABLE LENGTH UNITS : nm (not m)
+    m_multi_film_model->SetAOI(_aoi);
+
+    m_multi_film_model->SetLayerPar(0, _n1);
+    m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
+    m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
+    m_multi_film_model->SetLayerPar(3, _n4);
+    ART art1 = m_multi_film_model->GetART();
+    fR_s = art1.R_s;
+    fT_s = art1.T_s;
+    fR_p = art1.R_p;
+    fT_p = art1.T_p;
+
+    m_multi_film_model->SetLayerPar(0, n_glass);
+    m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
+    m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
+    m_multi_film_model->SetLayerPar(3, n_vacuum);
+    ART art2 = m_multi_film_model->GetNormalART();
+    fR_n = art2.R;
+    fT_n = art2.T;
+
+    std::cout 
+         << "junoPMTOpticalModel::CalculateCoefficients"
+         << " energy/eV " << energy/eV
+         << " fR_s " << fR_s 
+         << " fT_s " << fT_s 
+         << " fR_p " << fR_p 
+         << " fT_p " << fT_p 
+         << " fR_n " << fR_n 
+         << " fT_n " << fT_n 
+         << std::endl
+         ;
+}
+#endif
+
 void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
 {
     _photon_energy  = energy;
@@ -176,7 +279,9 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     const G4Track* track = fastTrack.GetPrimaryTrack();
 
-#ifndef PMTSIM_STANDALONE
+#ifdef PMTSIM_STANDALONE
+    setEnergy(energy); 
+#else
     n_glass    = _rindex_glass->Value(_photon_energy);
 
     int pmtid  = get_pmtid(track);
@@ -322,6 +427,15 @@ void junoPMTOpticalModel::CalculateCoefficients()
     fT_n = art2.T;
 }
 
+
+
+
+
+
+
+
+
+
 void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
 {
     fastStep.SetPrimaryTrackFinalTime(time);
@@ -346,6 +460,21 @@ void junoPMTOpticalModel::InitOpticalParameters(G4VPhysicalVolume* envelope_phys
 
     _inner2_phys    = envelope_log->GetDaughter(1);
     _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
+
+#ifdef PMTSIM_STANDALONE
+    std::cout << "junoPMTOpticalModel::InitOpticalParameters"
+              << " envelope_log " << envelope_log
+              << " glass_pt " << glass_pt
+              << " _rindex_glass " << _rindex_glass
+              << " _inner1_phys " << _inner1_phys
+              << " _inner1_solid " << _inner1_solid
+              << " _rindex_vacuum " << _rindex_vacuum
+              << " _inner2_phys " << _inner2_phys
+              << " _inner2_solid " << _inner2_solid
+              << std::endl 
+              ;
+#endif
+
 }
 
 void junoPMTOpticalModel::Reflect()

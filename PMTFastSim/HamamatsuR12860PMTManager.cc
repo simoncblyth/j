@@ -139,7 +139,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
 {
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
-    declProp("UsePMTOpticalModel", m_enable_optical_model=false);
+    declProp("UsePMTOpticalModel", m_enable_optical_model=true);
 
     bool useRealSurface = true ; 
 #ifdef PMTSIM_STANDALONE
@@ -178,6 +178,7 @@ HamamatsuR12860PMTManager::~HamamatsuR12860PMTManager() {
 // Helper Methods
 void HamamatsuR12860PMTManager::init() {
 #ifdef PMTSIM_STANDALONE
+    std::cout << "HamamatsuR12860PMTManager::init" << std::endl ; 
 #else
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     m_detector = SDman->FindSensitiveDetector("PMTSDMgr");
@@ -209,7 +210,13 @@ HamamatsuR12860PMTManager::init_material() {
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
 #ifdef PMTSIM_STANDALONE
-     std::cout << "HamamatsuR12860PMTManager::init_material" << std::endl ; 
+     std::cout 
+          << "HamamatsuR12860PMTManager::init_material" 
+          << " GlassMat " << ( GlassMat ? "Y" : "N" )
+          << " PMT_Vacuum " << ( PMT_Vacuum ? "Y" : "N" )
+          << " DynodeMat " << ( DynodeMat ? "Y" : "N" )
+          << std::endl 
+          ; 
 
      G4Material* mat = G4Material::GetMaterial("photocathode_Ham20inch"); 
      Photocathode_opsurf->SetMaterialPropertiesTable(mat ? mat->GetMaterialPropertiesTable() : nullptr ) ;  
@@ -312,9 +319,23 @@ HamamatsuR12860PMTManager::init_pmt
 
 void HamamatsuR12860PMTManager::init_pmt() 
 {
+
+#ifdef PMTSIM_STANDALONE
+  std::cout 
+      << "HamamatsuR12860PMTManager::init_pmt" 
+      << " m_enable_optical_model " << m_enable_optical_model
+      << " m_plus_dynode " << m_plus_dynode
+      << std::endl 
+      ;  
+#endif
+
+
   helper_make_solid();  
   helper_make_logical_volume();
   helper_make_physical_volume();
+
+
+
 
   if(m_enable_optical_model || m_plus_dynode)
   {

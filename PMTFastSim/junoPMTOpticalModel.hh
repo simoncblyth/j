@@ -16,6 +16,7 @@
 
 
 #ifdef PMTSIM_STANDALONE
+#include "JPMT.h"
 #include "MultiFilmModel.h"
 #else
 
@@ -99,13 +100,23 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 
         EWhereAmI whereAmI;
         
-#ifndef PMTSIM_STANDALONE
+#ifdef PMTSIM_STANDALONE
+        JPMT* jpmt ; 
+#else
         IPMTParamSvc* m_PMTParamSvc;
         IPMTSimParamSvc* m_PMTSimParSvc;
 #endif
         MultiFilmModel* m_multi_film_model;
 
         void CalculateCoefficients();
+
+#ifdef PMTSIM_STANDALONE
+        void setEnergy( double energy );
+        void setMinusCosTheta(double minus_cos_theta );
+     public:
+        void CalculateCoefficients(double energy, double minus_cos_theta );
+     private:
+#endif
         
         void Reflect();
         void Refract();

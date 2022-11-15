@@ -3,35 +3,42 @@
 defarg="build_run"
 arg=${1:-$defarg}
 
-name=junoPMTOpticalModelTest
+name=${TEST:-junoPMTOpticalModelTest}
 bin=/tmp/$name
 
-srcs=(
-   "$name.cc" 
-   "HamamatsuR12860PMTManager.cc" 
-   "Hamamatsu_R12860_PMTSolid.cc"
-   "ZSolid.cc"
-   "junoPMTOpticalModel.cc" 
-   "MultiFilmModel.cc" 
-   "OpticalSystem.cc" 
-   "Layer.cc" 
-   "Matrix.cc" 
-   "Material.cc"
-)
+if [ "$name" == "junoPMTOpticalModelTest" ]; then
+    srcs=("$name.cc" 
+          "HamamatsuR12860PMTManager.cc" 
+          "Hamamatsu_R12860_PMTSolid.cc"
+          "ZSolid.cc"
+          "junoPMTOpticalModel.cc" 
+          "MultiFilmModel.cc" 
+          "OpticalSystem.cc" 
+          "Layer.cc" 
+          "Matrix.cc" 
+          "Material.cc"
+          "DetectorConstruction.cc"
+          "MaterialSvc.cc")
 
-echo ${srcs[*]}
+elif [ "$name" == "DetectorConstructionTest" ]; then 
+    srcs=("$name.cc"
+          "DetectorConstruction.cc"
+          "MaterialSvc.cc")
+fi 
 
 opticks-
+boost-
 g4-
 clhep-
 
-
 if [ "${arg/build}" != "$arg" ]; then 
+    echo $BASH_SOURCE build : ${srcs[*]}
     gcc ${srcs[*]} \
          -g -std=c++11 -lstdc++ \
          -DPMTSIM_STANDALONE \
          -I../PMTSim \
-         -I$HOME/np \
+         -I$HOME/opticks/sysrap \
+         -I$(boost-prefix)/include \
          -I$(clhep-prefix)/include \
          -I$(g4-prefix)/include/Geant4 \
          -L$(g4-prefix)/lib \
