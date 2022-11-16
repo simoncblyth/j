@@ -10,8 +10,16 @@ Done
 1. angle scanning with the hacked junoPMTOpticalModel agrees reasonably with LayrTest scanning
 
 
-FastSim Hookup
-----------------
+FastSim Hookup Refs
+----------------------
+
+* :google:`G4VFastSimulationModel`
+
+* https://www.ge.infn.it/geant4/training/ptb_2009/fastSimulation.pdf
+   
+  Marc Verderi
+
+
 
 * https://indico.cern.ch/event/789510/contributions/3297180/attachments/1817759/2973421/G4Tutorial_fastSim_vFin.pdf
 
@@ -71,6 +79,9 @@ How is fast sim hooked up in junosw ?
 Find Standalone Geant4 setup to bring in 
 ----------------------------------------------
 
+* Proceeding with U4RecorderTest.h in u4/tests/U4PMTFastSimTest.cc
+
+
 Need to setup simple standalone Geant4 environment (G4RunManager, physics etc..)
 so can get some optical photons onto the single PMT 
 and try to get the FastSim model to kick in 
@@ -108,7 +119,6 @@ and try to get the FastSim model to kick in
 
 
 
-* Proceeding with U4RecorderTest.h in u4/tests/U4PMTFastSimTest.cc
 
 
 

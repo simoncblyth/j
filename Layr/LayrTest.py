@@ -81,12 +81,10 @@ Blowout at turnaround::
 
 
 """
-
 import os, builtins, numpy as np
 from opticks.ana.fold import Fold 
 from opticks.ana.rsttable import RSTTable
 SIZE = np.array([1280, 720])
-
 
 def both(x,y):
     return not x is None and not y is None
@@ -100,12 +98,12 @@ class LayrTest(object):
         """
         scan__NNVTMCP__gpu_thr_float
         """
-
         tag = ""
         if "gpu" in name: tag += "g" ; 
         if "cpu" in name: tag += "c" ; 
         if "thr" in name: tag += "t" ; 
         if "std" in name: tag += "s" ; 
+        if "pom" in name: tag += "p" ; 
         if "double" in name: tag += "d" ; 
         if "float" in name: tag += "f" ; 
         return tag
@@ -199,7 +197,7 @@ class LayrTestSet(object):
     def select(self, label):
         return list(filter(lambda t:t.label == label, self.tests))
 
-    def cf_table(self, tt, label, qwns="arts comps".split() ):
+    def cf_table(self, tt, label, qwns="arts comps".split(), excl=0 ):
         """
         ::
 
@@ -242,7 +240,7 @@ class LayrTestSet(object):
             +------------------------------+----------+----------+----------+----------+
 
         """
-        key = "%s %s " % (label, "\\".join(qwns))
+        key = "%s %s %s" % (label, "\\".join(qwns), excl)
 
         ntt = len(tt)
         labels = [key] 
@@ -256,7 +254,7 @@ class LayrTestSet(object):
             for j in range(ntt):
                 if i == j: continue
                 tj = tt[j]
-                cf = CF(ti,tj)
+                cf = CF(ti,tj,excl)
                 qwn = qwns[0] if i > j else qwns[1]
                 cfv = np.abs( getattr(cf, qwn) ).max()
                 pass
@@ -283,22 +281,45 @@ class CF(object):
     """
     Compare two LayrTest objects 
     """
-    def __init__(self, A, B):
+    def __init__(self, A, B, excl=0):
+        """
+        """
         self.A = A 
         self.B = B 
+        self.excl = excl
+
         if A is None or B is None or A.f is None or B.f is None:
             self.lls = None
             self.comps = None
             self.arts = None
         else:
-            self.lls   = A.f.lls - B.f.lls
-            self.comps = A.f.comps - B.f.comps
-            self.arts  = A.f.arts - B.f.arts
+
+            assert np.abs( A.arts[:,-1,-1] - B.arts[:,-1,-1] ).max() < 1e-6
+
+            mct = A.arts[:,-1,-1] 
+            sel = np.abs(mct) > excl     
+
+            _lls = A.f.lls - B.f.lls
+            _comps = A.f.comps - B.f.comps
+            _arts = A.f.arts - B.f.arts
+
+            lls = _lls[sel]
+            comps = _comps[sel]
+            arts = _arts[sel]
+
+            self._lls   = _lls
+            self._comps = _comps
+            self._arts  = _arts
+
+            self.lls = lls
+            self.comps = comps
+            self.arts = arts
         pass
 
     def __repr__(self):
         A = self.A
         B = self.B 
+        excl = self.excl
 
         lls = self.lls
         comps = self.comps
@@ -309,14 +330,17 @@ class CF(object):
         pass
 
 
-        CF_brief = "CF(%s,%s) : %s vs %s " % (A.symbol, B.symbol, A.name, B.name ) 
+        CF_brief = "CF(%s,%s,%s) : %s vs %s " % (A.symbol, B.symbol, excl, A.name, B.name ) 
         lines = [CF_brief]
         lines += [A.brief]
         lines += [B.brief]
 
-        lines += [ "%10s : %s : %s : %s  " % ("lls",   np.abs(lls).max(),   lls.max(),   lls.min()) ]
-        lines += [ "%10s : %s : %s : %s "  % ("comps", np.abs(comps).max(), comps.max(), comps.min()) ]  
-        lines += [ "%10s : %s : %s : %s "  % ("arts",  np.abs(arts).max(),  arts.max(),  arts.min()) ]  
+        ffmt = "%10.3g"
+        fmt = "%%10s : %(ffmt)s : %(ffmt)s : %(ffmt)s" % locals()  
+
+        lines += [ fmt % ("lls",   np.abs(lls).max(),   lls.max(),   lls.min()) ]
+        lines += [ fmt % ("comps", np.abs(comps).max(), comps.max(), comps.min()) ]  
+        lines += [ fmt % ("arts",  np.abs(arts).max(),  arts.max(),  arts.min()) ]  
 
         return "\n".join(lines)
 
@@ -324,7 +348,7 @@ class CF(object):
 
 class ARTPlot(object):
     @classmethod
-    def Plot(cls, ax, test):
+    def Plot(cls, ax, test, excl=0):
         f = test.f
 
         R_s = f.arts[:,0,0]
@@ -358,26 +382,36 @@ class ARTPlot(object):
         ax.plot(th[s], A_R_T[s], label="A_R_T")
         #ax.set_title( test.label )
 
-        for x in [0,90,180]:
+        xx = [0,90,180] 
+
+        edeg = [np.arccos(excl)*180/np.pi,np.arccos(-excl)*180/np.pi] if excl > 0 else []
+        xx.extend(edeg)
+        for x in xx:
             ax.plot( [ x,  x],   [0, 1], linestyle="dashed" )  
         pass
-        ax.text( 125, 0.6, test.layrs )
+
+        extra_ = ["excl: %s " % excl]
+        for i in range(len(edeg)):
+            extra_.append("edeg[%d] : %7.2f " % (i, edeg[i]))
+        pass
+        extra = "\n".join(extra_)
+
+        ax.text( 125, 0.6, "\n".join([test.layrs,extra]))
 
         sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
         sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
-
         ax.set_xlabel('aoi [degrees] ( 90:180 : reverse stack )' )
 
 
 
-    def __init__(self, test):
+    def __init__(self, test, excl=0):
 
         fig, ax = plt.subplots(1, figsize=SIZE/100.)
 
         title = test.title 
         fig.suptitle(title)   
 
-        self.Plot(ax, test)  
+        self.Plot(ax, test, excl=excl)  
 
         ax.legend(loc=os.environ.get("LOC", "upper right")) 
         fig.show()                
@@ -409,17 +443,20 @@ if __name__ == '__main__':
     print(repr(CF(a,b)))
 
     pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
+    excl = float(os.environ.get("LAYRTEST_EXCL", "0.05"))
+
     tt = ts.select(pmtcat)
 
     lt = tt[-1] if len(tt) > 0 else None
     print("pmtcat:%s tt:%d lt:%s " % (pmtcat, len(tt), lt ))
-    
+
+      
     if not lt is None:
-        ap = ARTPlot(lt)
+       ap = ARTPlot(lt, excl=excl)
     pass 
 
     if len(tt) > 0:
-        rst = ts.cf_table(tt, pmtcat)
+        rst = ts.cf_table(tt, pmtcat, excl=excl)
         print(rst)
     pass
 

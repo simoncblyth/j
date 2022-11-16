@@ -25,8 +25,9 @@ struct IGeomManager ;
 struct PMTFASTSIM_API PMTFastSim
 {
     static int LEVEL ; 
-    bool verbose ; 
     static void SetEnvironmentSwitches(const char* name); 
+    static PMTFastSim* INSTANCE ; 
+    static PMTFastSim* Get(); 
 
     static const char* HAMA ; 
     static const char* NNVT ; 
@@ -46,6 +47,7 @@ struct PMTFASTSIM_API PMTFastSim
     static G4VPhysicalVolume* GetPV(const char* name); 
     static junoPMTOpticalModel* GetPMTOpticalModel(const char* name); 
 
+    bool                       verbose ; 
     DetectorConstruction*      m_dc ;   
     HamamatsuR12860PMTManager* m_hama ; 
     NNVTMCPPMTManager*         m_nnvt ; 

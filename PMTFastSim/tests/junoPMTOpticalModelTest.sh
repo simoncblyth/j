@@ -1,5 +1,15 @@
 #!/bin/bash -l 
 
+usage(){ cat << EOU
+junoPMTOpticalModelTest.sh
+============================
+
+NB this also builds with the CMake machinery 
+
+
+EOU
+}
+
 defarg="build_run"
 arg=${1:-$defarg}
 
@@ -34,15 +44,15 @@ boost-
 g4-
 clhep-
 
+#  -I../../PMTSim     IS NOW INDEP OF PMTSim
 
 if [ "${arg/build}" != "$arg" ]; then 
     echo $BASH_SOURCE build : ${srcs[*]}
     gcc ${srcs[*]} \
          -g -std=c++11 -lstdc++ \
-         -DPMTSIM_STANDALONE \
+         -DPMTFASTSIM_STANDALONE \
          -I.. \
          -I../../Layr \
-         -I../../PMTSim \
          -I$HOME/opticks/sysrap \
          -I$(boost-prefix)/include \
          -I$(clhep-prefix)/include \

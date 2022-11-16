@@ -36,32 +36,38 @@ struct junoPMTOpticalModelTest
 {
     ART_Scan<T>                h ; 
     bool                       verbose ; 
-    G4String                   label ; 
+    const char*                label ; 
 
     DetectorConstruction*      dc ; 
     HamamatsuR12860PMTManager* mgr ; 
     G4LogicalVolume*           lv ; 
     junoPMTOpticalModel*       pom ; 
 
-    junoPMTOpticalModelTest(); 
+    junoPMTOpticalModelTest(T wavelength_nm=440, int ni=900); 
     void init(); 
-    std::string desc() const ; 
+    void initscan(T wavelength_nm, int ni); 
+    void scan(); 
 
-    void calculateCoefficients(T wavelength_nm); 
+    const char* get_name() const ; 
+    std::string title() const ; 
+    std::string brief() const ; 
+    std::string desc() const ; 
 }; 
 
 template<typename T>
-junoPMTOpticalModelTest<T>::junoPMTOpticalModelTest()
+junoPMTOpticalModelTest<T>::junoPMTOpticalModelTest(T wavelength_nm, int ni)
     :
     verbose(getenv("VERBOSE")!=nullptr),
-    label("junoPMTOpticalModelTest"),
+    label("R12860"),
     dc(nullptr),
     mgr(nullptr),
     lv(nullptr),  // calls the init
     pom(nullptr)
 {
     init();
+    initscan(wavelength_nm, ni); 
 }
+
 
 template<typename T>
 void junoPMTOpticalModelTest<T>::init()
@@ -78,7 +84,10 @@ void junoPMTOpticalModelTest<T>::init()
     std::string err = cerrbuf.str();
     std::cout << OutputMessage("junoPMTOpticalModelTest::init" , out, err, verbose );
 
-    mgr = new HamamatsuR12860PMTManager(label) ;
+    assert( strcmp(label, "R12860") == 0 ); 
+
+    G4String plabel = label ; 
+    mgr = new HamamatsuR12860PMTManager(plabel) ;
     // TODO: Hamamatsu_R12860_PMTSolid.cc does some "Ellipse_Intersect_Circle " printf not caught by redirect
 
     lv = mgr->getLV() ; 
@@ -87,24 +96,28 @@ void junoPMTOpticalModelTest<T>::init()
 
 
 template<typename T>
-void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
+void junoPMTOpticalModelTest<T>::initscan(T wavelength_nm, int ni)
 {
-    using CLHEP::twopi ; 
-    using CLHEP::hbarc ; 
-    T energy =  twopi*hbarc/(nm*wavelength_nm) ; 
-
-    int ni = 900 ; 
-
-    h.ni = ni ; 
     h.wl = wavelength_nm  ; 
+    h.ni = ni ; 
     h.mct = new T[ni] ; 
     h.arts  = new ART_<T>[ni] ; 
     h.comps = new Layr<T>[ni] ; 
     h.lls   = new Layr<T>[4*ni] ; 
+}
+
+template<typename T>
+void junoPMTOpticalModelTest<T>::scan()
+{
+    using CLHEP::twopi ; 
+    using CLHEP::hbarc ; 
+    T energy =  twopi*hbarc/(nm*h.wl) ; 
 
     bool half = false ; 
     T max_theta_pi = half ? T(1)/T(2) : T(1) ;   
     bool end_one = half ? false : true ;
+
+    int ni = h.ni ; 
 
     for(int i=0 ; i < ni ; i++ ) 
     {   
@@ -124,17 +137,14 @@ void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
         //std::cout << art << std::endl ;
     }
 
-    const char* title = "title" ; 
-    const char* brief = "brief" ; 
-    const char* label = "label" ; 
-    const char* name = "scan__R12860__cpu_pom_double" ; 
+    const char* name = get_name() ; 
 
     const char* base = U::GetEnv("BASE", "/tmp/junoPMTOpticalModelTest") ; 
     NP* _arts = NP::Make<T>( h.ni, 3, 4 );
     _arts->read2( (T*)h.arts );
-    _arts->set_meta<std::string>("title", title);
-    _arts->set_meta<std::string>("brief", brief);
-    _arts->set_meta<std::string>("label", label);
+    _arts->set_meta<std::string>("title", title() );
+    _arts->set_meta<std::string>("brief", brief() );
+    _arts->set_meta<std::string>("label", label );
     _arts->set_meta<std::string>("name", name);
 
     _arts->set_meta<T>("wl", h.wl);
@@ -144,6 +154,59 @@ void junoPMTOpticalModelTest<T>::calculateCoefficients(T wavelength_nm)
     NP::Write(base, name,"lls.npy",  (T*)h.lls  , h.ni, 4, 4, 4, 2 ) ;
 
     // /tmp/blyth/opticks/LayrTest/scan__R12860__gpu_thr_float 
+}
+
+template<typename T>
+const char* junoPMTOpticalModelTest<T>::get_name() const 
+{
+    std::stringstream ss ; 
+    ss  
+       << "scan__" 
+       << ( label ? label : "-" )
+       << "__"
+       << "cpu" 
+       << "_" 
+       << "pom"
+       << "_" 
+       << ( sizeof(T) == 8 ? "double" : "float" )
+       ;
+    std::string s = ss.str();
+    return strdup(s.c_str()) ;
+}
+
+template<typename T>
+std::string junoPMTOpticalModelTest<T>::title() const 
+{
+    const char* name = get_name() ; 
+    std::stringstream ss ; 
+    ss  
+        << "j/PMTFastSim/tests/junoPMTOpticalModelTest"
+        << " " << name
+        << " ni " << h.ni    
+        << " wl " << h.wl
+        ;   
+    std::string s = ss.str(); 
+    return s ; 
+}
+
+template<typename T>
+std::string junoPMTOpticalModelTest<T>::brief() const
+{   
+    const char* name = get_name() ;
+    std::stringstream ss ;
+    ss  
+        << "junoPMTOpticalModelTest"
+        << "<"  
+        << ( sizeof(T) == 8 ? "double" : "float" )
+        << ">"   
+        << " name " << name
+        << " ni " << h.ni
+        << " wl " << h.wl        
+        << " mct[0] " << h.mct[0]
+        << " mct[ni-1] " << h.mct[h.ni-1]
+        ; 
+    std::string s = ss.str();
+    return s ;
 }
 
 template<typename T>
@@ -163,7 +226,7 @@ int main(int argc, char** argv)
 {
     junoPMTOpticalModelTest<double> t ; 
     std::cout << t.desc() << std::endl ; 
-    t.calculateCoefficients(440.) ; 
+    t.scan() ; 
 
     return 0 ; 
 }

@@ -486,8 +486,18 @@ struct Stack
     Layr<T> comp ;  // composite for the N layers 
     ART_<T>  art ; 
 
+    LAYR_METHOD void zero();
+    LAYR_METHOD Stack();
     LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
 };
+
+template<typename T, int N>
+LAYR_METHOD void Stack<T,N>::zero()
+{
+    art = {} ; 
+    comp = {} ; 
+    for(int i=0 ; i < N ; i++) ll[i] = {} ; 
+}
 
 
 /**
@@ -522,6 +532,12 @@ as "angle" parameter, the dot product is -cos(aoi)
    (will there be continuity across the turnaround ?)
 
 **/
+
+template<typename T, int N>
+LAYR_METHOD Stack<T,N>::Stack()
+{
+    zero(); 
+}
 
 template<typename T, int N>
 LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss ) 

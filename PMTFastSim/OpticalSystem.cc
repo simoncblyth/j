@@ -76,8 +76,6 @@ https://en.wikipedia.org/wiki/Thin-film_interference
 
 https://en.wikipedia.org/wiki/Transfer-matrix_method_(optics)
 
-
-
 In theoretical physics, a wave number, defined as the number of radians per unit distance, 
 sometimes called "angular wavenumber", is more often used:[3]
 

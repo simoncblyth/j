@@ -19,6 +19,7 @@
 struct JPMT ; 
 template<typename T> struct ART_ ; 
 template<typename T> struct Layr ; 
+template<typename T, int N> struct Stack ; 
 
 #include "MultiFilmModel.h"
 #else
@@ -110,7 +111,11 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
         EWhereAmI whereAmI;
         
 #ifdef PMTFASTSIM_STANDALONE
+     public:    
+        double minus_cos_theta ;  
+        static junoPMTOpticalModel* INSTANCE ;  // expedient during single PMT testing          
         JPMT* jpmt ; 
+      private:
 #else
         IPMTParamSvc* m_PMTParamSvc;
         IPMTSimParamSvc* m_PMTSimParSvc;
@@ -129,6 +134,8 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
                  Layr<double>* ll, 
                  double energy, 
                  double minus_cos_theta); 
+
+        void getCurrentStack(Stack<double,4>& stack) const ; 
      private:
 #endif
         

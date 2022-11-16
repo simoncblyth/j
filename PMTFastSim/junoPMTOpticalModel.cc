@@ -74,6 +74,7 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     whereAmI        = OutOfRegion;
 
 #ifdef PMTFASTSIM_STANDALONE
+    INSTANCE = this ; 
     jpmt = new JPMT ; 
 #endif
 
@@ -82,22 +83,23 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     m_multi_film_model = new MultiFilmModel(4);
 
 }
+#ifdef PMTFASTSIM_STANDALONE
+junoPMTOpticalModel* junoPMTOpticalModel::INSTANCE = nullptr ; 
+#endif
 
-junoPMTOpticalModel::~junoPMTOpticalModel()
-{
-}
+junoPMTOpticalModel::~junoPMTOpticalModel(){}
 
 G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleType)
 {
+    bool ret = (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::IsApplicable" << std::endl ;  
+    std::cout << "junoPMTOpticalModel::IsApplicable " << ret <<  std::endl ;  
 #endif
-    return (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
+    return ret ; 
 }
 
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
-
 #ifdef PMTFASTSIM_STANDALONE
     std::cout << "junoPMTOpticalModel::ModelTrigger" << std::endl ;  
 #endif
@@ -118,7 +120,9 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
     time    = fastTrack.GetPrimaryTrack()->GetGlobalTime();
     energy  = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
 
-    if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner1_phys){
+
+    // SCB: expensive way to find where you are  : sign of dot product tells you which side of boundary
+    if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner1_phys){  
         whereAmI = kInVacuum;
     }else{
         whereAmI = kInGlass;
@@ -225,8 +229,9 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
     */
 }
 
-void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta )
+void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
 {
+    minus_cos_theta = minus_cos_theta_ ;
     whereAmI = minus_cos_theta < 0. ? kInGlass : kInVacuum ; 
     _cos_theta1 = minus_cos_theta < 0. ? -minus_cos_theta : minus_cos_theta ; 
     _aoi = acos(_cos_theta1)*360./twopi;
@@ -254,36 +259,15 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta )
     }
 } 
 
-void junoPMTOpticalModel::CalculateCoefficients(
-      ART_<double>& art, 
-      Layr<double>& comp, 
-      Layr<double>* ll, 
-      double energy, 
-      double minus_cos_theta )
+
+void junoPMTOpticalModel::getCurrentStack(Stack<double,4>& stack) const 
 {
-    setEnergyThickness(energy); 
-    setMinusCosTheta(minus_cos_theta); 
+    ART art1 = m_multi_film_model->GetART(); // redoes MultiFilmModel::Calculate
+    double wavelength_nm =  m_multi_film_model->wavelength ; 
 
-    G4complex one(1., 0.);
-    _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1);
-    _sin_theta4 = _n1 * _sin_theta1/_n4;
-    _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
-
-    m_multi_film_model->SetWL(_wavelength/nm);  // CHANGE TO MORE REASONABLE LENGTH UNITS : nm (not m)
-    m_multi_film_model->SetAOI(_aoi);
-
-    m_multi_film_model->SetLayerPar(0, _n1);
-    m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
-    m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
-    m_multi_film_model->SetLayerPar(3, _n4);
-
-  
-    ART art1 = m_multi_film_model->GetART();
-
-    fR_s = art1.R_s;
-    fT_s = art1.T_s;
-    fR_p = art1.R_p;
-    fT_p = art1.T_p;
+    ART_<double>& art = stack.art ; 
+    Layr<double>& comp = stack.comp ; 
+    Layr<double>* ll = &stack.ll[0] ; 
 
     art = {} ; 
     art.R_s = art1.R_s ; 
@@ -296,8 +280,8 @@ void junoPMTOpticalModel::CalculateCoefficients(
     art.T   = art1.T ; 
     art.A   = art1.A ; 
     art.A_R_T = art1.A + art1.T + art1.R  ; 
-    art.wl   = _wavelength/nm ;
-    art.mct  = minus_cos_theta ; 
+    art.wl   = wavelength_nm ;
+    art.mct  = minus_cos_theta ;   // from last DoIt
 
     comp = {} ; 
     comp.rs = m_multi_film_model->rs ; 
@@ -324,6 +308,7 @@ void junoPMTOpticalModel::CalculateCoefficients(
     for(int i=0 ; i < 4 ; i++)
     {
         Layr<double>& l = ll[i] ; 
+        l = {} ; 
 
         Layer& layer = *vlayers[i] ; 
         ThinLayer* thin  = dynamic_cast<ThinLayer*>(&layer);
@@ -351,14 +336,42 @@ void junoPMTOpticalModel::CalculateCoefficients(
         l.P.M10 = Mp->matrix.M10 ;
         l.P.M11 = Mp->matrix.M11 ;
     } 
+}
+
+
+void junoPMTOpticalModel::CalculateCoefficients(
+      ART_<double>& art, 
+      Layr<double>& comp, 
+      Layr<double>* ll, 
+      double energy, 
+      double minus_cos_theta )
+{
+    setEnergyThickness(energy); 
+    setMinusCosTheta(minus_cos_theta); 
+
+    G4complex one(1., 0.);
+    _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1);
+    _sin_theta4 = _n1 * _sin_theta1/_n4;
+    _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
+
+    m_multi_film_model->SetWL(_wavelength/nm);  // CHANGE TO MORE REASONABLE LENGTH UNITS : nm (not m)
+    m_multi_film_model->SetAOI(_aoi);
+
+    m_multi_film_model->SetLayerPar(0, _n1);
+    m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
+    m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
+    m_multi_film_model->SetLayerPar(3, _n4);
+
+    Stack<double,4> stack ; 
+    getCurrentStack(stack); 
+
+    art = stack.art ; 
+    comp = stack.comp ; 
+    for(int i=0 ; i < 4 ; i++) ll[i] = stack.ll[i] ;  
 
     std::cout 
          << "junoPMTOpticalModel::CalculateCoefficients"
          << " energy/eV " << energy/eV
-         << " fR_s " << fR_s 
-         << " fT_s " << fT_s 
-         << " fR_p " << fR_p 
-         << " fT_p " << fT_p 
          << std::endl
          ;
 }
@@ -426,7 +439,12 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         norm *= -1.0;
     }
 
+#ifdef PMTFASTSIM_STANDALONE
+    minus_cos_theta = dir*norm ; 
+    _cos_theta1 = minus_cos_theta ;
+#else
     _cos_theta1 = dir*norm;
+#endif
 
     if(_cos_theta1 < 0.){
         _cos_theta1 = -_cos_theta1;
@@ -467,6 +485,17 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         << " A " << A 
         << std::endl 
         ; 
+
+    Stack<double,4> stack ; 
+    getCurrentStack(stack); 
+    std::cout 
+        << "junoPMTOpticalModel::DoIt"
+        << " stack "
+        << std::endl 
+        << stack 
+        << std::endl 
+        ; 
+
 #endif
 
     An = 1.0 - (fT_n+fR_n);
@@ -513,7 +542,7 @@ void junoPMTOpticalModel::CalculateCoefficients()
     _sin_theta4 = _n1 * _sin_theta1/_n4;
     _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
 
-    m_multi_film_model->SetWL(_wavelength/m);
+    m_multi_film_model->SetWL(_wavelength/nm); // SCB: changed to nm (from m) NB unit must match thickness
     m_multi_film_model->SetAOI(_aoi);
 
     m_multi_film_model->SetLayerPar(0, _n1);

@@ -9,14 +9,22 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
+* https://bitbucket.org/simoncblyth/opticks/commits/
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/main/Simulation/SimSvc/MultiFilmSimSvc/src
+* https://github.com/simoncblyth/j/blob/main/Layr/Layr.h
+
+
+JOC Meeting
+-------------
+
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=1021
 
 
 juno-simulation-paper
 -----------------------
 
 * https://www.overleaf.com/project/617f56272cf66b58edaeff10
-
 
 
 How to test compilation without Opticks ? 

@@ -49,6 +49,7 @@ pmtcat=R12860
 
 export LAYRTEST_PMTCAT=$pmtcat
 export LAYRTEST_WL=440
+export LAYRTEST_EXCL=0.05
 
 
 if [ "${arg/clean}" != "$arg" ]; then
@@ -100,9 +101,6 @@ if [ "$arg" == "mpcap" -o "$arg" == "mppub" ]; then
         source epub.sh 
     fi      
 fi              
-
-
-
 
 exit 0 
 

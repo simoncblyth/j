@@ -36,6 +36,15 @@
 
 int PMTFastSim::LEVEL = SSys::getenvint("PMTFastSim", 0) ;   // using PLOG across packages needs investigation 
 
+PMTFastSim* PMTFastSim::INSTANCE = nullptr ; 
+PMTFastSim* PMTFastSim::Get()
+{ 
+    if(INSTANCE == nullptr) new PMTFastSim ; 
+    assert(INSTANCE);  // set by ctor
+    return INSTANCE ; 
+} 
+
+
 
 /**
 PMTFastSim::SetEnvironmentSwitches
@@ -51,6 +60,10 @@ Sets switches depending of the content of the name string.
 
 void PMTFastSim::SetEnvironmentSwitches(const char* name)  // static
 {
+    // HMM: DONT LIKE NAME DEPENDENCY HERE
+    // ITS INCOMPATIBLE WITH USING SINGLETON APPROACH
+    // AS WANT TO INSTANCIATE PMTFastSim ONCE ONLY 
+
     std::vector<std::string> tagkeys = {
        ":scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
        ":nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
@@ -70,7 +83,7 @@ void PMTFastSim::SetEnvironmentSwitches(const char* name)  // static
 
         bool found = strstr(name, tag) != nullptr ; 
         if(LEVEL > 0 ) std::cout 
-            << "PMTFastSim::SetEnvironment"
+            << "PMTFastSim::SetEnvironmentSwitches"
             << " name " << std::setw(30) << name 
             << " tag [" << tag << "] "
             << " found " << found 
@@ -92,8 +105,8 @@ void PMTFastSim::SetEnvironmentSwitches(const char* name)  // static
 G4LogicalVolume* PMTFastSim::GetLV(const char* name) // static
 {
     std::cout << "[ PMTFastSim::GetLV [" << name << "]" << std::endl ; 
-    PMTFastSim::SetEnvironmentSwitches(name);  
-    PMTFastSim* pfs = new PMTFastSim ; 
+    PMTFastSim::SetEnvironmentSwitches(name); // CAUTION only switches from the first name get used  
+    PMTFastSim* pfs = PMTFastSim::Get() ; 
     G4LogicalVolume* lv = pfs->getLV(name); 
     std::cout << "] PMTFastSim::GetLV [" << name << "]" << " lv " << ( lv ? "Y" : "N" ) << std::endl ; 
     return lv ; 
@@ -101,16 +114,16 @@ G4LogicalVolume* PMTFastSim::GetLV(const char* name) // static
 
 G4VPhysicalVolume* PMTFastSim::GetPV(const char* name) // static
 {
-    PMTFastSim::SetEnvironmentSwitches(name);  
-    PMTFastSim* pfs = new PMTFastSim ; 
+    PMTFastSim::SetEnvironmentSwitches(name); // CAUTION only switches from the first name get used  
+    PMTFastSim* pfs = PMTFastSim::Get() ; 
     G4VPhysicalVolume* pv = pfs->getPV(name); 
     return pv ; 
 }
 
 junoPMTOpticalModel* PMTFastSim::GetPMTOpticalModel(const char* name) // static
 {
-    PMTFastSim::SetEnvironmentSwitches(name);  
-    PMTFastSim* pfs = new PMTFastSim ; 
+    PMTFastSim::SetEnvironmentSwitches(name); // CAUTION only switches from the first name get used  
+    PMTFastSim* pfs = PMTFastSim::Get() ; 
     junoPMTOpticalModel* pom = pfs->getPMTOpticalModel(name); 
     return pom ; 
 }
@@ -142,6 +155,8 @@ Instanciates residents with cout+cerr redirected to avoid the noise
 
 void PMTFastSim::init()
 {
+    INSTANCE = this ; 
+
     std::stringstream coutbuf;
     std::stringstream cerrbuf;
     {   
