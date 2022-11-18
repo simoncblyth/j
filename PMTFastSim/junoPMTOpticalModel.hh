@@ -16,6 +16,8 @@
 
 
 #ifdef PMTFASTSIM_STANDALONE
+#include "plog/Severity.h"
+
 struct JPMT ; 
 template<typename T> struct ART_ ; 
 template<typename T> struct Layr ; 
@@ -43,6 +45,17 @@ class PMTFASTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
 class junoPMTOpticalModel : public G4VFastSimulationModel
 #endif
 {
+    public:
+#ifdef PMTFASTSIM_STANDALONE
+        static const plog::Severity LEVEL ; 
+        static constexpr const char* kOutside_ = "kOutside" ;
+        static constexpr const char* kSurface_ = "kSurface" ;
+        static constexpr const char* kInside_  = "kInside" ;
+        static const char* EInside_( EInside in );
+        static G4double Distance_(const G4VSolid* solid, const G4ThreeVector& pos, const G4ThreeVector& dir, EInside* in=nullptr ); 
+        static std::string Desc(    const G4FastTrack &fastTrack, const char* opt="Hdr,Vec"); 
+        static std::string DescDist(const G4FastTrack &fastTrack, const G4VSolid* solid ); 
+#endif
     public:
         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*); 
         ~junoPMTOpticalModel();

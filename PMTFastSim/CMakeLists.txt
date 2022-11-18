@@ -48,6 +48,7 @@ list(APPEND SOURCES
     Material.cc
     MaterialSvc.cc
     PMTFastSim.cc
+    J_PMTFASTSIM_LOG.cc
 )
 
 list(APPEND HEADERS
@@ -65,6 +66,7 @@ list(APPEND HEADERS
     TComplex.h 
     ../Layr/Layr.h  
     PMTFastSim.hh
+    J_PMTFASTSIM_LOG.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")

@@ -18,6 +18,9 @@
 #include "OpticalSystem.h"
 #include "Matrix.h"
 #include "Layer.h"
+
+#include "SLOG.hh"
+#include "SFastSim_Debug.hh"
 #endif
 
 #ifndef PMTFASTSIM_STANDALONE
@@ -84,6 +87,7 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
 
 }
 #ifdef PMTFASTSIM_STANDALONE
+const plog::Severity junoPMTOpticalModel::LEVEL = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
 junoPMTOpticalModel* junoPMTOpticalModel::INSTANCE = nullptr ; 
 #endif
 
@@ -93,21 +97,195 @@ G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleTy
 {
     bool ret = (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::IsApplicable " << ret <<  std::endl ;  
+    LOG(LEVEL) << "junoPMTOpticalModel::IsApplicable " << ret ;  
 #endif
     return ret ; 
 }
 
+#ifdef PMTFASTSIM_STANDALONE
+const char* junoPMTOpticalModel::EInside_( EInside in ) // static
+{
+    const char* s = nullptr ;
+    switch(in)
+    {
+        case kOutside: s = kOutside_ ; break ; 
+        case kSurface: s = kSurface_ ; break ; 
+        case kInside:  s = kInside_  ; break ; 
+    }                     
+    return s ;
+}   
+G4double junoPMTOpticalModel::Distance_(const G4VSolid* solid, const G4ThreeVector& pos, const G4ThreeVector& dir, EInside* in ) // static
+{
+    EInside inside = solid->Inside(pos) ;
+    if(in) *in = inside ; 
+    G4double t = kInfinity ; 
+    switch(inside)
+    {   
+        case kInside:  t = solid->DistanceToOut( pos, dir ) ; break ; 
+        case kSurface: t = solid->DistanceToOut( pos, dir ) ; break ; 
+        case kOutside: t = solid->DistanceToIn(  pos, dir ) ; break ; 
+        default:  assert(0) ; 
+    }   
+    return t ; 
+}
+std::string junoPMTOpticalModel::DescDist(const G4FastTrack &fastTrack, const G4VSolid* solid_ ) // static
+{
+    const G4VSolid* solid = solid_ ? solid_ : fastTrack.GetEnvelopeSolid();
+    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
+    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
+
+    EInside inside = kOutside ;
+    G4double dist = Distance_(solid, lpos, ldir, &inside ); 
+    G4String solidName = solid->GetName() ; // this return by value always surprises me 
+   
+    std::stringstream ss ; 
+
+    ss << "DescDist" 
+       << " " << std::setw(20) << solidName
+       ; 
+
+    if( dist == kInfinity ) 
+    {
+        ss << " " << std::setw(10) << " MISS " ; 
+    }
+    else   
+    {
+        G4ThreeVector dpos = lpos+dist*ldir ; 
+        ss << " " << std::fixed << std::setprecision(4) << std::setw(10) << dist
+           << " " << std::setw(15) << EInside_(inside) 
+           << " dpos " << std::setw(20) << dpos 
+           ;
+    }
+    std::string s = ss.str() ; 
+    return s ; 
+}
+
+std::string junoPMTOpticalModel::Desc(const G4FastTrack &fastTrack, const char* opt) // static
+{
+    const G4Track* primaryTrack = fastTrack.GetPrimaryTrack() ; 
+    const G4VSolid* envelopeSolid = fastTrack.GetEnvelopeSolid();
+    G4String envelopeSolidName = envelopeSolid->GetName() ; // this return by value always surprises me 
+    const G4VPhysicalVolume* volume = primaryTrack->GetVolume() ; 
+    const G4String& volumeName = volume->GetName() ; 
+
+    std::stringstream ss ; 
+    ss << "junoPMTOpticalModel::Desc" << std::endl ; 
+
+    if( opt && strstr(opt, "Hdr" )) ss
+        << " Hdr " 
+        << std::endl
+        << " primaryTrack " << primaryTrack
+        << " envelopeSolid " << envelopeSolid
+        << " envelopeSolidName " << envelopeSolidName
+        << " volume " << volume
+        << " volumeName " << volumeName
+        << std::endl
+        ;
+
+    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
+    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
+    G4ThreeVector lpol = fastTrack.GetPrimaryTrackLocalPolarization();
+
+    if( opt && strstr(opt, "Vec" )) ss
+        << " Vec " 
+        << std::endl
+        << " lpos " << lpos << std::endl 
+        << " ldir " << ldir << std::endl 
+        << " lpol " << lpol << std::endl 
+        << std::endl 
+        ;
+
+    std::string s = ss.str(); 
+    return s ; 
+}
+
+#endif
+
+
+/**
+junoPMTOpticalModel::ModelTrigger 
+-----------------------------------
+
+
+Possible Cleaner Trigger : for single inner vacuum which is envelope
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Simply trigger when intersect position z is +ve  
+* sign of dot product tells you which side of boundary
+
+::
+                           
+                  Y  .          . Y
+                . |              /   .
+              .   |             /       .
+             .    +            /          .
+   ----------+          inner /           +----------
+             .               /           .
+              .             +-----------N
+                .                    .
+                     .          .
+
+
+Current Bizarre Trigger
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To miss inner2 the ray direction .z must be +ve 
+So can replace two geometry queries with dir_local.z() > 0::
+
+                   
+             .          .
+        . |                  .
+      .   |  inner1              .
+     .    +                      .
+     +---------------------------+
+     .                           .
+      .     inner2              .
+        .                    .
+             .          .
+
+Actually even better to use simple single inner vacuum then can 
+simply base on the sign of the z of the envelope intersect 
+position. Note its vacuum so no scattering or absorption in there. 
+
+
+whereAmI == kInGlass:true   (actually kNotUpperVacuum and from early exit NotLowerVacuum)
+
+     dist1 kInfinity :  
+         ray does not intersect inner1     -> false
+
+     dist1 > dist2:true   
+         ray hits inner2 before inner1  -> false
+
+     dist1 > dist2:false
+         equal distance or inner1 is closer -> true   
+
+
+whereAmI == kInGlass:false    (actually kUpperVacuum )
+
+     requires _inner2_solid->DistanceToIn  to be kInfinity -> true 
+     this means that the ray is heading back to the photocathode 
+     but thats a clumsy way of doing it
+**/
+
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::ModelTrigger" << std::endl ;  
+     LOG(LEVEL)
+         << Desc(fastTrack, "Hdr,Vec" )
+         << DescDist(fastTrack, nullptr) 
+         << std::endl
+         << DescDist(fastTrack, _inner1_solid ) 
+         << std::endl
+         << DescDist(fastTrack, _inner2_solid ) 
+         << std::endl 
+         ;
 #endif
 
     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner2_phys)
     {
 #ifdef PMTFASTSIM_STANDALONE
-        std::cout << "junoPMTOpticalModel::ModelTrigger WRONG VOLUME -> false " << std::endl ;  
+        LOG(LEVEL) << "junoPMTOpticalModel::ModelTrigger NOT inner2_phys EARLY EXIT " ;  
+        // backwards photons have to get out of inner2 before get passed this early exit   
 #endif
         return false;
     }
@@ -121,15 +299,14 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
     energy  = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
 
 
-    // SCB: expensive way to find where you are  : sign of dot product tells you which side of boundary
     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner1_phys){  
-        whereAmI = kInVacuum;
+        whereAmI = kInVacuum;   // SCB: should be kUpperVacuum
     }else{
-        whereAmI = kInGlass;
+        whereAmI = kInGlass;    // SCB: should be kNotUpperVacuum
     }
 
 #ifndef PMTFASTSIM_STANDALONE
-    if(whereAmI == kInGlass){
+    if(whereAmI == kInGlass){  // kNotUpperVacuum
         dist1 = _inner1_solid->DistanceToIn(pos, dir);
         dist2 = _inner2_solid->DistanceToIn(pos, dir);
 
@@ -140,13 +317,14 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
         }else{
             return true;
         }
-    }else{
+    }else{                    // kUpperVacuum 
         dist1 = _inner1_solid->DistanceToOut(pos, dir);
         dist2 = _inner2_solid->DistanceToIn(pos, dir);
 
         if(dist2 == kInfinity){
             return true;
         }
+
     }
     return false;
 
@@ -161,8 +339,7 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
                 ; 
 
 
-/*
-    U4FastSim_Debug dbg ; 
+    SFastSim_Debug dbg ; 
 
     dbg.posx = pos.x(); 
     dbg.posy = pos.y(); 
@@ -185,10 +362,9 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
     dbg.d = 0. ; 
   
     dbg.add() ; 
-*/
 
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::ModelTrigger ret " << ret  << std::endl ;  
+    LOG(LEVEL) << "junoPMTOpticalModel::ModelTrigger ret " << ret  ;  
 #endif
    
     return ret ; 
@@ -212,8 +388,7 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
     k_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
     d_photocathode = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L2 ); 
 
-    /*
-    std::cout 
+    LOG(LEVEL)
         << "junoPMTOpticalModel::setEnergyThickness" 
         << " energy " << energy
         << " energy_eV " << energy_eV
@@ -224,9 +399,7 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
         << " k_coating " << k_coating
         << " n_photocathode " << n_photocathode
         << " k_photocathode " << k_photocathode
-        << std::endl 
         ;
-    */
 }
 
 void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
@@ -262,7 +435,7 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
 
 void junoPMTOpticalModel::getCurrentStack(Stack<double,4>& stack) const 
 {
-    ART art1 = m_multi_film_model->GetART(); // redoes MultiFilmModel::Calculate
+    ART art1 = m_multi_film_model->GetART(); // re does MultiFilmModel::Calculate
     double wavelength_nm =  m_multi_film_model->wavelength ; 
 
     ART_<double>& art = stack.art ; 
@@ -386,7 +559,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     int pmtid  = get_pmtid(track);
 
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::DoIt pmtid " << pmtid << std::endl ; 
+    LOG(LEVEL) << "junoPMTOpticalModel::DoIt pmtid " << pmtid ; 
     setEnergyThickness(energy); 
 #else
     n_glass    = _rindex_glass->Value(_photon_energy);
@@ -474,7 +647,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
 
 #ifdef PMTFASTSIM_STANDALONE
-    std::cout 
+    LOG(LEVEL)
         << "junoPMTOpticalModel::DoIt"
         << " dir " << dir 
         << " norm " << norm
@@ -487,12 +660,12 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         << " T " << T 
         << " R " << R 
         << " A " << A 
-        << std::endl 
         ; 
 
     Stack<double,4> stack ; 
     getCurrentStack(stack); 
-    std::cout 
+
+    LOG(LEVEL)
         << "junoPMTOpticalModel::DoIt"
         << " stack.art "
         << std::endl 
@@ -501,7 +674,6 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         << " stack "
         << std::endl 
         << stack 
-        << std::endl 
         ; 
 
 #endif
