@@ -3,82 +3,19 @@
 LayrTest.py
 =============
 
-LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_double ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-[[  0.     1.     0.  ]
- [500.     1.     0.01]
- [500.     1.     0.01]
- [  0.     1.5    0.  ]]
-compare : (a,b) cpu vs gpu (float) 
-LayrTest<float,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_cpu_float ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-LayrTest<float,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_float ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-       lls : 7.56979e-05 : -7.6532364e-05  
-     comps : 0.0006427765 : -0.00062179565 
-      arts : 3.4868717e-06 : -3.9339066e-06 
-compare : (c,d) cpu vs gpu (double) 
-LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_cpu_double ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_double ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-       lls : 4.030109579389318e-14 : -3.930189507173054e-14  
-     comps : 3.090860900556436e-13 : -3.019806626980426e-13 
-      arts : 1.887379141862766e-15 : -1.8318679906315083e-15 
-compare : (a,c) float vs double (cpu) 
-LayrTest<float,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_cpu_float ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_cpu_double ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-       lls : 4.6210350117981136e-05 : -4.854695527356512e-05  
-     comps : 0.0003904741595874839 : -0.00036779132400965864 
-      arts : 2.4826195538230067e-06 : -2.7918790206360455e-06 
-compare : (b,d) float vs double (gpu) 
-LayrTest<float,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_float ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-LayrTest<double,4> WITH_THRUST  dir /tmp/blyth/opticks/LayrTest/scan_gpu_double ni 90 wl 500 theta[0] 0 theta[ni-1] 1.55334
-       lls : 5.049636018605863e-05 : -4.970539873583313e-05  
-     comps : 0.0003161468029624359 : -0.00032503921397619706 
-      arts : 3.8496625794082195e-06 : -3.141641908288584e-06 
+Plot is too busy with everything visible. Use incl to restrict what is included::
 
+    In [4]: ARTPlot(q,incl="Rxsp")
+    Out[4]: ARTPlot(q,incl="Rxsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
+    In [5]: ARTPlot(q,incl="Txsp")
+    Out[5]: ARTPlot(q,incl="Txsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
-Blowout at turnaround::
+    In [6]: ARTPlot(q,incl="Axsp")
+    Out[6]: ARTPlot(q,incl="Axsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
-    In [15]: CF(a,b)
-    Out[15]: 
-    CF(a,b) : scan_NNVTMCP_HiQE_cpu_thr_double vs scan_NNVTMCP_HiQE_cpu_thr_float 
-    LayrTest<double,4> WITH_THRUST  name scan_NNVTMCP_HiQE_cpu_thr_double ni 900 wl 400 mct[0] -1 mct[ni-1] 0.999994
-    LayrTest<float,4> WITH_THRUST  name scan_NNVTMCP_HiQE_cpu_thr_float ni 900 wl 400 mct[0] -1 mct[ni-1] 0.999994
-           lls : 6813571569456890.0 : -6813571569456890.0  
-         comps : 1.6636561207996178e+16 : -1.6636561207996178e+16 
-          arts : 1.40579499818827e-06 : -1.2922178646013194e-06 
-
-
-    In [3]: abc = a.f.comps - b.f.comps   ## difference of composite layer objects
-    In [4]: abc.shape
-    Out[4]: (900, 4, 4, 2)
-
-    In [14]: np.where( np.abs(abc) > 0.005 )   ## blowout at 90 degrees
-    Out[14]: 
-    (array([450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 451, 451]),
-     array([2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2]),
-     array([0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 2]),
-     array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0]))
-
-
-    In [16]: abl = a.f.lls - b.f.lls     
-
-    In [19]: abl.shape
-    Out[19]: (900, 4, 4, 4, 2)
-
-    In [18]: np.where(np.abs(abl) > 0.05 )
-    Out[18]: 
-    (array([450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450,
-            450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450, 450,
-            450, 450, 450, 450, 450, 450, 450]),
-     array([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]),
-     array([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0,
-            0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]),
-     array([1, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 1,
-            2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3, 0, 0, 1, 1, 2, 2, 3, 3]),
-     array([0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-            0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]))
-
-
+Notice the very large difference between S and P polarizations.
+Its crucial get that use the values appropriate for the photon polatization.  
 
 """
 import os, builtins, numpy as np
@@ -348,7 +285,7 @@ class CF(object):
 
 class ARTPlot(object):
     @classmethod
-    def Plot(cls, ax, test, excl=0):
+    def Plot(cls, ax, test, excl=0, incl="ARTQxsp"):
         f = test.f
 
         R_s = f.arts[:,0,0]
@@ -358,29 +295,36 @@ class ARTPlot(object):
 
         A_s = f.arts[:,1,0]
         A_p = f.arts[:,1,1]
-        R = f.arts[:,1,2]
-        T = f.arts[:,1,3]
+        R   = f.arts[:,1,2]
+        T   = f.arts[:,1,3]
 
-        A = f.arts[:,2,0]
+        A     = f.arts[:,2,0]
         A_R_T = f.arts[:,2,1]
-        wl = f.arts[:,2,2] 
-        mct = f.arts[:,2,3]  # minus_cos_theta 
+        wl    = f.arts[:,2,2] 
+        mct   = f.arts[:,2,3]  # minus_cos_theta 
 
         th2mct_ = lambda th:-np.cos(th*np.pi/180.)
         mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
 
-        #th = np.arccos(-mct)*180./np.pi  
         th = mct2th_(mct)
 
-        #s = mct <= 0. 
-        #s = mct >= 0. 
-        s = slice(None)
+        if "x" in incl:
+            if "R" in incl: ax.plot(th, R, label="R", linestyle="dotted" )
+            if "T" in incl: ax.plot(th, T, label="T", linestyle="dotted")
+            if "A" in incl: ax.plot(th, A, label="A", linestyle="dotted")
+            if "Q" in incl: ax.plot(th, A_R_T, label="A_R_T", linestyle="dotted")
+        pass
+        if "s" in incl:
+            if "R" in incl:ax.plot(th, R_s, label="R_s")
+            if "T" in incl:ax.plot(th, T_s, label="T_s")
+            if "A" in incl:ax.plot(th, A_s, label="A_s")
+        pass 
+        if "p" in incl:
+            if "R" in incl:ax.plot(th, R_p, label="R_p")
+            if "T" in incl:ax.plot(th, T_p, label="T_p")
+            if "A" in incl:ax.plot(th, A_p, label="A_p")
+        pass 
 
-        ax.plot(th[s], R[s], label="R")
-        ax.plot(th[s], T[s], label="T")
-        ax.plot(th[s], A[s], label="A")
-        ax.plot(th[s], A_R_T[s], label="A_R_T")
-        #ax.set_title( test.label )
 
         xx = [0,90,180] 
 
@@ -390,7 +334,7 @@ class ARTPlot(object):
             ax.plot( [ x,  x],   [0, 1], linestyle="dashed" )  
         pass
 
-        extra_ = ["excl: %s " % excl]
+        extra_ = ["excl: %s " % excl, "incl: %s" % incl]
         for i in range(len(edeg)):
             extra_.append("edeg[%d] : %7.2f " % (i, edeg[i]))
         pass
@@ -404,17 +348,22 @@ class ARTPlot(object):
 
 
 
-    def __init__(self, test, excl=0):
-
+    def __init__(self, test, **kwa):
+        self.test = test
+        self.kwa = kwa
         fig, ax = plt.subplots(1, figsize=SIZE/100.)
 
         title = test.title 
         fig.suptitle(title)   
 
-        self.Plot(ax, test, excl=excl)  
+        self.Plot(ax, test, **kwa)  
 
         ax.legend(loc=os.environ.get("LOC", "upper right")) 
         fig.show()                
+
+    def __repr__(self):
+        kwa = ", ".join(list(map( lambda kv:"%s=\"%s\"" % kv, list(self.kwa.items()) )))   
+        return "ARTPlot(%s,%s) # %s  " % (self.test.symbol, kwa, self.test.title ) 
 
 
 class MARTPlot(object):
@@ -449,7 +398,6 @@ if __name__ == '__main__':
 
     lt = tt[-1] if len(tt) > 0 else None
     print("pmtcat:%s tt:%d lt:%s " % (pmtcat, len(tt), lt ))
-
       
     if not lt is None:
        ap = ARTPlot(lt, excl=excl)
@@ -459,11 +407,5 @@ if __name__ == '__main__':
         rst = ts.cf_table(tt, pmtcat, excl=excl)
         print(rst)
     pass
-
-
-
-
-
-
 pass
 

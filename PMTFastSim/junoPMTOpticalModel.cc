@@ -479,6 +479,10 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         << " dir " << dir 
         << " norm " << norm
         << " _cos_theta1  " << _cos_theta1 
+        << " _sin_theta1  " << _sin_theta1 
+        << " E_s2 " << E_s2
+        << " (fT_s+fT_p)/2 " << (fT_s+fT_p)/2.
+        << " (fR_s+fR_p)/2 " << (fR_s+fR_p)/2.
         << " _aoi " << _aoi 
         << " T " << T 
         << " R " << R 
@@ -490,6 +494,10 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     getCurrentStack(stack); 
     std::cout 
         << "junoPMTOpticalModel::DoIt"
+        << " stack.art "
+        << std::endl 
+        << stack.art
+        << std::endl 
         << " stack "
         << std::endl 
         << stack 

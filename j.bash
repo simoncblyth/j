@@ -14,18 +14,38 @@ Common source for JUNO high level bash functions
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/main/Simulation/SimSvc/MultiFilmSimSvc/src
 * https://github.com/simoncblyth/j/blob/main/Layr/Layr.h
 
+Reminders
+-----------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/47
+
+
+
+DocDB
+--------
+
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowDocument?docid=9058
+
+  Opticks+JUNO : PMT Mask Bugs, GPU Multilayer TMM 
+
+* https://juno.ihep.ac.cn/Dev_DocDB/0090/009012/001/20221108-CLS%20and%20USS%20parts%20geometries%20update.pdf
+
+  CLS and USS parts geometries update
+
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowDocument?docid=8247
+
+  GT Geometry Modification 
+
 
 JOC Meeting
 -------------
 
 * https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=1021
 
-
 juno-simulation-paper
 -----------------------
 
 * https://www.overleaf.com/project/617f56272cf66b58edaeff10
-
 
 How to test compilation without Opticks ? 
 ------------------------------------------
