@@ -12,6 +12,7 @@
 #include "G4MaterialPropertiesTable.hh"
 
 #ifdef PMTFASTSIM_STANDALONE
+#include "F4.hh"
 #include "JPMT.h"
 #include "Layr.h"
 
@@ -31,6 +32,18 @@
 #include <boost/filesystem.hpp>
 #endif
 #include <complex>
+
+
+#ifdef PMTFASTSIM_STANDALONE
+junoPMTOpticalModelSimple::junoPMTOpticalModelSimple(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
+    : G4VFastSimulationModel(modelName, envelope)
+{
+    InitOpticalParameters(envelope_phys);
+    jpmt = new JPMT ; 
+}
+#endif
+
+
 
 junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
     : G4VFastSimulationModel(modelName, envelope)
@@ -87,7 +100,8 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
 
 }
 #ifdef PMTFASTSIM_STANDALONE
-const plog::Severity junoPMTOpticalModel::LEVEL = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
+const plog::Severity junoPMTOpticalModelSimple::LEVEL = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
+const plog::Severity junoPMTOpticalModel::LEVEL       = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
 junoPMTOpticalModel* junoPMTOpticalModel::INSTANCE = nullptr ; 
 #endif
 
@@ -102,150 +116,65 @@ G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleTy
     return ret ; 
 }
 
-#ifdef PMTFASTSIM_STANDALONE
-const char* junoPMTOpticalModel::EInside_( EInside in ) // static
-{
-    const char* s = nullptr ;
-    switch(in)
-    {
-        case kOutside: s = kOutside_ ; break ; 
-        case kSurface: s = kSurface_ ; break ; 
-        case kInside:  s = kInside_  ; break ; 
-    }                     
-    return s ;
-}   
-G4double junoPMTOpticalModel::Distance_(const G4VSolid* solid, const G4ThreeVector& pos, const G4ThreeVector& dir, EInside* in ) // static
-{
-    EInside inside = solid->Inside(pos) ;
-    if(in) *in = inside ; 
-    G4double t = kInfinity ; 
-    switch(inside)
-    {   
-        case kInside:  t = solid->DistanceToOut( pos, dir ) ; break ; 
-        case kSurface: t = solid->DistanceToOut( pos, dir ) ; break ; 
-        case kOutside: t = solid->DistanceToIn(  pos, dir ) ; break ; 
-        default:  assert(0) ; 
-    }   
-    return t ; 
-}
-std::string junoPMTOpticalModel::DescDist(const G4FastTrack &fastTrack, const G4VSolid* solid_ ) // static
-{
-    const G4VSolid* solid = solid_ ? solid_ : fastTrack.GetEnvelopeSolid();
-    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
-    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
 
-    EInside inside = kOutside ;
-    G4double dist = Distance_(solid, lpos, ldir, &inside ); 
-    G4String solidName = solid->GetName() ; // this return by value always surprises me 
-   
-    std::stringstream ss ; 
 
-    ss << "DescDist" 
-       << " " << std::setw(20) << solidName
-       ; 
 
-    if( dist == kInfinity ) 
-    {
-        ss << " " << std::setw(10) << " MISS " ; 
-    }
-    else   
-    {
-        G4ThreeVector dpos = lpos+dist*ldir ; 
-        ss << " " << std::fixed << std::setprecision(4) << std::setw(10) << dist
-           << " " << std::setw(15) << EInside_(inside) 
-           << " dpos " << std::setw(20) << dpos 
-           ;
-    }
-    std::string s = ss.str() ; 
-    return s ; 
-}
 
-std::string junoPMTOpticalModel::Desc(const G4FastTrack &fastTrack, const char* opt) // static
-{
-    const G4Track* primaryTrack = fastTrack.GetPrimaryTrack() ; 
-    const G4VSolid* envelopeSolid = fastTrack.GetEnvelopeSolid();
-    G4String envelopeSolidName = envelopeSolid->GetName() ; // this return by value always surprises me 
-    const G4VPhysicalVolume* volume = primaryTrack->GetVolume() ; 
-    const G4String& volumeName = volume->GetName() ; 
 
-    std::stringstream ss ; 
-    ss << "junoPMTOpticalModel::Desc" << std::endl ; 
-
-    if( opt && strstr(opt, "Hdr" )) ss
-        << " Hdr " 
-        << std::endl
-        << " primaryTrack " << primaryTrack
-        << " envelopeSolid " << envelopeSolid
-        << " envelopeSolidName " << envelopeSolidName
-        << " volume " << volume
-        << " volumeName " << volumeName
-        << std::endl
-        ;
-
-    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
-    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
-    G4ThreeVector lpol = fastTrack.GetPrimaryTrackLocalPolarization();
-
-    if( opt && strstr(opt, "Vec" )) ss
-        << " Vec " 
-        << std::endl
-        << " lpos " << lpos << std::endl 
-        << " ldir " << ldir << std::endl 
-        << " lpol " << lpol << std::endl 
-        << std::endl 
-        ;
-
-    std::string s = ss.str(); 
-    return s ; 
-}
-
-#endif
 
 
 /**
-junoPMTOpticalModel::ModelTrigger 
------------------------------------
+junoPMTOpticalModelSimple::ModelTrigger 
+-----------------------------------------
 
+Simple Geometry and ModelTrigger : using single inner vacuum which is envelope
 
-Possible Cleaner Trigger : for single inner vacuum which is envelope
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Simply trigger when intersect position z is +ve  
-* sign of dot product tells you which side of boundary
+* 1 Pyrex "pmt", 1 Vacuum "inner"
+* use Vacuum as the FastSim region
+* trigger when intersect the innner at +ve Z position
 
 ::
                            
                   Y  .          . Y
-                . |              /   .
+                . |              /   .         +Z
               .   |             /       .
              .    +            /          .
    ----------+          inner /           +----------
              .               /           .
               .             +-----------N
-                .                    .
+                .                    .        -Z
                      .          .
 
+**/
 
-Current Bizarre Trigger
-~~~~~~~~~~~~~~~~~~~~~~~~~
+#ifdef PMTFASTSIM_STANDALONE
+G4bool junoPMTOpticalModelSimple::ModelTrigger(const G4FastTrack &fastTrack)
+{
+    return fastTrack.GetPrimaryTrackLocalPosition().z() > 0. ;
+}
+#endif
 
-To miss inner2 the ray direction .z must be +ve 
-So can replace two geometry queries with dir_local.z() > 0::
+
+
+/**
+junoPMTOpticalModel::ModelTrigger 
+-------------------------------------
+
+Current Bizarre Geometry and Trigger
+
+* 2 Pyrex  : pmt_solid, body_solid
+* 2 Vacuum : inner1, inner2 
 
                    
-             .          .
-        . |                  .
-      .   |  inner1              .
-     .    +                      .
-     +---------------------------+
-     .                           .
-      .     inner2              .
-        .                    .
-             .          .
-
-Actually even better to use simple single inner vacuum then can 
-simply base on the sign of the z of the envelope intersect 
-position. Note its vacuum so no scattering or absorption in there. 
+            ...          ... 
+       ... |                  ...
+     ...   |  inner1              ...
+    ...    +                      ...
+    +++---------------------------+++
+    ...                           ...
+     ...     inner2              ...
+       ...                    ...
+             ...         ...
 
 
 whereAmI == kInGlass:true   (actually kNotUpperVacuum and from early exit NotLowerVacuum)
@@ -271,12 +200,12 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
 #ifdef PMTFASTSIM_STANDALONE
      LOG(LEVEL)
-         << Desc(fastTrack, "Hdr,Vec" )
-         << DescDist(fastTrack, nullptr) 
+         << F4::Desc(fastTrack, "Hdr,Vec" )
+         << F4::DescDist(fastTrack, nullptr) 
          << std::endl
-         << DescDist(fastTrack, _inner1_solid ) 
+         << F4::DescDist(fastTrack, _inner1_solid ) 
          << std::endl
-         << DescDist(fastTrack, _inner2_solid ) 
+         << F4::DescDist(fastTrack, _inner2_solid ) 
          << std::endl 
          ;
 #endif
@@ -371,6 +300,528 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 #endif
 }
 
+#ifdef PMTFASTSIM_STANDALONE
+void junoPMTOpticalModelSimple::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
+{
+    G4double energy  = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
+    G4double wavelength = twopi*hbarc/energy ;
+
+    energy_eV = energy/eV ;
+    wavelength_nm = wavelength/nm ;
+
+    position = fastTrack.GetPrimaryTrackLocalPosition();
+    direction = fastTrack.GetPrimaryTrackLocalDirection();
+    polarization = fastTrack.GetPrimaryTrackLocalPolarization();
+
+    G4VSolid* envelope_solid = fastTrack.GetEnvelopeSolid();
+    assert( _inner_solid == envelope_solid ); 
+    surface_normal = envelope_solid->SurfaceNormal(position);
+
+    minus_cos_theta = direction*surface_normal ; 
+    whereAmI = minus_cos_theta < 0. ? kInGlass : kInVacuum ; 
+
+
+    int pmtcat = JPMT::HAMA ; 
+
+    StackSpec<double> spec ; 
+    spec.d0  = 0. ; 
+    spec.d1  = jpmt->get_thickness_nm( pmtcat, JPMT::L1 );  
+    spec.d2  = jpmt->get_thickness_nm( pmtcat, JPMT::L2 ); 
+    spec.d3 = 0. ; 
+
+    spec.n0r = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::RINDEX, energy_eV ); 
+    spec.n0i = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::KINDEX, energy_eV );
+
+    spec.n1r = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::RINDEX, energy_eV );
+    spec.n1i = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::KINDEX, energy_eV );
+
+    spec.n2r = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    spec.n2i = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+
+    spec.n3r = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::RINDEX, energy_eV ); 
+    spec.n3i = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::KINDEX, energy_eV );
+
+    Stack<double,4> stack(      wavelength_nm, minus_cos_theta, spec ); 
+    Stack<double,4> stackNormal(wavelength_nm, -1.            , spec ); 
+
+    LOG(LEVEL)
+        << " position " << position
+        << " direction " << direction
+        << " polarization " << polarization
+        << " surface_normal " << surface_normal 
+        ; 
+}
+#endif
+
+
+
+
+
+
+/**
+junoPMTOpticalModel::DoIt
+---------------------------
+
+1. get track, lookup pmtid, pmtcat 
+2. lookup refractive indices and qe 
+3. prep the stack params, in order depending on whereAmI
+4. advance pos along dir by dist1, and advance time appropriately for the refractive index 
+
+
+**/
+void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
+{
+    _photon_energy  = energy;    // SCB : strange place to do this here, better to do it where the energy comes from 
+    _wavelength     = twopi*hbarc/energy;
+
+    const G4Track* track = fastTrack.GetPrimaryTrack();
+    int pmtid  = get_pmtid(track);
+
+#ifdef PMTFASTSIM_STANDALONE
+    LOG(LEVEL) << "junoPMTOpticalModel::DoIt pmtid " << pmtid ; 
+    setEnergyThickness(energy); 
+#else
+    n_glass    = _rindex_glass->Value(_photon_energy);
+
+    int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid);
+
+    _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
+
+    n_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_RINDEX", _photon_energy);
+    k_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_KINDEX", _photon_energy);
+    d_coating       = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "ARC_THICKNESS")/m;
+
+    n_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_RINDEX", _photon_energy);
+    k_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_KINDEX", _photon_energy);
+    d_photocathode  = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "PHC_THICKNESS")/m;
+#endif
+
+
+    if(whereAmI == kInGlass){
+        _n1 = n_glass;
+        _n2 = n_coating;
+        _k2 = k_coating;
+        _d2 = d_coating;
+        _n3 = n_photocathode;
+        _k3 = k_photocathode;
+        _d3 = d_photocathode;
+        _n4 = n_vacuum;
+    }else{
+        _n1 = n_vacuum;
+        _n2 = n_photocathode;
+        _k2 = k_photocathode;
+        _d2 = d_photocathode;
+        _n3 = n_coating;
+        _k3 = k_coating;
+        _d3 = d_coating;
+        _n4 = n_glass;
+
+        _qe = 0.;
+    }
+    pos  += dist1*dir;
+    time += dist1*_n1/c_light;
+
+    UpdateTrackInfo(fastStep);
+
+    fastTrack.GetPrimaryTrack()->GetStep()
+        ->GetPostStepPoint()->SetStepStatus(fGeomBoundary);
+
+    norm = _inner1_solid->SurfaceNormal(pos);
+#ifdef PMTFASTSIM_STANDALONE
+    minus_cos_theta = dir*norm ;  // NB before the flips 
+#endif
+
+    if(whereAmI == kInGlass){
+        norm *= -1.0;
+    }
+    _cos_theta1 = dir*norm;
+
+    if(_cos_theta1 < 0.){
+        _cos_theta1 = -_cos_theta1;
+        norm = -norm;
+    }
+    // SCB : nasty multiple flips to normal vector, 
+    //       simpler to have separate oriented_normal 
+    //       and keep the original geometrical normal as fixed 
+    //       and pointing outwards
+    
+
+    _aoi = acos(_cos_theta1)*360./twopi;
+
+    CalculateCoefficients();
+
+    G4double T  = 0.;
+    G4double R  = 0.;
+    G4double A  = 0.;
+    G4double An = 0.;
+    G4double escape_fac = 0.;
+    G4double E_s2 = 0.;
+
+    if(_sin_theta1 > 0.){
+        E_s2 = (pol*dir.cross(norm))/_sin_theta1;
+        E_s2 *= E_s2;
+    }else{
+        E_s2 = 0.;   
+    }
+
+    // SCB
+    //    _sin_theta1 comes from sqrt(1.- _cos_theta1*_cos_theta1) 
+    //    so it cannot be negative, but it will be zero at normal incidence 
+    //    where -cos(theta) is -1 and +1 and where dir.cross(norm) will be very small 
+    //
+    //    This is just expressing that S and P loose meaning at normal incidence
+    //    so setting E_s2 to 0 artifically picks P for normal incidence.
+    //
+    //    BUT that doesnt matter as s/p coeffs are equal at normal incidence anyhow::
+    //
+    //        fA_s = fA_p 
+    //        fR_s = fR_p 
+    //        fT_s = fT_p 
+    //           
+    //     HMM: but this E_s2 calc assumes are on Pyrex side of the border ?
+    //     but half the time will be on other side ? 
+    //     see qsim.h propagate_at_boundary 
+
+
+    T = fT_s*E_s2 + fT_p*(1.0-E_s2);
+    R = fR_s*E_s2 + fR_p*(1.0-E_s2);
+    A = 1.0 - (T+R);
+    An = 1.0 - (fT_n+fR_n);
+    escape_fac  = _qe/An;
+
+    //  SCB 
+    //
+    //  1.  note than fT_n fR_n do not flip the stack (unlike fT_s fTp fR_s fR_p which do flip the stack)
+    //  2.  Q: Why does detection use _qe/An (why reciprocal and why indep of aoi and without flipping stack) 
+    //         but everything else uses angular dependent A,R,T ?
+    //
+    //      A: Presumably anything can be justified based on what the definition of the QE input is, 
+    //         and the fact that "backwards" _qe gets set to zero anyhow. 
+    //  
+    //         NOT CONVINCED BY THAT : AS escape_fac will be > 1 for An < _qe
+    //         which would mean that rand_escape < esscape_fac always 
+    //
+    //         When An is small (little absorption) eg 0.1 escape fac gets scaled to _qe*10 
+    //         which then gets compared to rand_escape a random number in [0,1]
+    //         SO THAT WOULD MEAN THE LESS ABSORPTION THE MORE DETECTION : WHICH IS SURELY WRONG 
+    //         _qe*An would surely be more reasonable ? 
+    //
+    //         TODO: incorporate An into LayrTest.py plotting    
+ 
+    //
+    if(escape_fac > 1.){
+        G4cout<<"junoPMTOpticalModel: QE is larger than absorption coeff."<<G4endl;
+    }
+
+    G4double rand_absorb = G4UniformRand();  // SCB: bad name, u0 would be better
+    G4double rand_escape = G4UniformRand();
+
+    if(rand_absorb < A){
+        // absorbed
+        fastStep.ProposeTrackStatus(fStopAndKill);
+        if(rand_escape<escape_fac){
+        // detected
+            fastStep.ProposeTotalEnergyDeposited(_photon_energy);
+        }
+    }else if(rand_absorb < A+R){
+        // fastStep.ProposeTrackStatus(fStopAndKill);
+        // reflected
+        Reflect();
+        UpdateTrackInfo(fastStep);
+    }else{
+        // fastStep.ProposeTrackStatus(fStopAndKill);
+        // transmitted
+        Refract();
+        if(whereAmI == kInGlass){
+            whereAmI = kInVacuum;
+        }else{
+            whereAmI = kInGlass;
+        }
+        UpdateTrackInfo(fastStep);
+    }
+
+
+#ifdef PMTFASTSIM_STANDALONE
+    LOG(LEVEL)
+        << "junoPMTOpticalModel::DoIt"
+        << " dir " << dir 
+        << " norm " << norm
+        << " _cos_theta1  " << _cos_theta1 
+        << " _sin_theta1  " << _sin_theta1 
+        << " E_s2 " << E_s2
+        << " (fT_s+fT_p)/2 " << (fT_s+fT_p)/2.
+        << " (fR_s+fR_p)/2 " << (fR_s+fR_p)/2.
+        << " _aoi " << _aoi 
+        << " T " << T 
+        << " R " << R 
+        << " A " << A 
+        ; 
+
+    Stack<double,4> stack ; 
+    getCurrentStack(stack); 
+
+    LOG(LEVEL)
+        << "junoPMTOpticalModel::DoIt"
+        << " stack.art "
+        << std::endl 
+        << stack.art
+        << std::endl 
+        << " stack "
+        << std::endl 
+        << stack 
+        ; 
+#endif
+
+    return;
+}
+
+void junoPMTOpticalModel::CalculateCoefficients()
+{
+    G4complex one(1., 0.);
+    _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1); // SCB: _sin_theta1 constrained 0.->1. inclusive
+    _sin_theta4 = _n1 * _sin_theta1/_n4;
+    _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
+
+    m_multi_film_model->SetWL(_wavelength/nm); // SCB: changed to nm (from m) NB unit must match thickness
+    m_multi_film_model->SetAOI(_aoi);
+
+    m_multi_film_model->SetLayerPar(0, _n1);
+    m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
+    m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
+    m_multi_film_model->SetLayerPar(3, _n4);
+    ART art1 = m_multi_film_model->GetART();
+    fR_s = art1.R_s;
+    fT_s = art1.T_s;
+    fR_p = art1.R_p;
+    fT_p = art1.T_p;
+
+
+    // SCB: HUH NormalART coeff do not flip the stack, but the above do  
+    // the equivalent with Layr.h:Stack is use minus_cos_theta=-1. 
+    m_multi_film_model->SetLayerPar(0, n_glass);
+    m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
+    m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
+    m_multi_film_model->SetLayerPar(3, n_vacuum);
+    ART art2 = m_multi_film_model->GetNormalART();
+    fR_n = art2.R;
+    fT_n = art2.T;
+}
+
+void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
+{
+    fastStep.SetPrimaryTrackFinalTime(time);
+    fastStep.SetPrimaryTrackFinalPosition(pos);
+    fastStep.SetPrimaryTrackFinalMomentum(dir);
+    fastStep.SetPrimaryTrackFinalPolarization(pol);
+    fastStep.ForceSteppingHitInvocation();
+}
+
+/**
+junoPMTOpticalModel::InitOpticalParameters
+--------------------------------------------
+
+Called from ctor with envelope_phys being passed in as ctor argument 
+coming for eg HamamatsuR12860PMTManager::helper_fast_sim where 
+it is body_phys (the 2nd Pyrex volume)  
+
+Current four volume geometry ~features two fake boundaries
+(Pyrex/Pyrex and Vacuum/Vacuum) plus has one coincident face
+and two nearly coincident: the 2nd Pyrex and inner1-Vacuum and inner2-Vacuum 
+are separated by only 1e-3 mm):: 
+
+
+     +---------------pmt-Pyrex----------------+
+     |                                        |
+     |                                        |
+     |     +----------body-Pyrex--------+     |
+     |     | +------------------------+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner1-Vacuum   |-|     |
+     |     | |                        |1e-3   |
+     |     | |                        | |     |
+     |     | +~~coincident~face~~~~~~~+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner2-Vacuum   | |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | +------------------------+ |     |
+     |     +----------------------------+     |
+     |                                        |
+     |                                        |
+     +----------------------------------------+
+
+Using square PMT as difficult to draw ellipsoids in ascii. 
+**/
+
+void junoPMTOpticalModel::InitOpticalParameters(G4VPhysicalVolume* envelope_phys)
+{
+    G4LogicalVolume* envelope_log 
+        = envelope_phys->GetLogicalVolume();
+    G4MaterialPropertiesTable* glass_pt 
+        = envelope_log->GetMaterial()->GetMaterialPropertiesTable();
+    
+    // SCB: when shift to single inner vacuum as envelope will need to GetMotherLogical to access the pyrex 
+
+    _rindex_glass   = glass_pt->GetProperty("RINDEX");
+    _inner1_phys    = envelope_log->GetDaughter(0);
+    _inner1_solid   = _inner1_phys->GetLogicalVolume()->GetSolid();
+    _rindex_vacuum  = _inner1_phys->GetLogicalVolume()->GetMaterial()
+                                  ->GetMaterialPropertiesTable()->GetProperty("RINDEX");
+
+    _inner2_phys    = envelope_log->GetDaughter(1);
+    _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
+
+#ifdef PMTFASTSIM_STANDALONE
+    LOG(LEVEL)
+        << " envelope_log " << envelope_log
+        << " glass_pt " << glass_pt
+        << " _rindex_glass " << _rindex_glass
+        << " _inner1_phys " << _inner1_phys
+        << " _inner1_solid " << _inner1_solid
+        << " _rindex_vacuum " << _rindex_vacuum
+        << " _inner2_phys " << _inner2_phys
+        << " _inner2_solid " << _inner2_solid
+        ;
+#endif
+
+}
+
+/**
+junoPMTOpticalModelSimple::InitOpticalParameters
+---------------------------------------------------
+
+Two volume geometry featuring no fake boundaries and 
+no coincident faces. Inner upper hemi is selected by "z > 0",
+it is the simplest (and hence fastest) possible geometry::
+
+     +---------------pmt-Pyrex----------------+
+     |                                        |
+     |                                        |
+     |                                        |
+     |       +~-~-~inner-Vacuum-~-~-~-+       |
+     |       !                        !       |
+     |       !       z > 0            !       |
+     |       !                        !       |      
+     |       !                        !       |      
+     |       !                        !       |      
+     |       +    -      -    -   -   +       |
+     |       |                        |       |
+     |       |                        |       |
+     |       |                        |       |
+     |       |                        |       |
+     |       |                        |       |
+     |       +------------------------+       |
+     |                                        |
+     |                                        |
+     |                                        |
+     +----------------------------------------+
+
+**/
+
+#ifdef PMTFASTSIM_STANDALONE
+void junoPMTOpticalModelSimple::InitOpticalParameters(G4VPhysicalVolume* inner_phys)
+{
+    // HMM : not actually using any of this 
+ 
+    const G4LogicalVolume* pmt_log = inner_phys->GetMotherLogical(); 
+    const G4LogicalVolume* inner_log = inner_phys->GetLogicalVolume(); 
+
+    G4MaterialPropertiesTable* glass_pt = pmt_log->GetMaterial()->GetMaterialPropertiesTable();
+    G4MaterialPropertiesTable* vacuum_pt = inner_log->GetMaterial()->GetMaterialPropertiesTable();
+
+    _inner_solid  = inner_log->GetSolid();
+    _rindex_glass   = glass_pt->GetProperty("RINDEX");
+    _rindex_vacuum  = vacuum_pt->GetProperty("RINDEX");
+ 
+    G4int pmt_daughters = pmt_log->GetNoDaughters() ;  
+    G4int inner_daughters = inner_log->GetNoDaughters() ; 
+
+    LOG(LEVEL)
+        << " pmt_log " << pmt_log
+        << " inner_log " << inner_log
+        << " glass_pt " << glass_pt
+        << " vacuum_pt " << vacuum_pt
+        << " _rindex_glass " << _rindex_glass
+        << " _rindex_vacuum " << _rindex_vacuum
+        << " pmt_daughters " << pmt_daughters
+        << " inner_daughters " << inner_daughters
+        ;
+
+}
+#endif
+
+
+/**
+junoPMTOpticalModel::Reflect junoPMTOpticalModel::Refract
+-----------------------------------------------------------
+
+Comparing to qsim::propagate_at_boundary (port of G4OpBoundaryProcess) 
+this is not the same polarization in both Reflect and Refract. 
+
+TODO: numerical comparison, see how big the difference 
+
+**/
+
+void junoPMTOpticalModel::Reflect()
+{
+    dir -= 2.*(dir*norm)*norm;
+    pol -= 2.*(pol*norm)*norm;
+}
+void junoPMTOpticalModel::Refract()
+{
+    dir = (real(_cos_theta4) - _cos_theta1*_n1/_n4)*norm + (_n1/_n4)*dir;
+    pol = (pol-(pol*dir)*dir).unit();
+}
+
+int junoPMTOpticalModel::get_pmtid(const G4Track* track) {
+    int ipmt= -1;
+    {
+        const G4VTouchable* touch= track->GetTouchable();
+        int nd= touch->GetHistoryDepth();
+        int id=0;
+        for (id=0; id<nd; id++) {
+            if (touch->GetVolume(id)==track->GetVolume()) {
+                int idid=1;
+                G4VPhysicalVolume* tmp_pv=NULL;
+                for (idid=1; idid < (nd-id); ++idid) {
+                    tmp_pv = touch->GetVolume(id+idid);
+
+                    G4LogicalVolume* mother_vol = tmp_pv->GetLogicalVolume();
+                    G4LogicalVolume* daughter_vol = touch->GetVolume(id+idid-1)->
+                        GetLogicalVolume();
+                    int no_daugh = mother_vol -> GetNoDaughters();
+                    if (no_daugh > 1) {
+                        int count = 0;
+                        for (int i=0; (count<2) &&(i < no_daugh); ++i) {
+                            if (daughter_vol->GetName()
+                                    ==mother_vol->GetDaughter(i)->GetLogicalVolume()->GetName()) {
+                                ++count;
+                            }
+                        }
+                        if (count > 1) {
+                            break;
+                        }
+                    }
+                }
+                ipmt= touch->GetReplicaNumber(id+idid-1);
+                break;
+            }
+        }
+        if (ipmt < 0) {
+            G4Exception("junoPMTOpticalModel: could not find envelope -- where am I !?!", // issue
+                    "", //Error Code
+                    FatalException, // severity
+                    "");
+        }
+    }
+
+    return ipmt;
+}
+
+
+
 
 #ifdef PMTFASTSIM_STANDALONE
 void junoPMTOpticalModel::setEnergyThickness( double energy )
@@ -432,6 +883,15 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
     }
 } 
 
+/**
+junoPMTOpticalModel::getCurrentStack
+---------------------------------------
+
+Note that this calls GetART which calls MultiFilmModel::Calculate
+which re-initializes the entire stack of layers. 
+Thats bad design. 
+
+**/
 
 void junoPMTOpticalModel::getCurrentStack(Stack<double,4>& stack) const 
 {
@@ -477,6 +937,8 @@ void junoPMTOpticalModel::getCurrentStack(Stack<double,4>& stack) const
 
     std::vector<Layer*>& vlayers = m_multi_film_model->optical_system->layers ; 
     assert( vlayers.size() == 4 ); 
+
+    // MultiFilmModel::Calculate
 
     for(int i=0 ; i < 4 ; i++)
     {
@@ -550,305 +1012,6 @@ void junoPMTOpticalModel::CalculateCoefficients(
 }
 #endif
 
-void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
-{
-    _photon_energy  = energy;
-    _wavelength     = twopi*hbarc/energy;
-
-    const G4Track* track = fastTrack.GetPrimaryTrack();
-    int pmtid  = get_pmtid(track);
-
-#ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL) << "junoPMTOpticalModel::DoIt pmtid " << pmtid ; 
-    setEnergyThickness(energy); 
-#else
-    n_glass    = _rindex_glass->Value(_photon_energy);
-
-    int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid);
-
-    _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
-
-    n_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_RINDEX", _photon_energy);
-    k_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_KINDEX", _photon_energy);
-    d_coating       = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "ARC_THICKNESS")/m;
-
-    n_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_RINDEX", _photon_energy);
-    k_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_KINDEX", _photon_energy);
-    d_photocathode  = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "PHC_THICKNESS")/m;
-#endif
-
-
-    if(whereAmI == kInGlass){
-        _n1 = n_glass;
-        _n2 = n_coating;
-        _k2 = k_coating;
-        _d2 = d_coating;
-        _n3 = n_photocathode;
-        _k3 = k_photocathode;
-        _d3 = d_photocathode;
-        _n4 = n_vacuum;
-    }else{
-        _n1 = n_vacuum;
-        _n2 = n_photocathode;
-        _k2 = k_photocathode;
-        _d2 = d_photocathode;
-        _n3 = n_coating;
-        _k3 = k_coating;
-        _d3 = d_coating;
-        _n4 = n_glass;
-
-        _qe = 0.;
-    }
-    pos  += dist1*dir;
-    time += dist1*_n1/c_light;
-
-    UpdateTrackInfo(fastStep);
-
-    fastTrack.GetPrimaryTrack()->GetStep()
-        ->GetPostStepPoint()->SetStepStatus(fGeomBoundary);
-
-    norm = _inner1_solid->SurfaceNormal(pos);
-    if(whereAmI == kInGlass){
-        norm *= -1.0;
-    }
-
-#ifdef PMTFASTSIM_STANDALONE
-    minus_cos_theta = dir*norm ; 
-    _cos_theta1 = minus_cos_theta ;
-#else
-    _cos_theta1 = dir*norm;
-#endif
-
-    if(_cos_theta1 < 0.){
-        _cos_theta1 = -_cos_theta1;
-        norm = -norm;
-    }
-    _aoi = acos(_cos_theta1)*360./twopi;
-
-    CalculateCoefficients();
-
-    G4double T  = 0.;
-    G4double R  = 0.;
-    G4double A  = 0.;
-    G4double An = 0.;
-    G4double escape_fac = 0.;
-    G4double E_s2 = 0.;
-
-    if(_sin_theta1 > 0.){
-        E_s2 = (pol*dir.cross(norm))/_sin_theta1;
-        E_s2 *= E_s2;
-    }else{
-        E_s2 = 0.;
-    }
-
-    T = fT_s*E_s2 + fT_p*(1.0-E_s2);
-    R = fR_s*E_s2 + fR_p*(1.0-E_s2);
-    A = 1.0 - (T+R);
-
-
-#ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL)
-        << "junoPMTOpticalModel::DoIt"
-        << " dir " << dir 
-        << " norm " << norm
-        << " _cos_theta1  " << _cos_theta1 
-        << " _sin_theta1  " << _sin_theta1 
-        << " E_s2 " << E_s2
-        << " (fT_s+fT_p)/2 " << (fT_s+fT_p)/2.
-        << " (fR_s+fR_p)/2 " << (fR_s+fR_p)/2.
-        << " _aoi " << _aoi 
-        << " T " << T 
-        << " R " << R 
-        << " A " << A 
-        ; 
-
-    Stack<double,4> stack ; 
-    getCurrentStack(stack); 
-
-    LOG(LEVEL)
-        << "junoPMTOpticalModel::DoIt"
-        << " stack.art "
-        << std::endl 
-        << stack.art
-        << std::endl 
-        << " stack "
-        << std::endl 
-        << stack 
-        ; 
-
-#endif
-
-    An = 1.0 - (fT_n+fR_n);
-    escape_fac  = _qe/An;
-
-    if(escape_fac > 1.){
-        G4cout<<"junoPMTOpticalModel: QE is larger than absorption coeff."<<G4endl;
-    }
-
-    G4double rand_absorb = G4UniformRand();
-    G4double rand_escape = G4UniformRand();
-
-    if(rand_absorb < A){
-        // absorbed
-        fastStep.ProposeTrackStatus(fStopAndKill);
-        if(rand_escape<escape_fac){
-        // detected
-            fastStep.ProposeTotalEnergyDeposited(_photon_energy);
-        }
-    }else if(rand_absorb < A+R){
-        // fastStep.ProposeTrackStatus(fStopAndKill);
-        // reflected
-        Reflect();
-        UpdateTrackInfo(fastStep);
-    }else{
-        // fastStep.ProposeTrackStatus(fStopAndKill);
-        // transmitted
-        Refract();
-        if(whereAmI == kInGlass){
-            whereAmI = kInVacuum;
-        }else{
-            whereAmI = kInGlass;
-        }
-        UpdateTrackInfo(fastStep);
-    }
-
-    return;
-}
-
-void junoPMTOpticalModel::CalculateCoefficients()
-{
-    G4complex one(1., 0.);
-    _sin_theta1 = sqrt(1.-_cos_theta1*_cos_theta1);
-    _sin_theta4 = _n1 * _sin_theta1/_n4;
-    _cos_theta4 = sqrt(one-_sin_theta4*_sin_theta4);
-
-    m_multi_film_model->SetWL(_wavelength/nm); // SCB: changed to nm (from m) NB unit must match thickness
-    m_multi_film_model->SetAOI(_aoi);
-
-    m_multi_film_model->SetLayerPar(0, _n1);
-    m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
-    m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
-    m_multi_film_model->SetLayerPar(3, _n4);
-    ART art1 = m_multi_film_model->GetART();
-    fR_s = art1.R_s;
-    fT_s = art1.T_s;
-    fR_p = art1.R_p;
-    fT_p = art1.T_p;
-
-    m_multi_film_model->SetLayerPar(0, n_glass);
-    m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
-    m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
-    m_multi_film_model->SetLayerPar(3, n_vacuum);
-    ART art2 = m_multi_film_model->GetNormalART();
-    fR_n = art2.R;
-    fT_n = art2.T;
-}
 
 
 
-
-
-
-
-
-
-
-void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
-{
-    fastStep.SetPrimaryTrackFinalTime(time);
-    fastStep.SetPrimaryTrackFinalPosition(pos);
-    fastStep.SetPrimaryTrackFinalMomentum(dir);
-    fastStep.SetPrimaryTrackFinalPolarization(pol);
-    fastStep.ForceSteppingHitInvocation();
-}
-
-void junoPMTOpticalModel::InitOpticalParameters(G4VPhysicalVolume* envelope_phys)
-{
-    G4LogicalVolume* envelope_log 
-        = envelope_phys->GetLogicalVolume();
-    G4MaterialPropertiesTable* glass_pt 
-        = envelope_log->GetMaterial()->GetMaterialPropertiesTable();
-    
-    _rindex_glass   = glass_pt->GetProperty("RINDEX");
-    _inner1_phys    = envelope_log->GetDaughter(0);
-    _inner1_solid   = _inner1_phys->GetLogicalVolume()->GetSolid();
-    _rindex_vacuum  = _inner1_phys->GetLogicalVolume()->GetMaterial()
-                                  ->GetMaterialPropertiesTable()->GetProperty("RINDEX");
-
-    _inner2_phys    = envelope_log->GetDaughter(1);
-    _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
-
-#ifdef PMTFASTSIM_STANDALONE
-    std::cout << "junoPMTOpticalModel::InitOpticalParameters"
-              << " envelope_log " << envelope_log
-              << " glass_pt " << glass_pt
-              << " _rindex_glass " << _rindex_glass
-              << " _inner1_phys " << _inner1_phys
-              << " _inner1_solid " << _inner1_solid
-              << " _rindex_vacuum " << _rindex_vacuum
-              << " _inner2_phys " << _inner2_phys
-              << " _inner2_solid " << _inner2_solid
-              << std::endl 
-              ;
-#endif
-
-}
-
-void junoPMTOpticalModel::Reflect()
-{
-    dir -= 2.*(dir*norm)*norm;
-    pol -= 2.*(pol*norm)*norm;
-    // TODO: compare this pol with what G4OpBoundaryProcess would do 
-}
-
-void junoPMTOpticalModel::Refract()
-{
-    dir = (real(_cos_theta4) - _cos_theta1*_n1/_n4)*norm + (_n1/_n4)*dir;
-    pol = (pol-(pol*dir)*dir).unit();
-    // TODO: compare this pol with what G4OpBoundaryProcess would do 
-}
-
-int junoPMTOpticalModel::get_pmtid(const G4Track* track) {
-    int ipmt= -1;
-    {
-        const G4VTouchable* touch= track->GetTouchable();
-        int nd= touch->GetHistoryDepth();
-        int id=0;
-        for (id=0; id<nd; id++) {
-            if (touch->GetVolume(id)==track->GetVolume()) {
-                int idid=1;
-                G4VPhysicalVolume* tmp_pv=NULL;
-                for (idid=1; idid < (nd-id); ++idid) {
-                    tmp_pv = touch->GetVolume(id+idid);
-
-                    G4LogicalVolume* mother_vol = tmp_pv->GetLogicalVolume();
-                    G4LogicalVolume* daughter_vol = touch->GetVolume(id+idid-1)->
-                        GetLogicalVolume();
-                    int no_daugh = mother_vol -> GetNoDaughters();
-                    if (no_daugh > 1) {
-                        int count = 0;
-                        for (int i=0; (count<2) &&(i < no_daugh); ++i) {
-                            if (daughter_vol->GetName()
-                                    ==mother_vol->GetDaughter(i)->GetLogicalVolume()->GetName()) {
-                                ++count;
-                            }
-                        }
-                        if (count > 1) {
-                            break;
-                        }
-                    }
-                }
-                ipmt= touch->GetReplicaNumber(id+idid-1);
-                break;
-            }
-        }
-        if (ipmt < 0) {
-            G4Exception("junoPMTOpticalModel: could not find envelope -- where am I !?!", // issue
-                    "", //Error Code
-                    FatalException, // severity
-                    "");
-        }
-    }
-
-    return ipmt;
-}

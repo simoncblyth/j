@@ -75,9 +75,9 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
 
    body_phys     body_log          body_solid     GlassMat        m_logical_pmt
                       
-   inner1_phys   inner1_log        inner1_solid   PMT_Vacuum      body_phys
+   inner1_phys   inner1_log        inner1_solid   PMT_Vacuum      body_log
 
-   inner2_phys   inner2_log        inner2_solid   PMT_Vacuum      body_phys
+   inner2_phys   inner2_log        inner2_solid   PMT_Vacuum      body_log
 
 **/
 

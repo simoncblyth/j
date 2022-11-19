@@ -338,7 +338,7 @@ epsilon:Layr blyth$ opticks-f Layr.h
 
 **/
 
-template<typename T>
+template<typename T>   // hmm this shuld have int N template, or instead have LayrSpec  
 struct StackSpec
 {
     T n0r, n0i, d0 ; 

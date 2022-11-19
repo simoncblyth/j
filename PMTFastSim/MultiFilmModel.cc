@@ -17,6 +17,22 @@ MultiFilmModel::~MultiFilmModel()
 {
 }
 
+/**
+MultiFilmModel::Calculate
+----------------------------
+
+All the definition of the layers happens in OpticalSystem::Initialize
+
+Note that subsequently the layers vector is accessed by value, ie taking a copy
+of the optical_system vector. The layer pointers however point to the same objects 
+even from the copy.  
+
+So the copy is entirely pointless. To more clearly express that 
+the original layers are not changed it would be clearer to do::
+
+   const std::vector<Layer*>& layers = optical_system->GetLayers();
+
+**/
 void MultiFilmModel::Calculate()
 {
     if(wavelength == 0){
@@ -25,7 +41,7 @@ void MultiFilmModel::Calculate()
     }
 
     optical_system->Initialize(wavelength, theta);
-    std::vector<Layer*> layers  = optical_system->GetLayers();  // bizarre : why by value ? 
+    std::vector<Layer*> layers  = optical_system->GetLayers();  
 
     Ms->Reset();
     Mp->Reset();
@@ -50,8 +66,6 @@ void MultiFilmModel::Calculate()
     TComplex n2 = bot->GetMaterial()->GetRefractiveIndex();
     TComplex cos_theta_1 = top->parameter.cos_theta;
     TComplex cos_theta_2 = bot->parameter.cos_theta;
-
-
 
     /*
     // all art members are double, ie no imaginary part 

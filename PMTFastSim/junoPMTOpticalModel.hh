@@ -16,22 +16,22 @@
 
 
 #ifdef PMTFASTSIM_STANDALONE
-#include "plog/Severity.h"
 
-struct JPMT ; 
-template<typename T> struct ART_ ; 
-template<typename T> struct Layr ; 
-template<typename T, int N> struct Stack ; 
+    #include "MultiFilmModel.h"
+    #include "plog/Severity.h"
+    struct JPMT ; 
+    template<typename T> struct ART_ ; 
+    template<typename T> struct Layr ; 
+    template<typename T, int N> struct Stack ; 
 
-#include "MultiFilmModel.h"
 #else
 
-#include "TGraph.h"
-#include "SniperKernel/SvcBase.h"
-#include "Geometry/PMTParamSvc.h"
-#include "MultiFilmSimSvc/MultiFilmModel.h"
-#include "IPMTSimParamSvc/IPMTSimParamSvc.h"
-#include "Geometry/IPMTParamSvc.h"
+    #include "TGraph.h"
+    #include "SniperKernel/SvcBase.h"
+    #include "Geometry/PMTParamSvc.h"
+    #include "MultiFilmSimSvc/MultiFilmModel.h"
+    #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
+    #include "Geometry/IPMTParamSvc.h"
 
 #endif
 
@@ -48,13 +48,6 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
     public:
 #ifdef PMTFASTSIM_STANDALONE
         static const plog::Severity LEVEL ; 
-        static constexpr const char* kOutside_ = "kOutside" ;
-        static constexpr const char* kSurface_ = "kSurface" ;
-        static constexpr const char* kInside_  = "kInside" ;
-        static const char* EInside_( EInside in );
-        static G4double Distance_(const G4VSolid* solid, const G4ThreeVector& pos, const G4ThreeVector& dir, EInside* in=nullptr ); 
-        static std::string Desc(    const G4FastTrack &fastTrack, const char* opt="Hdr,Vec"); 
-        static std::string DescDist(const G4FastTrack &fastTrack, const G4VSolid* solid ); 
 #endif
     public:
         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*); 
@@ -75,6 +68,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
     private:
         G4MaterialPropertyVector* _rindex_glass;
         G4MaterialPropertyVector* _rindex_vacuum;
+
 
         G4VSolid* _inner1_solid;
         G4VSolid* _inner2_solid;
@@ -160,5 +154,39 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 
         int get_pmtid(const G4Track* track);
 };
+
+
+
+
+#ifdef PMTFASTSIM_STANDALONE
+struct PMTFASTSIM_API junoPMTOpticalModelSimple : public G4VFastSimulationModel
+{
+    static const plog::Severity LEVEL ; 
+    junoPMTOpticalModelSimple(G4String, G4VPhysicalVolume*, G4Region*); 
+
+    G4bool ModelTrigger(const G4FastTrack &fastTrack); 
+    void DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep); 
+    void InitOpticalParameters(G4VPhysicalVolume* envelope_phys); 
+
+    G4VSolid* _inner_solid ;
+    G4MaterialPropertyVector* _rindex_glass;
+    G4MaterialPropertyVector* _rindex_vacuum;
+
+    double      energy_eV ; 
+    double      wavelength_nm ; 
+
+    G4ThreeVector position ;
+    G4ThreeVector direction ;
+    G4ThreeVector polarization ;
+    G4ThreeVector surface_normal ;
+
+    G4double      minus_cos_theta ; 
+    EWhereAmI     whereAmI;
+    JPMT*         jpmt ; 
+
+
+};
+#endif
+
 
 #endif
