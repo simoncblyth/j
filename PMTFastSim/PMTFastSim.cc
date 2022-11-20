@@ -9,6 +9,9 @@
 #include "SStr.hh"
 #include "SSys.hh"
 #include "SDirect.hh"
+#include "SOpticksResource.hh"
+
+#include "N4Volume.hh"
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -120,6 +123,38 @@ G4VPhysicalVolume* PMTFastSim::GetPV(const char* name) // static
     return pv ; 
 }
 
+
+
+/**
+PMTSim::GetPV
+---------------
+
+1. gets the physical volume
+2. populates vector of G4VSolid 
+3. populates vector of doubles with the structural transforms for each solid 
+
+**/
+
+G4VPhysicalVolume* PMTFastSim::GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
+{
+    PMTFastSim::SetEnvironmentSwitches(name);  // CAUTION only switches from the first name get used 
+    PMTFastSim* pfs = PMTFastSim::Get() ; 
+    G4VPhysicalVolume* pv = pfs->getPV(name); 
+
+    if(pv == nullptr)
+    {
+        std::cout << "PMTFastSim::getPV failed for name [" <<  name << "]" << std::endl ; 
+        return pv ; 
+    }
+
+    N4Volume::Traverse(pv, tr, solids); 
+    //N4Volume::DumpSolids(); 
+
+    return pv ; 
+}
+
+
+
 junoPMTOpticalModel* PMTFastSim::GetPMTOpticalModel(const char* name) // static
 {
     PMTFastSim::SetEnvironmentSwitches(name); // CAUTION only switches from the first name get used  
@@ -127,6 +162,9 @@ junoPMTOpticalModel* PMTFastSim::GetPMTOpticalModel(const char* name) // static
     junoPMTOpticalModel* pom = pfs->getPMTOpticalModel(name); 
     return pom ; 
 }
+
+
+
 
 
 PMTFastSim::PMTFastSim()
@@ -314,31 +352,63 @@ G4LogicalVolume* PMTFastSim::getLV(const char* geom)
 
 
 /**
-PMTSim::getPV
---------------
+PMTFastSim::getPV
+-------------------
 
-When name contains "WrapLV" the name is used to get an LV (not a PV)
+When name ends with "WrapLV" the name is used to get an LV (not a PV)
 and that LV is placed multiple times by WrapLVGrid 
 into a grid configured by nx, ny, nz within a PV that is returned. 
+This works for any name as the manager volume selection always uses StartsWithPrefix.
+
+For example with name "hamaLogicalPMTWrapLV" the hama IGeomManager 
+is accessed and the "hama" prefix is removed leaving the name 
+seen by HamamatsuR12860PMTManager::getLV to be "LogicalPMTWrapLV"
+That fulfils the selection::
+
+    StartsWithPrefix(name, "LogicalPMT")
+
+resulting in the LV pointer to be returned, which 
+is then wrapper into a PV for return from this method. 
 
 **/
 
 G4VPhysicalVolume* PMTFastSim::getPV(const char* name) 
 {
+    std::cout 
+       << "PMTFastSim::getPV.0"
+       << " name " << ( name ? name : "-" )
+       << std::endl
+       ;
+
     IGeomManager* mgr = getManager(name) ; 
     const char* head = mgr->getHead() ; 
 
+    bool wrap = strstr(head, "WrapLV") != nullptr ;  
+
+    std::cout 
+       << "PMTFastSim::getPV.1"
+       << " name " << ( name ? name : "-" )
+       << " head " << ( head ? head : "-" )
+       << " wrap " << wrap 
+       << std::endl 
+       ;
+
     G4VPhysicalVolume* pv = nullptr ; 
-    bool wrap = strstr(head, "WrapLV") != nullptr ; 
     if(wrap == false)
     {
         pv = mgr->getPV(head) ;
     }
     else
     {
-        G4LogicalVolume* lv = getLV(head); 
+        //G4LogicalVolume* lv = getLV(head);   // NOPE: need to use the manager selected above, not start from scratch
+        G4LogicalVolume* lv = mgr->getLV(head);  
         assert(lv); 
-        pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
+
+        pv = WrapLV(lv);   
+        //pv = WrapLVGrid(lv,1,1,1);   // -1,0,1 -1,0,1 -1,0,1  3*3*3 = 27  
+        // const char* wrap_lv = SOpticksResource::WrapLVForName(name) ;  
+        // TODO: configure wrapping config via envvar "$name"_WrapLV 
+
         assert(pv); 
     }
     return pv ; 

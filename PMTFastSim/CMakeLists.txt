@@ -67,6 +67,8 @@ list(APPEND HEADERS
     ../Layr/Layr.h  
     PMTFastSim.hh
     J_PMTFASTSIM_LOG.hh
+
+    N4Volume.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")

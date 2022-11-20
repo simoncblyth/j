@@ -45,7 +45,9 @@ struct PMTFASTSIM_API PMTFastSim
 
     static G4LogicalVolume*   GetLV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name); 
+    static G4VPhysicalVolume* GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ); 
     static junoPMTOpticalModel* GetPMTOpticalModel(const char* name); 
+
 
     bool                       verbose ; 
     DetectorConstruction*      m_dc ;   

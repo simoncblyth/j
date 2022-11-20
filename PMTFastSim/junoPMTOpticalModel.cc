@@ -188,12 +188,15 @@ whereAmI == kInGlass:true   (actually kNotUpperVacuum and from early exit NotLow
      dist1 > dist2:false
          equal distance or inner1 is closer -> true   
 
+     SUMMARY : FROM GLASS THE 1ST INTERSECT NEEDS TO BE INNER1
 
 whereAmI == kInGlass:false    (actually kUpperVacuum )
 
      requires _inner2_solid->DistanceToIn  to be kInfinity -> true 
      this means that the ray is heading back to the photocathode 
      but thats a clumsy way of doing it
+
+     SUMMARY : FROM UPPERVAC MUST NOT INTERSECT LOWERVAC 
 **/
 
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
@@ -478,9 +481,10 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     //        fR_s = fR_p 
     //        fT_s = fT_p 
     //           
-    //     HMM: but this E_s2 calc assumes are on Pyrex side of the border ?
-    //     but half the time will be on other side ? 
-    //     see qsim.h propagate_at_boundary 
+    //     Initially though this  E_s2 calc was assuming are on Pyrex side of the border, 
+    //     but thats not the case because the _sin_theta1 can be for either side 
+    //
+    //     TODO: compare with  qsim.h propagate_at_boundary 
 
 
     T = fT_s*E_s2 + fT_p*(1.0-E_s2);
@@ -499,7 +503,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     //         and the fact that "backwards" _qe gets set to zero anyhow. 
     //  
     //         NOT CONVINCED BY THAT : AS escape_fac will be > 1 for An < _qe
-    //         which would mean that rand_escape < esscape_fac always 
+    //         which would mean that rand_escape < escape_fac always 
     //
     //         When An is small (little absorption) eg 0.1 escape fac gets scaled to _qe*10 
     //         which then gets compared to rand_escape a random number in [0,1]

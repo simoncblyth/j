@@ -45,7 +45,9 @@ G4LogicalVolume* HamamatsuR12860PMTManager::getLV(const char* name)
     if(!m_logical_pmt) init();
     G4LogicalVolume* lv = nullptr ;  
     if(StartsWithPrefix(name, "LogicalPMT")) lv = m_logical_pmt ; 
+    if(StartsWithPrefix(name, "PMTLog"))     lv = pmt_log ; 
     if(StartsWithPrefix(name, "BodyLog"))    lv = body_log ; 
+    if(StartsWithPrefix(name, "InnerLog"))   lv = inner_log ; 
     if(StartsWithPrefix(name, "Inner1Log"))  lv = inner1_log ; 
     if(StartsWithPrefix(name, "Inner2Log"))  lv = inner2_log ; 
 
@@ -59,6 +61,7 @@ G4PVPlacement* HamamatsuR12860PMTManager::getPV(const char* name)
     if(!m_logical_pmt) init();
     G4PVPlacement* pv = nullptr ; 
     if(StartsWithPrefix(name, "BodyPhys"))   pv = body_phys ; 
+    if(StartsWithPrefix(name, "InnerPhys"))  pv = inner_phys ; 
     if(StartsWithPrefix(name, "Inner1Phys")) pv = inner1_phys ; 
     if(StartsWithPrefix(name, "Inner2Phys")) pv = inner2_phys ; 
     if(StartsWithPrefix(name, "DynodePhys")) pv = dynode_phys ; 
@@ -113,29 +116,50 @@ G4ThreeVector HamamatsuR12860PMTManager::GetPosInPMT() {
 }
 
 // Constructor
-HamamatsuR12860PMTManager::HamamatsuR12860PMTManager
-    (const G4String& plabel // label -- subvolume names are derived from this
-    )
+HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
+    :
 #ifdef PMTFASTSIM_STANDALONE
-    : IGeomManager(plabel),
+    IGeomManager(plabel),
 #else
-    : ToolBase(plabel), m_label(plabel),
+    ToolBase(plabel), 
+    m_label(plabel),
 #endif
-      m_pmtsolid_maker(0),
-      pmtOpticalModel(nullptr),
-      pmt_solid(NULL), body_solid(NULL), inner_solid(NULL),
-      inner1_solid(NULL), inner2_solid(NULL), dynode_solid(NULL),
-      body_log(NULL), inner1_log(NULL), inner2_log(NULL), dynode_log(NULL),
-      body_phys(NULL), inner1_phys(NULL), inner2_phys(NULL), 
-      dynode_phys(NULL), m_logical_pmt(NULL), m_mirror_opsurf(NULL),
-      Photocathode_opsurf(NULL),
-      GlassMat(NULL), PMT_Vacuum(NULL), DynodeMat(NULL),
-      m_detector(NULL),
-      m_logical_cover(NULL), m_cover_mat(NULL),
-      m_simplify_csg(getenv("JUNO_PMT20INCH_SIMPLIFY_CSG") == NULL ? false : true),
-      m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == NULL ? false : true),
-      m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == NULL ? false : true ),
-      m_pmt_equator_to_bottom(0.)
+    m_pmtsolid_maker(0),
+    pmtOpticalModel(nullptr),
+    pmt_solid(nullptr), 
+    body_solid(nullptr), 
+    inner_solid(nullptr),
+    inner1_solid(nullptr), 
+    inner2_solid(nullptr), 
+    uncut_pmt_solid(nullptr),
+    uncut_body_solid(nullptr),
+    uncut_inner_solid(nullptr),
+    uncut_inner2_solid(nullptr),
+    dynode_solid(nullptr),
+    pmt_log(nullptr), 
+    body_log(nullptr), 
+    inner_log(nullptr), 
+    inner1_log(nullptr), 
+    inner2_log(nullptr), 
+    dynode_log(nullptr),
+    body_phys(nullptr), 
+    inner_phys(nullptr), 
+    inner1_phys(nullptr), 
+    inner2_phys(nullptr), 
+    dynode_phys(nullptr), 
+    m_logical_pmt(nullptr), 
+    m_mirror_opsurf(nullptr),
+    Photocathode_opsurf(nullptr),
+    GlassMat(nullptr), 
+    PMT_Vacuum(nullptr), 
+    DynodeMat(nullptr),
+    m_detector(nullptr),
+    m_logical_cover(nullptr), 
+    m_cover_mat(nullptr),
+    m_simple(getenv("JUNO_PMT20INCH_SIMPLE") == nullptr ? false : true),
+    m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == nullptr ? false : true),
+    m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == nullptr ? false : true ),
+    m_pmt_equator_to_bottom(0.)
 {
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
@@ -154,7 +178,7 @@ std::string HamamatsuR12860PMTManager::desc() const
     std::stringstream ss ; 
     ss
          << std::setw(30) << "HamamatsuR12860PMTManager"
-         << " m_simplify_csg "   << ( m_simplify_csg   ? "Y" : "N" )
+         << " m_simple "        << ( m_simple   ? "Y" : "N" )
          << " m_plus_dynode "    << ( m_plus_dynode    ? "Y" : "N" )
          << " m_useRealSurface " << ( m_useRealSurface ? "Y" : "N" )
          << " m_profligate_tail_cut " << ( m_profligate_tail_cut ? "Y" : "N" )
@@ -372,15 +396,28 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     double zcut = m_pmt_equator_to_bottom ; 
 
     Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ; 
-    pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
-    body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
-    inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');  // no longer used
-    inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
-    inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
 
-    uncut_pmt_solid = pmt_solid ; 
-    uncut_body_solid = body_solid ; 
-    uncut_inner2_solid = inner2_solid ; 
+    if(m_simple == false)
+    {
+        pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
+        body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
+        //inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' '); 
+        inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
+        inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
+
+        uncut_pmt_solid = pmt_solid ; 
+        uncut_body_solid = body_solid ; 
+        uncut_inner2_solid = inner2_solid ; 
+    }
+    else
+    {
+        pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
+        inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' ');  
+
+        uncut_pmt_solid = pmt_solid ; 
+        uncut_inner_solid = inner_solid ; 
+    }
+
 
     if (m_useRealSurface && m_profligate_tail_cut == false ) 
     {
@@ -395,9 +432,10 @@ void HamamatsuR12860PMTManager::helper_make_solid()
             << " zcut+inner_delta " << std::setw(10) << std::fixed << std::setprecision(3) << zcut + inner_delta 
             << std::endl ; 
 
-        pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
-        body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
-        inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
+        if(pmt_solid)    pmt_solid    = ZSolid::ApplyZCutTree( pmt_solid   , -(zcut + pmt_delta)   );
+        if(body_solid)   body_solid   = ZSolid::ApplyZCutTree( body_solid  , -(zcut + body_delta)  );
+        if(inner_solid)  inner_solid = ZSolid::ApplyZCutTree(  inner_solid,  -(zcut + inner_delta) );
+        if(inner2_solid) inner2_solid = ZSolid::ApplyZCutTree( inner2_solid, -(zcut + inner_delta) );
 
         std::cout << "] ZSolid::ApplyZCutTree zcut " << zcut << std::endl ; 
     }
@@ -544,6 +582,7 @@ G4VSolid*  HamamatsuR12860PMTManager::getSolid(const char* name)
 
     if(StartsWithPrefix(name, "UncutPMTSolid"))    so = uncut_pmt_solid ; 
     if(StartsWithPrefix(name, "UncutBodySolid"))   so = uncut_body_solid ; 
+    if(StartsWithPrefix(name, "UncutInnerSolid"))  so = uncut_inner_solid ; 
     if(StartsWithPrefix(name, "UncutInner2Solid")) so = uncut_inner2_solid ; 
 
     if( so == nullptr ) std::cerr << "HamamatsuR12860PMTManager::getSolid gives null name[" << name << "]" << std::endl ; 
@@ -605,15 +644,15 @@ void HamamatsuR12860PMTManager::obsolete_inner_cut()
 void
 HamamatsuR12860PMTManager::helper_make_logical_volume()
 {
+    pmt_log = new G4LogicalVolume
+        ( pmt_solid,
+          GlassMat,
+          GetName()+"_log" );
+
     body_log= new G4LogicalVolume
         ( body_solid,
           GlassMat,
           GetName()+"_body_log" );
-
-    m_logical_pmt = new G4LogicalVolume
-        ( pmt_solid,
-          GlassMat,
-          GetName()+"_log" );
 
     body_log->SetSensitiveDetector(m_detector);
 
@@ -628,6 +667,7 @@ HamamatsuR12860PMTManager::helper_make_logical_volume()
           PMT_Vacuum,
           GetName()+"_inner2_log" );
 
+    m_logical_pmt = pmt_log ; 
 }
 
 
@@ -693,6 +733,9 @@ Creates solids, logical volumes and physical volumes placing them within *inner2
 
 void HamamatsuR12860PMTManager::helper_make_dynode_volume()
 {
+    G4LogicalVolume* parent_log = inner2_log ;  
+
+
     G4double thickness  = 1.*mm;
 
     G4double plate_r    = 103.*mm;
@@ -740,7 +783,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz*2+plate_hz),
           plate_log,
           GetName() + "_plate_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -766,7 +809,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz),
           outer_edge_log,
           GetName() + "_outer_edge_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -793,7 +836,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz),
           inner_edge_log,
           GetName() + "_inner_edge_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -819,7 +862,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz),
           inner_ring_log,
           GetName() + "_inner_ring_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -857,7 +900,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz*2+plate_hz*2+tube_hz),
           tube_log,
           GetName() + "_dynode_tube_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -884,7 +927,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., dist+edge_hz*2+grid_hz),
           grid_log,
           GetName() + "_grid_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -911,7 +954,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
           -G4ThreeVector(0., 0., shield_d+5.*mm),
           shield_log,
           GetName() + "_shield_phy",
-          inner2_log,
+          parent_log,
           false,
           0,
           false );
@@ -989,6 +1032,46 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     
     new G4LogicalBorderSurface(GetName()+"_shield_opsurface", inner2_phys, shield_phy, shieldOpSurface);
 }
+
+/**
+
+Current four volume geometry ~features two fake boundaries
+(Pyrex/Pyrex and Vacuum/Vacuum) plus has one coincident face
+and two nearly coincident: the 2nd Pyrex and inner1-Vacuum and inner2-Vacuum 
+are separated by only 1e-3 mm):: 
+
+
+     +---------------pmt-Pyrex----------------+
+     |                                        |
+     |                                        |
+     |     +----------body-Pyrex--------+     |
+     |     | +------------------------+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner1-Vacuum   |-|     |
+     |     | |                        |1e-3   |
+     |     | |                        | |     |
+     |     | +~~coincident~face~~~~~~~+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner2-Vacuum   | |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | +------------------------+ |     |
+     |     +----------------------------+     |
+     |                                        |
+     |                                        |
+     +----------------------------------------+
+
+
+Q: When m_enable_optical_model=true is photocathode_logsurf doing anything ?
+A: I think not, because body volume is handled by FastSim when ModelTrigger:true
+   which will be the case for body<->inner1
+
+   * so does this mean can set the mirror_logsurf for the entire PMT such 
+     that ModelTrigger:false will get the same behaviour       
+
+**/
 
 void
 HamamatsuR12860PMTManager::helper_make_optical_surface()

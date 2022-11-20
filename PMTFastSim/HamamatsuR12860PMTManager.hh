@@ -92,21 +92,23 @@ private:
 
     G4VSolid* uncut_pmt_solid; 
     G4VSolid* uncut_body_solid;
+    G4VSolid* uncut_inner_solid;
     G4VSolid* uncut_inner2_solid;
 
     G4Tubs* dynode_solid;
-    //G4double hh_dynode;
-    //G4double z_dynode;
 
     void helper_make_logical_volume();
 
+    G4LogicalVolume* pmt_log;
     G4LogicalVolume* body_log;
+    G4LogicalVolume* inner_log;
     G4LogicalVolume* inner1_log;
     G4LogicalVolume* inner2_log;
     G4LogicalVolume* dynode_log;
 
     void helper_make_physical_volume();
     G4PVPlacement* body_phys;
+    G4PVPlacement* inner_phys;
     G4PVPlacement* inner1_phys;
     G4PVPlacement* inner2_phys;
     G4PVPlacement* dynode_phys;
@@ -137,7 +139,7 @@ private:
     G4LogicalVolume* m_logical_cover;
 
     G4Material* m_cover_mat;
-    bool m_simplify_csg ; 
+    bool m_simple ; 
     bool m_fast_cover;
     bool m_enable_optical_model;
     std::string m_cover_mat_str;
