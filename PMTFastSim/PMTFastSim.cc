@@ -202,15 +202,6 @@ void PMTFastSim::init()
         cerr_redirect err_(cerrbuf.rdbuf());
     
         m_dc = new DetectorConstruction ; 
-        m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
-
-        /*
-        m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
-        m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
-        m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
-        m_lchi = new LowerChimney(LCHI_STR) ;   
-        m_lchi->getLV(); 
-        */
 
         // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
@@ -219,6 +210,18 @@ void PMTFastSim::init()
     std::string out = coutbuf.str(); 
     std::string err = cerrbuf.str(); 
     std::cout << OutputMessage("PMTFastSim::init" , out, err, verbose ); 
+
+    m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
+
+    /*
+    m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
+    m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
+    m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
+    m_lchi = new LowerChimney(LCHI_STR) ;   
+    m_lchi->getLV(); 
+    */
+
+
 
     if(LEVEL > 0) std::cout 
         << "PMTFastSim::init"

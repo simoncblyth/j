@@ -163,14 +163,8 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
 {
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
-    declProp("UsePMTOpticalModel", m_enable_optical_model=true);
-
-    bool useRealSurface = true ; 
-#ifdef PMTFASTSIM_STANDALONE
-    std::cout << "HamamatsuR12860PMTManager::HamamatsuR12860PMTManager" << std::endl ; 
-    useRealSurface = getenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE") == nullptr ? true : false  ;
-#endif
-    declProp("UseRealSurface", m_useRealSurface=useRealSurface );
+    declProp("UsePMTOpticalModel", m_enable_optical_model=true); // SCB: TODO: switch to enum to handle different types of model  
+    declProp("UseRealSurface", m_useRealSurface=true );
 }
 
 std::string HamamatsuR12860PMTManager::desc() const 
@@ -1070,6 +1064,12 @@ A: I think not, because body volume is handled by FastSim when ModelTrigger:true
 
    * so does this mean can set the mirror_logsurf for the entire PMT such 
      that ModelTrigger:false will get the same behaviour       
+
+
+HMM: notice that the optical surface is not with the pmt-Pyrex but the body-Pyrex
+
+* photocathode_logsurf1,2 : inner1_phys<->body_phys
+* mirror_logsurf11,2 : inner2_phys<->body_phys
 
 **/
 

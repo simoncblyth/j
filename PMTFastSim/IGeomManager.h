@@ -24,6 +24,7 @@ use lazy instanciation.
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
 
 #include "NP.hh"
 #include "G4ThreeVector.hh"
@@ -43,6 +44,12 @@ struct PMTFASTSIM_API IGeomManager
 {
     static constexpr const int LEVEL = 0 ;  // using PLOG across projects inconvenient ?
     static constexpr const char* PREFIX = "0123" ; 
+
+    static const char* EnvKey(const std::string& prefix, const std::string& key, char sep='_' ); 
+    template<typename T>
+    static bool  Envv(const char* ekey, T& var ); 
+ 
+
     IGeomManager( const std::string& objName ); 
 
     const std::string& m_objName;
@@ -78,6 +85,29 @@ struct PMTFASTSIM_API IGeomManager
 }; 
 
 
+inline const char* IGeomManager::EnvKey(const std::string& prefix, const std::string& key, char sep ) // static
+{
+    std::stringstream ss ; 
+    ss << prefix << sep << key ; 
+    std::string s = ss.str(); 
+    return strdup(s.c_str()); 
+} 
+
+template<typename T>
+inline bool  IGeomManager::Envv(const char* ekey, T& var )
+{
+    char* v = getenv(ekey);
+    if(v == nullptr) return false ; 
+
+    std::string s(v);
+    std::istringstream iss(s);
+    iss >> var ; 
+
+    return true ; 
+}
+
+
+
 inline IGeomManager::IGeomManager( const std::string& objName )
     :
     m_objName(objName), 
@@ -87,26 +117,46 @@ inline IGeomManager::IGeomManager( const std::string& objName )
 {
 }
 
-
 /**
 IGeomManager::declProp
 ------------------------
 
-Do nothing declProp allows Manager code with base class swapped from ToolBase to IGeomManager 
-to change less of its setup code. 
+This declProp implementation allows Manager code with base class swapped 
+from ToolBase to IGeomManager to avoid needing to change setup code. 
+
+NB var argument is by reference, so this method may changes the member values 
+when called for example with::
+
+   declProp("FastCoverMaterial", m_cover_mat_str="Water");
+   declProp("UsePMTOpticalModel", m_enable_optical_model=false);
+
+The values given above act as the defaults, but they may be changed via envvars eg::
+
+    export hama_FastCoverMaterial=Cheese
+    export hama_UsePMTOpticalModel=1
+
+The "hama" prefix comes from the IGeomManager ctor objName parameter.  
 
 **/
 
 template<typename Type>
 inline bool IGeomManager::declProp(const std::string& key, Type& var)
 {
-    if(LEVEL > 0) std::cout 
+    Type var0 = var ; 
+    const char* ekey = EnvKey(m_objName, key, '_' ) ; 
+    bool set_from_envvar = Envv( ekey, var ); 
+
+    //if(LEVEL > 0) 
+    std::cout 
         << "IGeomManager::declProp"
-        << " objName " << std::setw(30) << objName()
-        << " key " << std::setw(20) << key 
-        << " var " << var  
+        << " objName " << std::setw(10) << objName()
+        << " ekey "  << std::setw(30) << ekey 
+        << " var0 "  << std::setw(10) << var0  
+        << " var "  << std::setw(10) << var  
+        << " set_from_envvar " << ( set_from_envvar ? "YES" : "NO" )   
         << std::endl
         ; 
+
     return true ; 
 }
 
