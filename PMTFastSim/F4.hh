@@ -10,6 +10,9 @@ struct F4
     static G4double Distance_(const G4VSolid* solid, const G4ThreeVector& pos, const G4ThreeVector& dir, EInside* in ); 
     static std::string DescDist(const G4FastTrack &fastTrack, const G4VSolid* solid_ ); 
     static std::string Desc(const G4FastTrack &fastTrack, const char* opt); 
+
+    static int PhotonId(const G4FastTrack &fastTrack) ; 
+
 };
 
 
@@ -79,23 +82,35 @@ inline std::string F4::Desc(const G4FastTrack &fastTrack, const char* opt) // st
     const G4VPhysicalVolume* volume = primaryTrack->GetVolume() ; 
     const G4String& volumeName = volume->GetName() ; 
 
+    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
+    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
+    G4ThreeVector lpol = fastTrack.GetPrimaryTrackLocalPolarization();
+
+    int photon_id = PhotonId(fastTrack) ; 
+
     std::stringstream ss ; 
     ss << "F4::Desc" << std::endl ; 
 
     if( opt && strstr(opt, "Hdr" )) ss
         << " Hdr " 
+        << " photon_id " << std::setw(6) << photon_id
+        << " volumeName " << std::setw(20) << volumeName
+        << " lpos " << std::setw(20) << lpos 
+        << " ldir " << std::setw(20) << ldir 
+        << std::endl
+        ;
+
+    if( opt && strstr(opt, "Dbg" )) ss
+        << " Dbg " 
         << std::endl
         << " primaryTrack " << primaryTrack
+        << " photon_id " << photon_id
         << " envelopeSolid " << envelopeSolid
         << " envelopeSolidName " << envelopeSolidName
         << " volume " << volume
         << " volumeName " << volumeName
         << std::endl
         ;
-
-    G4ThreeVector lpos = fastTrack.GetPrimaryTrackLocalPosition();
-    G4ThreeVector ldir = fastTrack.GetPrimaryTrackLocalDirection();
-    G4ThreeVector lpol = fastTrack.GetPrimaryTrackLocalPolarization();
 
     if( opt && strstr(opt, "Vec" )) ss
         << " Vec " 
@@ -109,4 +124,13 @@ inline std::string F4::Desc(const G4FastTrack &fastTrack, const char* opt) // st
     std::string s = ss.str(); 
     return s ; 
 }
+
+inline int F4::PhotonId(const G4FastTrack& fastTrack ) // static   0-based id 
+{
+     const G4Track* track = fastTrack.GetPrimaryTrack() ; 
+     int photon_id = track ? track->GetTrackID() - 1 : -1   ; 
+     return photon_id ;  
+}
+
+
 

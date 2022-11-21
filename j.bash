@@ -19,6 +19,10 @@ Reminders
 
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/47
 
+Mattermost
+-----------
+
+https://mattermost.ihep.ac.cn/signup_user_complete/?id=8diw658t67gkfjgwkn5awi7zgo 
 
 
 DocDB

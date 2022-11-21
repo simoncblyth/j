@@ -202,6 +202,7 @@ whereAmI == kInGlass:false    (actually kUpperVacuum )
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
 #ifdef PMTFASTSIM_STANDALONE
+
      LOG(LEVEL)
          << F4::Desc(fastTrack, "Hdr,Vec" )
          << F4::DescDist(fastTrack, nullptr) 
@@ -291,13 +292,17 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
     dbg.ModelTrigger = double(ret) ; 
     dbg.whereAmI = double(whereAmI) ;  
     dbg.c = 0. ; 
-    dbg.d = 0. ; 
+
+    int photon_id = F4::PhotonId(fastTrack) ; 
+    dbg.PhotonId = double(photon_id) ; 
   
     dbg.add() ; 
 
-#ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL) << "junoPMTOpticalModel::ModelTrigger ret " << ret  ;  
-#endif
+    LOG(LEVEL) 
+        << "junoPMTOpticalModel::ModelTrigger"
+        << " photon_id " << std::setw(6) << photon_id       
+        << " ret " << ret
+        ;  
    
     return ret ; 
 #endif
@@ -633,6 +638,7 @@ Current four volume geometry ~features two fake boundaries
 and two nearly coincident: the 2nd Pyrex and inner1-Vacuum and inner2-Vacuum 
 are separated by only 1e-3 mm):: 
 
+UsePMTOpticalModel:1
 
      +---------------pmt-Pyrex----------------+
      |                                        |
@@ -655,6 +661,34 @@ are separated by only 1e-3 mm)::
      |                                        |
      |                                        |
      +----------------------------------------+
+
+UsePMTOpticalModel:0
+
+     +---------------pmt-Pyrex----------------+
+     | +-------------body-Pyrex-------------+ |
+     | |                                    | |
+     | |                                    | |
+     | |     +------------------------+     | |
+     | |     |                        |     | |
+     | |     |                        |     | |
+     | |     |        inner1-Vacuum   |     |-|
+     | |     |                        |     |1e-3
+     | |     |                        |     | |
+     | |     +~~coincident~face~~~~~~~+     | |
+     | |     |                        |     | |
+     | |     |                        |     | |
+     | |     |        inner2-Vacuum   |     | |
+     | |     |                        |     | |
+     | |     |                        |     | |
+     | |     +------------------------+     | |
+     | |                                    | |
+     | |                                    | |
+     | +------------------------------------+ |
+     +----------------------------------------+
+
+
+
+
 
 Using square PMT as difficult to draw ellipsoids in ascii. 
 **/
@@ -1015,7 +1049,4 @@ void junoPMTOpticalModel::CalculateCoefficients(
          ;
 }
 #endif
-
-
-
 

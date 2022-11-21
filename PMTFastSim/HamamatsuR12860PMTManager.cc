@@ -374,10 +374,23 @@ void HamamatsuR12860PMTManager::init_pmt()
 HamamatsuR12860PMTManager::helper_make_solid
 ----------------------------------------------
 
-Tail cutting when real surface is enabled was first implemented by Tao Lin, 09 Aug 2021
+* body_delta depends on m_enable_optical_model 
+* TODO: find out why body solid is needed at all 
 
-* TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
-* ancient TODO: face of tube 100 um from front of cylinder
+m_enable_optical_model:false
+
+   1e-3  0                           -5
+    | Py |             Py            |   Vac
+    |    |                           |
+   pmt  body                        inner
+
+
+m_enable_optical_model:true
+
+   1e-3                    -5+1e-3  -5
+    |         Py                 Py  |    Vac 
+    |                         |      |
+   pmt                       body   inner
 
 **/
 

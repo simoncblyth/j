@@ -252,3 +252,116 @@ Generation from SGenerate::GeneratePhotons::
     119     NP* ph = SGenerate::GeneratePhotons(); 
 
 
+
+Ten photons down : at apex : reordered to put same histories together
+-----------------------------------------------------------------------
+
+Logging only in ModelTrigger with FastSim envelope the body_log (so dont see pmt_phys here)::
+
+    epsilon:tests blyth$ grep photon_id U4PMTFastSimTest.log
+     Hdr  photon_id      9 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      8 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      7 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      4 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      3 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      1 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      0 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+
+     Hdr  photon_id      6 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      6 volumeName         _inner1_phys lpos                    (0,0,185)     ldir                    (0,0,-1)
+     Hdr  photon_id      6 volumeName         _inner2_phys lpos                    (0,0,0)       ldir                    (0,0,-1)
+
+     Hdr  photon_id      5 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      5 volumeName         _inner1_phys lpos                    (0,0,185)     ldir                    (0,0,-1)
+     Hdr  photon_id      5 volumeName         _inner2_phys lpos                    (0,0,0)       ldir                    (0,0,-1)
+
+     Hdr  photon_id      2 volumeName           _body_phys lpos                    (0,0,185.001) ldir                    (0,0,-1)
+     Hdr  photon_id      2 volumeName         _inner1_phys lpos                    (0,0,185)     ldir                    (0,0,-1)
+     Hdr  photon_id      2 volumeName         _inner2_phys lpos                    (0,0,0)       ldir                    (0,0,-1)
+
+
+
+More Photons to look for intersecting histories, as far as can see from ModelTrigger
+-----------------------------------------------------------------------------------------
+
+::
+
+     Hdr  photon_id     96 volumeName           _body_phys lpos                    (201.463,0,108.723) ldir                    (-0.0827612,0,-0.996569)
+     Hdr  photon_id     96 volumeName         _inner1_phys lpos                    (201.463,0,108.722) ldir                    (0.510805,0,-0.859697)
+     Hdr  photon_id     96 volumeName         _inner1_phys lpos                    (243.875,0,37.3422) ldir                    (0.00504964,0,-0.999987)
+     Hdr  photon_id     96 volumeName         _inner2_phys lpos                    (244.063,0,0) ldir                          (0.00504964,0,-0.999987)
+     Hdr  photon_id     96 volumeName           _body_phys lpos                    (244.27,0,-40.8886) ldir                    (-0.501479,0,-0.86517)
+     Hdr  photon_id     96 volumeName         _inner2_phys lpos                    (244.27,0,-40.8886) ldir                    (-0.501479,0,-0.86517)
+     Hdr  photon_id     96 volumeName           _body_phys lpos                    (202.936,0,-112.199) ldir                    (-0.84228,0,-0.539041)
+     Hdr  photon_id     96 volumeName         _inner2_phys lpos                    (202.936,0,-112.199) ldir                    (-0.84228,0,-0.539041)
+
+
+Pick some big history photons::
+
+    In [4]: u_pid, u_pid_count = np.unique( pid, return_counts=True )     
+
+    In [12]: u_pid[u_pid_count > 12]
+    Out[12]: array([726])
+
+    In [13]: pos.shape
+    Out[13]: (1671, 3)
+
+    In [14]: pid.shape
+    Out[14]: (1671,)
+
+    In [15]: np.where( pid == 726 )
+    Out[15]: (array([460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 471, 472, 473]),)
+
+
+
+    In [17]: np.c_[pos[pid == 726],mom[pid == 726]]
+    Out[17]: 
+    array([[-112.83 ,    0.   ,  164.918,    0.032,    0.   ,   -0.999],
+           [-112.83 ,    0.   ,  164.917,   -0.138,    0.   ,   -0.99 ],
+           [-156.577,    0.   , -148.846,    0.81 ,    0.   ,    0.587],
+           [ -95.   ,    0.   , -104.211,   -0.81 ,    0.   ,    0.587],
+           [-238.764,    0.   ,   -0.   ,   -0.81 ,    0.   ,    0.587],
+           [-248.807,    0.   ,    7.28 ,    0.867,    0.   ,    0.498],
+           [  53.205,    0.   ,  180.727,    0.665,    0.   ,   -0.747],
+           [ 245.605,    0.   ,  -35.443,   -0.92 ,    0.   ,   -0.391],
+           [  95.   ,    0.   ,  -99.428,    0.92 ,    0.   ,   -0.391],
+           [ 177.724,    0.   , -134.574,   -0.127,    0.   ,    0.992],
+           [ 160.533,    0.   ,    0.   ,   -0.127,    0.   ,    0.992],
+           [ 141.059,    0.   ,  152.451,   -0.878,    0.   ,   -0.479],
+           [-239.66 ,    0.   ,  -55.195,    0.975,    0.   ,    0.224],
+           [   0.427,    0.   ,    0.   ,    0.975,    0.   ,    0.224]])
+
+
+
+
+Understanding the positions
+------------------------------
+
+
+::
+
+     373 /**
+     374 HamamatsuR12860PMTManager::helper_make_solid
+     375 ----------------------------------------------
+     376 
+     377 * body_delta depends on m_enable_optical_model 
+     378 * TODO: find out why body solid is needed at all 
+     379 
+     380 m_enable_optical_model:false
+     381 
+     382    1e-3  0                           -5
+     383     | Py |             Py            |   Vac
+     384     |    |                           |
+     385    pmt  body                        inner
+     386 
+     387 
+     388 m_enable_optical_model:true
+     389 
+     390    1e-3                    -5+1e-3  -5
+     391     |         Py                 Py  |    Vac 
+     392     |                         |      |
+     393    pmt                       body   inner
+     394 
+     395 **/
+
+
