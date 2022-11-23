@@ -365,3 +365,208 @@ Understanding the positions
      395 **/
 
 
+
+9e99 kInfinity is obnoxious : replace with -1
+-------------------------------------------------
+
+::
+
+    In [15]: extra[:,1]
+    Out[15]: 
+    array([[ 3.242e-02,  0.000e+00, -9.995e-01,  1.050e-03],
+           [-1.381e-01,  0.000e+00, -9.904e-01,  1.665e+02],
+           [ 8.097e-01,  0.000e+00,  5.869e-01,  2.536e+02],
+           [-8.097e-01,  0.000e+00,  5.869e-01,  1.776e+02],
+           [-8.097e-01,  0.000e+00,  5.869e-01,  1.240e+01],
+           [ 8.672e-01,  0.000e+00,  4.980e-01,  3.483e+02],
+
+
+    In [16]: np.where( extra == 9e99 )
+    Out[16]: 
+    (array([ 4,  5,  7,  8,  8, 10, 13]),
+     array([2, 2, 1, 1, 2, 2, 2]),
+     array([3, 3, 3, 3, 3, 3, 3]))
+
+    In [17]: extra[np.where( extra == 9e99 )] = -1
+
+    In [18]: extra
+    Out[18]: 
+    array([[[-112.83 ,    0.   ,  164.918,    0.164],
+            [   0.032,    0.   ,   -0.999,    0.001],
+            [   0.   ,   -1.   ,    0.   ,  165.005],
+            [   1.   ,    1.   ,    0.   ,  726.   ]],
+
+           [[-112.83 ,    0.   ,  164.917,    0.164],
+        
+
+Looking at big bouncer note two bounces off inside at top 
+not giving trigger when would have expected them to. 
+
+* this is because DoIt shifts forwards by dist1 : so ModelTrigger is effectively 
+  triggering *dist1* ahead 
+
+
+
+HMM : want to repeat a single torch photon selected from a large sample : how to do that ?
+---------------------------------------------------------------------------------------------
+
+* generation is quick, might as well just apply a mask to the ph array 
+
+::
+
+    117 inline void U4VPrimaryGenerator::GeneratePrimaries(G4Event* event)
+    118 {
+    119     NP* ph = SGenerate::GeneratePhotons();
+
+Best place to do that is `NP* SGenerate::GeneratePhotons()` so can 
+apply to all genstep types. 
+
+HMM: can NP already do item masking ?
+
+* seems not,  bring over from NPY::make_masked
+* YES: that will be needed, added this into NP::MakeSelectCopy 
+
+  * just need "export SGenerate_GeneratePhotons_MASK=726" to mask the generated
+
+* BUT also need to record positions and reset Geant4 random stream 
+
+  * investigating in U4EngineTest.cc
+
+
+Adding evt.save() causes error:: 
+
+    2022-11-23 11:26:24.746 INFO  [62626867] [SEvt::save@1541] SGeo::DefaultDir $DefaultOutputDir
+    2022-11-23 11:26:24.746 INFO  [62626867] [SEvt::save@1613]  dir /tmp/blyth/opticks/GEOM/hamaLogicalPMT/U4PMTFastSimTest/ALL
+    2022-11-23 11:26:24.746 INFO  [62626867] [SEvt::save@1615] [ gather 
+    2022-11-23 11:26:24.747 INFO  [62626867] [SEvt::gather@1493]  k         genstep a  <f4(1, 6, 4, )
+    2022-11-23 11:26:24.747 INFO  [62626867] [SEvt::gather@1493]  k          photon a  <f4(1000, 4, 4, )
+    2022-11-23 11:26:24.748 FATAL [62626867] [*SEvt::gatherHit@1378]  not yet implemented for hostside running : getting this error indicates CompMask mixup
+    Assertion failed: (0), function gatherHit, file /Users/blyth/opticks/sysrap/SEvt.cc, line 1379.
+    ./U4PMTFastSimTest.sh: line 66: 12386 Abort trap: 6           $bin
+    ./U4PMTFastSimTest.sh run error
+    epsilon:tests blyth$ 
+
+
+
+Added RunningMode to SEventConfig for g4state save/rerun control::
+
+    In [1]: a = np.load("/tmp/blyth/opticks/GEOM/hamaLogicalPMT/U4PMTFastSimTest/ALL/g4states.npy")
+
+    In [2]: a.shape
+    Out[2]: (1000, 38)
+
+    In [13]: a[0]
+    Out[13]: 
+    array([2888826676, 3514589213,  215100124, 2552366885,  419715749, 1994477360,  459065707, 2217638329,  348294683, 1646814406,  415070695,  474756176,  528547226, 2937583061,  376307002, 1319456156,
+            234690512,  312598043,  512101989, 1866186205,  241132494, 1788253485,  402684727, 3712579448,    4998380,  409334120,  339164266,  159141042,   77681803, 1507596083,   28576003,  425264305,
+            106735813, 2657964106,  257569119,          6, 3726794656,  135598090], dtype=uint64)
+
+
+    In [10]: a.max()
+    Out[10]: 4294894629
+
+    In [11]: a.max() < 0xffffffff    ## its twice the size as using uint64 when would fit into uint32 
+    Out[11]: True                    ## its because "unsigned long" is 64bit and not 32bit (as it apparently is on some ancient OS)
+
+
+
+
+
+
+Debug g4state rerun
+-----------------------
+
+
+::
+
+    5112 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PostUserTrackingAction_Optical@245]
+     5113 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PreUserTrackingAction@88]
+     5114 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PreUserTrackingAction_Optical@130]
+     5115 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PreUserTrackingAction_Optical@154]  labelling photon spho (gs:ix:id:gn   0 726  726  0)
+     5116 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::saveOrLoadStates@206]  id == SEventConfig::_G4StateRerun 726
+     5117 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::saveOrLoadStates@207] U4Engine::DescStateArray
+     5118 state = np.array([ 2888826676, 853948299, 81707227, 2768798580, 436796321, 24866296, 309900311, 3416087829, 320598279, 83213646, 535678722, 1842038071, 30747806, 1828      092817, 252805928, 1781365106, 522054134, 800148090, 188640588, 1209180860, 287663768, 1713468264, 94225986, 1924824469, 37977166, 1704769691, 201322355, 1866980021,       468350706, 1222870066, 335732855, 2097966227, 425291744, 3793320011, 506523491, 13, 3162134576, 204179185 ], dtype=np.uint64)
+     5119 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::saveOrLoadStates@224]  max_state 1000
+     5120 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::UserSteppingAction_Optical@304]
+     5121 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::Check_TrackStatus_Flag@367]  step.tstat fAlive BOUNDARY_TRANSMIT
+     5122 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::UserSteppingAction_Optical@304]
+     5123 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::Check_TrackStatus_Flag@367]  step.tstat fAlive BOUNDARY_TRANSMIT
+     5124 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::UserSteppingAction_Optical@304]
+     5125 2022-11-23 20:41:22.198 ERROR [63354588] [U4Recorder::UserSteppingAction_Optical@328]  ERR flag zero : post U4StepPoint::Desc proc 0 procName Undefined status 1 statu      sName fGeomBoundary bstat 12 bstatName SameMaterial flag 0 flagName .
+     5126 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::Check_TrackStatus_Flag@367]  step.tstat fSuspend .
+     5127 2022-11-23 20:41:22.198 FATAL [63354588] [U4Recorder::Check_TrackStatus_Flag@394]  unexpected trackstatus  trackStatus fSuspend flag .
+     5128 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PostUserTrackingAction@89]
+     5129 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PostUserTrackingAction_Optical@245]
+     5130 2022-11-23 20:41:22.198 INFO  [63354588] [U4Recorder::PostUserTrackingAction_Optical@256]  not is_fStopAndKill  post.tstat fSuspend
+     5131 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::PreUserTrackingAction@88]
+     5132 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::PreUserTrackingAction_Optical@130]
+     5133 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::saveOrLoadStates@206]  id == SEventConfig::_G4StateRerun 726
+     5134 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::saveOrLoadStates@207] U4Engine::DescStateArray
+     5135 state = np.array([ 2888826676, 3162134576, 204179185, 1635965861, 104104595, 210017765, 54421913, 3212691643, 186327343, 90518726, 213612834, 2952750858, 529322658, 2      988860439, 505676476, 2805755598, 188798436, 1526251316, 108244360, 4127086702, 232821609, 2312679732, 471165782, 1599121603, 245691924, 3156443174, 417089942, 228523      5186, 415866305, 2456245545, 20413889, 454387351, 288821452, 848617616, 271473783, 7, 1465025331, 163065198 ], dtype=np.uint64)
+     5136 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::saveOrLoadStates@224]  max_state 1000
+     5137 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::UserSteppingAction_Optical@304]
+     5138 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::Check_TrackStatus_Flag@367]  step.tstat fAlive BOUNDARY_TRANSMIT
+     5139 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::UserSteppingAction_Optical@304]
+     5140 2022-11-23 20:41:22.199 INFO  [63354588] [U4Recorder::Check_TrackStatus_Flag@367]  step.tstat fAlive SURFACE_SREFLECT
+
+
+
+::
+
+    In [16]: np.all( a[726] == state )
+    Out[16]: True
+
+
+Need to restore state at the same place where labelling happens, as that happens once per photon::
+
+    epsilon:tests blyth$ grep labelling U4PMTFastSimTest.log > /tmp/labelling
+    epsilon:tests blyth$ vi /tmp/labelling
+    epsilon:tests blyth$ wc /tmp/labelling
+        1000   13000  142000 /tmp/labelling
+    epsilon:tests blyth$ 
+
+::
+
+     5037 2022-11-23 22:01:49.249 INFO  [63431498] [U4Recorder::PreUserTrackingAction_Optical@130]
+     5038 2022-11-23 22:01:49.249 INFO  [63431498] [U4Recorder::PreUserTrackingAction_Optical@154]  labelling photon spho (gs:ix:id:gn   0 726  726  0)
+     5039 2022-11-23 22:01:49.250 INFO  [63431498] [U4Recorder::saveOrLoadStates@207]  id == SEventConfig::_G4StateRerun 726
+     5040 2022-11-23 22:01:49.250 INFO  [63431498] [U4Recorder::saveOrLoadStates@208] U4Engine::DescStateArray
+     5041 
+     5042 state = np.array([
+     5043 2888826676, 853948299, 81707227, 2768798580, 436796321, 24866296, 309900311, 3416087829, 320598279, 83213646,
+     5044 535678722, 1842038071, 30747806, 1828092817, 252805928, 1781365106, 522054134, 800148090, 188640588, 1209180860,
+     5045 287663768, 1713468264, 94225986, 1924824469, 37977166, 1704769691, 201322355, 1866980021, 468350706, 1222870066,
+     5046 335732855, 2097966227, 425291744, 3793320011, 506523491, 13, 3162134576, 204179185 ], dtype=np.uint64)
+     5047 
+     5048 2022-11-23 22:01:49.250 INFO  [63431498] [U4Recorder::saveOrLoadStates@225]  max_state 1000
+     5049 2022-11-23 22:01:49.250 INFO  [63431498] [U4Recorder::UserSteppingActi
+
+
+SEvtLoadTest.sh::
+
+    2022-11-23 22:39:26.922 INFO  [63476608] [main@24]  SEvt::getG4State (1000, 38, )
+    SEventConfig::_G4StateRerun 726
+    np.array([ 
+    2888826676, 853948299, 81707227, 2768798580, 436796321, 24866296, 309900311, 3416087829, 320598279, 83213646, 
+    535678722, 1842038071, 30747806, 1828092817, 252805928, 1781365106, 522054134, 800148090, 188640588, 1209180860, 
+    287663768, 1713468264, 94225986, 1924824469, 37977166, 1704769691, 201322355, 1866980021, 468350706, 1222870066, 
+    335732855, 2097966227, 425291744, 3793320011, 506523491, 13, 3162134576, 204179185 ], dtype=np.uint64 )
+    epsilon:tests blyth$ 
+
+
+
+    2022-11-23 22:59:25.382 INFO  [63517682] [U4Recorder::PreUserTrackingAction_Optical@154]  labelling photon spho (gs:ix:id:gn   0 726  726  0)
+    2022-11-23 22:59:25.382 INFO  [63517682] [U4Recorder::saveOrLoadStates@241] U4Engine::RestoreState for id (SEventConfig::_G4StateRerun)  726
+    U4Engine::DescStateArray
+
+    state = np.array([ 
+    2888826676, 853948299, 81707227, 2768798580, 436796321, 24866296, 309900311, 3416087829, 320598279, 83213646, 
+    535678722, 1842038071, 30747806, 1828092817, 252805928, 1781365106, 522054134, 800148090, 188640588, 1209180860, 
+    287663768, 1713468264, 94225986, 1924824469, 37977166, 1704769691, 201322355, 1866980021, 468350706, 1222870066, 
+    335732855, 2097966227, 425291744, 3793320011, 506523491, 13, 3162134576, 204179185 ], dtype=np.uint64 )
+
+    2022-11-23 22:59:25.382 INFO  [63517682] [U4Recorder::UserSteppingAction_Optical@316] 
+
+
+
+
