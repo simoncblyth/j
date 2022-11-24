@@ -19,6 +19,8 @@
 
     #include "MultiFilmModel.h"
     #include "plog/Severity.h"
+    #include "SFastSimOpticalModel.hh"
+
     struct JPMT ; 
     template<typename T> struct ART_ ; 
     template<typename T> struct Layr ; 
@@ -40,7 +42,10 @@ enum EWhereAmI { OutOfRegion, kInGlass, kInVacuum };
 
 #ifdef PMTFASTSIM_STANDALONE
 #include "PMTFASTSIM_API_EXPORT.hh"
-class PMTFASTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
+class PMTFASTSIM_API junoPMTOpticalModel 
+    : 
+    public G4VFastSimulationModel,
+    public SFastSimOpticalModel
 #else
 class junoPMTOpticalModel : public G4VFastSimulationModel
 #endif
@@ -48,12 +53,14 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
     public:
 #ifdef PMTFASTSIM_STANDALONE
         static const plog::Severity LEVEL ; 
+        char getStatus() const ;  // fulfil SFastSimOpticalModel virtual method
 #endif
     public:
         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*); 
         ~junoPMTOpticalModel();
 
         virtual G4bool IsApplicable(const G4ParticleDefinition&);
+        virtual G4bool ModelTrigger_(const G4FastTrack&);
         virtual G4bool ModelTrigger(const G4FastTrack&);
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
 
@@ -116,9 +123,11 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
         G4ThreeVector norm;
 
         EWhereAmI whereAmI;
+        char m_status ; 
         
 #ifdef PMTFASTSIM_STANDALONE
      public:    
+        int ModelTrigger_count ; 
         double minus_cos_theta ;  
         static junoPMTOpticalModel* INSTANCE ;  // expedient during single PMT testing          
         JPMT* jpmt ; 

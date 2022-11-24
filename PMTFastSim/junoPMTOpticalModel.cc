@@ -36,7 +36,8 @@
 
 #ifdef PMTFASTSIM_STANDALONE
 junoPMTOpticalModelSimple::junoPMTOpticalModelSimple(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
-    : G4VFastSimulationModel(modelName, envelope)
+    : 
+    G4VFastSimulationModel(modelName, envelope)
 {
     InitOpticalParameters(envelope_phys);
     jpmt = new JPMT ; 
@@ -46,7 +47,11 @@ junoPMTOpticalModelSimple::junoPMTOpticalModelSimple(G4String modelName, G4VPhys
 
 
 junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
-    : G4VFastSimulationModel(modelName, envelope)
+    : 
+    G4VFastSimulationModel(modelName, envelope)
+#ifdef PMTFASTSIM_STANDALONE
+   ,SFastSimOpticalModel(modelName.c_str())
+#endif
 {
     _photon_energy  = 0.;
     _wavelength     = 0.;
@@ -88,8 +93,10 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     norm            = G4ThreeVector(0., 0., 0.);
     
     whereAmI        = OutOfRegion;
+    m_status        = '?' ; 
 
 #ifdef PMTFASTSIM_STANDALONE
+    ModelTrigger_count = 0 ; 
     INSTANCE = this ; 
     jpmt = new JPMT ; 
 #endif
@@ -103,6 +110,12 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
 const plog::Severity junoPMTOpticalModelSimple::LEVEL = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
 const plog::Severity junoPMTOpticalModel::LEVEL       = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
 junoPMTOpticalModel* junoPMTOpticalModel::INSTANCE = nullptr ; 
+
+char junoPMTOpticalModel::getStatus() const
+{
+    return m_status ; 
+}
+
 #endif
 
 junoPMTOpticalModel::~junoPMTOpticalModel(){}
@@ -201,8 +214,18 @@ whereAmI == kInGlass:false    (actually kUpperVacuum )
 
 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
+    G4bool ret = ModelTrigger_(fastTrack) ; // use wrapper to cope with spagetti returns
 #ifdef PMTFASTSIM_STANDALONE
+    LOG(LEVEL) << " ModelTrigger_count " << std::setw(3) << ModelTrigger_count << " Result : " << ( ret ? "YES" : "NO" ) ;  
+    ModelTrigger_count += 1 ; 
+#endif
+    return ret ; 
 
+}
+G4bool junoPMTOpticalModel::ModelTrigger_(const G4FastTrack &fastTrack)
+{
+#ifdef PMTFASTSIM_STANDALONE
+     /*
      LOG(LEVEL)
          << F4::Desc(fastTrack, "Hdr,Vec" )
          << F4::DescDist(fastTrack, nullptr) 
@@ -212,12 +235,13 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
          << F4::DescDist(fastTrack, _inner2_solid ) 
          << std::endl 
          ;
+     */
 #endif
 
     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner2_phys)
     {
 #ifdef PMTFASTSIM_STANDALONE
-        LOG(LEVEL) << "junoPMTOpticalModel::ModelTrigger NOT inner2_phys EARLY EXIT " ;  
+        LOG(LEVEL) << " NOT inner2_phys EARLY EXIT " ;  
         // backwards photons have to get out of inner2 before get passed this early exit   
 #endif
         return false;
@@ -528,19 +552,23 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     if(rand_absorb < A){
         // absorbed
         fastStep.ProposeTrackStatus(fStopAndKill);
+        m_status = 'A' ; 
         if(rand_escape<escape_fac){
         // detected
             fastStep.ProposeTotalEnergyDeposited(_photon_energy);
+            m_status = 'D' ; 
         }
     }else if(rand_absorb < A+R){
         // fastStep.ProposeTrackStatus(fStopAndKill);
         // reflected
         Reflect();
+        m_status = 'R' ; 
         UpdateTrackInfo(fastStep);
     }else{
         // fastStep.ProposeTrackStatus(fStopAndKill);
         // transmitted
         Refract();
+        m_status = 'T' ; 
         if(whereAmI == kInGlass){
             whereAmI = kInVacuum;
         }else{
@@ -571,13 +599,15 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     LOG(LEVEL)
         << "junoPMTOpticalModel::DoIt"
+        << " m_status " 
+        << m_status
         << " stack.art "
         << std::endl 
         << stack.art
-        << std::endl 
-        << " stack "
-        << std::endl 
-        << stack 
+        //<< std::endl 
+        //<< " stack "
+        //<< std::endl 
+        //<< stack 
         ; 
 #endif
 
@@ -618,6 +648,10 @@ void junoPMTOpticalModel::CalculateCoefficients()
 
 void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
 {
+#ifdef PMTFASTSIM_STANDALONE
+     LOG(LEVEL); 
+#endif
+
     fastStep.SetPrimaryTrackFinalTime(time);
     fastStep.SetPrimaryTrackFinalPosition(pos);
     fastStep.SetPrimaryTrackFinalMomentum(dir);

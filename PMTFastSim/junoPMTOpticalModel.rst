@@ -569,4 +569,331 @@ SEvtLoadTest.sh::
 
 
 
+/tmp/blyth/opticks/GEOM/hamaLogicalPMT/U4PMTFastSimTest/ALL
+
+
+
+Making sense of the big bouncer
+----------------------------------
+
+::
+
+    ./U4PMTFastSimTest.sh
+
+HMM: to succeed to rerun with SRM_G4STATE_RERUN 
+have to keep almost everything in the .sh the same as when save the states 
+with SRM_G4STATE_SAVE::
+
+     13 export Local_G4Cerenkov_modified_DISABLE=1
+     14 export Local_DsG4Scintillation_DISABLE=1
+     15 export G4FastSimulationManagerProcess_ENABLE=1
+     16 
+     17 #running_mode=SRM_G4STATE_SAVE  
+     18 running_mode=SRM_G4STATE_RERUN
+     19 export OPTICKS_RUNNING_MODE=$running_mode   # see SEventConfig::RunningMode
+     20 export OPTICKS_G4STATE_RERUN=726
+     21 
+     22 export GEOM=hamaLogicalPMT
+     23 export U4RecorderTest__PRIMARY_MODE=torch
+     24 # hmm seems iphoton and torch do same thing internally 
+     25 export BeamOn=${BeamOn:-1}
+     26 
+     27 export hama_FastCoverMaterial=Cheese
+     28 export hama_UsePMTOpticalModel=1
+     29 
+     30 #num_ph=2
+     31 #num_ph=10
+     32 num_ph=1000
+     33 #num_ph=50000
+     34 
+     35 radius=250
+     36 #radius=0
+     37 [ $num_ph -lt 11  ] && radius=0
+     38 
+     39 export SEvent_MakeGensteps_num_ph=$num_ph
+     40 export storch_FillGenstep_type=line     # disc
+     41 export storch_FillGenstep_radius=$radius
+     42 
+     43 # up from line below equator
+     44 #export storch_FillGenstep_pos=0,0,-20
+     45 #export storch_FillGenstep_mom=0,0,1
+     46 
+     47 # down from line outside Pyrex
+     48 export storch_FillGenstep_pos=0,0,200
+     49 export storch_FillGenstep_mom=0,0,-1
+     50 
+     51 
+     52 bin=U4PMTFastSimTest
+     53 log=$bin.log
+     54 
+     55 loglevel(){
+     56    export U4Recorder=INFO
+     57    #export junoPMTOpticalModel=INFO
+     58    #export SEvt=INFO
+     59    export SEventConfig=INFO
+     60 }
+     61 loglevel
+     62 
+     63 
+     64 defarg="run"
+     65 arg=${1:-$defarg}
+     66 
+     67 if [ "$arg" == "run" ]; then
+     68     [ -f "$log" ] && rm $log
+     69     $bin
+     70     [ $? -ne 0 ] && echo $BASH_SOURCE run error && exit 1
+     71 fi
+     72 
+
+
+
+
+::
+
+    2022-11-24 11:05:22.892 INFO  [63694727] [U4Recorder::BeginOfRunAction@84] 
+    2022-11-24 11:05:22.892 INFO  [63694727] [U4RecorderTest::GeneratePrimaries@152] [ fPrimaryMode T
+    SGenerate::GeneratePhotons rerun_id 726 ph  <f4(1000, 4, 4, ) phs  <f4(1, 4, 4, ) (OPTICKS_G4STATE_RERUN) 
+    U4VPrimaryGenerator::GeneratePrimaries ph (1, 4, 4, )
+    2022-11-24 11:05:22.895 INFO  [63694727] [U4RecorderTest::GeneratePrimaries@160] ]
+    2022-11-24 11:05:22.896 INFO  [63694727] [U4Recorder::BeginOfEventAction@86] 
+    2022-11-24 11:05:22.897 INFO  [63694727] [U4Recorder::PreUserTrackingAction@88] 
+    2022-11-24 11:05:22.897 INFO  [63694727] [U4Recorder::PreUserTrackingAction_Optical@130] 
+    2022-11-24 11:05:22.897 INFO  [63694727] [U4Recorder::PreUserTrackingAction_Optical@148]  setting rerun_id 726
+    2022-11-24 11:05:22.897 INFO  [63694727] [U4Recorder::PreUserTrackingAction_Optical@154]  labelling photon spho (gs:ix:id:gn   0 726  726  0)
+    2022-11-24 11:05:22.898 INFO  [63694727] [U4Recorder::saveOrLoadStates@241] U4Engine::RestoreState for id (SEventConfig::_G4StateRerun)  726
+    U4Engine::DescStateArray
+
+    state = np.array([ 
+    2888826676, 853948299, 81707227, 2768798580, 436796321, 24866296, 309900311, 3416087829, 320598279, 83213646, 
+    535678722, 1842038071, 30747806, 1828092817, 252805928, 1781365106, 522054134, 800148090, 188640588, 1209180860, 
+    287663768, 1713468264, 94225986, 1924824469, 37977166, 1704769691, 201322355, 1866980021, 468350706, 1222870066, 
+    335732855, 2097966227, 425291744, 3793320011, 506523491, 13, 3162134576, 204179185 ], dtype=np.uint64 )
+
+
+
+From::
+
+    ./U4PMTFastSim.sh nana
+
+    In [3]: extra.reshape(-1,16)
+    Out[3]: 
+    array([[-112.83 ,    0.   ,  164.918,    0.164,    0.032,    0.   ,   -0.999,    0.001,    0.   ,   -1.   ,    0.   ,  165.005,    1.   ,    1.   ,    0.   ,  726.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,  166.512,    0.   ,   -1.   ,    0.   ,  166.512,    0.   ,    2.   ,    0.   ,  726.   ],
+           [-156.577,    0.   , -148.846,    1.778,    0.81 ,    0.   ,    0.587,  253.614,    0.   ,    1.   ,    0.   ,    0.   ,    0.   ,    1.   ,    0.   ,  726.   ],
+           [ -95.   ,    0.   , -104.211,    2.166,   -0.81 ,    0.   ,    0.587,  177.561,    0.   ,   -1.   ,    0.   ,  169.042,    0.   ,    1.   ,    0.   ,  726.   ],
+           [-238.764,    0.   ,   -0.   ,    3.071,   -0.81 ,    0.   ,    0.587,   12.404,    0.   ,   -1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ],
+           [-248.807,    0.   ,    7.28 ,    3.112,    0.867,    0.   ,    0.498,  348.275,    0.   ,   -1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ],
+           [  53.205,    0.   ,  180.727,    4.274,    0.665,    0.   ,   -0.747,  241.943,    0.   ,   -1.   ,    0.   ,  241.943,    0.   ,    2.   ,    0.   ,  726.   ],
+           [ 245.605,    0.   ,  -35.443,    5.749,   -0.92 ,    0.   ,   -0.391,   -1.   ,    0.   ,    1.   ,    0.   ,    0.   ,    0.   ,    1.   ,    0.   ,  726.   ],
+           [  95.   ,    0.   ,  -99.428,    6.583,    0.92 ,    0.   ,   -0.391,   -1.   ,    0.   ,   -1.   ,    0.   ,   -1.   ,    0.   ,    1.   ,    0.   ,  726.   ],
+           [ 177.724,    0.   , -134.574,    7.041,   -0.127,    0.   ,    0.992,  135.667,    0.   ,    1.   ,    0.   ,    0.   ,    0.   ,    1.   ,    0.   ,  726.   ],
+           [ 160.533,    0.   ,    0.   ,    7.732,   -0.127,    0.   ,    0.992,  153.69 ,    0.   ,    1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ],
+           [ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,  318.39 ,    0.   ,    1.   ,    0.   ,  318.39 ,    0.   ,    2.   ,    0.   ,  726.   ],
+           [-239.66 ,    0.   ,  -55.195,   10.455,    0.975,    0.   ,    0.224,  246.349,    0.   ,   -1.   ,    0.   ,    0.   ,    0.   ,    1.   ,    0.   ,  726.   ],
+           [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,  243.678,    0.   ,   -1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ]])
+
+    In [4]:            
+
+
+FastSim record saving is mangled with overwrites
+--------------------------------------------------
+
+Record/photon somehow mangled. 
+Checking the times makes it clear that overwrites are happening. 
+
+* The record slot needs adapting for FastSim somehow. 
+
+Its kinda like reemission rejoining with the photon history 
+split up into multiple tracks that need joining. But need to 
+correctly determine the record slot at which to write the entry.  
+
+Some of the positions/times/mom match ModelTrigger but many do not. The first is repeated::
+
+    In [6]: t.record.shape
+    Out[6]: (1000, 10, 4, 4)
+
+    In [11]: t.record[726].reshape(-1,16)
+    Out[11]: 
+    array([[ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-138.46 ,    0.   ,    0.   ,    9.867,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-239.66 ,    0.   ,  -55.195,   10.455,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 237.91 ,    0.   ,   54.596,   12.523,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 160.533,    0.   ,    0.   ,    7.732,   -0.127,    0.   ,    0.992,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+    In [12]: t.photon[726]                                                                                                                                                       
+    Out[12]: 
+    array([[237.91 ,   0.   ,  54.596,  12.523],
+           [  0.975,   0.   ,   0.224,   0.   ],
+           [  0.   ,  -1.   ,   0.   , 420.   ],
+           [  0.   ,   0.   ,   0.   ,   0.   ]], dtype=float32)
+
+    In [13]:                                                                        
+
+
+Get multiple first_point::
+
+    U4Recorder::BeginOfEventAction@86: 
+    U4Recorder::UserSteppingAction_Optical@341:  first_point 
+    U4Recorder::UserSteppingAction_Optical@341:  first_point 
+    U4Recorder::UserSteppingAction_Optical@341:  first_point 
+    U4Recorder::UserSteppingAction_Optical@341:  first_point 
+    U4Recorder::UserSteppingAction_Optical@341:  first_point 
+    U4Recorder::EndOfEventAction@87: 
+
+
+
+
+
+
+    epsilon:tests blyth$ grep U4StepPoint::DescPositionTime U4PMTFastSimTest.log
+    U4StepPoint::DescPositionTime (   -113.000      0.000    170.163      0.137)  ?
+
+    U4StepPoint::DescPositionTime (   -112.830      0.000    164.918      0.164)  0
+    U4StepPoint::DescPositionTime (   -112.830      0.000    164.917      0.164)  1
+
+    U4StepPoint::DescPositionTime (   -135.824      0.000      0.000      1.012)  ??? 
+
+    U4StepPoint::DescPositionTime (   -156.577      0.000   -148.846      1.778)  2
+    U4StepPoint::DescPositionTime (    -95.000      0.000   -104.211      2.166)  3
+    U4StepPoint::DescPositionTime (   -238.764      0.000     -0.000      3.071)  4
+    U4StepPoint::DescPositionTime (   -248.807      0.000      7.280      3.112)  5
+    U4StepPoint::DescPositionTime (     53.205      0.000    180.727      4.274)  6
+
+    U4StepPoint::DescPositionTime (    214.060      0.000      0.000      5.507)  ???
+
+    U4StepPoint::DescPositionTime (    245.605      0.000    -35.443      5.749)  7
+    U4StepPoint::DescPositionTime (     95.000      0.000    -99.428      6.583)  8
+    U4StepPoint::DescPositionTime (    177.724      0.000   -134.574      7.041)  9
+    U4StepPoint::DescPositionTime (    160.533      0.000      0.000      7.732) 10 
+    U4StepPoint::DescPositionTime (    141.059      0.000    152.451      8.245) 11
+
+    U4StepPoint::DescPositionTime (   -138.460      0.000      0.000      9.867)  ???
+
+    U4StepPoint::DescPositionTime (   -239.660      0.000    -55.195     10.455) 12 
+    U4StepPoint::DescPositionTime (      0.427      0.000      0.000     11.710) 13
+
+    U4StepPoint::DescPositionTime (    237.910      0.000     54.596     12.523)  ?
+    epsilon:tests blyth$ 
+
+
+
+53 2022-11-24 12:24:30.078 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@323]
+ 54 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::Check_TrackStatus_Flag@383]  step.tstat fAlive BOUNDARY_TRANSMIT from UserSteppingAction_Optical
+ 55 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@357] U4StepPoint::DescPositionTime (   -113.000      0.000    170.163      0.137)
+ 56 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@323]
+ 57 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::Check_TrackStatus_Flag@383]  step.tstat fAlive BOUNDARY_TRANSMIT from UserSteppingAction_Optical
+ 58 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@357] U4StepPoint::DescPositionTime (   -112.830      0.000    164.918      0.164)
+ 59 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@323]
+ 60 2022-11-24 12:24:30.079 ERROR [63973055] [U4Recorder::UserSteppingAction_Optical@345]  ERR flag zero : post U4StepPoint::Desc proc 0 procName Undefined status 1 statusNa    me fGeomBoundary bstat 12 bstatName SameMaterial flag 0 flagName .
+ 61 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::Check_TrackStatus_Flag@383]  step.tstat fSuspend . from UserSteppingAction_Optical
+ 62 2022-11-24 12:24:30.079 FATAL [63973055] [U4Recorder::Check_TrackStatus_Flag@410]  unexpected trackstatus  trackStatus fSuspend flag .
+ 63 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::UserSteppingAction_Optical@357] U4StepPoint::DescPositionTime (   -112.830      0.000    164.917      0.164)
+ 64 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::PostUserTrackingAction@89]
+ 65 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::PostUserTrackingAction_Optical@262]
+ 66 2022-11-24 12:24:30.079 INFO  [63973055] [U4Recorder::PostUserTrackingAction_Optical@273]  not is_fStopAndKill  post.tstat fSuspend
+ 67 2022-11-24 12:24:30.079 INFO  [639730
+
+
+
+
+Seems get new track at every FastSim DoIt::
+
+    epsilon:tests blyth$ grep "U4Recorder::PreUserTrackingAction_Optical@185: ]" U4PMTFastSimTest.log
+    U4Recorder::PreUserTrackingAction_Optical@185: ]
+    U4Recorder::PreUserTrackingAction_Optical@185: ]
+    U4Recorder::PreUserTrackingAction_Optical@185: ]
+    U4Recorder::PreUserTrackingAction_Optical@185: ]
+    U4Recorder::PreUserTrackingAction_Optical@185: ]
+    epsilon:tests blyth$ 
+
+
+Hmm need way to get info from fast_sim_man to the recorder analogous to boundary process::
+
+    171 void U4RecorderTest::UserSteppingAction(const G4Step* step){     fRecorder->UserSteppingAction<InstrumentedG4OpBoundaryProcess>(step); }
+
+::
+
+    146     else if( status == fGeomBoundary && proc == U4StepPoint_Transportation )
+    147     {
+    148         unsigned bstat = U4OpBoundaryProcess::GetStatus<T>(); 
+    149 
+    150         flag = BoundaryFlag(bstat) ;
+    151         LOG_IF(LEVEL, flag == NAN_ABORT )
+    152             << " fGeomBoundary "
+    153             << " U4OpBoundaryProcessStatus::Name " << U4OpBoundaryProcessStatus::Name(bstat)
+    154             << " flag " << OpticksPhoton::Flag(flag)
+    155             ;
+
+
+
+How to get access to the appropriate G4VFastSimulationModel for a PMT so can ask for a status flag ?
+---------------------------------------------------------------------------------------------------------
+
+::
+
+    junoPMTOpticalModel : public G4VFastSimulationModel
+
+    148 void U4Physics::ConstructOp()
+    149 {
+    ...
+    165     if(EInt("G4FastSimulationManagerProcess_ENABLE", "0") == 1 )
+    166     {
+    167         fFastSim  = new G4FastSimulationManagerProcess("fast_sim_man");
+    168     }
+    ...
+    205         if (particleName == "opticalphoton")
+    206         {
+    207             pmanager->AddDiscreteProcess(fAbsorption);
+    208             pmanager->AddDiscreteProcess(fRayleigh);
+    209             //pmanager->AddDiscreteProcess(fMieHGScatteringProcess);
+    210             pmanager->AddDiscreteProcess(fBoundary);
+    211             if(fFastSim) pmanager->AddDiscreteProcess(fFastSim);
+    212         }
+
+
+Can access the fast_sim_man process, but how to get to the appropriate model from that ?
+The one that just triggered and did its DoIt ?
+
+Does not look like any API to do this in G4FastSimulationManagerProcess
+
+* difficulty is the opticks U4Recorder code cannot directly use junoPMTOpticalModel, 
+  so need an intermediary that can be used to post the status at the last DoIt 
+
+* can require that the fast sim model implements a protocol base S4FastSimOpticalModel 
+  that returns the status of the last DoIt 
+
+::
+
+      1 #pragma once
+      2 struct S4FastSimOpticalModel
+      3 {
+      4     virtual char getStatus() const = 0 ;  // 'A' 'R' 'T' 'D' '?'
+      5 };
+
+
+
+    In [6]: t.record.shape
+    Out[6]: (1000, 10, 4, 4)
+
+    In [11]: t.record[726].reshape(-1,16)
+    Out[11]: 
+    array([[ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-138.46 ,    0.   ,    0.   ,    9.867,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-239.66 ,    0.   ,  -55.195,   10.455,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 237.91 ,    0.   ,   54.596,   12.523,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 160.533,    0.   ,    0.   ,    7.732,   -0.127,    0.   ,    0.992,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+
 
