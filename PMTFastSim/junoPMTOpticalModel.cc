@@ -216,7 +216,7 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
     G4bool ret = ModelTrigger_(fastTrack) ; // use wrapper to cope with spagetti returns
 #ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL) << " ModelTrigger_count " << std::setw(3) << ModelTrigger_count << " Result : " << ( ret ? "YES" : "NO" ) ;  
+    LOG(info) << " ModelTrigger_count " << std::setw(3) << ModelTrigger_count << " Result : " << ( ret ? "YES" : "NO" ) ;  
     ModelTrigger_count += 1 ; 
 #endif
     return ret ; 

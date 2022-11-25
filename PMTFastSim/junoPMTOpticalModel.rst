@@ -671,7 +671,7 @@ with SRM_G4STATE_SAVE::
 
 
 
-From::
+ModelTrigger YES/NO positions, so only points within the envelope::
 
     ./U4PMTFastSim.sh nana
 
@@ -693,6 +693,28 @@ From::
            [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,  243.678,    0.   ,   -1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ]])
 
     In [4]:            
+
+
+After intro resumePhoton using transient_fSuspend_track in U4Recorder::
+
+    In [5]: t.record[726].reshape(-1,16)                                                                                                                                             
+    Out[5]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-112.83 ,    0.   ,  164.918,    0.164,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-135.824,    0.   ,    0.   ,    1.012,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-156.577,    0.   , -148.846,    1.778,    0.81 ,    0.   ,    0.587,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [ -95.   ,    0.   , -104.211,    2.166,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-238.764,    0.   ,   -0.   ,    3.071,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-248.807,    0.   ,    7.28 ,    3.112,    0.867,    0.   ,    0.498,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [  53.205,    0.   ,  180.727,    4.274,    0.665,    0.   ,   -0.747,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+* interesting that this has extra zero crossings 
+* TODO: lift the truncation limit
+
+
 
 
 FastSim record saving is mangled with overwrites
@@ -745,6 +767,23 @@ Get multiple first_point::
     U4Recorder::UserSteppingAction_Optical@341:  first_point 
     U4Recorder::UserSteppingAction_Optical@341:  first_point 
     U4Recorder::EndOfEventAction@87: 
+
+
+::
+
+    1274 void SEvt::finalPhoton(const spho& label)
+    1275 {
+    1276     dbg->finalPhoton++ ;
+    1277     LOG(LEVEL) << label.desc() ;
+    1278     assert( label.isSameLineage(current_pho) );
+    1279     unsigned idx = label.id ;
+    1280     sctx& ctx = current_ctx ;
+    1281     assert( ctx.idx == idx );
+    1282 
+    1283     ctx.end();
+    1284     evt->photon[idx] = ctx.p ;
+    1285 }
+
 
 
 
@@ -893,6 +932,172 @@ Does not look like any API to do this in G4FastSimulationManagerProcess
            [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
            [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
            [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+
+
+
+FastSim and fSuspend
+----------------------
+
+
+::
+
+    epsilon:tests blyth$ g4-
+    epsilon:tests blyth$ g4-cc fSuspend
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/track/src/G4VParticleChange.cc:       } else if( theStatusChange  == fSuspend ){
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/hadronic/management/src/G4HadronicProcess.cc:      aTrack.GetTrackStatus() != fSuspend) {
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/electromagnetic/xrays/src/G4Cerenkov.cc:                           aParticleChange.ProposeTrackStatus(fSuspend);
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/electromagnetic/xrays/src/G4Scintillation.cc:                  aParticleChange.ProposeTrackStatus(fSuspend);
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/electromagnetic/dna/management/src/G4ITStepProcessor2.cc:    case fSuspend:
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/electromagnetic/dna/management/src/G4ITSteppingVerbose.cc:  else if(fTrack->GetTrackStatus() == fSuspend)
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/electromagnetic/dna/management/src/G4ITStepProcessor.cc:  if((fpTrack->GetTrackStatus() == fSuspend) || (fpTrack->GetTrackStatus()
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/parameterisation/src/G4FastSimulationManagerProcess.cc:  if (finalState->GetTrackStatus() != fStopAndKill) finalState->ProposeTrackStatus(fSuspend);
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/tracking/src/G4SteppingManager.cc:   if( (fTrack->GetTrackStatus()==fSuspend) ||
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/tracking/src/G4SteppingVerbose.cc:       } else if( fTrack->GetTrackStatus() == fSuspend ){
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/event/src/G4EventManager.cc:    if(aTrajectory&&(istop!=fStopButAlive)&&(istop!=fSuspend))
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/event/src/G4EventManager.cc:      case fSuspend:
+    epsilon:tests blyth$ 
+    epsilon:tests blyth$ 
+    epsilon:tests blyth$ g4-hh fSuspend
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/track/include/G4TrackStatus.hh:  fSuspend,           // Suspend the current track
+    epsilon:tests blyth$ g4-icc fSuspend
+    epsilon:tests blyth$ 
+
+
+
+
+
+G4Cerenkov uses fSuspend for effecting fTrackSecondariesFirst::
+
+    168 G4VParticleChange*
+    169 G4Cerenkov::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+    170 
+    ...
+    240   ////////////////////////////////////////////////////////////////
+    241 
+    242   aParticleChange.SetNumberOfSecondaries(fNumPhotons);
+    243 
+    244   if (fTrackSecondariesFirst) {
+    245      if (aTrack.GetTrackStatus() == fAlive )
+    246                            aParticleChange.ProposeTrackStatus(fSuspend);
+    247   }
+    248 
+    249   ////////////////////////////////////////////////////////////////
+    250 
+
+
+FastSim process sets fSuspend::
+
+    278 G4VParticleChange*
+    279 G4FastSimulationManagerProcess::
+    280 PostStepDoIt(const G4Track&,
+    281          const G4Step&)
+    282 {
+    283   G4VParticleChange* finalState = fFastSimulationManager->InvokePostStepDoIt();
+    284 
+    285   // If the particle is still alive, suspend it to force physics re-initialisation:
+    286   if (finalState->GetTrackStatus() != fStopAndKill) finalState->ProposeTrackStatus(fSuspend);
+    287 
+    288   return finalState;
+    289 }
+    290 
+
+
+G4SteppingManager::SetInitialStep sets fSuspend back to fAlive::
+
+    255 ///////////////////////////////////////////////////////////
+    256 void G4SteppingManager::SetInitialStep(G4Track* valueTrack)
+    257 ///////////////////////////////////////////////////////////
+    258 {
+    259 
+    260 // Set up several local variables.
+    261    PreStepPointIsGeom = false;
+    262    FirstStep = true;
+    263    fParticleChange = 0;
+    264    fPreviousStepSize = 0.;
+    265    fStepStatus = fUndefined;
+    266 
+    267    fTrack = valueTrack;
+    268    Mass = fTrack->GetDynamicParticle()->GetMass();
+    269 
+    270    PhysicalStep = 0.;
+    271    GeometricalStep = 0.;
+    272    CorrectedStep = 0.;
+    273    PreStepPointIsGeom = false;
+    274    FirstStep = false;
+    275    fStepStatus = fUndefined;
+    276 
+    277    TempInitVelocity = 0.;
+    278    TempVelocity = 0.;
+    279    sumEnergyChange = 0.;
+    280 
+    281 
+    282 // If the primary track has 'Suspend' or 'PostponeToNextEvent' state,
+    283 // set the track state to 'Alive'.
+    284    if( (fTrack->GetTrackStatus()==fSuspend) ||
+    285        (fTrack->GetTrackStatus()==fPostponeToNextEvent) ){
+    286       fTrack->SetTrackStatus(fAlive);
+    287    }
+    288 
+    289 // If the primary track has 'zero' kinetic energy, set the track
+    290 // state to 'StopButAlive'.
+    291    if(fTrack->GetKineticEnergy() <= 0.0){
+    292       fTrack->SetTrackStatus( fStopButAlive );
+    293    }
+    294 
+
+
+After ModelTrigger:YES get fSuspend down the pike::
+
+    SGenerate::GeneratePhotons rerun_id 726 ph  <f4(1000, 4, 4, ) phs  <f4(1, 4, 4, ) (OPTICKS_G4STATE_RERUN) 
+    U4VPrimaryGenerator::GeneratePrimaries ph (1, 4, 4, )
+    U4RecorderTest::GeneratePrimaries@160: ]
+    U4Recorder::BeginOfEventAction@86: 
+    U4Recorder::PreUserTrackingAction_Optical@137:  track 0x7f82b1298420
+    U4Recorder::UserSteppingAction_Optical@360:  first_point, track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   0 Result : YES
+    U4Recorder::PostUserTrackingAction_Optical@278: fSuspend
+    U4Recorder::PreUserTrackingAction_Optical@137:  track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   1 Result : NO
+    U4Recorder::UserSteppingAction_Optical@360:  first_point, track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   2 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   3 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   4 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   5 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   6 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   7 Result : YES
+    U4Recorder::PostUserTrackingAction_Optical@278: fSuspend
+    U4Recorder::PreUserTrackingAction_Optical@137:  track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   8 Result : YES
+    U4Recorder::UserSteppingAction_Optical@360:  first_point, track 0x7f82b1298420
+    U4Recorder::PostUserTrackingAction_Optical@278: fSuspend
+    U4Recorder::PreUserTrackingAction_Optical@137:  track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count   9 Result : NO
+    U4Recorder::UserSteppingAction_Optical@360:  first_point, track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  10 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  11 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  12 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  13 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  14 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  15 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  16 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  17 Result : YES
+    U4Recorder::PostUserTrackingAction_Optical@278: fSuspend
+    U4Recorder::PreUserTrackingAction_Optical@137:  track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  18 Result : NO
+    U4Recorder::UserSteppingAction_Optical@360:  first_point, track 0x7f82b1298420
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  19 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  20 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  21 Result : NO
+    junoPMTOpticalModel::ModelTrigger@219:  ModelTrigger_count  22 Result : YES
+    U4Recorder::PostUserTrackingAction_Optical@278: fStopAndKill
+    U4Recorder::EndOfEventAction@87: 
+    U4Recorder::EndOfRunAction@85: 
+    SEvt::save@1788:  dir /tmp/blyth/opticks/GEOM/hamaLogicalPMT/U4PMTFastSimTest/SEL
+    *SEvt::gatherHit@1548:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SFastSim_Debug::Save dir /tmp/blyth/opticks/GEOM/hamaLogicalPMT/U4PMTFastSimTest/SEL num_record 14
+    main@56:  savedir /tmp/blyth/opticks/GEOM/hamaLogic
 
 
 
