@@ -41,6 +41,7 @@ list(APPEND SOURCES
     Hamamatsu_R12860_PMTSolid.cc
     ZSolid.cc
     junoPMTOpticalModel.cc
+    junoPMTOpticalModelSimple.cc
     MultiFilmModel.cc
     OpticalSystem.cc
     Layer.cc 

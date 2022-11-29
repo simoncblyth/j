@@ -124,7 +124,7 @@ IGeomManager::declProp
 This declProp implementation allows Manager code with base class swapped 
 from ToolBase to IGeomManager to avoid needing to change setup code. 
 
-NB var argument is by reference, so this method may changes the member values 
+NB var argument is by reference, so this method may change the member values 
 when called for example with::
 
    declProp("FastCoverMaterial", m_cover_mat_str="Water");

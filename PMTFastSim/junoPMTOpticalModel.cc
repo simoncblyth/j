@@ -22,6 +22,10 @@
 
 #include "SLOG.hh"
 #include "SFastSim_Debug.hh"
+
+#include "STrackInfo.h"
+#include "spho.h"
+
 #endif
 
 #ifndef PMTFASTSIM_STANDALONE
@@ -34,24 +38,9 @@
 #include <complex>
 
 
-#ifdef PMTFASTSIM_STANDALONE
-junoPMTOpticalModelSimple::junoPMTOpticalModelSimple(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
-    : 
-    G4VFastSimulationModel(modelName, envelope)
-{
-    InitOpticalParameters(envelope_phys);
-    jpmt = new JPMT ; 
-}
-#endif
-
-
-
 junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* envelope_phys, G4Region* envelope)
     : 
     G4VFastSimulationModel(modelName, envelope)
-#ifdef PMTFASTSIM_STANDALONE
-   ,SFastSimOpticalModel(modelName.c_str())
-#endif
 {
     _photon_energy  = 0.;
     _wavelength     = 0.;
@@ -93,11 +82,9 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     norm            = G4ThreeVector(0., 0., 0.);
     
     whereAmI        = OutOfRegion;
-    m_status        = '?' ; 
 
 #ifdef PMTFASTSIM_STANDALONE
     ModelTrigger_count = 0 ; 
-    INSTANCE = this ; 
     jpmt = new JPMT ; 
 #endif
 
@@ -107,65 +94,20 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
 
 }
 #ifdef PMTFASTSIM_STANDALONE
-const plog::Severity junoPMTOpticalModelSimple::LEVEL = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
 const plog::Severity junoPMTOpticalModel::LEVEL       = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
-junoPMTOpticalModel* junoPMTOpticalModel::INSTANCE = nullptr ; 
-
-char junoPMTOpticalModel::getStatus() const
-{
-    return m_status ; 
-}
-
 #endif
 
 junoPMTOpticalModel::~junoPMTOpticalModel(){}
 
 G4bool junoPMTOpticalModel::IsApplicable(const G4ParticleDefinition & particleType)
 {
-    bool ret = (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
-#ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL) << "junoPMTOpticalModel::IsApplicable " << ret ;  
-#endif
-    return ret ; 
+    return (&particleType == G4OpticalPhoton::OpticalPhotonDefinition());
 }
 
 
 
 
 
-
-
-
-/**
-junoPMTOpticalModelSimple::ModelTrigger 
------------------------------------------
-
-Simple Geometry and ModelTrigger : using single inner vacuum which is envelope
-
-* 1 Pyrex "pmt", 1 Vacuum "inner"
-* use Vacuum as the FastSim region
-* trigger when intersect the innner at +ve Z position
-
-::
-                           
-                  Y  .          . Y
-                . |              /   .         +Z
-              .   |             /       .
-             .    +            /          .
-   ----------+          inner /           +----------
-             .               /           .
-              .             +-----------N
-                .                    .        -Z
-                     .          .
-
-**/
-
-#ifdef PMTFASTSIM_STANDALONE
-G4bool junoPMTOpticalModelSimple::ModelTrigger(const G4FastTrack &fastTrack)
-{
-    return fastTrack.GetPrimaryTrackLocalPosition().z() > 0. ;
-}
-#endif
 
 
 
@@ -216,7 +158,7 @@ G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
 {
     G4bool ret = ModelTrigger_(fastTrack) ; // use wrapper to cope with spagetti returns
 #ifdef PMTFASTSIM_STANDALONE
-    LOG(info) << " ModelTrigger_count " << std::setw(3) << ModelTrigger_count << " Result : " << ( ret ? "YES" : "NO" ) ;  
+    LOG(LEVEL) << " ModelTrigger_count " << std::setw(3) << ModelTrigger_count << " Result : " << ( ret ? "YES" : "NO" ) ;  
     ModelTrigger_count += 1 ; 
 #endif
     return ret ; 
@@ -331,60 +273,6 @@ G4bool junoPMTOpticalModel::ModelTrigger_(const G4FastTrack &fastTrack)
     return ret ; 
 #endif
 }
-
-#ifdef PMTFASTSIM_STANDALONE
-void junoPMTOpticalModelSimple::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
-{
-    G4double energy  = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
-    G4double wavelength = twopi*hbarc/energy ;
-
-    energy_eV = energy/eV ;
-    wavelength_nm = wavelength/nm ;
-
-    position = fastTrack.GetPrimaryTrackLocalPosition();
-    direction = fastTrack.GetPrimaryTrackLocalDirection();
-    polarization = fastTrack.GetPrimaryTrackLocalPolarization();
-
-    G4VSolid* envelope_solid = fastTrack.GetEnvelopeSolid();
-    assert( _inner_solid == envelope_solid ); 
-    surface_normal = envelope_solid->SurfaceNormal(position);
-
-    minus_cos_theta = direction*surface_normal ; 
-    whereAmI = minus_cos_theta < 0. ? kInGlass : kInVacuum ; 
-
-
-    int pmtcat = JPMT::HAMA ; 
-
-    StackSpec<double> spec ; 
-    spec.d0  = 0. ; 
-    spec.d1  = jpmt->get_thickness_nm( pmtcat, JPMT::L1 );  
-    spec.d2  = jpmt->get_thickness_nm( pmtcat, JPMT::L2 ); 
-    spec.d3 = 0. ; 
-
-    spec.n0r = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::RINDEX, energy_eV ); 
-    spec.n0i = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::KINDEX, energy_eV );
-
-    spec.n1r = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::RINDEX, energy_eV );
-    spec.n1i = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::KINDEX, energy_eV );
-
-    spec.n2r = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::RINDEX, energy_eV ); 
-    spec.n2i = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::KINDEX, energy_eV ); 
-
-    spec.n3r = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::RINDEX, energy_eV ); 
-    spec.n3i = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::KINDEX, energy_eV );
-
-    Stack<double,4> stack(      wavelength_nm, minus_cos_theta, spec ); 
-    Stack<double,4> stackNormal(wavelength_nm, -1.            , spec ); 
-
-    LOG(LEVEL)
-        << " position " << position
-        << " direction " << direction
-        << " polarization " << polarization
-        << " surface_normal " << surface_normal 
-        ; 
-}
-#endif
-
 
 
 
@@ -549,26 +437,28 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     G4double rand_absorb = G4UniformRand();  // SCB: bad name, u0 would be better
     G4double rand_escape = G4UniformRand();
 
+    char status = '?' ;
+
     if(rand_absorb < A){
         // absorbed
         fastStep.ProposeTrackStatus(fStopAndKill);
-        m_status = 'A' ; 
+        status = 'A' ; 
         if(rand_escape<escape_fac){
         // detected
             fastStep.ProposeTotalEnergyDeposited(_photon_energy);
-            m_status = 'D' ; 
+            status = 'D' ; 
         }
     }else if(rand_absorb < A+R){
         // fastStep.ProposeTrackStatus(fStopAndKill);
         // reflected
         Reflect();
-        m_status = 'R' ; 
+        status = 'R' ; 
         UpdateTrackInfo(fastStep);
     }else{
         // fastStep.ProposeTrackStatus(fStopAndKill);
         // transmitted
         Refract();
-        m_status = 'T' ; 
+        status = 'T' ; 
         if(whereAmI == kInGlass){
             whereAmI = kInVacuum;
         }else{
@@ -579,6 +469,19 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
 
 #ifdef PMTFASTSIM_STANDALONE
+
+    spho* label = STrackInfo<spho>::GetRef(track);  
+    LOG_IF(fatal, !label) 
+        << " all photon tracks must be labelled " 
+        << " track " << track 
+        << std::endl  
+        << STrackInfo<spho>::Desc(track) 
+        ; 
+
+    assert( label ); 
+    label->uc4.w = status ; 
+
+
     LOG(LEVEL)
         << "junoPMTOpticalModel::DoIt"
         << " dir " << dir 
@@ -592,6 +495,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         << " T " << T 
         << " R " << R 
         << " A " << A 
+        << " status " << status 
         ; 
 
     Stack<double,4> stack ; 
@@ -599,8 +503,8 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     LOG(LEVEL)
         << "junoPMTOpticalModel::DoIt"
-        << " m_status " 
-        << m_status
+        << " status " 
+        << status
         << " stack.art "
         << std::endl 
         << stack.art
@@ -791,38 +695,6 @@ it is the simplest (and hence fastest) possible geometry::
      +----------------------------------------+
 
 **/
-
-#ifdef PMTFASTSIM_STANDALONE
-void junoPMTOpticalModelSimple::InitOpticalParameters(G4VPhysicalVolume* inner_phys)
-{
-    // HMM : not actually using any of this 
- 
-    const G4LogicalVolume* pmt_log = inner_phys->GetMotherLogical(); 
-    const G4LogicalVolume* inner_log = inner_phys->GetLogicalVolume(); 
-
-    G4MaterialPropertiesTable* glass_pt = pmt_log->GetMaterial()->GetMaterialPropertiesTable();
-    G4MaterialPropertiesTable* vacuum_pt = inner_log->GetMaterial()->GetMaterialPropertiesTable();
-
-    _inner_solid  = inner_log->GetSolid();
-    _rindex_glass   = glass_pt->GetProperty("RINDEX");
-    _rindex_vacuum  = vacuum_pt->GetProperty("RINDEX");
- 
-    G4int pmt_daughters = pmt_log->GetNoDaughters() ;  
-    G4int inner_daughters = inner_log->GetNoDaughters() ; 
-
-    LOG(LEVEL)
-        << " pmt_log " << pmt_log
-        << " inner_log " << inner_log
-        << " glass_pt " << glass_pt
-        << " vacuum_pt " << vacuum_pt
-        << " _rindex_glass " << _rindex_glass
-        << " _rindex_vacuum " << _rindex_vacuum
-        << " pmt_daughters " << pmt_daughters
-        << " inner_daughters " << inner_daughters
-        ;
-
-}
-#endif
 
 
 /**

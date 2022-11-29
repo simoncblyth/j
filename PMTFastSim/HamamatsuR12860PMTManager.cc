@@ -3,6 +3,7 @@
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #include "junoPMTOpticalModel.hh"
+#include "junoPMTOpticalModelSimple.hh"
 #else
 //#include <boost/python.hpp>
 #include "junoPMTOpticalModel.hh"
@@ -20,6 +21,7 @@
 #include "G4VisAttributes.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalBorderSurface.hh"
+#include "G4LogicalSkinSurface.hh"
 #include "G4SDManager.hh"
 #include "G4Polycone.hh"
 
@@ -126,6 +128,7 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
 #endif
     m_pmtsolid_maker(0),
     pmtOpticalModel(nullptr),
+    pmtOpticalModelSimple(nullptr),
     pmt_solid(nullptr), 
     body_solid(nullptr), 
     inner_solid(nullptr),
@@ -157,13 +160,13 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
     m_logical_cover(nullptr), 
     m_cover_mat(nullptr),
     m_simple(getenv("JUNO_PMT20INCH_SIMPLE") == nullptr ? false : true),
-    m_plus_dynode(getenv("JUNO_PMT20INCH_PLUS_DYNODE") == nullptr ? false : true),
     m_profligate_tail_cut(getenv("JUNO_PMT20INCH_PROFLIGATE_TAIL_CUT") == nullptr ? false : true ),
     m_pmt_equator_to_bottom(0.)
 {
     declProp("FastCover", m_fast_cover=false);
     declProp("FastCoverMaterial", m_cover_mat_str="Water");
-    declProp("UsePMTOpticalModel", m_enable_optical_model=true); // SCB: TODO: switch to enum to handle different types of model  
+    declProp("UsePMTOpticalModel", m_enable_optical_model=true); 
+    declProp("UseNaturalGeometry", m_natural_geometry=false); 
     declProp("UseRealSurface", m_useRealSurface=true );
 }
 
@@ -172,9 +175,9 @@ std::string HamamatsuR12860PMTManager::desc() const
     std::stringstream ss ; 
     ss
          << std::setw(30) << "HamamatsuR12860PMTManager"
-         << " m_simple "        << ( m_simple   ? "Y" : "N" )
-         << " m_plus_dynode "    << ( m_plus_dynode    ? "Y" : "N" )
-         << " m_useRealSurface " << ( m_useRealSurface ? "Y" : "N" )
+         << " m_simple "           << ( m_simple   ? "Y" : "N" )
+         << " m_natural_geometry " << ( m_natural_geometry   ? "Y" : "N" )
+         << " m_useRealSurface "    << ( m_useRealSurface ? "Y" : "N" )
          << " m_profligate_tail_cut " << ( m_profligate_tail_cut ? "Y" : "N" )
          ;
 
@@ -342,7 +345,7 @@ void HamamatsuR12860PMTManager::init_pmt()
   std::cout 
       << "HamamatsuR12860PMTManager::init_pmt" 
       << " m_enable_optical_model " << m_enable_optical_model
-      << " m_plus_dynode " << m_plus_dynode
+      << " m_natural_geometry " << m_natural_geometry
       << std::endl 
       ;  
 #endif
@@ -355,7 +358,7 @@ void HamamatsuR12860PMTManager::init_pmt()
 
 
 
-  if(m_enable_optical_model || m_plus_dynode)
+  if(m_enable_optical_model)
   {
       helper_make_dynode_volume();
   }
@@ -404,7 +407,7 @@ void HamamatsuR12860PMTManager::helper_make_solid()
 
     Hamamatsu_R12860_PMTSolid* maker = m_pmtsolid_maker ; 
 
-    if(m_simple == false)
+    if(m_natural_geometry == false)
     {
         pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
         body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
@@ -651,30 +654,50 @@ void HamamatsuR12860PMTManager::obsolete_inner_cut()
 void
 HamamatsuR12860PMTManager::helper_make_logical_volume()
 {
-    pmt_log = new G4LogicalVolume
-        ( pmt_solid,
-          GlassMat,
-          GetName()+"_log" );
+    if( m_natural_geometry == false )
+    {
+        pmt_log = new G4LogicalVolume
+            ( pmt_solid,
+              GlassMat,
+              GetName()+"_log" );
 
-    body_log= new G4LogicalVolume
-        ( body_solid,
-          GlassMat,
-          GetName()+"_body_log" );
+        body_log= new G4LogicalVolume
+            ( body_solid,
+              GlassMat,
+              GetName()+"_body_log" );
 
-    body_log->SetSensitiveDetector(m_detector);
+        body_log->SetSensitiveDetector(m_detector);
 
-    inner1_log= new G4LogicalVolume
-        ( inner1_solid,
-          PMT_Vacuum,
-          GetName()+"_inner1_log" );
-    inner1_log->SetSensitiveDetector(m_detector);
+        inner1_log= new G4LogicalVolume
+            ( inner1_solid,
+              PMT_Vacuum,
+              GetName()+"_inner1_log" );
 
-    inner2_log= new G4LogicalVolume
-        ( inner2_solid,
-          PMT_Vacuum,
-          GetName()+"_inner2_log" );
+        inner1_log->SetSensitiveDetector(m_detector);
 
-    m_logical_pmt = pmt_log ; 
+        inner2_log= new G4LogicalVolume
+            ( inner2_solid,
+              PMT_Vacuum,
+              GetName()+"_inner2_log" );
+
+        m_logical_pmt = pmt_log ; 
+    }
+    else
+    {
+        pmt_log = new G4LogicalVolume
+            ( pmt_solid,
+              GlassMat,
+              GetName()+"_log" );
+
+        inner_log= new G4LogicalVolume
+            ( inner_solid,
+              PMT_Vacuum,
+              GetName()+"_inner_log" );
+
+        inner_log->SetSensitiveDetector(m_detector);
+        m_logical_pmt = pmt_log ; 
+    }
+
 }
 
 
@@ -701,33 +724,48 @@ void HamamatsuR12860PMTManager::helper_make_physical_volume()
     G4ThreeVector equatorTranslation(0.,0.,m_z_equator);
     G4ThreeVector noTranslation(0.,0.,0.);
 
-    // place outer solids in envelope
-    body_phys= new G4PVPlacement
-        ( 0,                   // no rotation
-          noTranslation,  // puts body equator in right place
-          body_log,            // the logical volume
-          GetName()+"_body_phys", // a name for this physical volume
-          m_logical_pmt,                // the mother volume
-          false,               // no boolean ops
-          0 );                 // copy number
+    if(m_natural_geometry == false)
+    {
+        // place outer solids in envelope
+        body_phys= new G4PVPlacement
+            ( 0,                   // no rotation
+              noTranslation,  // puts body equator in right place
+              body_log,            // the logical volume
+              GetName()+"_body_phys", // a name for this physical volume
+              m_logical_pmt,                // the mother volume
+              false,               // no boolean ops
+              0 );                 // copy number
 
-    // place inner solids in outer solid (vacuum)
-    inner1_phys= new G4PVPlacement
-        ( 0,                   // no rotation
-          noTranslation,       // puts face equator in right place
-          GetName()+"_inner1_phys",         // a name for this physical volume
-          inner1_log,                    // the logical volume
-          body_phys,           // the mother volume
-          false,               // no boolean ops
-          0 );                 // copy number
-    inner2_phys= new G4PVPlacement
-        ( 0,                   // no rotation
-          noTranslation,       // puts face equator in right place
-          GetName()+"_inner2_phys",         // a name for this physical volume
-          inner2_log,                    // the logical volume
-          body_phys,           // the mother volume
-          false,               // no boolean ops
-          0 );                 // copy number
+        // place inner solids in outer solid (vacuum)
+        inner1_phys= new G4PVPlacement
+            ( 0,                   // no rotation
+              noTranslation,       // puts face equator in right place
+              GetName()+"_inner1_phys",         // a name for this physical volume
+              inner1_log,                    // the logical volume
+              body_phys,           // the mother volume
+              false,               // no boolean ops
+              0 );                 // copy number
+        inner2_phys= new G4PVPlacement
+            ( 0,                   // no rotation
+              noTranslation,       // puts face equator in right place
+              GetName()+"_inner2_phys",         // a name for this physical volume
+              inner2_log,                    // the logical volume
+              body_phys,           // the mother volume
+              false,               // no boolean ops
+              0 );                 // copy number
+    }
+    else
+    {
+        inner_phys= new G4PVPlacement
+            ( 0,                   // no rotation
+              noTranslation,  // puts body equator in right place
+              inner_log,            // the logical volume
+              GetName()+"_inner_phys", // a name for this physical volume
+              m_logical_pmt,        // the mother volume
+              false,               // no boolean ops
+              0 );                 // copy number
+    }
+
 }
 
 /**
@@ -740,7 +778,8 @@ Creates solids, logical volumes and physical volumes placing them within *inner2
 
 void HamamatsuR12860PMTManager::helper_make_dynode_volume()
 {
-    G4LogicalVolume* parent_log = inner2_log ;  
+    G4LogicalVolume* parent_log = m_natural_geometry ? inner_log : inner2_log ;  
+    G4PVPlacement*   parent_phys = m_natural_geometry ? inner_phys : inner2_phys ;
 
 
     G4double thickness  = 1.*mm;
@@ -979,8 +1018,8 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     plateOpSurface->SetPolish(0.999);
     plateOpSurface->SetMaterialPropertiesTable(plateSurfaceMPT);
 
-    new G4LogicalBorderSurface(GetName()+"_dynode_plate_opsurface", inner2_phys, plate_phy, plateOpSurface);
-    new G4LogicalBorderSurface(GetName()+"_inner_ring_opsurface", inner2_phys, inner_ring_phy, plateOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_dynode_plate_opsurface", parent_phys, plate_phy, plateOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_inner_ring_opsurface", parent_phys, inner_ring_phy, plateOpSurface);
 
     // EDGE SURFACE
     G4MaterialPropertiesTable *edgeSurfaceMPT = new G4MaterialPropertiesTable();
@@ -994,8 +1033,8 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     edgeOpSurface->SetPolish(0.999);
     edgeOpSurface->SetMaterialPropertiesTable(edgeSurfaceMPT);
 
-    new G4LogicalBorderSurface(GetName()+"_outer_edge_opsurface", inner2_phys, outer_edge_phy, edgeOpSurface);
-    new G4LogicalBorderSurface(GetName()+"_inner_edge_opsurface", inner2_phys, inner_edge_phy, edgeOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_outer_edge_opsurface", parent_phys, outer_edge_phy, edgeOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_inner_edge_opsurface", parent_phys, inner_edge_phy, edgeOpSurface);
 
     // CYLINDRICAL TUBE SURFACE
     G4MaterialPropertiesTable *tubeSurfaceMPT = new G4MaterialPropertiesTable();
@@ -1009,7 +1048,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     tubeOpSurface->SetPolish(0.999);
     tubeOpSurface->SetMaterialPropertiesTable(tubeSurfaceMPT);
 
-    new G4LogicalBorderSurface(GetName()+"_dynode_tube_opsurface", inner2_phys, tube_phy, tubeOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_dynode_tube_opsurface", parent_phys, tube_phy, tubeOpSurface);
 
     // GRID SURFACE
     G4MaterialPropertiesTable *gridSurfaceMPT = new G4MaterialPropertiesTable();
@@ -1023,7 +1062,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     gridOpSurface->SetPolish(0.999);
     gridOpSurface->SetMaterialPropertiesTable(gridSurfaceMPT);
 
-    new G4LogicalBorderSurface(GetName()+"_grid_opsurface", inner2_phys, grid_phy, gridOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_grid_opsurface", parent_phys, grid_phy, gridOpSurface);
 
     // SHIELD SURFACE
     G4MaterialPropertiesTable *shieldSurfaceMPT = new G4MaterialPropertiesTable();
@@ -1037,7 +1076,7 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     shieldOpSurface->SetPolish(0.999);
     shieldOpSurface->SetMaterialPropertiesTable(shieldSurfaceMPT);
     
-    new G4LogicalBorderSurface(GetName()+"_shield_opsurface", inner2_phys, shield_phy, shieldOpSurface);
+    new G4LogicalBorderSurface(GetName()+"_shield_opsurface", parent_phys, shield_phy, shieldOpSurface);
 }
 
 /**
@@ -1089,35 +1128,75 @@ HMM: notice that the optical surface is not with the pmt-Pyrex but the body-Pyre
 void
 HamamatsuR12860PMTManager::helper_make_optical_surface()
 {
-    new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf1",
-            inner1_phys, body_phys,
-            Photocathode_opsurf);
-    new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf2",
-            body_phys, inner1_phys,
-            Photocathode_opsurf);
-    new G4LogicalBorderSurface(GetName()+"_mirror_logsurf1",
-            inner2_phys, body_phys,
-            m_mirror_opsurf);
-    new G4LogicalBorderSurface(GetName()+"_mirror_logsurf2",
-            body_phys, inner2_phys,
-            m_mirror_opsurf);
+    if(m_natural_geometry == false)
+    {
+        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf1",
+                inner1_phys, body_phys,
+                Photocathode_opsurf);
+        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf2",
+                body_phys, inner1_phys,
+                Photocathode_opsurf);
+        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf1",
+                inner2_phys, body_phys,
+                m_mirror_opsurf);
+        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf2",
+                body_phys, inner2_phys,
+                m_mirror_opsurf);
+
+         // Thats funny : same mirror properties from both directions ? 
+         // the point of using G4LogicalBorderSurface is to control 
+         // directionality ? 
+    }
+    else
+    {
+        // As the interface provides an unplaced LV (not a PV)
+        // it is not convenient to use G4LogicalBorderSurface
+        // when using very simple geometry without fakes as
+        // do not easily have a "pmt_phys".  
+        //
+        // But using unplaced G4LogicalSkinSurface does exactly 
+        // the same thing more cheaply. 
+
+        new G4LogicalSkinSurface(GetName()+"_photocathode_logsurf",
+                inner_log, Photocathode_opsurf);
+
+
+        // HMM: doing with customized G4OpBoundaryProcess will need to 
+        // make a composite surface with properties for for both 
+        // the mirror 
+    }
 }
 
 void
 HamamatsuR12860PMTManager::helper_fast_sim()
 {
+    G4String name = GetName()+"_optical_model" ; 
 
-    G4Region* body_region = new G4Region(this->GetName()+"_body_region");
-    body_log->SetRegion(body_region);
-    body_region->AddRootLogicalVolume(body_log);
+    if(m_natural_geometry == false)
+    {
+        G4Region* body_region = new G4Region(name);
+        body_log->SetRegion(body_region);
+        body_region->AddRootLogicalVolume(body_log);
 
-    pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
-                                                                   body_phys, body_region);
+        pmtOpticalModel = new junoPMTOpticalModel(name, body_phys, body_region);
+    }
+    else
+    {
+        /*
+        G4Region* inner_region = new G4Region(name);
+        inner_log->SetRegion(inner_region);
+        inner_region->AddRootLogicalVolume(inner_log);
+        pmtOpticalModelSimple = new junoPMTOpticalModelSimple(name, inner_phys, inner_region); 
+        */
+        // INSTEAD TRY CUSTOMIZING u4/InstrumentedG4OpBoundaryProcess 
+
+     } 
 
 #ifdef PMTFASTSIM_STANDALONE
     std::cout 
         << "HamamatsuR12860PMTManager::helper_fast_sim" 
         << "  pmtOpticalModel " << pmtOpticalModel 
+        << "  pmtOpticalModelSimple " << pmtOpticalModelSimple 
         << std::endl 
         ; 
 #endif
@@ -1166,6 +1245,8 @@ HamamatsuR12860PMTManager::helper_vis_attr()
     // PMT glass
     // visAtt= new G4VisAttributes(G4Color(0.0,1.0,1.0,0.05));
     // body_log->SetVisAttributes( visAtt );
+
+    if(body_log)
     body_log->SetVisAttributes( G4VisAttributes::Invisible );
     // dynode is medium gray
     visAtt= new G4VisAttributes(G4Color(0.5,0.5,0.5,1.0));
@@ -1175,10 +1256,14 @@ HamamatsuR12860PMTManager::helper_vis_attr()
     // visAtt= new G4VisAttributes(G4Color(0.7,0.5,0.3,0.27));
     visAtt= new G4VisAttributes(G4Color(0.7,0.5,0.3, 1.0));
     visAtt -> SetForceSolid(true);
+
+    if(inner1_log)
     inner1_log->SetVisAttributes (visAtt);
     // visAtt= new G4VisAttributes(G4Color(0.6,0.7,0.8,0.67));
     visAtt= new G4VisAttributes(G4Color(0.6,0.7,0.8,1.0));
     visAtt -> SetForceSolid(true);
+
+    if(inner2_log)
     inner2_log->SetVisAttributes (visAtt);
 
 }

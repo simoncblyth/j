@@ -19,7 +19,6 @@
 
     #include "MultiFilmModel.h"
     #include "plog/Severity.h"
-    #include "SFastSimOpticalModel.hh"
 
     struct JPMT ; 
     template<typename T> struct ART_ ; 
@@ -42,10 +41,7 @@ enum EWhereAmI { OutOfRegion, kInGlass, kInVacuum };
 
 #ifdef PMTFASTSIM_STANDALONE
 #include "PMTFASTSIM_API_EXPORT.hh"
-class PMTFASTSIM_API junoPMTOpticalModel 
-    : 
-    public G4VFastSimulationModel,
-    public SFastSimOpticalModel
+class PMTFASTSIM_API junoPMTOpticalModel : public G4VFastSimulationModel
 #else
 class junoPMTOpticalModel : public G4VFastSimulationModel
 #endif
@@ -53,7 +49,6 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
     public:
 #ifdef PMTFASTSIM_STANDALONE
         static const plog::Severity LEVEL ; 
-        char getStatus() const ;  // fulfil SFastSimOpticalModel virtual method
 #endif
     public:
         junoPMTOpticalModel(G4String, G4VPhysicalVolume*, G4Region*); 
@@ -123,7 +118,6 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
         G4ThreeVector norm;
 
         EWhereAmI whereAmI;
-        char m_status ; 
         
 #ifdef PMTFASTSIM_STANDALONE
      public:    
@@ -163,39 +157,6 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 
         int get_pmtid(const G4Track* track);
 };
-
-
-
-
-#ifdef PMTFASTSIM_STANDALONE
-struct PMTFASTSIM_API junoPMTOpticalModelSimple : public G4VFastSimulationModel
-{
-    static const plog::Severity LEVEL ; 
-    junoPMTOpticalModelSimple(G4String, G4VPhysicalVolume*, G4Region*); 
-
-    G4bool ModelTrigger(const G4FastTrack &fastTrack); 
-    void DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep); 
-    void InitOpticalParameters(G4VPhysicalVolume* envelope_phys); 
-
-    G4VSolid* _inner_solid ;
-    G4MaterialPropertyVector* _rindex_glass;
-    G4MaterialPropertyVector* _rindex_vacuum;
-
-    double      energy_eV ; 
-    double      wavelength_nm ; 
-
-    G4ThreeVector position ;
-    G4ThreeVector direction ;
-    G4ThreeVector polarization ;
-    G4ThreeVector surface_normal ;
-
-    G4double      minus_cos_theta ; 
-    EWhereAmI     whereAmI;
-    JPMT*         jpmt ; 
-
-
-};
-#endif
 
 
 #endif

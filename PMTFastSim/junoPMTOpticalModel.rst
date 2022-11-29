@@ -916,6 +916,13 @@ Does not look like any API to do this in G4FastSimulationManagerProcess
       5 };
 
 
+* THIS WORKED : but the approach is limited to a single PMT (or PMT type) as using singleton
+ 
+* instead replaced with passing the FastSim status via trackinfo with sysrap/STrackInfo.h  
+
+
+::
+
 
     In [6]: t.record.shape
     Out[6]: (1000, 10, 4, 4)
@@ -1100,11 +1107,7 @@ After ModelTrigger:YES get fSuspend down the pike::
     main@56:  savedir /tmp/blyth/opticks/GEOM/hamaLogic
 
 
-
-
-
-
-::
+Checking history recording with FastSim::
 
     In [4]: t.record[726].reshape(-1,16)                                                                                                                                             
     Out[4]: 
@@ -1130,8 +1133,20 @@ After ModelTrigger:YES get fSuspend down the pike::
     19 ### [ 237.91 ,    0.   ,   54.596,   12.523,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
     20     [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
 
+
+CF with junoPMTOpticalModelSimple:: 
+
+    In [2]: extra.reshape(-1,16)                                                                                                                                                                              
+    Out[2]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,   -0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,   -0.   ,  420.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+
     ### :  without corresponding ModelTrigger : 3 are z=zero crossings
-    ??? :  why does this z=zero crossing has corresponding ModelTrigger but the others do not ?
+    ??? :  why does this z=zero crossing has corresponding ModelTrigger but the others do not ? BECAUSE WHEN YOU SLIDE FORWARDS THE NEXT POINT IS ON UPPER HEMI
 
     In [5]: extra.reshape(-1,16)                                                                                                                                                     
     Out[5]: 
@@ -1151,3 +1166,10 @@ After ModelTrigger:YES get fSuspend down the pike::
     18     [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,  243.678,    0.   ,   -1.   ,    0.   ,   -1.   ,    1.   ,    2.   ,    0.   ,  726.   ]])
 
     In [6]:                        
+
+
+NEXT : Need to get junoPMTOpticalModelSimple operational, and then compare it to original
+
+
+
+

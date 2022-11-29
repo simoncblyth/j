@@ -29,6 +29,8 @@ class G4VSolid;
 class G4Tubs;
 
 class junoPMTOpticalModel ; 
+class junoPMTOpticalModelSimple ; 
+
 class Hamamatsu_R12860_PMTSolid;
 
 #ifdef PMTFASTSIM_STANDALONE
@@ -76,6 +78,7 @@ private:
     Hamamatsu_R12860_PMTSolid* m_pmtsolid_maker;
 public:
     junoPMTOpticalModel*       pmtOpticalModel ;  
+    junoPMTOpticalModelSimple* pmtOpticalModelSimple ;  
 private:
 
 
@@ -142,6 +145,7 @@ private:
     bool m_simple ; 
     bool m_fast_cover;
     bool m_enable_optical_model;
+    bool m_natural_geometry ;
     std::string m_cover_mat_str;
 private:
     G4double m_z_equator;
@@ -163,7 +167,6 @@ private:
            19.629m
     **/
     bool m_useRealSurface;
-    bool m_plus_dynode ; 
     bool m_profligate_tail_cut ; 
     G4double m_pmt_equator_to_bottom ; 
 
