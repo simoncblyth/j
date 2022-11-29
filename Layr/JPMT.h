@@ -33,6 +33,10 @@ if get rid of StackSpec ?
 
 struct JPMT
 {
+    // headeronly singleton difficult in c++11
+    //static const JPMT* INSTANCE ; 
+    //static const JPMT* Get(); 
+
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
