@@ -208,3 +208,107 @@ Before rerun, not starting at expectation. Thats because the g4state reset not y
 
 
 
+Keep track of position in random stream when rerunning using U4UniformRand::Desc.
+
+Checking with the big bouncer (export hama_UseNaturalGeometry=0)::
+
+    epsilon:tests blyth$ grep Reset *.log 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.87237      0]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.10137      5]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.35166     10]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.87761     13]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.03802     17]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.49764     20]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.49004     24]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.43749     27]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.01857     34]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.45692     37]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.32809     41]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.75119     44]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.85902     48]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.64541     51]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.50158     55]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.85455     58]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.66334     63]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.50239     66]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.44820     70]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: [0.67262     73]
+    epsilon:tests blyth$ 
+
+
+When (export hama_UseNaturalGeometry=1) get very different::
+
+    epsilon:tests blyth$ grep UU *.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: UU[0.87237      0]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@656: didi.rand UU[0.94347      3]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: UU[0.10137      5]
+    epsilon:tests blyth$ 
+
+
+
+
+
+
+
+
+
+The old big bouncer::
+
+    In [4]: t.record[726].reshape(-1,16)                                                                                                                                             
+    Out[4]: 
+    0 ###([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.  #0 
+    1 ###  [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.  #1 
+    2      [-112.83 ,    0.   ,  164.918,    0.164,    0.032,    0.   ,   -0.999,    0.  #2 
+    3      [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.  #3 
+    4 ###  [-135.824,    0.   ,    0.   ,    1.012,   -0.138,    0.   ,   -0.99 ,    0.   
+    5      [-156.577,    0.   , -148.846,    1.778,    0.81 ,    0.   ,    0.587,    0.   
+    6      [ -95.   ,    0.   , -104.211,    2.166,   -0.81 ,    0.   ,    0.587,    0.   
+    7      [-238.764,    0.   ,   -0.   ,    3.071,   -0.81 ,    0.   ,    0.587,    0.   
+    8      [-248.807,    0.   ,    7.28 ,    3.112,    0.867,    0.   ,    0.498,    0.   
+    9      [  53.205,    0.   ,  180.727,    4.274,    0.665,    0.   ,   -0.747,    0.   
+    10 ### [ 214.06 ,    0.   ,    0.   ,    5.507,    0.665,    0.   ,   -0.747,    0.   
+    11     [ 245.605,    0.   ,  -35.443,    5.749,   -0.92 ,    0.   ,   -0.391,    0.   
+    12     [  95.   ,    0.   ,  -99.428,    6.583,    0.92 ,    0.   ,   -0.391,    0.   
+    13     [ 177.724,    0.   , -134.574,    7.041,   -0.127,    0.   ,    0.992,    0.   
+    14 ??? [ 160.533,    0.   ,    0.   ,    7.732,   -0.127,    0.   ,    0.992,    0.   
+    15     [ 141.059,    0.   ,  152.451,    8.245,   -0.878,    0.   ,   -0.479,    0.   
+    16 ### [-138.46 ,    0.   ,    0.   ,    9.867,   -0.878,    0.   ,   -0.479,    0.   
+    17     [-239.66 ,    0.   ,  -55.195,   10.455,    0.975,    0.   ,    0.224,    0.   
+    18     [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,    0.   
+    19 ### [ 237.91 ,    0.   ,   54.596,   12.523,    0.975,    0.   ,    0.224,    0.   
+    20     [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.
+
+
+    rerun_rand (about to be consumed, did RestoreState after collecting them)  
+    {   0.87237    0.62535    0.79217    0.94347    0.19391 ...    0.45323    0.49189    0.09694    0.00667 }
+
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: UU[0.87237      0]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@656: didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    U4Recorder::UserSteppingAction_Optical@475: U4StepPoint::DescPositionTime (   -113.000      0.000    170.163      0.137)
+    U4Recorder::Check_TrackStatus_Flag@513:  step.tstat fAlive BOUNDARY_TRANSMIT from UserSteppingAction_Optical
+
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@130: UU[0.10137      5]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@474: U4OpticalSurface::Desc _Photocathode_opsurf type:dielectric_metal model:glisur finish:polished polish:1
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@487: U4MaterialPropertiesTable::Desc
+    DescPropertyMap  miv.size 6 v0 [ 0x7f8afc3021c0 0x7f8afc302550 0x7f8afc3028c0 0x7f8afc301d30 0x7f8afc302400 0x7f8afc302630 ] i [0 1 4 9 23 24] n [RINDEX REFLECTIVITY EFFICIENCY GROUPVEL KINDEX THICKNESS] v [0x7f8afc3021c0 0x7f8afc302550 0x7f8afc3028c0 0x7f8afc301d30 0x7f8afc302400 0x7f8afc302630 vl [4 4 2 4 4 2]
+    DescConstPropertyMap  mif.size 0
+
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@514:  PropertyPointer.kREFLECTIVITY 0x7f8afc302550 PropertyPointer1.kREALRINDEX 0x0 PropertyPointer2.kIMAGINARYRINDEX 0x0
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@549:  theReflectivity 0 theEfficiency 1 theTransmittance 0
+    U4Recorder::UserSteppingAction_Optical@417: [ pv _log_pv
+    U4Recorder::UserSteppingAction_Optical@475: U4StepPoint::DescPositionTime (   -112.830      0.000    164.917      0.164)
+
+    ## YEP : ITS THE EXPECTED POSITION : NEED TO CHANGE OUTCOME : POINT #3 IN ABOVE BIG BOUNCER ARRAY
+
+    U4Recorder::Check_TrackStatus_Flag@513:  step.tstat fStopAndKill SURFACE_DETECT from UserSteppingAction_Optical
+    U4Recorder::UserSteppingAction_Optical@499: ]
+    U4Recorder::PostUserTrackingAction@97: 
+    U4Recorder::PostUserTrackingAction_Optical@326: [
+    U4Recorder::PostUserTrackingAction_Optical@329: fStopAndKill
+    U4Recorder::PostUserTrackingAction_Optical@352:  label.id   726 seq.desc_seqhis                 0              7cd nib  3 TO BT SD
+    U4Recorder::PostUserTrackingAction_Optical@366: ]
+    U4Recorder::EndOfEventAction@95: 
+    U4Recorder::EndOfRunAction@93: 
+
+
+

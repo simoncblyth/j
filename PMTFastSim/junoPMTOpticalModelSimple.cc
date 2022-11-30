@@ -7,7 +7,6 @@
 
 #include "SLOG.hh"
 #include "JPMT.h"
-#include "JPMT.h"
 #include "Layr.h"
 
 #include "spho.h"
@@ -122,6 +121,7 @@ void junoPMTOpticalModelSimple::DoIt(const G4FastTrack& fastTrack, G4FastStep &f
     Stack<double,4> stack(      wavelength_nm, minus_cos_theta, spec );  // NB stack is flipped for minus_cos_theta > 0. 
     Stack<double,4> stackNormal(wavelength_nm, -1.            , spec );  // minus_cos_theta -1. means normal incidence and stack not flipped
 
+
     LOG(LEVEL)
         << " position " << position
         << " direction " << direction
@@ -206,8 +206,6 @@ void junoPMTOpticalModelSimple::DoIt(const G4FastTrack& fastTrack, G4FastStep &f
         << " u1 " << std::setw(10) << std::fixed << std::setprecision(4) << u1
         << " status " << status 
         ; 
-
-
 
     // fastStep is the particle change interface for FastSim
 

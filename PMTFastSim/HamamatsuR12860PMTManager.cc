@@ -124,8 +124,8 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
     IGeomManager(plabel),
 #else
     ToolBase(plabel), 
-    m_label(plabel),
 #endif
+    m_label(plabel),
     m_pmtsolid_maker(0),
     pmtOpticalModel(nullptr),
     pmtOpticalModelSimple(nullptr),
@@ -226,8 +226,12 @@ HamamatsuR12860PMTManager::init_material() {
      PMT_Vacuum = G4Material::GetMaterial("Vacuum"); 
      DynodeMat = G4Material::GetMaterial("Steel");
 
-     Photocathode_opsurf =  new G4OpticalSurface(GetName()+"_Photocathode_opsurf");
-     Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined
+     G4String name ; 
+     name += "@" ; 
+     name += GetName() + "_Photocathode_opsurf" ; 
+
+     Photocathode_opsurf =  new G4OpticalSurface(name);
+     Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined (SCB: this comment is untrue) 
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
 #ifdef PMTFASTSIM_STANDALONE

@@ -66,6 +66,7 @@ list(APPEND HEADERS
     MaterialSvc.hh
     TComplex.h 
     ../Layr/Layr.h  
+    ../Layr/JPMT.h  
     PMTFastSim.hh
     J_PMTFASTSIM_LOG.hh
 
