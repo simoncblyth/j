@@ -715,8 +715,38 @@ void junoPMTOpticalModel::Reflect()
 }
 void junoPMTOpticalModel::Refract()
 {
+#ifdef PMTFASTSIM_STANDALONE
+
+    LOG(LEVEL)
+       << " time " << time 
+       << " pos " << pos 
+       << " norm " << norm 
+       ;
+    LOG(LEVEL)
+       << " _n1 " << _n1 
+       << " _n4 " << _n4 
+       << " _cos_theta1 " << _cos_theta1
+       << " _cos_theta4 " << _cos_theta4
+       ;
+
+    LOG(LEVEL)
+       << " bef "
+       << " dir " << dir 
+       << " pol " << pol 
+       ;
+#endif
+
     dir = (real(_cos_theta4) - _cos_theta1*_n1/_n4)*norm + (_n1/_n4)*dir;
     pol = (pol-(pol*dir)*dir).unit();
+
+#ifdef PMTFASTSIM_STANDALONE
+    LOG(LEVEL)
+       << " aft "
+       << " dir " << dir 
+       << " pol " << pol 
+       ;
+#endif
+
 }
 
 int junoPMTOpticalModel::get_pmtid(const G4Track* track) {

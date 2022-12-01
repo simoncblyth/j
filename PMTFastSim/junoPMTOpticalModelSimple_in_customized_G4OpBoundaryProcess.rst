@@ -312,3 +312,99 @@ The old big bouncer::
 
 
 
+Comparing FastSim bigbouncer with CustomART shoe horned into InstrumentedG4OpBoundaryProcess
+-----------------------------------------------------------------------------------------------
+
+
+U4PMTFastSimTest.sh::
+
+     26 ## u4/tests/U4PMTFastSimTest.cc
+     27 export BeamOn=${BeamOn:-1}
+     28 
+     29 ## PMTFastSim/HamamatsuR12860PMTManager declProp config 
+     30 export hama_FastCoverMaterial=Cheese
+     31 export hama_UsePMTOpticalModel=1
+     32 export hama_UseNaturalGeometry=0  ## 0:FastSim/jPOM 1:InstrumentedG4OpBoundaryProcess/CustomART
+     33 
+     34 case $hama_UseNaturalGeometry in
+     35   0) echo FastSim/jPOM ;;
+     36   1) echo InstrumentedG4OpBoundaryProcess/CustomART ;;
+     37 esac
+     38 
+     39 #running_mode=SRM_G4STATE_SAVE  
+     40 running_mode=SRM_G4STATE_RERUN
+     41 
+     42 case $running_mode in
+     43    SRM_G4STATE_SAVE)  reldir=ALL ;;
+     44    SRM_G4STATE_RERUN) reldir=SEL$hama_UseNaturalGeometry ;;
+     45 esac
+     46 
+
+
+::
+
+   u4t
+   ./U4PMTFastSimTest.sh    
+
+   ./U4PMTFastSimTest.sh cf   # compare SEL0 and SEL1   
+
+
+Transmission direction, clear discrepancy::
+
+    In [14]: a.record[PID,:4,:3].reshape(-1,12)
+    Out[14]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ],
+           [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-112.83 ,    0.   ,  164.918,    0.164,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ]], dtype=float32)
+
+    In [15]: b.record[PID,:4,:3].reshape(-1,12)
+    Out[15]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ],
+           [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,    0.118,    0.   ,   -0.993,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [ -82.608,    0.   ,  -90.   ,    1.02 ,    0.118,    0.   ,   -0.993,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ]], dtype=float32)
+
+
+    In [16]: aa = a.record[PID]
+    In [17]: bb = b.record[PID]
+
+    In [22]: np.all( aa[0] == bb[0] )   ## generation point is same
+    Out[22]: True
+
+    In [23]: np.all( aa[1] == bb[1] )   ## Water/Pyrex point is same 
+    Out[23]: True
+
+    In [33]: (aa[3,0] - bb[2,0])*1e9    ## Pyrex/Vacuum point same position, slightly different time 
+    Out[33]: array([   0.   ,    0.   ,    0.   , -149.012], dtype=float32)
+
+
+     92 junoPMTOpticalModel::UpdateTrackInfo@556:
+     93 junoPMTOpticalModel::Refract@720:  time 0.163593 pos (-112.83,0,164.917) norm (0.353306,-0,-0.935508)
+     94 junoPMTOpticalModel::Refract@725:  _n1 1.48426 _n4 1 _cos_theta1 0.94647 _cos_theta4 (0.877756,0)
+     95 junoPMTOpticalModel::Refract@732:  bef  dir (0.0324194,0,-0.999474) pol (0,-1,0)
+     96 junoPMTOpticalModel::Refract@743:  aft  dir (-0.138093,0,-0.990419) pol (0,-1,0)
+     97 junoPMTOpticalModel::UpdateTrackInfo@556:
+
+    ## flipped norm ? 
+
+    InstrumentedG4OpBoundaryProcess::CustomART@996:  time 0.163593 pos (-112.83,0,164.917) norm (-0.353306,0,0.935508)
+    InstrumentedG4OpBoundaryProcess::CustomART@1001:  _n0 1.48426 _n3 1 _cos_theta0 0.94647 _cos_theta3 0.877757
+    InstrumentedG4OpBoundaryProcess::CustomART@1008:  bef  dir (0.0324194,0,-0.999474) pol (0,-1,0)
+    InstrumentedG4OpBoundaryProcess::CustomART@1018:  aft  dir (0.23433,0,-1.97654) pol (0,-1,0)
+    InstrumentedG4OpBoundaryProcess::CustomART@1026:  status T
+
+
+    In [34]: aa[3,1]   ## A: goes left 
+    Out[34]: array([-0.138,  0.   , -0.99 ,  0.   ], dtype=float32)
+
+    In [35]: bb[2,1]   ## B: goes right       thats not a consumption difference : MUST BE BUG 
+    Out[35]: array([ 0.118,  0.   , -0.993,  0.   ], dtype=float32)
+
+
+
+
+
+
+
+
