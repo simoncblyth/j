@@ -341,6 +341,11 @@ U4PMTFastSimTest.sh::
      46 
 
 
+
+
+Refract formula needed flip of oriented normal
+-------------------------------------------------
+
 ::
 
    u4t
@@ -409,8 +414,41 @@ Transmission direction, clear discrepancy::
 
 
 
+Trying to keep the consumption aligned
+-----------------------------------------
+
+::
+
+    u4t
+    N=0 ./U4PMTFastSimTest.sh 
+    N=1 ./U4PMTFastSimTest.sh 
+
+    grep UU U4PMTFastSimTest_0.log
+    grep UU U4PMTFastSimTest_1.log
 
 
+    epsilon:tests blyth$ grep UU U4PMTFastSimTest_0.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.87237      0]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@739:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.10137      5]
+    junoPMTOpticalModel::DoIt@493:  time 0.163593 dbg.Count 0 dbg.Name A_SPhoton_Debug.npy u0 UU[0.98594      8] u1 UU[0.94190      9] u0_idx 8
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.35166     10]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.87761     13]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1231:  PostStepDoIt_count 3 do-while n 1 rand UU[0.77461     16] theReflectivity 0.92 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.03802     17]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.49764     20]
+
+
+
+
+    epsilon:tests blyth$ grep UU U4PMTFastSimTest_1.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.87237      0]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@739:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.10137      5]
+    InstrumentedG4OpBoundaryProcess::CustomART@1081:  time 0.163593 dbg.Count 0 dbg.Name B_SPhoton_Debug.npy u0 UU[0.98594      8] u1 UU[0.94190      9] u0_idx 8
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@134: UU[0.35166     10]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1231:  PostStepDoIt_count 2 do-while n 1 rand UU[0.87761     13] theReflectivity 0 theTransmittance 0
+    epsilon:tests blyth$ 
 
 
 

@@ -21,13 +21,16 @@
 #include "Layer.h"
 
 #include "SLOG.hh"
+#include "SEvt.hh"
 #include "SFastSim_Debug.hh"
+#include "STrackInfo.h"
+#include "spho.h"
 
 #include "SPhoton_Debug.h"
 template<> std::vector<SPhoton_Debug<'A'>> SPhoton_Debug<'A'>::record = {} ;
 
-#include "STrackInfo.h"
-#include "spho.h"
+#include "SUniformRand.h"
+typedef SUniformRand<CLHEP::HepRandom> UUniformRand ; 
 
 #endif
 
@@ -484,14 +487,15 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
 #ifdef PMTFASTSIM_STANDALONE
     SPhoton_Debug<'A'> dbg ; 
-    int u0_idx = U4UniformRand::Find(u0);      
+
+    int u0_idx = UUniformRand::Find(u0, SEvt::UU);      
 
     LOG(LEVEL)
        << " time " << time 
        << " dbg.Count " << dbg.Count()
        << " dbg.Name "  << dbg.Name()
-       << " u0 " << U4UniformRand::Desc(u0) 
-       << " u1 " << U4UniformRand::Desc(u1)
+       << " u0 " << UUniformRand::Desc(u0, SEvt::UU) 
+       << " u1 " << UUniformRand::Desc(u1, SEvt::UU)
        << " u0_idx " << u0_idx 
        ;  
 
