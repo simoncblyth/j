@@ -345,9 +345,7 @@ U4PMTFastSimTest.sh::
 
    u4t
    ./U4PMTFastSimTest.sh    
-
    ./U4PMTFastSimTest.sh cf   # compare SEL0 and SEL1   
-
 
 Transmission direction, clear discrepancy::
 
@@ -375,20 +373,28 @@ Transmission direction, clear discrepancy::
     In [23]: np.all( aa[1] == bb[1] )   ## Water/Pyrex point is same 
     Out[23]: True
 
+    ## aa[2] is the Fake border point, not present in bb 
+
     In [33]: (aa[3,0] - bb[2,0])*1e9    ## Pyrex/Vacuum point same position, slightly different time 
     Out[33]: array([   0.   ,    0.   ,    0.   , -149.012], dtype=float32)
 
 
      92 junoPMTOpticalModel::UpdateTrackInfo@556:
      93 junoPMTOpticalModel::Refract@720:  time 0.163593 pos (-112.83,0,164.917) norm (0.353306,-0,-0.935508)
+     ## HUH: thats an inwards pointing normal 
+
      94 junoPMTOpticalModel::Refract@725:  _n1 1.48426 _n4 1 _cos_theta1 0.94647 _cos_theta4 (0.877756,0)
      95 junoPMTOpticalModel::Refract@732:  bef  dir (0.0324194,0,-0.999474) pol (0,-1,0)
      96 junoPMTOpticalModel::Refract@743:  aft  dir (-0.138093,0,-0.990419) pol (0,-1,0)
      97 junoPMTOpticalModel::UpdateTrackInfo@556:
 
     ## flipped norm ? 
+    ## refraction bends towards the normal when entering higher index material 
+    ## refraction bends away from  normal  when entering lower index material 
+
 
     InstrumentedG4OpBoundaryProcess::CustomART@996:  time 0.163593 pos (-112.83,0,164.917) norm (-0.353306,0,0.935508)
+    ## outwards normal 
     InstrumentedG4OpBoundaryProcess::CustomART@1001:  _n0 1.48426 _n3 1 _cos_theta0 0.94647 _cos_theta3 0.877757
     InstrumentedG4OpBoundaryProcess::CustomART@1008:  bef  dir (0.0324194,0,-0.999474) pol (0,-1,0)
     InstrumentedG4OpBoundaryProcess::CustomART@1018:  aft  dir (0.23433,0,-1.97654) pol (0,-1,0)

@@ -23,6 +23,9 @@
 #include "SLOG.hh"
 #include "SFastSim_Debug.hh"
 
+#include "SPhoton_Debug.h"
+template<> std::vector<SPhoton_Debug<'A'>> SPhoton_Debug<'A'>::record = {} ;
+
 #include "STrackInfo.h"
 #include "spho.h"
 
@@ -94,7 +97,16 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
 
 }
 #ifdef PMTFASTSIM_STANDALONE
+
 const plog::Severity junoPMTOpticalModel::LEVEL       = SLOG::EnvLevel("junoPMTOpticalModel", "DEBUG" ); 
+
+void junoPMTOpticalModel::Save(const char* fold)
+{
+    // this is a workaround allowing SPhoton_Debug.h to stay headeronly 
+    SPhoton_Debug<'A'>::Save(fold);   
+}
+
+
 #endif
 
 junoPMTOpticalModel::~junoPMTOpticalModel(){}
@@ -436,6 +448,8 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     G4double rand_absorb = G4UniformRand();  // SCB: bad name, u0 would be better
     G4double rand_escape = G4UniformRand();
+    G4double u0 = rand_absorb ; 
+    G4double u1 = rand_escape ; 
 
     char status = '?' ;
 
@@ -469,6 +483,32 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
 
 #ifdef PMTFASTSIM_STANDALONE
+    SPhoton_Debug<'A'> dbg ; 
+    int u0_idx = U4UniformRand::Find(u0);      
+
+    LOG(LEVEL)
+       << " time " << time 
+       << " dbg.Count " << dbg.Count()
+       << " dbg.Name "  << dbg.Name()
+       << " u0 " << U4UniformRand::Desc(u0) 
+       << " u1 " << U4UniformRand::Desc(u1)
+       << " u0_idx " << u0_idx 
+       ;  
+
+    dbg.pos  = pos ; 
+    dbg.time = time ;  
+   
+    dbg.mom = dir ;  
+    dbg.iindex = u0_idx ; 
+
+    dbg.pol = pol ;  
+    dbg.wavelength = _wavelength/nm ; 
+
+    dbg.nrm = norm ;  
+    dbg.spare = 0. ; 
+  
+    dbg.add(); 
+
 
     spho* label = STrackInfo<spho>::GetRef(track);  
     LOG_IF(fatal, !label) 
@@ -698,8 +738,8 @@ it is the simplest (and hence fastest) possible geometry::
 
 
 /**
-junoPMTOpticalModel::Reflect junoPMTOpticalModel::Refract
------------------------------------------------------------
+junoPMTOpticalModel::Reflect 
+-----------------------------
 
 Comparing to qsim::propagate_at_boundary (port of G4OpBoundaryProcess) 
 this is not the same polarization in both Reflect and Refract. 
@@ -713,6 +753,19 @@ void junoPMTOpticalModel::Reflect()
     dir -= 2.*(dir*norm)*norm;
     pol -= 2.*(pol*norm)*norm;
 }
+
+/**
+junoPMTOpticalModel::Refract
+-----------------------------
+
+When going from higher index (Pyrex) to lower index (Vacuum) 
+the refraction should be away from the normal.
+
+When going from lower index (Vacuum) to higher index (Pyrex) 
+the refraction should be towards the normal.
+
+**/
+
 void junoPMTOpticalModel::Refract()
 {
 #ifdef PMTFASTSIM_STANDALONE

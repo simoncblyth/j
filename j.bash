@@ -2857,6 +2857,7 @@ jop(){ jcv DsPhysConsOptical ;  }
 jac(){ jcv AdditionAcrylicConstruction ; }
 jps(){  cd $HOME/j/PMTSim     ; git status ; }
 jfs(){  cd $HOME/j/PMTFastSim ; git status ; }
+jfs1(){ jfs ; ls -lt *.rst | head -30 ; vi $(ls -1t *.rst | head -1) ;  }
 jly(){  cd $HOME/j/Layr       ; git status ; }
 jpo(){  cd $HOME/j/PosFile    ; git status ; }
 

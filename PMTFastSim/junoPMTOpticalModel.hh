@@ -48,6 +48,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 {
     public:
 #ifdef PMTFASTSIM_STANDALONE
+        static void Save(const char* dir); 
         static const plog::Severity LEVEL ; 
 #endif
     public:
