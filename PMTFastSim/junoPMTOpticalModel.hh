@@ -69,6 +69,7 @@ class junoPMTOpticalModel : public G4VFastSimulationModel
 #endif
     
     private:
+        int DoIt_count ; 
         G4MaterialPropertyVector* _rindex_glass;
         G4MaterialPropertyVector* _rindex_vacuum;
 

@@ -219,22 +219,46 @@ void HamamatsuR12860PMTManager::init() {
     }
 }
 
-void
-HamamatsuR12860PMTManager::init_material() {
+
+/**
+HamamatsuR12860PMTManager::init_material
+------------------------------------------
+
+For G4OpticalSurface with names starting with '@' 
+the InstrumentedG4OpBoundaryProcess has special handling 
+that depends on the local z of the intersect position. 
+
+local_z > 0. 
+   InstrumentedG4OpBoundaryProcess::CustomART kicks in 
+   doing the multi-layer stack TMM calculation 
+   of ARTD absorption/reflection/transmission/detection 
+   and effecting the change in momentum and polarization.
+   In this case the OpticalSurface type and properties
+   are entirely ignored.  
+
+!(local > 0.)
+   standard Geant4 surface handling applies, so 
+   the type (eg DielectricMetal) and OpticalSurface 
+   properties like REFLECIVITY are used 
+
+Note that this means that for "@" surfaces need to give 
+the properties of the mirror portion. 
+
+**/
+
+void HamamatsuR12860PMTManager::init_material() {
 
      GlassMat = G4Material::GetMaterial("Pyrex");
      PMT_Vacuum = G4Material::GetMaterial("Vacuum"); 
      DynodeMat = G4Material::GetMaterial("Steel");
 
      G4String name ; 
-     name += "@" ; 
      name += GetName() + "_Photocathode_opsurf" ; 
 
      Photocathode_opsurf =  new G4OpticalSurface(name);
-     Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined (SCB: this comment is untrue) 
+     Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined (SCB: this comment is untrue : dielectric_metal applies)
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
-#ifdef PMTFASTSIM_STANDALONE
      std::cout 
           << "HamamatsuR12860PMTManager::init_material" 
           << " GlassMat " << ( GlassMat ? "Y" : "N" )
@@ -245,10 +269,9 @@ HamamatsuR12860PMTManager::init_material() {
 
      G4Material* mat = G4Material::GetMaterial("photocathode_Ham20inch"); 
      Photocathode_opsurf->SetMaterialPropertiesTable(mat ? mat->GetMaterialPropertiesTable() : nullptr ) ;  
-#else
-     Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_Ham20inch")->GetMaterialPropertiesTable() );
-#endif
-     if (m_fast_cover) {
+
+     if (m_fast_cover) 
+     {
          m_cover_mat = G4Material::GetMaterial(m_cover_mat_str);
          assert(m_cover_mat);
      }
@@ -301,33 +324,39 @@ void HamamatsuR12860PMTManager::init_variables() {
     m_pmtsolid_maker = new Hamamatsu_R12860_PMTSolid();
 }
 
-void
-HamamatsuR12860PMTManager::init_mirror_surface() {
-    if ( m_mirror_opsurf == NULL ) {
-        // construct a static mirror surface with idealized properties
-        m_mirror_opsurf =  new G4OpticalSurface(GetName()+"_Mirror_opsurf");
-        m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
-        m_mirror_opsurf->SetModel(glisur); 
-        m_mirror_opsurf->SetType(dielectric_metal); 
-        m_mirror_opsurf->SetPolish(0.999);              // a guess -- FIXME
-        G4MaterialPropertiesTable* propMirror= NULL;
-        G4Material *matMirror = G4Material::GetMaterial("PMT_Mirror");
-        if (matMirror) {
-            propMirror= matMirror->GetMaterialPropertiesTable();
-        }
-        if ( propMirror == NULL ) {
-            G4cout << "Warning: setting PMT mirror reflectivity to 0.9999 "
-                   << "because no PMT_Mirror material properties defined" << G4endl;
-            propMirror= new G4MaterialPropertiesTable();
-            propMirror->AddProperty("REFLECTIVITY", new G4MaterialPropertyVector());
-            //propMirror->AddEntry("REFLECTIVITY", twopi*hbarc/(800.0e-9*m), 0.9999);
-            //propMirror->AddEntry("REFLECTIVITY", twopi*hbarc/(200.0e-9*m), 0.9999);
-            propMirror->AddEntry("REFLECTIVITY", 1.55*eV, 0.92);
-            propMirror->AddEntry("REFLECTIVITY", 15.5*eV, 0.92);
-        }
-        m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
+/**
+HamamatsuR12860PMTManager::init_mirror_surface
+------------------------------------------------
 
+**/
+
+void HamamatsuR12860PMTManager::init_mirror_surface() 
+{
+    if(m_mirror_opsurf) return ; 
+
+    G4String name ; 
+    name += '@' ; 
+    name += GetName() ; 
+    name += "_Mirror_opsurf" ; 
+
+    m_mirror_opsurf = new G4OpticalSurface(name);
+    m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
+    m_mirror_opsurf->SetModel(glisur); 
+    m_mirror_opsurf->SetType(dielectric_metal); 
+    m_mirror_opsurf->SetPolish(0.999);
+
+    G4Material* matMirror = G4Material::GetMaterial("PMT_Mirror");
+    G4MaterialPropertiesTable* propMirror = matMirror ? matMirror->GetMaterialPropertiesTable() : nullptr ;
+
+    if(propMirror == nullptr) 
+    {
+        propMirror= new G4MaterialPropertiesTable();
+        propMirror->AddProperty("REFLECTIVITY", new G4MaterialPropertyVector());
+        propMirror->AddEntry("REFLECTIVITY", 1.55*eV, 0.92);
+        propMirror->AddEntry("REFLECTIVITY", 15.5*eV, 0.92);
     }
+
+    m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
 }
 
 /**
@@ -1121,35 +1150,63 @@ A: I think not, because body volume is handled by FastSim when ModelTrigger:true
    * so does this mean can set the mirror_logsurf for the entire PMT such 
      that ModelTrigger:false will get the same behaviour       
 
+**/
+
+
+/**
+HamamatsuR12860PMTManager::helper_make_optical_surface
+----------------------------------------------------------
+
+
+::
+
+
+     +---------------pmt-Pyrex----------------+
+     |                                        |
+     |                                        |
+     |     +----------body-Pyrex--------+     |
+     |     | +------------------------+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner1-Vacuum   |-|     |
+     |     | |                        |1e-3   |
+     |     | |                        | |     |
+     |     | +~~coincident~face~~~~~~~+ |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | |        inner2-Vacuum   | |     |
+     |     | |                        | |     |
+     |     | |                        | |     |
+     |     | +------------------------+ |     |
+     |     +----------------------------+     |
+     |                                        |
+     |                                        |
+     +----------------------------------------+
+
 
 HMM: notice that the optical surface is not with the pmt-Pyrex but the body-Pyrex
 
 * photocathode_logsurf1,2 : inner1_phys<->body_phys
-* mirror_logsurf11,2 : inner2_phys<->body_phys
+* mirror_logsurf1,2 : inner2_phys<->body_phys
+
+
 
 **/
 
-void
-HamamatsuR12860PMTManager::helper_make_optical_surface()
+
+void HamamatsuR12860PMTManager::helper_make_optical_surface()
 {
     if(m_natural_geometry == false)
     {
-        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf1",
-                inner1_phys, body_phys,
-                Photocathode_opsurf);
-        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf2",
-                body_phys, inner1_phys,
-                Photocathode_opsurf);
-        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf1",
-                inner2_phys, body_phys,
-                m_mirror_opsurf);
-        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf2",
-                body_phys, inner2_phys,
-                m_mirror_opsurf);
+        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf1", inner1_phys, body_phys, Photocathode_opsurf); 
+        new G4LogicalBorderSurface(GetName()+"_photocathode_logsurf2", body_phys, inner1_phys, Photocathode_opsurf); 
 
-         // Thats funny : same mirror properties from both directions ? 
-         // the point of using G4LogicalBorderSurface is to control 
-         // directionality ? 
+        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf1", inner2_phys, body_phys, m_mirror_opsurf); 
+        new G4LogicalBorderSurface(GetName()+"_mirror_logsurf2", body_phys, inner2_phys, m_mirror_opsurf); 
+
+        // Thats funny : same mirror properties from both directions ? 
+        // the point of using G4LogicalBorderSurface is to control directionality ? 
+        // Otherwise should use SkinSurface 
     }
     else
     {
@@ -1161,13 +1218,8 @@ HamamatsuR12860PMTManager::helper_make_optical_surface()
         // But using unplaced G4LogicalSkinSurface does exactly 
         // the same thing more cheaply. 
 
-        new G4LogicalSkinSurface(GetName()+"_photocathode_logsurf",
-                inner_log, Photocathode_opsurf);
-
-
-        // HMM: doing with customized G4OpBoundaryProcess will need to 
-        // make a composite surface with properties for for both 
-        // the mirror 
+        new G4LogicalSkinSurface(GetName()+"_composite_photocathode_mirror_logsurf",
+                inner_log, m_mirror_opsurf);
     }
 }
 

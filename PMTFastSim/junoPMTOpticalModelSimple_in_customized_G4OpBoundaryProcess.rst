@@ -452,3 +452,402 @@ Trying to keep the consumption aligned
 
 
 
+
+    epsilon:tests blyth$ grep UU *_1.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.87237      0] u_idx 0
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@755:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.10137      5] u_idx 5
+    InstrumentedG4OpBoundaryProcess::CustomART@1099:  time 0.163593 dbg.Count 0 dbg.Name B_SPhoton_Debug.npy u0 UU[0.98594      8] u1 UU[0.94190      9] u0_idx 8
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.35166     10] u_idx 10
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@143: UU[0.87761     13] after uu_burn 3 for u_idx 10
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1250:  PostStepDoIt_count 2 do-while n 1 rand UU[0.77461     16] theReflectivity 0 theTransmittance 0
+
+
+
+Appluying UU_BURN to keep aligned further
+--------------------------------------------
+
+Fixing UU_BURN machinery, still only with only one shunt::
+
+   a = np.array( [[10,3]], dtype=np.int32 ) 
+
+Plus changing to m_mirror_opsurf gets further matched
+(in old numbering gets to point 8 with matched positions, 
+but see time difference starting from point 5[old]::
+
+    u4t
+    ./U4PMTFastSimTest.sh ncf
+
+
+    In [9]: a.record[726,:10,:3].reshape(-1,12)
+    Out[9]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ],
+        #1 [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #2 [-112.83 ,    0.   ,  164.918,    0.164,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #3 [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #4 [-135.824,    0.   ,    0.   ,    1.012,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #5 [-156.577,    0.   , -148.846,   *1.778*,   0.81 ,    0.   ,    0.587,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ],
+        #6 [ -95.   ,    0.   , -104.211,    2.166,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #7 [-238.764,    0.   ,   -0.   ,    3.071,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+        #8 [-248.807,    0.   ,    7.28 ,    3.112,    0.867,    0.   ,    0.498,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [  53.205,    0.   ,  180.727,    4.274,    0.665,    0.   ,   -0.747,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ]], dtype=float32)
+
+    In [10]: b.record[726,:10,:3].reshape(-1,12)
+    Out[10]: 
+    array([[-113.   ,    0.   ,  200.   ,    0.   ,    0.   ,    0.   ,   -1.   ,    0.   ,   -0.   ,   -1.   ,   -0.   ,  420.   ],
+           [-113.   ,    0.   ,  170.163,    0.137,    0.032,    0.   ,   -0.999,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-112.83 ,    0.   ,  164.917,    0.164,   -0.138,    0.   ,   -0.99 ,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-156.577,    0.   , -148.846,   *1.22*,    0.81 ,    0.   ,    0.587,    0.   ,    0.   ,    1.   ,    0.   ,  420.   ],
+           [ -95.   ,    0.   , -104.211,    1.474,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [-248.807,    0.   ,    7.28 ,    2.108,   -0.81 ,    0.   ,    0.587,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+    In [11]:                                            
+
+
+
+::
+
+    epsilon:tests blyth$ grep UU *_0.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.87237      0] u_idx 0
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@755:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.10137      5] u_idx 5
+    junoPMTOpticalModel::DoIt@462:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T
+    junoPMTOpticalModel::DoIt@471:  u1 UU[0.94190      9] u1_idx 9 D     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.35166     10] u_idx 10
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.87761     13] u_idx 13
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1262:  PostStepDoIt_count 3 do-while n 1 rand UU[0.77461     16] theReflectivity 0.92 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.03802     17] u_idx 17
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.49764     20] u_idx 20
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1262:  PostStepDoIt_count 5 do-while n 1 rand UU[0.00594     23] theReflectivity 0.65 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.49004     24] u_idx 24
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.43749     27] u_idx 27
+
+    junoPMTOpticalModel::DoIt@462:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R
+    junoPMTOpticalModel::DoIt@471:  u1 UU[0.61933     31] u1_idx 31 D     0.0000
+
+    junoPMTOpticalModel::DoIt@462:  u0 UU[0.74358     32] u0_idx 32 A     0.2341 A+R     0.7652 T     0.2348 status R
+    junoPMTOpticalModel::DoIt@471:  u1 UU[0.01118     33] u1_idx 33 D     0.0000
+
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.01857     34] u_idx 34
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.45692     37] u_idx 37
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1262:  PostStepDoIt_count 9 do-while n 1 rand UU[0.76067     40] th
+
+
+
+    epsilon:tests blyth$ grep UU *_1.log
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.87237      0] u_idx 0
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@755:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.10137      5] u_idx 5
+    InstrumentedG4OpBoundaryProcess::CustomART@1026:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T
+    InstrumentedG4OpBoundaryProcess::CustomART@1035:  u1 UU[0.94190      9] u1_idx 9 D     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.35166     10] u_idx 10
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@143: UU[0.87761     13] after uu_burn 3 for u_idx 10
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1262:  PostStepDoIt_count 2 do-while n 1 rand UU[0.77461     16] theReflectivity 0.92 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.03802     17] u_idx 17
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.49764     20] u_idx 20
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1262:  PostStepDoIt_count 4 do-while n 1 rand UU[0.00594     23] theReflectivity 0.65 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.49004     24] u_idx 24
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@137: UU[0.43749     27] u_idx 27
+    InstrumentedG4OpBoundaryProcess::CustomART@1026:  u0 UU[0.33902     30] u0_idx 30 A     0.7357 A+R     0.7766 T     0.2234 status A
+    InstrumentedG4OpBoundaryProcess::CustomART@1035:  u1 UU[0.61933     31] u1_idx 31 D     0.0000
+    epsilon:tests blyth$ 
+
+
+* A higher in 1 than 0 
+
+
+
+0::
+
+
+    junoPMTOpticalModel::CalculateCoefficients@645:  DoIt_count 1 stack crossheck Stack<double,4>
+    idx 0
+    Layr
+      n:(    1.0000     0.0000)s  d:    0.0000
+     st:(    0.5432     0.0000)s ct:(    0.8396    -0.0000)s
+     rs:(   -0.5509    -0.2104)s rp:(    0.4119     0.2305)s
+     ts:(    0.4491    -0.2104)s tp:(    0.4944    -0.2046)s
+    S
+    | (    1.0000     0.0000)s (    0.0000     0.0000)s |
+    | (    0.0000     0.0000)s (    1.0000     0.0000)s |
+
+    P
+    | (    1.0000     0.0000)s (    0.0000     0.0000)s |
+    | (    0.0000     0.0000)s (    1.0000     0.0000)s |
+
+    idx 1
+    Layr
+      n:(    2.2735     1.4071)s  d:   21.1300
+     st:(    0.1728    -0.1069)s ct:(    0.9909     0.0186)s
+     rs:(    0.1888     0.2849)s rp:(   -0.1537    -0.2682)s
+     ts:(    1.1888     0.2849)s tp:(    1.1856     0.2993)s
+    S
+    | (    3.0642    -0.8338)s (   -0.0483    -0.7536)s |
+    | (   -1.8637    -0.1854)s (    0.5324     1.1646)s |
+
+    P
+    | (    2.8016    -0.9019)s (   -0.0199     0.5598)s |
+    | (    1.3619     0.2742)s (    0.5423     1.0556)s |
+
+    idx 2
+    Layr
+      n:(    1.9413     0.0000)s  d:   36.4900
+     st:(    0.2798     0.0000)s ct:(    0.9601     0.0000)s
+     rs:(    0.1487     0.0000)s rp:(   -0.1181     0.0000)s
+     ts:(    1.1487     0.0000)s tp:(    1.1535     0.0000)s
+    S
+    | (    0.2559    -0.7770)s (   -0.0547     0.2742)s |
+    | (    0.2697    -0.0738)s (    0.5803     0.5766)s |
+
+    P
+    | (    0.2465    -0.7798)s (    0.0625    -0.2450)s |
+    | (   -0.2471     0.0537)s (    0.5870     0.5694)s |
+
+    idx 3
+    Layr
+      n:(    1.4843     0.0000)s  d:    0.0000
+     st:(    0.3660     0.0000)s ct:(    0.9306     0.0000)s
+     rs:(    0.0000     0.0000)s rp:(    0.0000     0.0000)s
+     ts:(    0.0000     0.0000)s tp:(    0.0000     0.0000)s
+    S
+    | (    0.8706     0.0000)s (    0.1294     0.0000)s |
+    | (    0.1294     0.0000)s (    0.8706     0.0000)s |
+
+    P
+    | (    0.8670     0.0000)s (   -0.1024     0.0000)s |
+    | (   -0.1024     0.0000)s (    0.8670     0.0000)s |
+
+    comp
+    Layr
+      n:(    0.0000     0.0000)s  d:    0.0000
+     st:(    0.0000     0.0000)s ct:(    0.0000     0.0000)s
+     rs:(   -0.6458    -0.1223)s rp:(    0.5206     0.1486)s
+     ts:(    0.0211     0.4195)s tp:(    0.0012     0.4621)s
+    S
+    | (    0.1194    -2.3778)s (    0.4157     0.0046)s |
+    | (   -0.3679     1.5209)s (   -0.2332     0.6364)s |
+
+    P
+    | (    0.0055    -2.1640)s (   -0.3223    -0.1081)s |
+    | (    0.3244    -1.1256)s (   -0.1498     0.6561)s |
+
+
+    ART_
+     R_s     0.4320 R_p     0.2931
+     T_s     0.2903 T_p     0.3513
+     A_s     0.2778 A_p     0.3556
+     R       0.3625 T       0.3208 A       0.3167 A_R_T     1.0000
+     wl    420.0000
+     mct    -0.8396   ## SHOULD BE +VE ? 
+
+
+    junoPMTOpticalModel::DoIt@397:  DoIt_count 1 _sin_theta1    0.54322 norm (-0.99860,0.00000,0.05293) pol*dir.cross(norm)    0.54322 E_s2    1.00000
+
+
+    junoPMTOpticalModel::DoIt@397:  DoIt_count 1 _sin_theta1    0.54322 norm (-0.99860,0.00000,0.05293) pol*dir.cross(norm)    0.54322 E_s2    1.00000
+    junoPMTOpticalModel::DoIt@431:  DoIt_count 1 E_s2    1.00000 fT_s    0.29025 1-E_s2   -0.00000 fT_p    0.35132 T    0.29025
+    junoPMTOpticalModel::DoIt@440:  DoIt_count 1 E_s2    1.00000 fR_s    0.43197 1-E_s2   -0.00000 fR_p    0.29305 R    0.43197 A    0.27778
+    junoPMTOpticalModel::DoIt@495:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R
+    junoPMTOpticalModel::DoIt@504:  u1 UU[0.61933     31] u1_idx 31 D     0.0000
+    junoPMTOpticalModel::UpdateTrackInfo@636: 
+
+
+
+
+
+1::
+
+
+    InstrumentedG4OpBoundaryProcess::CustomART@987:  CustomART_count 1 stack Stack<double,4>
+    idx 0
+    Layr
+      n:(    1.4843     0.0000)s  d:    0.0000            ## THATS WRONG : AS ARE IN VACUUM HERE 
+     st:(    0.5432     0.0000)s ct:(    0.8396    -0.0000)s
+     rs:(   -0.1726     0.0000)s rp:(    0.0939     0.0000)s
+     ts:(    0.8274     0.0000)s tp:(    0.8363     0.0000)s
+    S
+    | (    1.0000     0.0000)s (    0.0000     0.0000)s |
+    | (    0.0000     0.0000)s (    1.0000     0.0000)s |
+
+    P
+    | (    1.0000     0.0000)s (    0.0000     0.0000)s |
+    | (    0.0000     0.0000)s (    1.0000     0.0000)s |
+
+    idx 1
+    Layr
+      n:(    1.9413     0.0000)s  d:   36.4900
+     st:(    0.4153     0.0000)s ct:(    0.9097     0.0000)s
+     rs:(   -0.2131    -0.2946)s rp:(    0.1298     0.2576)s
+     ts:(    0.7869    -0.2946)s tp:(    0.7959    -0.2727)s
+    S
+    | (    0.6891    -0.9928)s (   -0.1189    -0.1713)s |
+    | (   -0.1189     0.1713)s (    0.6891     0.9928)s |
+
+    P
+    | (    0.6818    -0.9823)s (    0.0640     0.0922)s |
+    | (    0.0640    -0.0922)s (    0.6818     0.9823)s |
+
+    idx 2
+    Layr
+      n:(    2.2735     1.4071)s  d:   21.1300
+     st:(    0.2564    -0.1587)s ct:(    0.9804     0.0415)s
+     rs:(    0.6666     0.1779)s rp:(   -0.2493    -0.2464)s
+     ts:(    1.6666     0.1779)s tp:(    2.0533     0.4960)s
+    S
+    | (    1.7953    -0.6106)s (    0.1103    -0.2482)s |
+    | (   -0.5624    -0.3989)s (    0.3753     0.6457)s |
+
+    P
+    | (    1.7751    -0.6601)s (   -0.1123     0.1835)s |
+    | (    0.4003     0.3715)s (    0.3928     0.6341)s |
+
+    idx 3
+    Layr
+      n:(    1.0000     0.0000)s  d:    0.0000
+     st:(    0.8063     0.0000)s ct:(    0.5915     0.0000)s
+     rs:(    0.0000     0.0000)s rp:(    0.0000     0.0000)s
+     ts:(    0.0000     0.0000)s tp:(    0.0000     0.0000)s
+    S
+    | (    0.5933    -0.0633)s (    0.4067     0.0633)s |
+    | (    0.4067     0.0633)s (    0.5933    -0.0633)s |
+
+    P
+    | (    0.4602    -0.1112)s (   -0.1421    -0.0857)s |
+    | (   -0.1421    -0.0857)s (    0.4602    -0.1112)s |
+
+    comp
+    Layr
+      n:(    0.0000     0.0000)s  d:    0.0000
+     st:(    0.0000     0.0000)s ct:(    0.0000     0.0000)s
+     rs:(   -0.0764    -0.1871)s rp:(   -0.1028     0.1422)s
+     ts:(    0.1070     0.6777)s tp:(    0.0286     0.9137)s
+    S
+    | (    0.2273    -1.4397)s (    0.2979    -1.0413)s |
+    | (   -0.2868     0.0675)s (   -0.1668     0.3455)s |
+
+    P
+    | (    0.0342    -1.0934)s (   -0.1943     0.3916)s |
+    | (    0.1520     0.1173)s (   -0.0221     0.3658)s |
+
+
+    ART_
+     R_s     0.0408 R_p     0.0308
+     T_s     0.2234 T_p     0.3966
+     A_s     0.7357 A_p     0.5726
+     R       0.0358 T       0.3100 A       0.6541 A_R_T     1.0000
+     wl    420.0000
+     mct    -0.8396
+
+
+    InstrumentedG4OpBoundaryProcess::CustomART@999:  CustomART_count 1 _sin_theta0    0.54322 oriented_normal (0.99860,0.00000,-0.05293) polarization*direction.cross(oriented_normal) -0.54322 E_s2    1.00000
+    InstrumentedG4OpBoundaryProcess::CustomART@1018:  CustomART_count 1 E_s2    1.00000 fT_s    0.22343 1-E_s2    0.00000 fT_p    0.39663 T    0.22343
+    InstrumentedG4OpBoundaryProcess::CustomART@1027:  CustomART_count 1 E_s2    1.00000 fR_s    0.04085 1-E_s2    0.00000 fR_p    0.03080 R    0.04085 A    0.73572
+
+
+
+
+    InstrumentedG4OpBoundaryProcess::CustomART@991:  CustomART_count 1 _sin_theta0    0.54322 oriented_normal (0.99860,0.00000,-0.05293) polarization*direction.cross(oriented_normal) -0.54322 E_s2    1.00000
+    InstrumentedG4OpBoundaryProcess::CustomART@1010:  CustomART_count 1 E_s2    1.00000 fT_s    0.22343 1-E_s2    0.00000 fT_p    0.39663 T    0.22343
+    InstrumentedG4OpBoundaryProcess::CustomART@1019:  CustomART_count 1 E_s2    1.00000 fR_s    0.04085 1-E_s2    0.00000 fR_p    0.03080 R    0.04085 A    0.73572
+    InstrumentedG4OpBoundaryProcess::CustomART@1057:  u0 UU[0.33902     30] u0_idx 30 A     0.7357 A+R     0.7766 T     0.2234 status A
+    InstrumentedG4OpBoundaryProcess::CustomART@1066:  u1 UU[0.61933     31] u1_idx 31 D     0.0000
+
+* transmission different, reflection much less 
+
+
+Problem is that theGlobalNormal is not pointing outwards, as I assumed. It seems to not be rigidly defined 
+according to the geometry : which Opticks needs.   
+
+
+After established reliable orientation 
+-----------------------------------------
+
+After establishing the orientation based on "outwards = localNormal.z() > 0." 
+manage to reproduce the bounces of the big bounder, but it goes beyond.
+
+
+::
+
+     902 char InstrumentedG4OpBoundaryProcess::CustomART(const G4Track& aTrack, const G4Step& aStep )
+     903 {
+     904     const G4AffineTransform& transform = aTrack.GetTouchable()->GetHistory()->GetTopTransform();
+     905     
+     906     G4ThreeVector localPoint  = transform.TransformPoint(theGlobalPoint);
+     907     G4ThreeVector localNormal = transform.TransformAxis(theGlobalNormal);
+     908     G4ThreeVector localMomentum = transform.TransformAxis(OldMomentum);
+     909     G4ThreeVector localPolarization = transform.TransformAxis(OldPolarization);
+     910     
+     911     G4double z_local = localPoint.z() ;
+     912     if( z_local < 0. ) return 'Z' ;
+     913     
+     914     bool outwards = localNormal.z() > 0. ; // as always upper hemi of PMT in local frame  
+     915     G4ThreeVector surface_normal = (outwards ? 1. : -1.)*localNormal ;
+     916     const G4ThreeVector& direction      = localMomentum ; 
+     917     const G4ThreeVector& polarization   = localPolarization ;
+     918     
+     919     G4double minus_cos_theta = direction*surface_normal  ; 
+     920     G4ThreeVector oriented_normal = ( minus_cos_theta < 0. ? 1. : -1. )*surface_normal ;
+     921 
+
+
+This match must be "by accident" because the UU_BURN still has only one shunt. 
+
+
+
+Record the u0 and u0_idx in SPhoton_Debug
+---------------------------------------------
+
+::
+
+    In [7]: aa[:,4,3].view(np.uint64)
+    Out[7]: array([ 5, 27, 27, 58, 73], dtype=uint64)
+
+    In [9]: aa[:,4,0]
+    Out[9]: array([0.101, 0.437, 0.437, 0.855, 0.673])
+    #1 and #2 both FastSim bounces directly connected  
+    so it kinda makes sense there is no consumption between them 
+
+
+    In [8]: bb[:,4,3].view(np.uint64)
+    Out[8]: array([ 5, 27, 35, 64, 79], dtype=uint64)
+
+    In [10]: bb[:,4,0]
+    Out[10]: array([0.101, 0.437, 0.073, 0.799, 0.929])
+
+    ## HMM : LOOKS LIKE WILL NEED TO REWIND THE SEQUENCE : IMPLEMENT AN "UN-BURN" 
+
+
+
+Add aux to SEvt : following SOpBoundaryProp::get_u0 at each point
+---------------------------------------------------------------------
+
+::
+
+    In [14]: a.aux[726,:21,0,3].view(np.uint32)
+    Out[14]: array([ 0,  0,  5,  5, 10, 13, 20, 27, 27, 27, 34, 37, 44, 51, 58, 58, 63, 66, 73, 73,  0], dtype=uint32)
+
+    In [29]: np.diff(a.aux[726,:21,0,3].view(np.uint32))[:-1]
+    Out[29]: array([0, 5, 0, 5, 3, 7, 7, 0, 0, 7, 3, 7, 7, 7, 0, 5, 3, 7, 0], dtype=uint32)
+
+
+    In [13]: b.aux[726,:21,0,3].view(np.uint32)
+    Out[13]: array([ 0,  0,  5, 10, 20, 27, 35, 43, 50, 57, 64, 72, 79, 87, 94,  0,  0,  0,  0,  0,  0], dtype=uint32)
+
+    In [33]: np.diff(b.aux[726,:21,0,3].view(np.uint32))[:-6]
+    Out[33]: array([ 0,  5,  5, 10,  7,  8,  8,  7,  7,  7,  8,  7,  8,  7], dtype=uint32)
+
+
+
+    In [15]: a.aux[726,:21,0,0]
+    Out[15]: array([0.872, 0.872, 0.101, 0.101, 0.352, 0.878, 0.498, 0.437, 0.437, 0.437, 0.019, 0.457, 0.751, 0.645, 0.855, 0.855, 0.663, 0.502, 0.673, 0.673, 0.   ], dtype=float32)
+
+    In [16]: b.aux[726,:21,0,0]
+    Out[16]: array([0.872, 0.872, 0.101, 0.878, 0.498, 0.437, 0.073, 0.106, 0.841, 0.812, 0.799, 0.246, 0.929, 0.341, 0.556, 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ], dtype=float32)
+
+
+
+

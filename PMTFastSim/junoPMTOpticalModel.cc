@@ -24,6 +24,8 @@
 #include "SEvt.hh"
 #include "SFastSim_Debug.hh"
 #include "STrackInfo.h"
+#include "SOpBoundaryProcess.hh"
+
 #include "spho.h"
 
 #include "SPhoton_Debug.h"
@@ -48,6 +50,7 @@ junoPMTOpticalModel::junoPMTOpticalModel(G4String modelName, G4VPhysicalVolume* 
     : 
     G4VFastSimulationModel(modelName, envelope)
 {
+    DoIt_count = 0 ; 
     _photon_energy  = 0.;
     _wavelength     = 0.;
     _aoi            = 0.;
@@ -313,7 +316,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     int pmtid  = get_pmtid(track);
 
 #ifdef PMTFASTSIM_STANDALONE
-    LOG(LEVEL) << "junoPMTOpticalModel::DoIt pmtid " << pmtid ; 
+    LOG(LEVEL) << " DoIt_count " << DoIt_count << "  pmtid " << pmtid ; 
     setEnergyThickness(energy); 
 #else
     n_glass    = _rindex_glass->Value(_photon_energy);
@@ -375,55 +378,78 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         _cos_theta1 = -_cos_theta1;
         norm = -norm;
     }
-    // SCB : nasty multiple flips to normal vector, 
-    //       simpler to have separate oriented_normal 
-    //       and keep the original geometrical normal as fixed 
-    //       and pointing outwards
-    
+
+    /**
+    SCB : nasty multiple flips to normal vector, 
+          simpler to have separate oriented_normal 
+          and keep the original geometrical normal as fixed 
+          and pointing outwards
+    **/
 
     _aoi = acos(_cos_theta1)*360./twopi;
 
     CalculateCoefficients();
 
-    G4double T  = 0.;
-    G4double R  = 0.;
-    G4double A  = 0.;
-    G4double An = 0.;
-    G4double escape_fac = 0.;
-    G4double E_s2 = 0.;
-
-    if(_sin_theta1 > 0.){
-        E_s2 = (pol*dir.cross(norm))/_sin_theta1;
-        E_s2 *= E_s2;
-    }else{
-        E_s2 = 0.;   
-    }
-
-    // SCB
-    //    _sin_theta1 comes from sqrt(1.- _cos_theta1*_cos_theta1) 
-    //    so it cannot be negative, but it will be zero at normal incidence 
-    //    where -cos(theta) is -1 and +1 and where dir.cross(norm) will be very small 
-    //
-    //    This is just expressing that S and P loose meaning at normal incidence
-    //    so setting E_s2 to 0 artifically picks P for normal incidence.
-    //
-    //    BUT that doesnt matter as s/p coeffs are equal at normal incidence anyhow::
-    //
-    //        fA_s = fA_p 
-    //        fR_s = fR_p 
-    //        fT_s = fT_p 
-    //           
-    //     Initially though this  E_s2 calc was assuming are on Pyrex side of the border, 
-    //     but thats not the case because the _sin_theta1 can be for either side 
-    //
-    //     TODO: compare with  qsim.h propagate_at_boundary 
+  
+    // E_s2 : S-vs-P power fraction : signs make no difference as squared
+    G4double E_s2 = _sin_theta1 > 0. ? (pol*dir.cross(norm))/_sin_theta1 : 0. ; 
+    E_s2 *= E_s2;
 
 
-    T = fT_s*E_s2 + fT_p*(1.0-E_s2);
-    R = fR_s*E_s2 + fR_p*(1.0-E_s2);
-    A = 1.0 - (T+R);
-    An = 1.0 - (fT_n+fR_n);
-    escape_fac  = _qe/An;
+    LOG(LEVEL)
+        << " DoIt_count " << DoIt_count 
+        << " _sin_theta1 " << std::fixed << std::setw(10) << std::setprecision(5) << _sin_theta1 
+        << " norm " << norm 
+        << " pol*dir.cross(norm) " << std::fixed << std::setw(10) << std::setprecision(5) << pol*dir.cross(norm)
+        << " E_s2 " << std::fixed << std::setw(10) << std::setprecision(5) << E_s2 
+        ; 
+
+    /**
+    _sin_theta1 comes from sqrt(1.- _cos_theta1*_cos_theta1) 
+    so it cannot be negative, but it will be zero at normal incidence 
+    where -cos(theta) is -1 and +1 and where dir.cross(norm) will be very small 
+    This is just expressing that S and P loose meaning at normal incidence
+    so setting E_s2 to 0 artifically picks P for normal incidence.
+    
+    BUT that doesnt matter as s/p coeffs are equal at normal incidence anyhow::
+
+        fA_s = fA_p 
+        fR_s = fR_p 
+        fT_s = fT_p 
+
+    Initially though this  E_s2 calc was assuming are on Pyrex side of the border, 
+    but thats not the case because the _sin_theta1 can be for either side 
+
+    TODO: compare with  qsim.h propagate_at_boundary + G4OpBoundaryProcess 
+    **/
+
+    G4double T = fT_s*E_s2 + fT_p*(1.0-E_s2);
+    G4double R = fR_s*E_s2 + fR_p*(1.0-E_s2);
+    G4double A = 1.0 - (T+R);
+    G4double An = 1.0 - (fT_n+fR_n);
+    G4double D = _qe/An;
+
+
+    LOG(LEVEL)
+        << " DoIt_count " << DoIt_count 
+        << " E_s2 " << std::fixed << std::setw(10) << std::setprecision(5) << E_s2
+        << " fT_s " << std::fixed << std::setw(10) << std::setprecision(5) << fT_s 
+        << " 1-E_s2 " << std::fixed << std::setw(10) << std::setprecision(5) << (1.-E_s2)
+        << " fT_p " << std::fixed << std::setw(10) << std::setprecision(5) << fT_p 
+        << " T " << std::fixed << std::setw(10) << std::setprecision(5) << T
+        ;
+
+    LOG(LEVEL)
+        << " DoIt_count " << DoIt_count 
+        << " E_s2 " << std::fixed << std::setw(10) << std::setprecision(5) << E_s2
+        << " fR_s " << std::fixed << std::setw(10) << std::setprecision(5) << fR_s 
+        << " 1-E_s2 " << std::fixed << std::setw(10) << std::setprecision(5) << (1.-E_s2)
+        << " fR_p " << std::fixed << std::setw(10) << std::setprecision(5) << fR_p 
+        << " R " << std::fixed << std::setw(10) << std::setprecision(5) << R
+        << " A " << std::fixed << std::setw(10) << std::setprecision(5) << A
+        ;
+
+
 
     //  SCB 
     //
@@ -445,42 +471,58 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     //         TODO: incorporate An into LayrTest.py plotting    
  
     //
-    if(escape_fac > 1.){
+    if(D > 1.)
+    {
         G4cout<<"junoPMTOpticalModel: QE is larger than absorption coeff."<<G4endl;
     }
 
-    G4double rand_absorb = G4UniformRand();  // SCB: bad name, u0 would be better
-    G4double rand_escape = G4UniformRand();
-    G4double u0 = rand_absorb ; 
-    G4double u1 = rand_escape ; 
+    G4double u0 = G4UniformRand(); 
+    G4double u1 = G4UniformRand();
+
+    /**  
+       0         A         A+R         1
+       |---------+----------+----------|  u0
+          D/A         R          T
+          u1
+    **/
 
     char status = '?' ;
+    if(      u0 < A)    status = u1 < D ? 'D' : 'A' ; 
+    else if( u0 < A+R)  status = 'R' ; 
+    else                status = 'T' ;  
 
-    if(rand_absorb < A){
-        // absorbed
+    int u0_idx = UUniformRand::Find(u0, SEvt::UU);     
+    int u1_idx = UUniformRand::Find(u1, SEvt::UU);   
+       
+    LOG(LEVEL) 
+         << " u0 " << UUniformRand::Desc(u0, SEvt::UU) 
+         << " u0_idx " << u0_idx 
+         << " A "   << std::setw(10) << std::fixed << std::setprecision(4) << A 
+         << " A+R " << std::setw(10) << std::fixed << std::setprecision(4) << (A+R) 
+         << " T "   << std::setw(10) << std::fixed << std::setprecision(4) << T 
+         << " status " 
+         << status 
+         ;    
+    LOG(LEVEL) 
+         << " u1 " << UUniformRand::Desc(u1, SEvt::UU ) 
+         << " u1_idx " << u1_idx 
+         << " D " << std::setw(10) << std::fixed << std::setprecision(4) << D 
+         ;    
+
+
+    if( status == 'A' || status == 'D' )
+    {
         fastStep.ProposeTrackStatus(fStopAndKill);
-        status = 'A' ; 
-        if(rand_escape<escape_fac){
-        // detected
-            fastStep.ProposeTotalEnergyDeposited(_photon_energy);
-            status = 'D' ; 
-        }
-    }else if(rand_absorb < A+R){
-        // fastStep.ProposeTrackStatus(fStopAndKill);
-        // reflected
-        Reflect();
-        status = 'R' ; 
-        UpdateTrackInfo(fastStep);
-    }else{
-        // fastStep.ProposeTrackStatus(fStopAndKill);
-        // transmitted
-        Refract();
-        status = 'T' ; 
-        if(whereAmI == kInGlass){
-            whereAmI = kInVacuum;
-        }else{
-            whereAmI = kInGlass;
-        }
+        if(status == 'D' ) fastStep.ProposeTotalEnergyDeposited(_photon_energy);
+    }
+    else if( status == 'R' || status == 'T' )
+    {
+        switch(status)
+        {
+            case 'R': Reflect() ; break ; 
+            case 'T': Refract() ; break ; 
+        } 
+        if( status == 'T' ) whereAmI =  whereAmI == kInGlass ? kInVacuum : kInGlass ; 
         UpdateTrackInfo(fastStep);
     }
 
@@ -488,15 +530,10 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 #ifdef PMTFASTSIM_STANDALONE
     SPhoton_Debug<'A'> dbg ; 
 
-    int u0_idx = UUniformRand::Find(u0, SEvt::UU);      
-
     LOG(LEVEL)
        << " time " << time 
        << " dbg.Count " << dbg.Count()
        << " dbg.Name "  << dbg.Name()
-       << " u0 " << UUniformRand::Desc(u0, SEvt::UU) 
-       << " u1 " << UUniformRand::Desc(u1, SEvt::UU)
-       << " u0_idx " << u0_idx 
        ;  
 
     dbg.pos  = pos ; 
@@ -510,6 +547,14 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     dbg.nrm = norm ;  
     dbg.spare = 0. ; 
+
+    // HMM: want to incorporate u0 from u4/InstrumentedG4OpBoundaryProcess but no access from here
+    // so added SOpBoundaryProcess : so can talk to InstrumentedG4OpBoundaryProcess 
+    // without depending on u4 
+    SOpBoundaryProcess* bop = SOpBoundaryProcess::Get(); 
+    dbg.u0 = bop->getU0() ; 
+    dbg.u0_idx = bop->getU0_idx() ; 
+
   
     dbg.add(); 
 
@@ -559,6 +604,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
         ; 
 #endif
 
+    DoIt_count += 1 ; 
     return;
 }
 
@@ -576,6 +622,7 @@ void junoPMTOpticalModel::CalculateCoefficients()
     m_multi_film_model->SetLayerPar(1, _n2, _k2, _d2);
     m_multi_film_model->SetLayerPar(2, _n3, _k3, _d3);
     m_multi_film_model->SetLayerPar(3, _n4);
+
     ART art1 = m_multi_film_model->GetART();
     fR_s = art1.R_s;
     fT_s = art1.T_s;
@@ -583,12 +630,44 @@ void junoPMTOpticalModel::CalculateCoefficients()
     fT_p = art1.T_p;
 
 
+    // CROSS CHECK 
+    {
+        StackSpec<double> spec ;
+        spec.d0  = 0. ;
+        spec.d1  = _d2 ; 
+        spec.d2  = _d3 ; 
+        spec.d3 = 0. ;
+
+        spec.n0r = _n1 ; 
+        spec.n0i = 0. ; 
+
+        spec.n1r = _n2 ; 
+        spec.n1i = _k2 ; 
+
+        spec.n2r = _n3 ; 
+        spec.n2i = _k3 ; 
+
+        spec.n3r = _n4 ; 
+        spec.n3i = 0 ; 
+
+        Stack<double,4> stack(_wavelength/nm, -_cos_theta1, spec );
+
+        LOG(LEVEL) 
+            << " DoIt_count " << DoIt_count
+            << " stack crossheck "
+            << stack
+            ; 
+    } 
+
+
     // SCB: HUH NormalART coeff do not flip the stack, but the above do  
-    // the equivalent with Layr.h:Stack is use minus_cos_theta=-1. 
+    // the equivalent with Layr.h:Stack is to use minus_cos_theta=-1. 
+
     m_multi_film_model->SetLayerPar(0, n_glass);
     m_multi_film_model->SetLayerPar(1, n_coating, k_coating, d_coating);
     m_multi_film_model->SetLayerPar(2, n_photocathode, k_photocathode, d_photocathode);
     m_multi_film_model->SetLayerPar(3, n_vacuum);
+
     ART art2 = m_multi_film_model->GetNormalART();
     fR_n = art2.R;
     fT_n = art2.T;
@@ -596,10 +675,6 @@ void junoPMTOpticalModel::CalculateCoefficients()
 
 void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
 {
-#ifdef PMTFASTSIM_STANDALONE
-     LOG(LEVEL); 
-#endif
-
     fastStep.SetPrimaryTrackFinalTime(time);
     fastStep.SetPrimaryTrackFinalPosition(pos);
     fastStep.SetPrimaryTrackFinalMomentum(dir);
@@ -855,6 +930,14 @@ int junoPMTOpticalModel::get_pmtid(const G4Track* track) {
 
 
 #ifdef PMTFASTSIM_STANDALONE
+/**
+junoPMTOpticalModel::setEnergyThickness
+-----------------------------------------
+
+Does jpmt lookups depending on energy_eV setting n_glass, n_coating, d_coating, ... 
+
+**/
+
 void junoPMTOpticalModel::setEnergyThickness( double energy )
 {
     _wavelength     = twopi*hbarc/energy;
@@ -864,14 +947,15 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
 
     n_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::RINDEX, energy_eV ); 
     k_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::KINDEX, energy_eV ); 
-    d_coating  = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L1 ); 
 
-    n_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
-    k_photocathode       = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+    n_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    k_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+
+
+    d_coating      = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L1 ); 
     d_photocathode = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L2 ); 
 
     LOG(LEVEL)
-        << "junoPMTOpticalModel::setEnergyThickness" 
         << " energy " << energy
         << " energy_eV " << energy_eV
         << " _wavelength  " << _wavelength 
@@ -884,6 +968,18 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
         ;
 }
 
+/**
+junoPMTOpticalModel::setMinusCosTheta
+---------------------------------------
+
+Sets whereAmI based on the sign of minus_cos_theta
+(hmm correct normal is vital). 
+
+Populates _n1, _n2, _k2, _d2, ... depending on whereAmI.
+The order is flipped when whereAmI is not kInVacuum.
+
+**/
+
 void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
 {
     minus_cos_theta = minus_cos_theta_ ;
@@ -891,7 +987,8 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
     _cos_theta1 = minus_cos_theta < 0. ? -minus_cos_theta : minus_cos_theta ; 
     _aoi = acos(_cos_theta1)*360./twopi;
 
-    if(whereAmI == kInGlass){
+    if(whereAmI == kInGlass)
+    {
         _n1 = n_glass;
         _n2 = n_coating;
         _k2 = k_coating;
@@ -900,7 +997,9 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
         _k3 = k_photocathode;
         _d3 = d_photocathode;
         _n4 = n_vacuum;
-    }else{
+    }
+    else
+    {
         _n1 = n_vacuum;
         _n2 = n_photocathode;
         _k2 = k_photocathode;
@@ -915,12 +1014,14 @@ void junoPMTOpticalModel::setMinusCosTheta( double minus_cos_theta_ )
 } 
 
 /**
-junoPMTOpticalModel::getCurrentStack
----------------------------------------
+junoPMTOpticalModel::getCurrentStack translating from m_multi_film_model
+--------------------------------------------------------------------------
 
-Note that this calls GetART which calls MultiFilmModel::Calculate
-which re-initializes the entire stack of layers. 
-Thats bad design. 
+1. calls m_multi_film_model GetART which calls MultiFilmModel::Calculate
+   which re-initializes the entire stack of layers. Thats bad design. 
+
+2. populates the stack parameter with the ART and layers 
+   translated from m_multi_film_model
 
 **/
 
@@ -1005,6 +1106,16 @@ void junoPMTOpticalModel::getCurrentStack(Stack<double,4>& stack) const
 }
 
 
+/**
+junoPMTOpticalModel::CalculateCoefficients
+--------------------------------------------
+
+1. calls setEnergyThickness and setMinusCosTheta
+2. loads m_multi_film_model with param 
+3. calls getCurrentStack translating m_multi_film_model outputs into stack 
+4. sets the output arguments, copying from the stack 
+
+**/
 void junoPMTOpticalModel::CalculateCoefficients(
       ART_<double>& art, 
       Layr<double>& comp, 
@@ -1035,11 +1146,10 @@ void junoPMTOpticalModel::CalculateCoefficients(
     comp = stack.comp ; 
     for(int i=0 ; i < 4 ; i++) ll[i] = stack.ll[i] ;  
 
-    std::cout 
-         << "junoPMTOpticalModel::CalculateCoefficients"
+    LOG(LEVEL)
          << " energy/eV " << energy/eV
-         << std::endl
          ;
 }
+// PMTFASTSIM_STANDALONE
 #endif
 
