@@ -66,6 +66,13 @@ inline void N4Volume::SaveTransforms( std::vector<double>* tr, std::vector<G4VSo
     a->save(path); 
 }
 
+/**
+N4Volume::MakeArray
+---------------------
+
+Creates array of transforms with the names of the solids as metadata. 
+
+**/
 inline NP* N4Volume::MakeArray( std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
 {
     unsigned num = solids->size() ;

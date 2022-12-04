@@ -502,6 +502,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
          << " T "   << std::setw(10) << std::fixed << std::setprecision(4) << T 
          << " status " 
          << status 
+         << " DECISION " 
          ;    
     LOG(LEVEL) 
          << " u1 " << UUniformRand::Desc(u1, SEvt::UU ) 

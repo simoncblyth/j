@@ -851,3 +851,500 @@ Add aux to SEvt : following SOpBoundaryProp::get_u0 at each point
 
 
 
+random consumption comparison between N=0 and N=1
+-----------------------------------------------------
+
+u4t/U4PMTFastSimTest.sh add BP::
+
+    119 if [ "$arg" == "dbg" ]; then
+    120     export BP=MixMaxRng::flat
+    121     [ -f "$log" ] && rm $log 
+    122     case $(uname) in 
+    123         Darwin) lldb__ $bin ;;
+    124         Linux)   gdb__ $bin ;;
+    125     esac
+    126     [ $? -ne 0 ] && echo $BASH_SOURCE dbg error && exit 2
+    127 fi  
+
+
+::
+
+    Process 85498 stopped
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+        frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107800190) at MixMaxRng.h:67 [opt]
+       64  	  MixMaxRng& operator=(const MixMaxRng& rng);
+       65  	  // Copy constructor and assignment operator.
+       66  	
+    -> 67  	  double flat() { return (S.counter<=(N-1)) ? generate(S.counter):iterate(); }
+       68  	  // Returns a pseudo random number between 0 and 1
+       69  	  // (excluding the zero: in (0,1] )
+       70  	  // smallest number which it will give is approximately 10^-19
+    Target 0: (U4PMTFastSimTest) stopped.
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+      * frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107800190) at MixMaxRng.h:67 [opt]
+        frame #1: 0x000000010026b622 libU4.dylib`U4UniformRand::Get() at U4UniformRand.h:63
+        frame #2: 0x000000010026b460 libU4.dylib`U4UniformRand::Get(uu=size=1000) at U4UniformRand.h:73
+        frame #3: 0x0000000100264d38 libU4.dylib`U4UniformRand::Get(n=1000) at U4UniformRand.h:94
+        frame #4: 0x0000000100263c19 libU4.dylib`U4Recorder::saveOrLoadStates(this=0x0000000107a44090, id=726) at U4Recorder.cc:290
+        frame #5: 0x000000010026252c libU4.dylib`U4Recorder::PreUserTrackingAction_Optical(this=0x0000000107a44090, track=0x00000001078c79a0) at U4Recorder.cc:184
+        frame #6: 0x0000000100261da2 libU4.dylib`U4Recorder::PreUserTrackingAction(this=0x0000000107a44090, track=0x00000001078c79a0) at U4Recorder.cc:96
+        frame #7: 0x0000000100035ba1 U4PMTFastSimTest`U4RecorderTest::PreUserTrackingAction(this=0x0000000
+
+
+Need to skip the pre-collection. So plant a breakpoint after and diable the flat BP::
+
+    (lldb) f 4
+    frame #4: 0x0000000100263c19 libU4.dylib`U4Recorder::saveOrLoadStates(this=0x0000000107c73ca0, id=726) at U4Recorder.cc:290
+       287 	
+       288 	        if( id == SEventConfig::_G4StateRerun )
+       289 	        {
+    -> 290 	            rerun_rand = U4UniformRand::Get(1000);
+       291 	            U4UniformRand::UU = rerun_rand ; 
+       292 	            SEvt::UU = rerun_rand ;  // better hitching it somewhere thats always accessible 
+       293 	
+    (lldb) b 291
+    Breakpoint 2: where = libU4.dylib`U4Recorder::saveOrLoadStates(int) + 1490 at U4Recorder.cc:291, address = 0x0000000100263c32
+    (lldb) br list
+    Current breakpoints:
+    1: name = 'MixMaxRng::flat', locations = 1, resolved = 1, hit count = 1
+      1.1: where = libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat() + 4 at MixMaxRng.h:67, address = 0x0000000105eef4a4, resolved, hit count = 1 
+
+    2: file = '/Users/blyth/opticks/u4/U4Recorder.cc', line = 291, exact_match = 0, locations = 1, resolved = 1, hit count = 0
+      2.1: where = libU4.dylib`U4Recorder::saveOrLoadStates(int) + 1490 at U4Recorder.cc:291, address = 0x0000000100263c32, resolved, hit count = 0 
+
+    (lldb) 
+
+    (lldb) br dis 1
+    1 breakpoints disabled.
+    (lldb) 
+
+    ## continue past the pre-collection 
+
+    (lldb) br en 1
+    1 breakpoints enabled.
+
+
+N=0 Manual Enumeration of Random Consumption
+----------------------------------------------
+
+::
+
+   00: BOP.Reset
+    1: Rayleigh.Reset
+    2: Absorption.Reset
+
+    3: BOP.PSDI
+    4: BOP.PSDI.DiDi.TransCoeff
+
+    5: BOP.Reset
+    6: Rayleigh.Reset
+    7: Absorption.Reset
+
+    8: jPOM.DoIt.u0   176 junoPMTOpticalModel::DoIt@497:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T 
+    9: jPOM.DoIt.u1   177 junoPMTOpticalModel::DoIt@506:  u1 UU[0.94190      9] u1_idx 9 D     0.0000                                       
+
+   10: BOP.Reset
+   11: Rayleigh.Reset
+   12: Absorption.Reset        ## thats fake z=0 crossing  
+
+   13: BOP.Reset
+   14: Rayleigh.Reset
+   15: Absorption.Reset
+
+
+HMM, thats confusing this is N=0 but still encounter the "@" OpticalSurface? 
+Add the "if(m_natural_geometry) name += '@' ;"::
+
+     333 void HamamatsuR12860PMTManager::init_mirror_surface()
+     334 {
+     335     if(m_mirror_opsurf) return ;
+     336 
+     337     G4String name ;
+     338     if(m_natural_geometry) name += '@' ;  
+     339     name += GetName() ;
+     340     name += "_Mirror_opsurf" ;
+     341 
+     342     m_mirror_opsurf = new G4OpticalSurface(name);
+     343     m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
+     344     m_mirror_opsurf->SetModel(glisur);
+     345     m_mirror_opsurf->SetType(dielectric_metal);
+     346     m_mirror_opsurf->SetPolish(0.999);
+
+
+This kinda invalidates the comparison. 
+So start again with Rayleigh and Absorption switched off 
+to simplify consumption. 
+
+
+N=0 Fall Stacks at random consumption, summarized above
+-----------------------------------------------------------
+
+::
+
+    (lldb) c
+    Process 85715 resuming
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt@250: [  PostStepDoIt_count 3 label.desc spho (gs:ix:id:gn   0 726  726[  0,  0,  0, 95])
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@388:  PostStepDoIt_count 3 thePrePV hama_inner2_phys thePostPV hama_body_phys kCarTolerance/2 5e-10
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@551:  PostStepDoIt_count 3 Surface hama_mirror_logsurf1 OpticalSurface @hama_Mirror_opsurf
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@561:  PostStepDoIt_count 3  OpticalSurfaceName @hama_Mirror_opsurfU4OpticalSurface::Desc  @hama_Mirror_opsurf type:dielectric_metal model:glisur finish:polishedfrontpainted polish:0.999
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@648:  PostStepDoIt_count 3 theReflectivity 0.92 theEfficiency 0 theTransmittance 0 CustomART_status Z
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@685:  PostStepDoIt_count 3 after OpticalSurface if 
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@730:  PostStepDoIt_count 3 type switch dielectric_metal CustomART_status Z CustomART_active 0 CustomART_::Desc ZLocalDoesNotTrigger
+
+
+
+
+
+
+
+
+First is as expected, BOP.Reset::
+
+    (lldb) f 1
+    frame #1: 0x000000010027dcd6 libU4.dylib`InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft(this=0x0000000106f6f9c0) at InstrumentedG4OpBoundaryProcess.cc:131
+       128 	//void InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft(){ G4VProcess::ResetNumberOfInteractionLengthLeft(); }
+       129 	void InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft()
+       130 	{
+    -> 131 	    G4double u0 = G4UniformRand() ; 
+       132 	
+       133 	    bool burn_enabled = true ; 
+       134 	    if(burn_enabled)
+    (lldb) 
+
+
+2nd unexpected, I thought I had disabled Rayleigh.Reset::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+      * frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107a01db0) at MixMaxRng.h:67 [opt]
+        frame #1: 0x000000010006619a U4PMTFastSimTest`ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft(this=0x0000000106f6f830) at ShimG4OpRayleigh.cc:39
+        frame #2: 0x0000000100066302 U4PMTFastSimTest`ShimG4OpRayleigh::PostStepGetPhysicalInteractionLength(this=0x0000000106f6f830, track=0x0000000107a5b950, previousStepSize=0, condition=0x00000001078a98b8) at ShimG4OpRayleigh.cc:66
+        frame #3: 0x000000010227fff0 libG4tracking.dylib`G4VProcess::PostStepGPIL(this=0x0000000106f6f830, track=0x0000000107a5b950, previousStepSize=0, condition=0x00000001078a98b8) at G4VProcess.hh:506
+        frame #4: 0x000000010227fa1a libG4tracking.dylib`G4SteppingManager::DefinePhysicalStepLength(this=0x00000001078a9730) at G4SteppingManager2.cc:173
+        frame #5: 0x000000010227cc3a libG4tracking.dylib`G4SteppingManager::Stepping(this=0x00000001078a9730) at G4SteppingManager.cc:180
+        frame #6: 0x000000010229386f libG4tracking.dylib`G4TrackingManager::ProcessOneTrack(this=0x00000001078a96f0, apValueG4Track=0x0000000107a5b950) at G4TrackingManager.cc:126
+        frame #7: 0x000000010215971a libG4event.dylib`G4EventManager::DoProcessing(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:185
+        frame #8: 0x000000010215ac2f libG4event.dylib`G4EventManager::ProcessOneEvent(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:338
+        frame #9: 0x00000001020669e5 libG4run.dylib`G4RunManager::ProcessOneEvent(this=0x00000001078a9480, i_event=0) at G4RunManager.cc:399
+        frame #10: 0x0000000102066815 libG4run.dylib`G4RunManager::DoEventLoop(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:367
+        frame #11: 0x0000000102064cd1 libG4run.dylib`G4RunManager::BeamOn(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:273
+        frame #12: 0x0000000100039b5d U4PMTFastSimTest`U4PMTFastSimTest::BeamOn(this=0x00007ffeefbfe010) at U4PMTFastSimTest.cc:43
+        frame #13: 0x000000010003a482 U4PMTFastSimTest`main(argc=1, argv=0x00007ffeefbfe5f0) at U4PMTFastSimTest.cc:75
+        frame #14: 0x00007fff702c2015 libdyld.dylib`start + 1
+    (lldb) 
+
+3rd also unexpected from Absorption.Reset::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+      * frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107a01db0) at MixMaxRng.h:67 [opt]
+        frame #1: 0x000000010006480a U4PMTFastSimTest`ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft(this=0x0000000106f6f6b0) at ShimG4OpAbsorption.cc:35
+        frame #2: 0x0000000100064b12 U4PMTFastSimTest`ShimG4OpAbsorption::PostStepGetPhysicalInteractionLength(this=0x0000000106f6f6b0, track=0x0000000107a5b950, previousStepSize=0, condition=0x00000001078a98b8) at ShimG4OpAbsorption.cc:66
+        frame #3: 0x000000010227fff0 libG4tracking.dylib`G4VProcess::PostStepGPIL(this=0x0000000106f6f6b0, track=0x0000000107a5b950, previousStepSize=0, condition=0x00000001078a98b8) at G4VProcess.hh:506
+        frame #4: 0x000000010227fa1a libG4tracking.dylib`G4SteppingManager::DefinePhysicalStepLength(this=0x00000001078a9730) at G4SteppingManager2.cc:173
+        frame #5: 0x000000010227cc3a libG4tracking.dylib`G4SteppingManager::Stepping(this=0x00000001078a9730) at G4SteppingManager.cc:180
+        frame #6: 0x000000010229386f libG4tracking.dylib`G4TrackingManager::ProcessOneTrack(this=0x00000001078a96f0, apValueG4Track=0x0000000107a5b950) at G4TrackingManager.cc:126
+        frame #7: 0x000000010215971a libG4event.dylib`G4EventManager::DoProcessing(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:185
+        frame #8: 0x000000010215ac2f libG4event.dylib`G4EventManager::ProcessOneEvent(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:338
+        frame #9: 0x00000001020669e5 libG4run.dylib`G4RunManager::ProcessOneEvent(this=0x00000001078a9480, i_event=0) at G4RunManager.cc:399
+        frame #10: 0x0000000102066815 libG4run.dylib`G4RunManager::DoEventLoop(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:367
+        frame #11: 0x0000000102064cd1 libG4run.dylib`G4RunManager::BeamOn(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:273
+        frame #12: 0x0000000100039b5d U4PMTFastSimTest`U4PMTFastSimTest::BeamOn(this=0x00007ffeefbfe010) at U4PMTFastSimTest.cc:43
+        frame #13: 0x000000010003a482 U4PMTFastSimTest`main(argc=1, argv=0x00007ffeefbfe5f0) at U4PMTFastSimTest.cc:75
+        frame #14: 0x00007fff702c2015 libdyld.dylib`start + 1
+    (lldb) 
+
+
+
+4th expected, BOP.PSDI::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+      * frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107a01db0) at MixMaxRng.h:67 [opt]
+        frame #1: 0x000000010028299e libU4.dylib`InstrumentedG4OpBoundaryProcess::PostStepDoIt_(this=0x0000000106f6f9c0, aTrack=0x0000000107a5b950, aStep=0x00000001078a98c0) at InstrumentedG4OpBoundaryProcess.cc:774
+        frame #2: 0x0000000100280025 libU4.dylib`InstrumentedG4OpBoundaryProcess::PostStepDoIt(this=0x0000000106f6f9c0, aTrack=0x0000000107a5b950, aStep=0x00000001078a98c0) at InstrumentedG4OpBoundaryProcess.cc:256
+        frame #3: 0x00000001022817db libG4tracking.dylib`G4SteppingManager::InvokePSDIP(this=0x00000001078a9730, np=3) at G4SteppingManager2.cc:538
+        frame #4: 0x000000010228164d libG4tracking.dylib`G4SteppingManager::InvokePostStepDoItProcs(this=0x00000001078a9730) at G4SteppingManager2.cc:510
+        frame #5: 0x000000010227cdaa libG4tracking.dylib`G4SteppingManager::Stepping(this=0x00000001078a9730) at G4SteppingManager.cc:209
+        frame #6: 0x000000010229386f libG4tracking.dylib`G4TrackingManager::ProcessOneTrack(this=0x00000001078a96f0, apValueG4Track=0x0000000107a5b950) at G4TrackingManager.cc:126
+        frame #7: 0x000000010215971a libG4event.dylib`G4EventManager::DoProcessing(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:185
+        frame #8: 0x000000010215ac2f libG4event.dylib`G4EventManager::ProcessOneEvent(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:338
+        frame #9: 0x00000001020669e5 libG4run.dylib`G4RunManager::ProcessOneEvent(this=0x00000001078a9480, i_event=0) at G4RunManager.cc:399
+        frame #10: 0x0000000102066815 libG4run.dylib`G4RunManager::DoEventLoop(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:367
+        frame #11: 0x0000000102064cd1 libG4run.dylib`G4RunManager::BeamOn(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:273
+        frame #12: 0x0000000100039b5d U4PMTFastSimTest`U4PMTFastSimTest::BeamOn(this=0x00007ffeefbfe010) at U4PMTFastSimTest.cc:43
+        frame #13: 0x000000010003a482 U4PMTFastSimTest`main(argc=1, argv=0x00007ffeefbfe5f0) at U4PMTFastSimTest.cc:75
+        frame #14: 0x00007fff702c2015 libdyld.dylib`start + 1
+    (lldb) 
+
+    (lldb) f 1
+    frame #1: 0x000000010028299e libU4.dylib`InstrumentedG4OpBoundaryProcess::PostStepDoIt_(this=0x0000000106f6f9c0, aTrack=0x0000000107a5b950, aStep=0x00000001078a98c0) at InstrumentedG4OpBoundaryProcess.cc:774
+       771 	        else
+       772 	        {   
+       773 	            //[type_switch.didi.not_backpainted
+    -> 774 	            G4double rand = G4UniformRand();
+       775 	            LOG(LEVEL) 
+       776 	                << " PostStepDoIt_count " << PostStepDoIt_count
+       777 	                << " didi.rand " << U4UniformRand::Desc(rand) 
+    (lldb) 
+
+
+BOP.PSDI.DiDi.TransCoeff::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
+      * frame #0: 0x0000000105eef4a4 libCLHEP-2.4.1.0.dylib`CLHEP::MixMaxRng::flat(this=0x0000000107a01db0) at MixMaxRng.h:67 [opt]
+        frame #1: 0x0000000100290577 libU4.dylib`InstrumentedG4OpBoundaryProcess::G4BooleanRand_TransCoeff(this=0x0000000106f6f9c0, prob=0.99733593988630786) const at InstrumentedG4OpBoundaryProcess.cc:2373
+        frame #2: 0x000000010028cc62 libU4.dylib`InstrumentedG4OpBoundaryProcess::DielectricDielectric(this=0x0000000106f6f9c0) at InstrumentedG4OpBoundaryProcess.cc:1881
+        frame #3: 0x0000000100283003 libU4.dylib`InstrumentedG4OpBoundaryProcess::PostStepDoIt_(this=0x0000000106f6f9c0, aTrack=0x0000000107a5b950, aStep=0x00000001078a98c0) at InstrumentedG4OpBoundaryProcess.cc:830
+        frame #4: 0x0000000100280025 libU4.dylib`InstrumentedG4OpBoundaryProcess::PostStepDoIt(this=0x0000000106f6f9c0, aTrack=0x0000000107a5b950, aStep=0x00000001078a98c0) at InstrumentedG4OpBoundaryProcess.cc:256
+        frame #5: 0x00000001022817db libG4tracking.dylib`G4SteppingManager::InvokePSDIP(this=0x00000001078a9730, np=3) at G4SteppingManager2.cc:538
+        frame #6: 0x000000010228164d libG4tracking.dylib`G4SteppingManager::InvokePostStepDoItProcs(this=0x00000001078a9730) at G4SteppingManager2.cc:510
+        frame #7: 0x000000010227cdaa libG4tracking.dylib`G4SteppingManager::Stepping(this=0x00000001078a9730) at G4SteppingManager.cc:209
+        frame #8: 0x000000010229386f libG4tracking.dylib`G4TrackingManager::ProcessOneTrack(this=0x00000001078a96f0, apValueG4Track=0x0000000107a5b950) at G4TrackingManager.cc:126
+        frame #9: 0x000000010215971a libG4event.dylib`G4EventManager::DoProcessing(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:185
+        frame #10: 0x000000010215ac2f libG4event.dylib`G4EventManager::ProcessOneEvent(this=0x00000001078a9660, anEvent=0x0000000107a59f00) at G4EventManager.cc:338
+        frame #11: 0x00000001020669e5 libG4run.dylib`G4RunManager::ProcessOneEvent(this=0x00000001078a9480, i_event=0) at G4RunManager.cc:399
+        frame #12: 0x0000000102066815 libG4run.dylib`G4RunManager::DoEventLoop(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:367
+        frame #13: 0x0000000102064cd1 libG4run.dylib`G4RunManager::BeamOn(this=0x00000001078a9480, n_event=1, macroFile=0x0000000000000000, n_select=-1) at G4RunManager.cc:273
+        frame #14: 0x0000000100039b5d U4PMTFastSimTest`U4PMTFastSimTest::BeamOn(this=0x00007ffeefbfe010) at U4PMTFastSimTest.cc:43
+        frame #15: 0x000000010003a482 U4PMTFastSimTest`main(argc=1, argv=0x00007ffeefbfe5f0) at U4PMTFastSimTest.cc:75
+        frame #16: 0x00007fff702c2015 libdyld.dylib`start + 1
+    (lldb) 
+
+
+
+Disable Rayleigh and Absorption
+-------------------------------------
+
+Add more disabling::
+
+    148 void U4Physics::ConstructOp()
+    ...
+    
+    171     int G4OpAbsorption_DISABLE = EInt("G4OpAbsorption_DISABLE", "0") ;
+    172     int G4OpRayleigh_DISABLE = EInt("G4OpRayleigh_DISABLE", "0") ;
+    173     int G4OpBoundaryProcess_DISABLE = EInt("G4OpBoundaryProcess_DISABLE", "0") ;
+    174 
+    175     LOG(LEVEL) << "G4OpAbsorption_DISABLE      : " << G4OpAbsorption_DISABLE ;
+    176     LOG(LEVEL) << "G4OpRayleigh_DISABLE        : " << G4OpRayleigh_DISABLE ;
+    177     LOG(LEVEL) << "G4OpBoundaryProcess_DISABLE : " << G4OpBoundaryProcess_DISABLE ;
+    178 
+    179     if(G4OpAbsorption_DISABLE == 0)
+    180     {
+    181 #ifdef DEBUG_TAG
+    182         fAbsorption = new ShimG4OpAbsorption();
+    183 #else
+    184         fAbsorption = new G4OpAbsorption();
+    185 #endif
+    186     }
+
+
+ARGHH: cannot disable, as it turns big-bouncer into a boring ordinary photon.
+
+
+
+Annoyance that x4/xxv.sh x4/tests/X4IntersectVolumeTest.cc accesses geometry differently from u4/tests/U4PMTFastSimTest.cc
+-----------------------------------------------------------------------------------------------------------------------------
+
+Would be better to bring xxv.sh functionality over to U4, so can then use more of the same U4VolumeMaker 
+geometry access code. 
+
+The thing is the N=0/1 changes geometry. The cleanest way to handle that is to 
+have different GEOM names ?  But thats a bit awkward, so take the easy way out and just 
+change FOLD with extra "0" or "1" in xxv.sh and tests/X4IntersectVolumeTest.{cc,py}
+
+::
+
+   N=0 ./xxv.sh ana
+   N=1 ./xxv.sh ana
+
+
+
+
+Full check of flat backtraces above is informative, but try a simpler approach of just monitoring the decision randoms in N=0 and 1
+---------------------------------------------------------------------------------------------------------------------------------------
+
+HMM It would be easier to do the burn shunts at the decision points, rather than the Reset ? 
+So can directly control the decisions. But will need to rewind the stream::
+
+    epsilon:tests blyth$ grep DECISION U4PMTFastSimTest_0.log 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R DECISION 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.74358     32] u0_idx 32 A     0.2341 A+R     0.7652 T     0.2348 status R DECISION 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.42483     61] u0_idx 61 A     0.2753 A+R     0.7132 T     0.2868 status R DECISION 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.07245     76] u0_idx 76 A     0.3017 A+R     0.6757 T     0.3243 status A DECISION 
+
+    epsilon:tests blyth$ grep DECISION U4PMTFastSimTest_1.log 
+    InstrumentedG4OpBoundaryProcess::CustomART@1096:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    InstrumentedG4OpBoundaryProcess::CustomART@1096:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::CustomART@1096:  u0 UU[0.68411     38] u0_idx 38 A     0.2341 A+R     0.7652 T     0.2348 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::CustomART@1096:  u0 UU[0.39100     67] u0_idx 67 A     0.2753 A+R     0.7132 T     0.2868 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::CustomART@1096:  u0 UU[0.57763     82] u0_idx 82 A     0.3017 A+R     0.6757 T     0.3243 status R DECISION 
+
+
+Check the number of randoms consumed between each BOP.RESET.
+The u0_idx_delta shows the number consumed by the prior step::
+
+    epsilon:tests blyth$ grep "RESET\|DECISION" *_0.log 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87237      0] u0_idx 0 u0_idx_delta 1 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.10137      5] u0_idx 5 u0_idx_delta 5 BOP.RESET 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.35166     10] u0_idx 10 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87761     13] u0_idx 13 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.03802     17] u0_idx 17 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49764     20] u0_idx 20 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49004     24] u0_idx 24 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.43749     27] u0_idx 27 u0_idx_delta 3 BOP.RESET 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R DECISION 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.74358     32] u0_idx 32 A     0.2341 A+R     0.7652 T     0.2348 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.01857     34] u0_idx 34 u0_idx_delta 7 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.45692     37] u0_idx 37 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.32809     41] u0_idx 41 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.75119     44] u0_idx 44 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.85902     48] u0_idx 48 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.64541     51] u0_idx 51 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.50158     55] u0_idx 55 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.85455     58] u0_idx 58 u0_idx_delta 3 BOP.RESET 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.42483     61] u0_idx 61 A     0.2753 A+R     0.7132 T     0.2868 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.66334     63] u0_idx 63 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.50239     66] u0_idx 66 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.44820     70] u0_idx 70 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.67262     73] u0_idx 73 u0_idx_delta 3 BOP.RESET 
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.07245     76] u0_idx 76 A     0.3017 A+R     0.6757 T     0.3243 status A DECISION 
+
+
+
+::
+
+    epsilon:tests blyth$ grep "RESET\|DECISION" *_1.log 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87237      0] u0_idx 0 u0_idx_delta 1 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.10137      5] u0_idx 5 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.35166     10] u0_idx 10 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@154: UU[0.87761     13] u0_idx 13 u0_idx_delta 8 after uu_burn 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.03802     17] u0_idx 17 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49764     20] u0_idx 20 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49004     24] u0_idx 24 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.43749     27] u0_idx 27 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.33902     30] u0_idx 30 A     0.2778 A+R     0.7097 T     0.2903 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.74358     32] u0_idx 32 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.07341     35] u0_idx 35 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.68411     38] u0_idx 38 A     0.2341 A+R     0.7652 T     0.2348 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.76067     40] u0_idx 40 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.10561     43] u0_idx 43 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.15855     47] u0_idx 47 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.84133     50] u0_idx 50 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.12365     54] u0_idx 54 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.81213     57] u0_idx 57 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.42483     61] u0_idx 61 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.79864     64] u0_idx 64 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.39100     67] u0_idx 67 A     0.2753 A+R     0.7132 T     0.2868 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87442     69] u0_idx 69 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.24637     72] u0_idx 72 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.07245     76] u0_idx 76 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.92902     79] u0_idx 79 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.57763     82] u0_idx 82 A     0.3017 A+R     0.6757 T     0.3243 status R DECISION 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.66933     84] u0_idx 84 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.34132     87] u0_idx 87 u0_idx_delta 3 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.96883     91] u0_idx 91 u0_idx_delta 4 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.55617     94] u0_idx 94 u0_idx_delta 3 BOP.RESET 
+    epsilon:tests blyth$ 
+
+
+Follow every consumption
+--------------------------
+
+::
+
+    epsilon:tests blyth$ grep UU *_0.log > /tmp/UU_0.log  
+    epsilon:tests blyth$ grep UU *_1.log > /tmp/UU_1.log  
+    vimdiff  /tmp/UU_0.log /tmp/UU_1.log 
+
+
+
+::
+
+    epsilon:tests blyth$ grep UU *_0.log 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87237      0] u0_idx 0 u0_idx_delta 1 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.62535      1]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.79217      2]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@793:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::G4BooleanRand_TransCoeff@2394: UU[0.19391      4] TransCoeff 0.997336 DECISION T
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.10137      5] u0_idx 5 u0_idx_delta 5 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.34706      6]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.39788      7]
+    junoPMTOpticalModel::DoIt@497:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    junoPMTOpticalModel::DoIt@507:  u1 UU[0.94190      9] u1_idx 9 D     0.0000
+
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.35166     10] u0_idx 10 u0_idx_delta 5 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.20162     11]         
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.43366     12]       ## 10,11,12 FROM THE FAKE 
+
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87761     13] u0_idx 13 u0_idx_delta 3 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.45764     14]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.77689     15]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1355:  PostStepDoIt_count 3 do-while n 1 rand UU[0.77461     16] theReflectivity 0.92 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.03802     17] u0_idx 17 u0_idx_delta 4 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.53797     18]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.50566     19]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49764     20] u0_idx 20 u0_idx_delta 3 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.54850     21]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.20544     22]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1355:  PostStepDoIt_count 5 do-while n 1 rand UU[0.00594     23] theReflectivity 0.65 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49004     24] u0_idx 24 u0_idx_delta 4 BOP.RESET 
+
+
+
+    epsilon:tests blyth$ grep UU *_1.log 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.87237      0] u0_idx 0 u0_idx_delta 1 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.62535      1]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.79217      2]
+    *InstrumentedG4OpBoundaryProcess::PostStepDoIt_@793:  PostStepDoIt_count 0 didi.rand UU[0.94347      3] theReflectivity     1.0000 theTransmittance     0.0000
+    InstrumentedG4OpBoundaryProcess::G4BooleanRand_TransCoeff@2394: UU[0.19391      4] TransCoeff 0.997336 DECISION T
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.10137      5] u0_idx 5 u0_idx_delta 5 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.34706      6]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.39788      7]
+    InstrumentedG4OpBoundaryProcess::CustomART@1114:  u0 UU[0.98594      8] u0_idx 8 A     0.6713 A+R     0.7005 T     0.2995 status T DECISION 
+    InstrumentedG4OpBoundaryProcess::CustomART@1124:  u1 UU[0.94190      9] u1_idx 9 D     0.0000
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.35166     10] u0_idx 10 u0_idx_delta 5 BOP.RESET 
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@154: UU[0.87761     13] u0_idx 13 u0_idx_delta 8 after uu_burn 3 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.45764     14]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.77689     15]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1355:  PostStepDoIt_count 2 do-while n 1 rand UU[0.77461     16] theReflectivity 0.92 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.03802     17] u0_idx 17 u0_idx_delta 4 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.53797     18]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.50566     19]
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49764     20] u0_idx 20 u0_idx_delta 3 BOP.RESET 
+    ShimG4OpRayleigh::ResetNumberOfInteractionLengthLeft@44: UU[0.54850     21]
+    ShimG4OpAbsorption::ResetNumberOfInteractionLengthLeft@43: UU[0.20544     22]
+    InstrumentedG4OpBoundaryProcess::DielectricMetal@1355:  PostStepDoIt_count 4 do-while n 1 rand UU[0.00594     23] theReflectivity 0.65 theTransmittance 0
+    InstrumentedG4OpBoundaryProcess::ResetNumberOfInteractionLengthLeft@139: UU[0.49004     24] u0_idx 24 u0_idx_delta 4 BOP.RESET 
+
+
+
+N=0/1 diverges between point 8 and 9
+
+* FastSim->FastSim has none of the ordinary process Reset consumption, this causes N=1 to consume more of the stream 
+
+
+
+
+
+How to rewind the stream ?
+-----------------------------
+
+saveOrLoadStates currently done at the start of each optical track to allow single photon rerun::
+
+    143 void U4Recorder::PreUserTrackingAction_Optical(const G4Track* track)
+    144 {
+    ...
+    184         saveOrLoadStates(label->id);  // moved here as labelling happens once per torch/input photon
+
+
+Need to do something similar at step (or even decision) level followed by burn. 
+
+
+
+

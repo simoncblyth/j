@@ -335,7 +335,7 @@ void HamamatsuR12860PMTManager::init_mirror_surface()
     if(m_mirror_opsurf) return ; 
 
     G4String name ; 
-    name += '@' ; 
+    if(m_natural_geometry) name += '@' ; 
     name += GetName() ; 
     name += "_Mirror_opsurf" ; 
 
