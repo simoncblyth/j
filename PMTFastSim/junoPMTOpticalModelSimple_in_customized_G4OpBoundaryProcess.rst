@@ -1326,7 +1326,8 @@ Follow every consumption
 
 N=0/1 diverges between point 8 and 9
 
-* FastSim->FastSim has none of the ordinary process Reset consumption, this causes N=1 to consume more of the stream 
+* FastSim->FastSim has none of the ordinary process Reset consumption
+* this causes N=1 to consume more of the stream 
 
 
 

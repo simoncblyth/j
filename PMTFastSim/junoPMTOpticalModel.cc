@@ -366,6 +366,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
 
     norm = _inner1_solid->SurfaceNormal(pos);
 #ifdef PMTFASTSIM_STANDALONE
+    G4ThreeVector surface_normal = norm ;  
     minus_cos_theta = dir*norm ;  // NB before the flips 
 #endif
 
@@ -546,7 +547,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     dbg.pol = pol ;  
     dbg.wavelength = _wavelength/nm ; 
 
-    dbg.nrm = norm ;  
+    dbg.nrm = surface_normal ;  
     dbg.spare = 0. ; 
 
     // HMM: want to incorporate u0 from u4/InstrumentedG4OpBoundaryProcess but no access from here
@@ -555,7 +556,6 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     SOpBoundaryProcess* bop = SOpBoundaryProcess::Get(); 
     dbg.u0 = bop->getU0() ; 
     dbg.u0_idx = bop->getU0_idx() ; 
-
   
     dbg.add(); 
 
