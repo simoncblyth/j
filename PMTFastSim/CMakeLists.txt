@@ -70,7 +70,6 @@ list(APPEND HEADERS
     PMTFastSim.hh
     J_PMTFASTSIM_LOG.hh
 
-    N4Volume.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")

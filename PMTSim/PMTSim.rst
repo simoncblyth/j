@@ -30,7 +30,6 @@ CMakeLists.txt::
          MaterialSvc.cc
 
          PMTSim.cc
-         P4Volume.cc
          DetectorConstruction.cc
     )
 
@@ -43,7 +42,6 @@ CMakeLists.txt::
          MaterialSvc.hh
 
          PMTSim.hh
-         P4Volume.hh
          DetectorConstruction.hh
 
          ../Layr/Layr.h 

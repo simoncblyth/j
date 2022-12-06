@@ -36,7 +36,7 @@
 #include "DetectorConstruction.hh"
 #include "PMTSim.hh"
 #include "ZSolid.h"
-#include "P4Volume.hh"
+#include "SVolume.h"
 
 
 #include <iostream>
@@ -552,7 +552,7 @@ G4VSolid* PMTSim::GetManagerSolid(const char* name) // static
     {
         std::cout << "PMTSim::GetManagerSolid failed for name " << name << std::endl ;  
         ps->m_hama->dump("PMTSim::GetManagerSolid.m_hama");
-        P4Volume::DumpSolids(); 
+        SVolume::DumpSolids(); 
     }
  
     if(LEVEL > 0) std::cout << "] PMTSim::GetManagerSolid " << name << std::endl ;      
@@ -592,7 +592,7 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name) // static
     PMTSim::SetEnvironmentSwitches(name);  
     PMTSim* ps = new PMTSim ; 
     G4VPhysicalVolume* pv = ps->getPV(name); 
-    P4Volume::Traverse(pv, nullptr, nullptr); 
+    SVolume::Traverse(pv, nullptr, nullptr); 
     //DumpSolids(); 
     return pv ; 
 }
@@ -620,8 +620,8 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std:
         return pv ; 
     }
 
-    P4Volume::Traverse(pv, tr, solids); 
-    //P4Volume::DumpSolids(); 
+    SVolume::Traverse(pv, tr, solids); 
+    //SVolume::DumpSolids(); 
 
     return pv ; 
 }

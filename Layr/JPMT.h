@@ -50,6 +50,9 @@ struct JPMT
     enum { HAMA, NNVT, NNVTQ }; 
     enum { L0, L1, L2, L3 } ; 
     enum { RINDEX, KINDEX } ; 
+
+    enum { DEFAULT_CAT = HAMA }; 
+
     
     NPFold* PMTProperty ; 
     NPFold* Pyrex ; 

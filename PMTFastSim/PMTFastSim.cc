@@ -10,8 +10,7 @@
 #include "SSys.hh"
 #include "SDirect.hh"
 #include "SOpticksResource.hh"
-
-#include "N4Volume.hh"
+#include "SVolume.h"
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -147,8 +146,8 @@ G4VPhysicalVolume* PMTFastSim::GetPV(const char* name, std::vector<double>* tr, 
         return pv ; 
     }
 
-    N4Volume::Traverse(pv, tr, solids); 
-    //N4Volume::DumpSolids(); 
+    SVolume::Traverse(pv, tr, solids); 
+    //SVolume::DumpSolids(); 
 
     return pv ; 
 }

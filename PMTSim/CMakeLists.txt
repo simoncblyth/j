@@ -50,7 +50,6 @@ list(APPEND SOURCES
      MaterialSvc.cc
 
      PMTSim.cc
-     P4Volume.cc
      DetectorConstruction.cc
 )
 
@@ -63,7 +62,6 @@ list(APPEND HEADERS
      MaterialSvc.hh
 
      PMTSim.hh
-     P4Volume.hh
      DetectorConstruction.hh
 
      ../Layr/Layr.h 
