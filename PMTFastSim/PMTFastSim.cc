@@ -132,6 +132,8 @@ PMTSim::GetPV
 2. populates vector of G4VSolid 
 3. populates vector of doubles with the structural transforms for each solid 
 
+   * NB only supports single level of transforms
+
 **/
 
 G4VPhysicalVolume* PMTFastSim::GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
@@ -146,7 +148,7 @@ G4VPhysicalVolume* PMTFastSim::GetPV(const char* name, std::vector<double>* tr, 
         return pv ; 
     }
 
-    SVolume::Traverse(pv, tr, solids); 
+    SVolume::Traverse(pv, tr, solids);  // NB only supports single level of transforms
     //SVolume::DumpSolids(); 
 
     return pv ; 
