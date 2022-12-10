@@ -8,6 +8,15 @@ Explore thin layer stack optics math using TMM "Transfer Matrix Method"
 by simplifying into a single header and coding in a style amenable 
 to being ported to GPU 
 
+
+Q: How to connect polarizarion vectors before and after with the TMM ?
+---------------------------------------------------------------------------
+
+
+TODO: Do a single interface calc using TMM formalism and compare with ordinary approach
+-----------------------------------------------------------------------------------------
+
+
 References for Thin Film Optics Using "Transfer Matrix Method" (aka TMM)
 ----------------------------------------------------------------------------
 
