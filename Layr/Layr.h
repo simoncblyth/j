@@ -36,7 +36,7 @@ template<typename T> struct Layr : (4,4,2)
 template<typename F> struct ART_ : (3,4) 
     results  
 
-template<typename T> StackSpec :  (4,3) 
+template<typename T, int N> StackSpec :  (4,3) 
     4 sets of complex refractive index and thickness
 
     * HMM maybe pad to (4,4) if decide to keep ?
@@ -48,7 +48,7 @@ template <typename T, int N> struct Stack : (constituents persisted separately)
     Layr<T> comp ;  // composite for the N layers 
     ART_<T>  art ; 
 
-    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
+    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec4<T>& ss);
 
 **/
 
@@ -327,59 +327,23 @@ inline std::ostream& operator<<(std::ostream& os, const ART_<T>& art )
 #endif
 
 
-/**
-StackSpec
------------
-
-TODO: replace this with QProp/qprop like interpolated lookups 
-
-epsilon:Layr blyth$ opticks-f Layr.h 
-./qudarap/tests/QPMTPropTest.cc:to workout how to integrate with j/Layr/Layr.h TMM calcs
-
-**/
-
-template<typename T>   // hmm this shuld have int N template, or instead have LayrSpec  
-struct StackSpec
-{
-    T n0r, n0i, d0 ; 
-    T n1r, n1i, d1 ; 
-    T n2r, n2i, d2 ; 
-    T n3r, n3i, d3 ; 
-
-    LAYR_METHOD static StackSpec Default() ; 
-
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-    LAYR_METHOD static StackSpec EGet() ; 
-#endif
-
-};
-
-template<typename T>
-StackSpec<T> StackSpec<T>::Default()
-{
-    StackSpec ss ; 
-    ss.n0r = 1.f  ; ss.n0i = 0.f   ; ss.d0 =   0.f ; 
-    ss.n1r = 1.f  ; ss.n1i = 0.01f ; ss.d1 = 500.f ; 
-    ss.n2r = 1.f  ; ss.n2i = 0.01f ; ss.d2 = 500.f ; 
-    ss.n3r = 1.5f ; ss.n3i = 0.f   ; ss.d3 =   0.f ; 
-    return ss ; 
-}
-
-#if defined(__CUDACC__) || defined(__CUDABE__)
-#else
-
 namespace sys
 {
     template<typename T>
-    inline std::vector<T>* getenvvec(const char* ekey, const char* fallback, char delim=',')
+    inline std::vector<T>* getenvvec(const char* ekey, const char* fallback = nullptr, char delim=',')
     {
-        assert(fallback); 
-        std::vector<T>* vec = new std::vector<T>() ; 
-        char* line = getenv(ekey);
+        char* _line = getenv(ekey);
+        const char* line = _line ? _line : fallback ; 
+        if(line == nullptr) return nullptr ; 
+
         std::stringstream ss; 
-        ss.str(line ? line : fallback);
+        ss.str(line);
         std::string s;
+
+        std::vector<T>* vec = new std::vector<T>() ; 
+
         while (std::getline(ss, s, delim)) 
         {   
             std::istringstream iss(s);
@@ -390,77 +354,95 @@ namespace sys
         return vec ; 
     }
 }
+#endif
 
 
 template<typename T>
-LAYR_METHOD StackSpec<T> StackSpec<T>::EGet()
+struct LayrSpec
 {
-    // make the default stack symmetric to check minus_cos_theta flip 
-    std::vector<T>* l0 = sys::getenvvec<T>("L0", "1.5,0,0") ;    
-    std::vector<T>* l1 = sys::getenvvec<T>("L1", "2.0,2.0,20") ;    
-    std::vector<T>* l2 = sys::getenvvec<T>("L2", "2.0,2.0,20") ;    
-    std::vector<T>* l3 = sys::getenvvec<T>("L3", "1.5,0,0") ;    
+    T nr, ni, d ; 
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+    static int EGet(LayrSpec<T>& ls, int idx); 
+#endif
+};
 
-    assert( l0 && l0->size() <= 3u ); 
-    assert( l1 && l1->size() <= 3u ); 
-    assert( l2 && l2->size() <= 3u ); 
-    assert( l3 && l3->size() <= 3u ); 
-
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+template<typename T>
+LAYR_METHOD int LayrSpec<T>::EGet(LayrSpec<T>& ls, int idx)
+{
+    std::stringstream ss ; 
+    ss << "L" << idx ; 
+    std::string ekey = ss.str(); 
+    std::vector<T>* vls = sys::getenvvec<T>(ekey.c_str()) ; 
+    if(vls == nullptr) return 0 ; 
     const T zero(0) ; 
-    StackSpec ss ;
- 
-    ss.n0r = l0->size() > 0u ? (*l0)[0] : zero ; 
-    ss.n0i = l0->size() > 1u ? (*l0)[1] : zero ; 
-    ss.d0  = l0->size() > 2u ? (*l0)[2] : zero ; 
-
-    ss.n1r = l1->size() > 0u ? (*l1)[0] : zero ; 
-    ss.n1i = l1->size() > 1u ? (*l1)[1] : zero ; 
-    ss.d1  = l1->size() > 2u ? (*l1)[2] : zero ; 
-
-    ss.n2r = l2->size() > 0u ? (*l2)[0] : zero ;
-    ss.n2i = l2->size() > 1u ? (*l2)[1] : zero ; 
-    ss.d2  = l2->size() > 2u ? (*l2)[2] : zero ; 
-
-    ss.n3r = l3->size() > 0u ? (*l3)[0] : zero ; 
-    ss.n3i = l3->size() > 1u ? (*l3)[1] : zero ; 
-    ss.d3  = l3->size() > 2u ? (*l3)[2] : zero ; 
-     
-    return ss ; 
-} 
-
-
+    ls.nr = vls->size() > 0u ? (*vls)[0] : zero ; 
+    ls.ni = vls->size() > 1u ? (*vls)[1] : zero ; 
+    ls.d  = vls->size() > 2u ? (*vls)[2] : zero ; 
+    return 1 ; 
+}
 
 template<typename T>
-LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T>& ss )  
+LAYR_METHOD std::ostream& operator<<(std::ostream& os, const LayrSpec<T>& ls )  
 {
     os 
-        << "StackSpec<" << ( sizeof(T) == 8 ? "double" : "float" ) << ">"  
-        << std::endl 
-        << "L0 (" 
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n0r << " "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n0i << " ; "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d0  << ")"
-        << std::endl 
-        << "L1 (" 
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n1r << " "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n1i << " ; "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d1  << ")"
-        << std::endl 
-        << "L2 (" 
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n2r << " "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n2i << " ; " 
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d2  << ")"
-        << std::endl 
-        << "L3 (" 
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n3r << " "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.n3i << " ; "
-        << std::fixed << std::setw(10) << std::setprecision(4) << ss.d3  << ")"
+        << "LayrSpec<" << ( sizeof(T) == 8 ? "double" : "float" ) << "> "  
+        << std::fixed << std::setw(10) << std::setprecision(4) << ls.nr << " "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ls.ni << " ; "
+        << std::fixed << std::setw(10) << std::setprecision(4) << ls.d  << ")"
         << std::endl 
         ;
-    return os; 
+    return os ; 
+}
+#endif
+
+
+template<typename T, int N>  
+struct StackSpec
+{
+    LayrSpec<T> ls[N] ; 
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+    LAYR_METHOD void eget() ; 
+#endif
+
+}; 
+
+#if defined(__CUDACC__) || defined(__CUDABE__)
+#else
+template<typename T, int N>
+LAYR_METHOD void StackSpec<T,N>::eget()  
+{
+    int count = 0 ; 
+    for(int i=0 ; i < N ; i++) count += LayrSpec<T>::EGet(ls[i], i); 
+    assert( count == N ) ; 
+}
+
+template<typename T, int N>
+LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T,N>& ss )  
+{
+    os 
+        << "StackSpec<" 
+        << ( sizeof(T) == 8 ? "double" : "float" ) 
+        << "," << N
+        << ">"  
+        << std::endl ;
+
+    for(int i=0 ; i < N ; i++) os << ss.ls[i] ; 
+    return os ; 
 }
 
 #endif
+
+
+
+
+
+
+
 
 
 /**
@@ -488,7 +470,7 @@ struct Stack
 
     LAYR_METHOD void zero();
     LAYR_METHOD Stack();
-    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss);
+    LAYR_METHOD Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss);
 };
 
 template<typename T, int N>
@@ -504,9 +486,9 @@ LAYR_METHOD void Stack<T,N>::zero()
 Stack::Stack
 ---------------
 
-HMM: StackSpec needs to be replaced because the refractive indices 
+HMM: StackSpec4 needs to be replaced because the refractive indices 
 it contains depend on wavelength anyhow so it is misleading 
-as well as inconvenient to have StackSpec as parameter. 
+as well as inconvenient to have StackSpec4 as parameter. 
 
 SO instead pass in a reference to the object "QPMT.hh/spmt.h" 
 that handles the PMT properties, and is responsible for:
@@ -540,7 +522,7 @@ LAYR_METHOD Stack<T,N>::Stack()
 }
 
 template<typename T, int N>
-LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss ) 
+LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss ) 
 {
     // minus_cos_theta, aka dot(mom,normal)
 #ifdef WITH_THRUST
@@ -563,32 +545,28 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-    assert( N == 4 ); 
+    assert( N >= 2); 
 #endif
-
 
     const T zero(Const::zero<T>()) ; 
     const T one(Const::one<T>()) ; 
     const T two(Const::two<T>()) ; 
     const T twopi(Const::twopi<T>()) ; 
 
-    bool against_normal = minus_cos_theta < zero ; 
-    if(against_normal)  
+    for(int i=0 ; i < N ; i++)
     {
-        ll[0].n.real(ss.n0r) ; ll[0].n.imag(ss.n0i) ; ll[0].d = ss.d0 ; 
-        ll[1].n.real(ss.n1r) ; ll[1].n.imag(ss.n1i) ; ll[1].d = ss.d1 ; 
-        ll[2].n.real(ss.n2r) ; ll[2].n.imag(ss.n2i) ; ll[2].d = ss.d2 ;          
-        ll[3].n.real(ss.n3r) ; ll[3].n.imag(ss.n3i) ; ll[3].d = ss.d3 ; 
+        int j = minus_cos_theta < zero ? i : N - 1 - i ;  
+        //  minus_cos_theta < zero  : against normal : ordinary stack  : j = i 
+        //  minus_cos_theta >= zero : with normal    : backwards stack : j from end 
+
+        ll[j].n.real(ss.ls[i].nr) ; 
+        ll[j].n.imag(ss.ls[i].ni) ; 
+        ll[j].d = ss.ls[i].d ; 
     }
-    else   // photons with the normal : "backwards" stack  
-    {
-        ll[3].n.real(ss.n0r) ; ll[3].n.imag(ss.n0i) ; ll[3].d = ss.d0 ; 
-        ll[2].n.real(ss.n1r) ; ll[2].n.imag(ss.n1i) ; ll[2].d = ss.d1 ; 
-        ll[1].n.real(ss.n2r) ; ll[1].n.imag(ss.n2i) ; ll[1].d = ss.d2 ;          
-        ll[0].n.real(ss.n3r) ; ll[0].n.imag(ss.n3i) ; ll[0].d = ss.d3 ; 
-    }
-    // ll[0]   is "top"     : first layer encountered 
-    // ll[N-1] is "bottom"  : last layer encountered
+
+    // ll[0]   is "top"     : start layer : incident
+    // ll[N-1] is "bottom"  : end   layer : transmitted
+
 
     art.wl = wl ; 
     art.mct = minus_cos_theta ; 
@@ -599,7 +577,7 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
 
     // Snell : set st,ct of all layers (depending on indices(hence wl) and incident angle) 
     Layr<T>& l0 = ll[0] ; 
-    l0.ct = against_normal ? -mct : mct ; 
+    l0.ct = minus_cos_theta < zero  ? -mct : mct ; 
     //
     //  flip picks +ve ct that constrains the angle to first quadrant 
     //  this works as : cos(pi-theta) = -cos(theta)
@@ -608,7 +586,7 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
 
     l0.st = sqrt( zOne - mct*mct ) ;  
 
-    for(int idx=1 ; idx < N ; idx++)
+    for(int idx=1 ; idx < N ; idx++)  // for N=2 idx only 1, sets only ll[1] 
     {
         Layr<T>& l = ll[idx] ; 
         l.st = l0.n * l0.st / l.n  ; 
@@ -631,10 +609,13 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
     }
 
     // populate transfer matrices for both thick and thin layers  
-    ll[0].reset();   
+    // for N=2 only one interface
+
+    ll[0].reset();    // ll[0].S ll[0].P matrices set to identity 
+
     for(int idx=1 ; idx < N ; idx++)
     {
-        const Layr<T>& i = ll[idx-1] ;          
+        const Layr<T>& i = ll[idx-1] ;            
         Layr<T>& j = ll[idx] ;          
 
         complex<T> tmp_s = one/i.ts ; 
@@ -664,7 +645,7 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T>& ss )
     comp.S.reset(); 
     comp.P.reset(); 
 
-    for(int idx=0 ; idx < N ; idx++)
+    for(int idx=0 ; idx < N ; idx++) // TODO: start from idx=1 as ll[0].S ll[0].P always identity
     {
         const Layr<T>& l = ll[idx] ; 
         comp.S.dot(l.S) ; 
