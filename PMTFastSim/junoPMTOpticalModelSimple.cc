@@ -100,23 +100,23 @@ void junoPMTOpticalModelSimple::DoIt(const G4FastTrack& fastTrack, G4FastStep &f
     //double _qe = 0.5 ; 
     double _qe = 0.0 ; 
 
-    StackSpec<double> spec ; 
-    spec.d0  = 0. ; 
-    spec.d1  = jpmt->get_thickness_nm( pmtcat, JPMT::L1 );  
-    spec.d2  = jpmt->get_thickness_nm( pmtcat, JPMT::L2 ); 
-    spec.d3 = 0. ; 
+    StackSpec<double,4> spec ; 
+    spec.ls[0].d  = 0. ; 
+    spec.ls[1].d  = jpmt->get_thickness_nm( pmtcat, JPMT::L1 );  
+    spec.ls[2].d  = jpmt->get_thickness_nm( pmtcat, JPMT::L2 ); 
+    spec.ls[3].d = 0. ; 
 
-    spec.n0r = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::RINDEX, energy_eV ); 
-    spec.n0i = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::KINDEX, energy_eV );
+    spec.ls[0].nr = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::RINDEX, energy_eV ); 
+    spec.ls[0].ni = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::KINDEX, energy_eV );
 
-    spec.n1r = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::RINDEX, energy_eV );
-    spec.n1i = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::KINDEX, energy_eV );
+    spec.ls[1].nr = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::RINDEX, energy_eV );
+    spec.ls[1].ni = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::KINDEX, energy_eV );
 
-    spec.n2r = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::RINDEX, energy_eV ); 
-    spec.n2i = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+    spec.ls[2].nr = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    spec.ls[2].ni = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::KINDEX, energy_eV ); 
 
-    spec.n3r = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::RINDEX, energy_eV ); 
-    spec.n3i = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::KINDEX, energy_eV );
+    spec.ls[3].nr = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::RINDEX, energy_eV ); 
+    spec.ls[3].ni = jpmt->get_rindex( pmtcat, JPMT::L3, JPMT::KINDEX, energy_eV );
 
     Stack<double,4> stack(      wavelength_nm, minus_cos_theta, spec );  // NB stack is flipped for minus_cos_theta > 0. 
     Stack<double,4> stackNormal(wavelength_nm, -1.            , spec );  // minus_cos_theta -1. means normal incidence and stack not flipped

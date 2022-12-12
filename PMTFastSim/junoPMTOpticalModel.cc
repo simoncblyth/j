@@ -633,23 +633,24 @@ void junoPMTOpticalModel::CalculateCoefficients()
 
     // CROSS CHECK 
     {
-        StackSpec<double> spec ;
-        spec.d0  = 0. ;
-        spec.d1  = _d2 ; 
-        spec.d2  = _d3 ; 
-        spec.d3 = 0. ;
+        StackSpec<double,4> spec ;
 
-        spec.n0r = _n1 ; 
-        spec.n0i = 0. ; 
+        spec.ls[0].d  = 0. ;
+        spec.ls[1].d  = _d2 ; 
+        spec.ls[2].d  = _d3 ; 
+        spec.ls[3].d = 0. ;
 
-        spec.n1r = _n2 ; 
-        spec.n1i = _k2 ; 
+        spec.ls[0].nr = _n1 ; 
+        spec.ls[0].ni = 0. ; 
 
-        spec.n2r = _n3 ; 
-        spec.n2i = _k3 ; 
+        spec.ls[1].nr = _n2 ; 
+        spec.ls[1].ni = _k2 ; 
 
-        spec.n3r = _n4 ; 
-        spec.n3i = 0 ; 
+        spec.ls[2].nr = _n3 ; 
+        spec.ls[2].ni = _k3 ; 
+
+        spec.ls[3].nr = _n4 ; 
+        spec.ls[3].ni = 0 ; 
 
         Stack<double,4> stack(_wavelength/nm, -_cos_theta1, spec );
 

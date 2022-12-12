@@ -3,8 +3,8 @@
 #include <cstdlib>
 #include "Layr.h"
 
-//typedef double T ; 
-typedef float T ; 
+typedef double T ; 
+//typedef float T ; 
 
 int main(int argc, char** argv)
 {
@@ -22,6 +22,14 @@ int main(int argc, char** argv)
     Stack<T,2> stack(wl, mct, ss ); // ART calc done in ctor    
 
     std::cout << ss << stack ; 
+
+
+     
+     
+
+
+
+
 
     return 0 ; 
 } 

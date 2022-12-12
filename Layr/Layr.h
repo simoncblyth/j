@@ -438,26 +438,9 @@ LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T,N>& ss 
 #endif
 
 
-
-
-
-
-
-
-
 /**
 Stack
 -------
-
-In real situation will need to do property or texture 
-lookups to get the indices using the wavelength. 
-So will need an object to hold onto the props or textures. 
-The thicknesses at least are constant, so they could
-be accessed CPU side and planted into the GPU counterpart struct
-and then uploaded ready to hit-ground-running.
-
-NB wavelength and layer thickness must use same length unit, 
-are using nm currently 
 
 **/
 
@@ -486,9 +469,8 @@ LAYR_METHOD void Stack<T,N>::zero()
 Stack::Stack
 ---------------
 
-HMM: StackSpec4 needs to be replaced because the refractive indices 
-it contains depend on wavelength anyhow so it is misleading 
-as well as inconvenient to have StackSpec4 as parameter. 
+Caution that StackSpec contains refractive indices that depend on wavelength, 
+so the wavelength dependency enters twice. 
 
 SO instead pass in a reference to the object "QPMT.hh/spmt.h" 
 that handles the PMT properties, and is responsible for:
@@ -602,10 +584,11 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
         // https://en.wikipedia.org/wiki/Fresnel_equations
         Layr<T>& i = ll[idx] ; 
         const Layr<T>& j = ll[idx+1] ;  
-        i.rs = (i.n*i.ct - j.n*j.ct)/(i.n*i.ct+j.n*j.ct) ; 
-        i.rp = (j.n*i.ct - i.n*j.ct)/(j.n*i.ct+i.n*j.ct) ; 
-        i.ts = (two*i.n*i.ct)/(i.n*i.ct + j.n*j.ct) ; 
-        i.tp = (two*i.n*i.ct)/(j.n*i.ct + i.n*j.ct) ; 
+
+        i.rs = (i.n*i.ct - j.n*j.ct)/(i.n*i.ct+j.n*j.ct) ;  // r_s eoe[12] see g4op-eoe
+        i.rp = (j.n*i.ct - i.n*j.ct)/(j.n*i.ct+i.n*j.ct) ;  // r_p eoe[7]
+        i.ts = (two*i.n*i.ct)/(i.n*i.ct + j.n*j.ct) ;       // t_s eoe[9]
+        i.tp = (two*i.n*i.ct)/(j.n*i.ct + i.n*j.ct) ;       // t_p eoe[8]
     }
 
     // populate transfer matrices for both thick and thin layers  
@@ -616,7 +599,8 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
     for(int idx=1 ; idx < N ; idx++)
     {
         const Layr<T>& i = ll[idx-1] ;            
-        Layr<T>& j = ll[idx] ;          
+        Layr<T>& j       = ll[idx] ;          
+        // looking at (i,j) pairs of layers 
 
         complex<T> tmp_s = one/i.ts ; 
         complex<T> tmp_p = one/i.tp ;   
@@ -637,6 +621,23 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
 
         // NB: for thin layers the transfer matrices combine interface and propagation between them 
     }
+
+    /*
+    For d=0 (thick layer) 
+
+
+    S     |  1/ts    rs/ts |    
+          |                |
+          |  rs/ts   1/ts  |     
+
+
+    P     |  1/tp    rp/tp |    
+          |                |
+          |  rp/tp   1/tp  |     
+
+    */
+
+
 
     // product of the transfer matrices
     comp.d = zero ; 
