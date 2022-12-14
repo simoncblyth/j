@@ -1,6 +1,79 @@
 junoPMTOpticalModel_vs_CustomBoundaryART_propagation_time_discrepancy.rst
 ============================================================================
 
+
+
+
+Try to reproduce this, 2022/12/14
+-----------------------------------
+
+::
+
+    u4t
+    N=0 ./U4SimtraceTest.sh
+    N=1 ./U4SimtraceTest.sh
+
+
+* script name changed to 
+* geometry changed from single PMT to two PMTs 
+
+
+Add one_pmt two_pmt layout switch to hamaLogicalPMT.sh 
+
+From looking back at github which is a month or so behind, it seems the one_pmt layout was using all defaults.
+
+* https://github.com/simoncblyth/opticks/blob/master/u4/tests/U4PMTFastSimTest.sh
+
+Also needed to control the photon generation within 
+a layout switch : different geometry needs different source 
+position and direction. 
+
+This manages to find again the old familiar N=0 726 big bouncer:: 
+
+    t.record[726,:n[726],0]   ## show step record points for PID 726  
+    [[-113.       0.     200.       0.   ]
+     [-113.       0.     170.163    0.137]
+     [-112.83     0.     164.918    0.164]
+     [-112.83     0.     164.917    0.164]
+     [-135.824    0.       0.       1.012]
+     [-156.577    0.    -148.846    1.778]
+     [ -95.       0.    -104.211    2.166]
+     [-238.764    0.      -0.       3.071]
+     [-248.807    0.       7.28     3.112]
+     [  53.205    0.     180.727    4.274]
+     [ 214.06     0.       0.       5.507]
+     [ 245.605    0.     -35.443    5.749]
+     [  95.       0.     -99.428    6.583]
+     [ 177.724    0.    -134.574    7.041]
+     [ 160.533    0.       0.       7.732]
+     [ 141.059    0.     152.451    8.245]
+     [-138.46     0.       0.       9.867]
+     [-239.66     0.     -55.195   10.455]
+     [   0.427    0.       0.      11.71 ]
+     [ 237.91     0.      54.596   12.523]]
+
+
+Combined Simtrace and Simulate plotting formerly used xxv.sh 
+
+With new U4SimtraceTest.sh need to set the FOCUS as now 
+the Simtrace does all the geometry::
+
+    FOCUS=0,10,185 N=0 ./U4SimtraceTest.sh ana
+    FOCUS=0,10,185 N=1 ./U4SimtraceTest.sh ana
+
+    FOCUS=0,10,185 N=0 APID=726 ./U4SimtraceTest.sh ana
+
+
+
+Revive rerunning over in:
+
+* opticks/notes/issues/U4SimulateTest_g4state_rerunning_not_aligning_big_bouncer_anymore.rst
+
+
+
+Formerly
+------------
+
 ::
 
     u4t 
@@ -10,6 +83,8 @@ junoPMTOpticalModel_vs_CustomBoundaryART_propagation_time_discrepancy.rst
     ./U4PMTFastSimTest.sh ncf
 
 
+Time Difference
+-----------------
 
 Time difference to debug. Complicated by needing to map out the Fakes in a::
 
@@ -37,6 +112,9 @@ Time difference to debug. Complicated by needing to map out the Fakes in a::
            [   0.427,    0.   ,    0.   ,   11.71 ,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
            [ 237.91 ,    0.   ,   54.596,   12.523,    0.975,    0.   ,    0.224,    0.   ,    0.   ,   -1.   ,    0.   ,  420.   ],
            [   0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ,    0.   ]], dtype=float32)
+
+
+
 
     In [11]: br[:,:3].reshape(-1,12)
     Out[11]: 
