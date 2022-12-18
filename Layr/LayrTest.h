@@ -74,11 +74,11 @@ struct LayrTest
 #ifdef WITH_THRUST
     void upload(); 
     void download(); 
-    void scan_gpu(const StackSpec<T>& spec); 
+    void scan_gpu(const StackSpec<T,N>& spec); 
 #else
     // without thrust::complex cannot run on GPU 
 #endif
-    void scan_cpu(const StackSpec<T>& spec); 
+    void scan_cpu(const StackSpec<T,N>& spec); 
 
     const char* get_name() const ; 
     void save() const ; 
@@ -156,10 +156,10 @@ inline void LayrTest<T,N>::download() // d->h : copy device side arrays down int
 }
 
 template <typename T, int N>
-extern void LayrTest_launch( LayrTest<T,N>& t, const StackSpec<T>& spec ); 
+extern void LayrTest_launch( LayrTest<T,N>& t, const StackSpec<T,N>& spec ); 
 
 template<typename T, int N>
-inline void LayrTest<T,N>::scan_gpu(const StackSpec<T>& spec)
+inline void LayrTest<T,N>::scan_gpu(const StackSpec<T,N>& spec)
 {
     gpu = true ; 
 
@@ -185,7 +185,7 @@ NOTE THE WL DEPENDENCY COMING IN TWICE : IN WL AND SPEC
 **/
  
 template<typename T, int N>
-inline void LayrTest<T,N>::scan_cpu(const StackSpec<T>& spec)
+inline void LayrTest<T,N>::scan_cpu(const StackSpec<T,N>& spec)
 {
     gpu = false ; 
     bool reverse = false ; 

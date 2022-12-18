@@ -351,9 +351,14 @@ class ARTPlot(object):
     def __init__(self, test, **kwa):
         self.test = test
         self.kwa = kwa
+        xtitle = kwa.pop("xtitle", None)
+
         fig, ax = plt.subplots(1, figsize=SIZE/100.)
 
         title = test.title 
+        if not xtitle is None:
+            title = "%s %s" % (title, xtitle)
+        pass 
         fig.suptitle(title)   
 
         self.Plot(ax, test, **kwa)  
@@ -393,6 +398,8 @@ if __name__ == '__main__':
 
     pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
     excl = float(os.environ.get("LAYRTEST_EXCL", "0.05"))
+    incl = os.environ.get("LAYRTEST_INCL", "ARTQxsp")
+    xtitle = "LAYRTEST_INCL %s " % incl
 
     tt = ts.select(pmtcat)
 
@@ -400,7 +407,7 @@ if __name__ == '__main__':
     print("pmtcat:%s tt:%d lt:%s " % (pmtcat, len(tt), lt ))
       
     if not lt is None:
-       ap = ARTPlot(lt, excl=excl)
+       ap = ARTPlot(lt, excl=excl, incl=incl, xtitle=xtitle )
     pass 
 
     if len(tt) > 0:

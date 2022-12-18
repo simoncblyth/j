@@ -6,6 +6,12 @@ LayrTest.sh
 SysRap lib only needed for WITH_THRUST GPU running 
 by the NP.hh header is needed in both cases
 
+::
+
+   LAYRTEST_INCL=ARTQspx ./LayrTest.sh ana
+
+
+
 EOU
 }
 

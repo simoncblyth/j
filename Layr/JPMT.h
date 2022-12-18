@@ -74,7 +74,7 @@ struct JPMT
 
 #ifdef WITH_STACKSPEC
     // DONT LIKE THIS METHOD : WORKING TO ELIMINATE IT AND StackSpec INTERMEDIARY
-    template<typename T> StackSpec<T> get(int pmtcat, T wavelength_nm) const ; 
+    template<typename T, int N> StackSpec<T,N> get(int pmtcat, T wavelength_nm) const ; 
 #endif
 
     void save(const char* dir) const ; 
@@ -231,41 +231,27 @@ inline std::string JPMT::desc() const
 JPMT::get
 --------------
 
-DONT LIKE THIS METHOD : WORKING TO ELIMINATE IT AND StackSpec INTERMEDIARY
-
 Notice that this gets all its data from two arrays: thickness and rindex
 making it straightforward to do on GPU. 
 
-ACTUALLY WHAT I DONT LIKE IS THE SHUFFLING IN AND OUT OF THE INTERMEDIARY TYPE
+ACTUALLY WHAT I DONT LIKE IS THE SHUFFLING IN AND OUT OF THE INTERMEDIARY TYPE, 
+BUT ITS KINDA EXPEDIENT 
 
 **/
 
-template<typename T>
-inline StackSpec<T> JPMT::get(int pmtcat, T wavelength_nm) const  
+template<typename T, int N>
+inline StackSpec<T,N> JPMT::get(int pmtcat, T wavelength_nm) const  
 {
     double energy_eV = sdomain::hc_eVnm/wavelength_nm ; 
 
-    StackSpec<T> spec ; 
-
-    spec.d0  = tt[pmtcat*NUM_LAYER+L0] ; 
-    spec.d1  = tt[pmtcat*NUM_LAYER+L1] ; 
-    spec.d2  = tt[pmtcat*NUM_LAYER+L2] ; 
-    spec.d3  = tt[pmtcat*NUM_LAYER+L3] ; 
-
-    spec.n0r = rindex->combined_interp_5( pmtcat, L0, RINDEX, energy_eV ) ; 
-    spec.n0i = rindex->combined_interp_5( pmtcat, L0, KINDEX, energy_eV ) ; 
-
-    spec.n1r = rindex->combined_interp_5( pmtcat, L1, RINDEX, energy_eV ) ; 
-    spec.n1i = rindex->combined_interp_5( pmtcat, L1, KINDEX, energy_eV ) ; 
-
-    spec.n2r = rindex->combined_interp_5( pmtcat, L2, RINDEX, energy_eV ) ; 
-    spec.n2i = rindex->combined_interp_5( pmtcat, L2, KINDEX, energy_eV ) ; 
-
-    spec.n3r = rindex->combined_interp_5( pmtcat, L3, RINDEX, energy_eV ) ; 
-    spec.n3i = rindex->combined_interp_5( pmtcat, L3, KINDEX, energy_eV ) ; 
-
-    // HMM: could these 8 calls be consolidated ? 
-
+    StackSpec<T,N> spec ; 
+    assert( N == NUM_LAYER );   
+    for(int i=0 ; i < N ; i++)
+    {
+        spec.ls[i].d = tt[pmtcat*NUM_LAYER+i] ; 
+        spec.ls[i].nr = rindex->combined_interp_5( pmtcat, i, RINDEX, energy_eV ) ; 
+        spec.ls[i].ni = rindex->combined_interp_5( pmtcat, i, KINDEX, energy_eV ) ; 
+    }
     return spec ; 
 }
 

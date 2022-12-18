@@ -428,7 +428,7 @@ void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastSte
     G4double R = fR_s*E_s2 + fR_p*(1.0-E_s2);
     G4double A = 1.0 - (T+R);
     G4double An = 1.0 - (fT_n+fR_n);
-    G4double D = _qe/An;
+    G4double D = _qe/An;  // TODO: get some explanation for this 
 
 
     LOG(LEVEL)
@@ -944,18 +944,20 @@ void junoPMTOpticalModel::setEnergyThickness( double energy )
 {
     _wavelength     = twopi*hbarc/energy;
     double energy_eV = energy/eV ; 
-
-    n_glass          = jpmt->get_rindex( JPMT::HAMA, JPMT::L0, JPMT::RINDEX, energy_eV ); 
-
-    n_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::RINDEX, energy_eV ); 
-    k_coating        = jpmt->get_rindex( JPMT::HAMA, JPMT::L1, JPMT::KINDEX, energy_eV ); 
-
-    n_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::RINDEX, energy_eV ); 
-    k_photocathode   = jpmt->get_rindex( JPMT::HAMA, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+    int pmtcat = JPMT::HAMA ; 
 
 
-    d_coating      = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L1 ); 
-    d_photocathode = jpmt->get_thickness_nm( JPMT::HAMA, JPMT::L2 ); 
+    n_glass          = jpmt->get_rindex( pmtcat, JPMT::L0, JPMT::RINDEX, energy_eV ); 
+
+    n_coating        = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::RINDEX, energy_eV ); 
+    k_coating        = jpmt->get_rindex( pmtcat, JPMT::L1, JPMT::KINDEX, energy_eV ); 
+
+    n_photocathode   = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::RINDEX, energy_eV ); 
+    k_photocathode   = jpmt->get_rindex( pmtcat, JPMT::L2, JPMT::KINDEX, energy_eV ); 
+
+
+    d_coating      = jpmt->get_thickness_nm( pmtcat, JPMT::L1 ); 
+    d_photocathode = jpmt->get_thickness_nm( pmtcat, JPMT::L2 ); 
 
     LOG(LEVEL)
         << " energy " << energy

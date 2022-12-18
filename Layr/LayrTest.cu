@@ -8,7 +8,7 @@
 
 // NB spec is passed by value (passing by reference with kernel calls causes crash)
 template<typename T, int N>
-__global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T> spec )
+__global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T,N> spec )
 { 
     unsigned idx = blockIdx.x * blockDim.x + threadIdx.x;
     if(idx >= ltd->ni) return ;  
@@ -37,7 +37,7 @@ void ConfigureLaunch(dim3& numBlocks, dim3& threadsPerBlock, unsigned width )
 }
 
 template<typename T, int N>
-void LayrTest_launch(LayrTest<T,N>& t, const StackSpec<T>& spec )
+void LayrTest_launch(LayrTest<T,N>& t, const StackSpec<T,N>& spec )
 {
     //printf("[LayrTest_launch t.d_ptr %p \n", t.d_ptr ); 
     assert( t.d_ptr ); 
@@ -48,6 +48,6 @@ void LayrTest_launch(LayrTest<T,N>& t, const StackSpec<T>& spec )
     //printf("]LayrTest_launch t.d_ptr %p \n", t.d_ptr ); 
 }
 
-template LAYRTEST_API void LayrTest_launch(LayrTest<float, 4>&, const StackSpec<float>&  ); 
-template LAYRTEST_API void LayrTest_launch(LayrTest<double,4>&, const StackSpec<double>&  ); 
+template LAYRTEST_API void LayrTest_launch(LayrTest<float, 4>&, const StackSpec<float,4>&  ); 
+template LAYRTEST_API void LayrTest_launch(LayrTest<double,4>&, const StackSpec<double,4>&  ); 
 
