@@ -69,6 +69,20 @@ class LayrTest(object):
             symbol = "?"
             layrs = "?" 
         pass
+
+        nr_first = f.spec[0,0] 
+        nr_last = f.spec[-1,0] 
+        nr_frac = np.array([nr_last/nr_first,nr_first/nr_last])
+
+        brewster = np.array( [np.arctan(nr_frac[0]), np.pi - np.arctan(nr_frac[1]) ] )
+        critical = np.array( [np.arcsin(nr_frac[0]), np.pi - np.arcsin(nr_frac[1]) ] )  # one of these will be np.nan
+
+        self.nr_first = nr_first
+        self.nr_last = nr_last
+        self.nr_frac = nr_frac
+        self.brewster = brewster 
+        self.critical = critical 
+
         self.title = title
         self.brief = brief
         self.name = name
@@ -97,7 +111,8 @@ class LayrTestSet(object):
      
     """
     BASE = os.environ.get("LAYRTEST_BASE", "/tmp/LayrTest")
-    NAMES = sorted(list(filter(lambda name:name.startswith("scan_"),os.listdir(BASE)))) 
+    MODE = os.environ.get("LAYRTEST_MODE", "4")
+    NAMES = sorted(list(filter(lambda name:name.startswith("scan_"),os.listdir(os.path.join(BASE, MODE))))) 
     SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
 
     def __init__(self):
@@ -112,7 +127,7 @@ class LayrTestSet(object):
         for idx in range(len(self.NAMES)):
             name = self.NAMES[idx]
             symbol = self.SYMBOLS[idx]
-            fold = Fold.Load(self.BASE, name,  symbol=symbol)
+            fold = Fold.Load(self.BASE, self.MODE, name,  symbol=symbol)
             test = LayrTest(fold)
             test.name = name 
 
@@ -326,6 +341,51 @@ class ARTPlot(object):
         pass 
 
 
+        assert len(t.brewster) == 2 
+        brewster_angle = t.brewster*180./np.pi
+
+        brewster = np.zeros( (2, len(brewster_angle), 2) )
+        brewster[0,:,0] = brewster_angle
+        brewster[0,:,1] = 0. 
+        brewster[1,:,0] = brewster_angle
+        brewster[1,:,1] = 1. 
+        brewster = brewster.reshape(-1,2)
+
+        brewster_sz = 30 
+        brewster_color = "red"
+        brewster_label = "Brewster"
+
+        ax.scatter( brewster[:,0], brewster[:,1], s=brewster_sz, color=brewster_color, label=brewster_label )
+
+        for x in brewster_angle:
+            ax.plot( [x,x], [0,1], linestyle="dashed", color=brewster_color )
+        pass
+
+
+
+
+
+        critical_angle = t.critical[np.isfinite( t.critical )] *180./np.pi
+        critical = np.zeros( (2, len(critical_angle), 2 ) )
+        critical[0,:,0] = critical_angle
+        critical[0,:,1] = 0.
+        critical[1,:,0] = critical_angle
+        critical[1,:,1] = 1.
+        critical = critical.reshape(-1,2)
+
+        critical_sz = 30 
+        critical_color = "blue"
+        critical_label = "Critical"
+
+        ax.scatter( critical[:,0], critical[:,1], s=critical_sz, color=critical_color, label=critical_label )
+
+        for x in critical_angle:
+            ax.plot( [x,x], [0,1], linestyle="dashed", color=critical_color )
+        pass
+
+
+
+
         xx = [0,90,180] 
 
         edeg = [np.arccos(excl)*180/np.pi,np.arccos(-excl)*180/np.pi] if excl > 0 else []
@@ -403,11 +463,11 @@ if __name__ == '__main__':
 
     tt = ts.select(pmtcat)
 
-    lt = tt[-1] if len(tt) > 0 else None
-    print("pmtcat:%s tt:%d lt:%s " % (pmtcat, len(tt), lt ))
+    t = tt[-1] if len(tt) > 0 else None
+    print("pmtcat:%s tt:%d t:%s " % (pmtcat, len(tt), t ))
       
-    if not lt is None:
-       ap = ARTPlot(lt, excl=excl, incl=incl, xtitle=xtitle )
+    if not t is None:
+       ap = ARTPlot(t, excl=excl, incl=incl, xtitle=xtitle )
     pass 
 
     if len(tt) > 0:

@@ -33,10 +33,6 @@ if get rid of StackSpec ?
 
 struct JPMT
 {
-    // headeronly singleton difficult in c++11
-    //static const JPMT* INSTANCE ; 
-    //static const JPMT* Get(); 
-
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
@@ -73,7 +69,6 @@ struct JPMT
     double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
 
 #ifdef WITH_STACKSPEC
-    // DONT LIKE THIS METHOD : WORKING TO ELIMINATE IT AND StackSpec INTERMEDIARY
     template<typename T, int N> StackSpec<T,N> get(int pmtcat, T wavelength_nm) const ; 
 #endif
 
@@ -234,8 +229,11 @@ JPMT::get
 Notice that this gets all its data from two arrays: thickness and rindex
 making it straightforward to do on GPU. 
 
-ACTUALLY WHAT I DONT LIKE IS THE SHUFFLING IN AND OUT OF THE INTERMEDIARY TYPE, 
+ACTUALLY WHAT I DONT LIKE ABOUT THIS IS THE SHUFFLING IN AND OUT OF THE INTERMEDIARY TYPE, 
 BUT ITS KINDA EXPEDIENT 
+
+
+
 
 **/
 
@@ -254,5 +252,60 @@ inline StackSpec<T,N> JPMT::get(int pmtcat, T wavelength_nm) const
     }
     return spec ; 
 }
+
+
+
+/**
+JPMT::get
+----------
+
+Trying to specialize to create a 2 layer stack from 
+the 4 layer data, using first and last.  
+
+Seems cannot do partial template specialization 
+so duplicate for float and double so can do full specialization.
+
+**/
+
+template<> 
+inline StackSpec<float,2> JPMT::get(int pmtcat, float wavelength_nm) const  
+{
+    StackSpec<float,2> spec ; 
+
+    double energy_eV = sdomain::hc_eVnm/wavelength_nm ; 
+    int N = 4 ; 
+    float zero(0.f); 
+   
+    spec.ls[0].d = zero ; 
+    spec.ls[0].nr = rindex->combined_interp_5( pmtcat, 0, RINDEX, energy_eV ) ; 
+    spec.ls[0].ni = zero ; 
+
+    spec.ls[1].d =  zero ; 
+    spec.ls[1].nr = rindex->combined_interp_5( pmtcat, N-1, RINDEX, energy_eV ) ; 
+    spec.ls[1].ni = zero ; 
+
+    return spec ; 
+}
+
+template<> 
+inline StackSpec<double,2> JPMT::get(int pmtcat, double wavelength_nm) const  
+{
+    StackSpec<double,2> spec ; 
+
+    double energy_eV = sdomain::hc_eVnm/wavelength_nm ; 
+    int N = 4 ; 
+    double zero(0.); 
+
+    spec.ls[0].d = zero ; 
+    spec.ls[0].nr = rindex->combined_interp_5( pmtcat, 0, RINDEX, energy_eV ) ; 
+    spec.ls[0].ni = zero ; 
+
+    spec.ls[1].d = zero ; 
+    spec.ls[1].nr = rindex->combined_interp_5( pmtcat, N-1, RINDEX, energy_eV ) ; 
+    spec.ls[1].ni = zero ; 
+
+    return spec ; 
+}
+
 
 #endif

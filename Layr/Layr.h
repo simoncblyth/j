@@ -360,7 +360,7 @@ namespace sys
 template<typename T>
 struct LayrSpec
 {
-    T nr, ni, d ; 
+    T nr, ni, d, pad ; 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
     static int EGet(LayrSpec<T>& ls, int idx); 
@@ -381,6 +381,7 @@ LAYR_METHOD int LayrSpec<T>::EGet(LayrSpec<T>& ls, int idx)
     ls.nr = vls->size() > 0u ? (*vls)[0] : zero ; 
     ls.ni = vls->size() > 1u ? (*vls)[1] : zero ; 
     ls.d  = vls->size() > 2u ? (*vls)[2] : zero ; 
+    ls.pad = zero ; 
     return 1 ; 
 }
 
@@ -403,9 +404,9 @@ template<typename T, int N>
 struct StackSpec
 {
     LayrSpec<T> ls[N] ; 
-
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
+    const T* data() const ; 
     LAYR_METHOD void eget() ; 
 #endif
 
@@ -420,6 +421,14 @@ LAYR_METHOD void StackSpec<T,N>::eget()
     for(int i=0 ; i < N ; i++) count += LayrSpec<T>::EGet(ls[i], i); 
     assert( count == N ) ; 
 }
+
+template<typename T, int N>
+LAYR_METHOD const T* StackSpec<T,N>::data() const 
+{
+    return (T*)&(ls[0].nr) ; 
+}
+
+
 
 template<typename T, int N>
 LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T,N>& ss )  

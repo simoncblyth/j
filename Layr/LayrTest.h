@@ -58,6 +58,7 @@ LayrTest
 template<typename T, int N>
 struct LayrTest
 {
+
     LayrTestData<T,N> h ;      
     LayrTestData<T,N> d ;      
     LayrTestData<T,N>* d_ptr ; 
@@ -69,6 +70,7 @@ struct LayrTest
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
+    static const char* Base(); 
     LayrTest(int ni=90, T wl=0, const char* label=nullptr );
 
 #ifdef WITH_THRUST
@@ -81,7 +83,7 @@ struct LayrTest
     void scan_cpu(const StackSpec<T,N>& spec); 
 
     const char* get_name() const ; 
-    void save() const ; 
+    void save(const StackSpec<T,N>& spec) const ; 
     std::string desc() const ; 
     std::string brief() const ; 
     std::string title() const ; 
@@ -91,11 +93,22 @@ struct LayrTest
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
 template<typename T, int N>
+inline const char* LayrTest<T,N>::Base()  // static 
+{
+    std::stringstream ss ; 
+    ss << U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest") ; 
+    ss << "/" << N ; 
+    std::string s = ss.str(); 
+    const char* base = strdup(s.c_str()); 
+    return base ; 
+}
+
+template<typename T, int N>
 inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     :
     d_ptr(nullptr),
     gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
-    base(U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest")),
+    base(Base()),
     label(label_ ? strdup(label_) : nullptr),
     half(U::GetEnvInt("LAYRTEST_HALF",0) == 1)
 {
@@ -110,14 +123,6 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     T max_theta_pi = half ? T(1)/T(2) : T(1) ;  
     bool end_one = half ? false : true ;
 
-    // HMM: when covering full 0->180 end_one does not
-    // protect from glancing 90 degree incidence 
-    //
-    // get very large float/double mismatch in lls and comps 
-    //
-    // TODO: look into details to see why glancing edge case is so bad, 
-    // maybe it needs some special treatment. 
- 
     for(int i=0 ; i < ni ; i++ ) 
     {
         T frac =  T(i)/T(end_one ? ni-1 : ni) ;  
@@ -168,7 +173,7 @@ inline void LayrTest<T,N>::scan_gpu(const StackSpec<T,N>& spec)
 
     cudaDeviceSynchronize();
     download();                         // copy d->h (overwriting any prior scan from scan_cpu OR scan_gpu)
-    save();                             // persist the h arrays 
+    save(spec);                        // persist the h arrays 
 }
 #endif
 
@@ -201,7 +206,7 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T,N>& spec)
         //std::cout << stack << std::endl ; 
         //std::cout << "j:" << j << std::endl << stack.art << std::endl ; 
     }
-    save(); 
+    save(spec); 
 }
 
 template<typename T, int N>
@@ -286,7 +291,7 @@ inline const char* LayrTest<T,N>::get_name() const
 }
 
 template<typename T, int N>
-inline void LayrTest<T,N>::save() const 
+inline void LayrTest<T,N>::save(const StackSpec<T,N>& spec) const 
 {
     std::string ti = title(); 
     std::string br = brief(); 
@@ -309,6 +314,9 @@ inline void LayrTest<T,N>::save() const
     _arts->set_meta<std::string>("label", label); 
     _arts->set_meta<T>("wl", h.wl); 
     _arts->save(base, name, "arts.npy" ); 
+
+    NP::Write(base, name, "spec.npy", (T*)spec.data(), N, 4 ) ; 
+
 }
 #endif
 
