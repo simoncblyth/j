@@ -13,18 +13,18 @@ Usage::
 #include "Layr.h"    // needed for FOR StackSpec
 #include "JPMT.h"
 
-void test_FindCat()
+void test_FindCat20()
 {
-    int pmtcat_0 = JPMT::FindCat(JPMT::_HAMA) ; 
+    int pmtcat_0 = JPMT::FindCat20(JPMT::_HAMA) ; 
     assert( pmtcat_0 == JPMT::HAMA ); 
 
-    int pmtcat_1 = JPMT::FindCat(JPMT::_NNVT) ; 
+    int pmtcat_1 = JPMT::FindCat20(JPMT::_NNVT) ; 
     assert( pmtcat_1 == JPMT::NNVT ); 
 
-    int pmtcat_2 = JPMT::FindCat(JPMT::_NNVTQ) ; 
+    int pmtcat_2 = JPMT::FindCat20(JPMT::_NNVTQ) ; 
     assert( pmtcat_2 == JPMT::NNVTQ ); 
 
-    int pmtcat_3 = JPMT::FindCat("other") ; 
+    int pmtcat_3 = JPMT::FindCat20("other") ; 
     assert( pmtcat_3 == -1 ); 
 }
 
@@ -37,15 +37,17 @@ void test_JPMT()
     int pmtcat = JPMT::HAMA ; 
     for(double wavelength_nm=400. ; wavelength_nm <= 800. ; wavelength_nm += 100. )
     {
-        StackSpec<double> spec = jpmt.get(pmtcat, wavelength_nm); 
+        StackSpec<double,4> spec = jpmt.get<double,4>(pmtcat, wavelength_nm); 
         std::cout << "spec" << std::endl << spec << std::endl ; 
     }
 }
 
 int main(int argc, char** argv)
 {
-    test_FindCat(); 
-    //test_JPMT(); 
+    /*
+    test_FindCat20(); 
+    */
+    test_JPMT(); 
     return 0 ; 
 }
 

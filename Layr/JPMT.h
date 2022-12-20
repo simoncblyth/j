@@ -33,11 +33,15 @@ if get rid of StackSpec ?
 
 struct JPMT
 {
+    static constexpr const char* _HZC = "HZC_3inch" ; 
+    static constexpr const char* _WPP = "WP_PMT" ; 
+
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
-    static void GetNames( std::vector<std::string>& names ); 
-    static int FindCat( const char* name ); 
+    static void GetNames20(  std::vector<std::string>& names ); 
+    static void GetNamesAll( std::vector<std::string>& names ); 
+    static int FindCat20( const char* name ); 
 
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -56,13 +60,17 @@ struct JPMT
 
     std::vector<const NP*> v_rindex ; 
     std::vector<const NP*> v_thickness ; 
+    std::vector<const NP*> v_qe_shape ; 
 
     NP* rindex ;      // (num_pmtcat, num_layer, num_prop,  num_energies ~15 , num_payload:2 )    # payload is (energy, value)  
     NP* thickness ;   // (num_pmtcat, num_layer, num_payload:1 )
     double* tt ; 
+    NP* qe_shape ; 
 
     JPMT(); 
     void init(); 
+    void init_rindex_thickness(); 
+    void init_qe_shape(); 
 
     const char* get_pmtcat( int pmtcat ) const ; 
     double get_thickness_nm(int pmtcat, int layer) const  ; 
@@ -76,17 +84,25 @@ struct JPMT
     std::string desc() const ; 
 };
 
-inline void JPMT::GetNames( std::vector<std::string>& names ) // static
+inline void JPMT::GetNames20( std::vector<std::string>& names ) // static
 {
     names.push_back(_HAMA);  
     names.push_back(_NNVT);  
     names.push_back(_NNVTQ);  
 }
+inline void JPMT::GetNamesAll( std::vector<std::string>& names ) // static
+{
+    names.push_back(_HZC);  
+    names.push_back(_HAMA);  
+    names.push_back(_NNVT);  
+    names.push_back(_NNVTQ);  
+    names.push_back(_WPP);  
+}
 
-inline int JPMT::FindCat( const char* name )  // static
+inline int JPMT::FindCat20( const char* name )  // static
 {
     std::vector<std::string> names ; 
-    GetNames(names); 
+    GetNames20(names); 
     size_t idx = std::distance( names.begin(), std::find( names.begin(), names.end(), name )); 
     return idx >= names.size() ? -1  : int(idx) ;  
 } 
@@ -99,7 +115,8 @@ inline JPMT::JPMT()
     Vacuum(NPFold::LoadProp("Material/Vacuum")),
     rindex(nullptr),
     thickness(NP::Make<double>(NUM_PMTCAT, NUM_LAYER, 1)),
-    tt(thickness->values<double>()) 
+    tt(thickness->values<double>()),
+    qe_shape(nullptr)
 {
     init(); 
 }
@@ -109,15 +126,73 @@ JPMT::init
 ---------------
 
 Collect RINDEX, KINDEX as function of energy and THICKNESS properties 
-for all PMT categories and stack layers into two arrays. 
+for all PMT categories and stack layers into two arrays.::
+
+    epsilon:~ blyth$ cd $NP_PROP_BASE/PMTProperty
+    epsilon:PMTProperty blyth$ ls -1
+    Dynode
+    HZC_3inch
+    MCP
+    NNVTMCP         ## only these 3 are returned by GetNames
+    NNVTMCP_HiQE    ##
+    R12860          ##
+    WP_PMT
+
+
+    epsilon:PMTProperty blyth$ find . -type f -exec wc -l {} \;
+
+           3 ./WP_PMT/scale           ## key-value
+          43 ./WP_PMT/QE_shape        ## vs eV
+           9 ./WP_PMT/CE              ## vd deg 
+
+           2 ./R12860/THICKNESS
+           2 ./R12860/scale
+          43 ./R12860/QE_shape
+          14 ./R12860/PHC_RINDEX
+          14 ./R12860/PHC_KINDEX
+           9 ./R12860/CE
+          14 ./R12860/ARC_RINDEX
+           2 ./R12860/ARC_KINDEX
+
+           2 ./NNVTMCP_HiQE/THICKNESS
+           2 ./NNVTMCP_HiQE/scale
+          43 ./NNVTMCP_HiQE/QE_shape
+          14 ./NNVTMCP_HiQE/PHC_RINDEX
+          14 ./NNVTMCP_HiQE/PHC_KINDEX
+           9 ./NNVTMCP_HiQE/CE
+          14 ./NNVTMCP_HiQE/ARC_RINDEX
+           2 ./NNVTMCP_HiQE/ARC_KINDEX
+
+           9 ./MCP/CE
+
+           2 ./NNVTMCP/THICKNESS
+           3 ./NNVTMCP/scale
+          43 ./NNVTMCP/QE_shape
+          14 ./NNVTMCP/PHC_RINDEX
+          14 ./NNVTMCP/PHC_KINDEX
+           9 ./NNVTMCP/CE
+          14 ./NNVTMCP/ARC_RINDEX
+           2 ./NNVTMCP/ARC_KINDEX
+
+           1 ./HZC_3inch/scale
+          60 ./HZC_3inch/QE_shape
+           9 ./Dynode/CE
+
+
 
 **/
 inline void JPMT::init()
 {
+    init_rindex_thickness(); 
+    init_qe_shape(); 
+}
+
+inline void JPMT::init_rindex_thickness()
+{
     assert( PMTProperty ); 
 
     std::vector<std::string> names ; 
-    GetNames(names); 
+    GetNames20(names); 
     assert( names.size() == NUM_PMTCAT ); 
 
     for(int i=0 ; i < NUM_PMTCAT ; i++) 
@@ -164,6 +239,69 @@ inline void JPMT::init()
     thickness->set_names(names); 
 }
 
+/**
+JPMT::init_qe_shape
+----------------------
+
+jcv IPMTParamSvc::
+
+     33 enum PMT_CATEGORY {
+     34   kPMT_Unknown=-1,
+     35   kPMT_NNVT,
+     36   kPMT_Hamamatsu,
+     37   kPMT_HZC,
+     38   kPMT_NNVT_HighQE
+     39 };
+
+::
+    epsilon:PMTProperty blyth$ find . -name QE_shape -exec wc -l {} \;
+          43 ./WP_PMT/QE_shape
+          43 ./R12860/QE_shape
+          43 ./NNVTMCP_HiQE/QE_shape
+          43 ./NNVTMCP/QE_shape
+          60 ./HZC_3inch/QE_shape
+
+jcv PMTSimParamSvc::
+
+     288 bool PMTSimParamSvc::init_default() {
+     ...
+     315   helper_pmt_mpt(m_QEshape_HZC, mcgt.data(),"PMTProperty.HZC_3inch.QE_shape");
+     316   helper_pmt_mpt(m_QEshape_NNVT, mcgt.data(),"PMTProperty.NNVTMCP.QE_shape");
+     317   helper_pmt_mpt(m_QEshape_NNVT_HiQE, mcgt.data(),"PMTProperty.NNVTMCP_HiQE.QE_shape");
+     318   helper_pmt_mpt(m_QEshape_R12860, mcgt.data(),"PMTProperty.R12860.QE_shape");
+     319   helper_pmt_mpt(m_QEshape_WP_PMT, mcgt.data(),"PMTProperty.WP_PMT.QE_shape");
+
+    In [6]:  t.jpmt_qe_shape.shape
+    Out[6]: (5, 61, 2)
+
+    In [7]: t.jpmt_qe_shape[:,-1].view(np.int64)
+    Out[7]: 
+    array([[ 0, 60],
+           [ 0, 43],
+           [ 0, 43],
+           [ 0, 43],
+           [ 0, 43]])
+
+**/
+
+inline void JPMT::init_qe_shape()
+{
+    assert( PMTProperty ); 
+    std::vector<std::string> names ; 
+    GetNamesAll(names); 
+
+    for(int i=0 ; i < int(names.size()) ; i++) 
+    {
+        const char* name = names[i].c_str(); 
+        NPFold* pmt = PMTProperty->get_subfold(name); 
+        const NP* a = pmt->get("QE_shape") ; 
+        v_qe_shape.push_back(a) ; 
+    }
+    qe_shape = NP::Combine(v_qe_shape); 
+    qe_shape->set_names(names);  
+}
+
+
 
 inline const char* JPMT::get_pmtcat( int pmtcat ) const
 {
@@ -198,6 +336,7 @@ inline void JPMT::save(const char* dir) const
 {
     rindex->save(dir, "jpmt_rindex.npy"); 
     thickness->save(dir, "jpmt_thickness.npy"); 
+    qe_shape->save(dir, "jpmt_qe_shape.npy"); 
 }
 inline std::string JPMT::desc() const 
 {
@@ -233,6 +372,8 @@ ACTUALLY WHAT I DONT LIKE ABOUT THIS IS THE SHUFFLING IN AND OUT OF THE INTERMED
 BUT ITS KINDA EXPEDIENT 
 
 
+
+TODO: change to energy_eV argumnent and use from u4/CustomART.h 
 
 
 **/

@@ -660,3 +660,49 @@ At zero, get nan for ART::
 This blowup at glancing explains the float/double and gpu/cpu differences. 
 
 
+
+
+TMM Fast 
+------------
+
+* https://opg.optica.org/josaa/fulltext.cfm?uri=josaa-39-6-1007&id=472723
+
+* https://arxiv.org/abs/2111.13667
+
+* https://github.com/MLResearchAtOSRAM/tmm_fast
+
+* https://github.com/MLResearchAtOSRAM/tmm_fast/blob/main/tmm_fast/vectorized_tmm_dispersive_multistack.py
+
+The key contribution to the core functionality of the TMM package is the
+parallelized handling of the characteristic matrix that reduces computational
+time. The matrix M consists of three separate matrices: matrix A, which
+encompasses the accumulated phase, and the two matrices holding the
+coefficients of reflection and transmission, respectively. They are of shape
+[num_wavelength,num_incident_angles,num_layers,2,2]
+
+To get the characteristic matrix M, np.einsum
+method allows us to specify multiplication and contractions of different
+dimensions easily:
+
+::
+
+    1  M_l = np.zeros((num_lambda, num_angles, num_layers, 2, 2),dtype = complex) 
+    2  F = r_list[:, 1:]
+
+    3  M_l[:,:,1:-1,0,0] = np.einsum(’hji,ji-> jhi’, 1/A, 1/t_list[:, 1:]) 
+    4  M_l[:,:,1:-1,0,1] = np.einsum(’hji,ji-> jhi’, 1/A, F/t_list[:, 1:])
+    5  M_l[:,:,1:-1,1,0] = np.einsum(’hji,ji-> jhi’, A, F/t_list[:, 1:])
+    6  M_l[:,:,1:-1,1,1] = np.einsum(’hji,ji-> jhi’, A, 1/t_list[:, 1:])
+
+    7	Mtilde = np.empty((num_angles, num_lambda, 2, 2), dtype = complex)
+    8	Mtilde[:, :] = make_2x2_array(1, 0, 0, 1, dtype = complex)
+    9	for i in range(1, num_layers-1):
+    10	   Mtilde = np.einsum(’ijkl,ijlm-> ijkm’, Mtilde, M_l[:,:,i])
+
+
+
+
+
+
+
+
