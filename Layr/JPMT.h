@@ -33,6 +33,13 @@ if get rid of StackSpec ?
 
 struct JPMT
 {
+    static constexpr const char* _PMTType_base = "$JUNOTOP/data/Detector/Geometry" ;
+    static constexpr const char* _PMTType_cats = "Unknown,NNVT,Hamamatsu,HZC,HighQENNVT" ;
+    static constexpr const char* _PMTType_names = "PMTType_CD_LPMT.csv,PMTType_CD_SPMT.csv" ; 
+    static constexpr int         _PMTType_catfield = 1 ; 
+    static NP* LoadPMTType(const char* base, const char* cats, const char* names, int catfield, char delim=',' ); 
+
+
     static constexpr const char* _HZC = "HZC_3inch" ; 
     static constexpr const char* _WPP = "WP_PMT" ; 
 
@@ -66,6 +73,7 @@ struct JPMT
     NP* thickness ;   // (num_pmtcat, num_layer, num_payload:1 )
     double* tt ; 
     NP* qe_shape ; 
+    NP* cat ; 
 
     JPMT(); 
     void init(); 
@@ -116,7 +124,8 @@ inline JPMT::JPMT()
     rindex(nullptr),
     thickness(NP::Make<double>(NUM_PMTCAT, NUM_LAYER, 1)),
     tt(thickness->values<double>()),
-    qe_shape(nullptr)
+    qe_shape(nullptr),
+    cat(LoadPMTType(_PMTType_base, _PMTType_cats, _PMTType_names, _PMTType_catfield, ','))
 {
     init(); 
 }
@@ -290,6 +299,10 @@ PMT category files are not on laptop, so grab them::
 
     epsilon:junotop blyth$ scp P:junotop/data_Detector.tar.gz .
 
+Added NP::LoadCategoryArrayFromTxtFile to load files like::
+
+   $JUNOTOP/data/Detector/Geometry/PMTType_CD_LPMT.csv
+
 
 **/
 
@@ -308,6 +321,66 @@ inline void JPMT::init_qe_shape()
     }
     qe_shape = NP::Combine(v_qe_shape); 
     qe_shape->set_names(names);  
+}
+
+/**
+JPMT::LoadPMTType
+--------------------
+
+jcv IPMTParamSvc::
+
+     33 enum PMT_CATEGORY {
+     34   kPMT_Unknown=-1,
+     35   kPMT_NNVT,
+     36   kPMT_Hamamatsu,
+     37   kPMT_HZC,
+     38   kPMT_NNVT_HighQE
+     39 };
+
+
+    In [1]: t.PMTType_CD
+    Out[1]: 
+    array([[     0,      2],
+           [     1,      2],
+           [     2,      4],
+           [     3,      2],
+           [     4,      4],
+           ...,
+           [325595,      3],
+           [325596,      3],
+           [325597,      3],
+           [325598,      3],
+           [325599,      3]], dtype=int32)
+
+    In [2]: t.PMTType_CD.shape
+    Out[2]: (43212, 2)
+
+
+    In [4]: np.unique(t.cat[:,1], return_index=True, return_counts=True )
+    Out[4]: 
+    (array([1, 2, 3, 4], dtype=int32),
+     array([   55,     0, 17612,     2]),
+     array([ 2720,  4997, 25600,  9895]))
+
+
+**/
+
+inline NP* JPMT::LoadPMTType(const char* base, const char* cats, const char* names_, int catfield, char delim ) // static
+{
+    std::vector<std::string> names ;
+    U::MakeVec(names, names_, delim );
+
+    std::vector<NP*> v_cat ; 
+    for(unsigned i=0 ; i < names.size() ; i++)
+    {
+        const char* name = names[i].c_str(); 
+        NP* a = NP::LoadCategoryArrayFromTxtFile(base, name, catfield, cats); 
+        v_cat.push_back(a); 
+    }
+
+    NP* c = NP::Concatenate(v_cat); 
+    c->set_names(names); 
+    return c ;  
 }
 
 
@@ -343,9 +416,11 @@ inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV
 
 inline void JPMT::save(const char* dir) const 
 {
+    // HMM: JPMT directory ? 
     rindex->save(dir, "jpmt_rindex.npy"); 
     thickness->save(dir, "jpmt_thickness.npy"); 
     qe_shape->save(dir, "jpmt_qe_shape.npy"); 
+    cat->save(dir, "cat.npy"); 
 }
 inline std::string JPMT::desc() const 
 {
