@@ -282,6 +282,15 @@ jcv PMTSimParamSvc::
            [ 0, 43],
            [ 0, 43]])
 
+
+PMT category files are not on laptop, so grab them::
+
+    cd $JUNOTOP
+    tar zcvf data_Detector.tar.gz data/Detector
+
+    epsilon:junotop blyth$ scp P:junotop/data_Detector.tar.gz .
+
+
 **/
 
 inline void JPMT::init_qe_shape()

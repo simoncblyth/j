@@ -13,6 +13,9 @@ Usage::
 #include "Layr.h"    // needed for FOR StackSpec
 #include "JPMT.h"
 
+const char* FOLD = "/tmp/JPMTTest" ; 
+
+
 void test_FindCat20()
 {
     int pmtcat_0 = JPMT::FindCat20(JPMT::_HAMA) ; 
@@ -32,7 +35,7 @@ void test_JPMT()
 {
     JPMT jpmt ; 
     std::cout << jpmt.desc() << std::endl ; 
-    jpmt.save("/tmp/JPMTTest"); 
+    jpmt.save(FOLD); 
 
     int pmtcat = JPMT::HAMA ; 
     for(double wavelength_nm=400. ; wavelength_nm <= 800. ; wavelength_nm += 100. )
@@ -42,12 +45,42 @@ void test_JPMT()
     }
 }
 
+
+
+/**
+
+Develop NP::CategoryArrayFromString( const char* str, const char* cats, char delim )
+
+jcv IPMTParamSvc::
+
+     33 enum PMT_CATEGORY {
+     34   kPMT_Unknown=-1,
+     35   kPMT_NNVT,
+     36   kPMT_Hamamatsu,
+     37   kPMT_HZC,
+     38   kPMT_NNVT_HighQE
+     39 };
+
+**/
+
+
+void test_PMTType()
+{
+    const char* path = "$JUNOTOP/data/Detector/Geometry/PMTType_CD_LPMT.csv" ; 
+    NP* a = NP::LoadCategoryArrayFromTxtFile(path, 1, "Unknown,NNVT,Hamamatsu,HZC,HighQENNVT"); 
+    std::cout << " a.sstr " << a->sstr() << std::endl ; 
+    a->save(FOLD, "cat.npy") ; 
+}
+
+
 int main(int argc, char** argv)
 {
     /*
     test_FindCat20(); 
-    */
     test_JPMT(); 
+    */
+    test_PMTType(); 
+
     return 0 ; 
 }
 
