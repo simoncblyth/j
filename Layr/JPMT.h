@@ -46,9 +46,9 @@ struct JPMT
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
-    static void GetNames20(  std::vector<std::string>& names ); 
+    static void GetNamesLPMT(  std::vector<std::string>& names );  // formerly GetNames20
     static void GetNamesAll( std::vector<std::string>& names ); 
-    static int FindCat20( const char* name ); 
+    static int FindCatLPMT( const char* name );  // formerly FindCat20
 
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -92,7 +92,7 @@ struct JPMT
     std::string desc() const ; 
 };
 
-inline void JPMT::GetNames20( std::vector<std::string>& names ) // static
+inline void JPMT::GetNamesLPMT( std::vector<std::string>& names ) // static
 {
     names.push_back(_HAMA);  
     names.push_back(_NNVT);  
@@ -107,10 +107,10 @@ inline void JPMT::GetNamesAll( std::vector<std::string>& names ) // static
     names.push_back(_WPP);  
 }
 
-inline int JPMT::FindCat20( const char* name )  // static
+inline int JPMT::FindCatLPMT( const char* name )  // static
 {
     std::vector<std::string> names ; 
-    GetNames20(names); 
+    GetNamesLPMT(names); 
     size_t idx = std::distance( names.begin(), std::find( names.begin(), names.end(), name )); 
     return idx >= names.size() ? -1  : int(idx) ;  
 } 
@@ -142,7 +142,7 @@ for all PMT categories and stack layers into two arrays.::
     Dynode
     HZC_3inch
     MCP
-    NNVTMCP         ## only these 3 are returned by GetNames
+    NNVTMCP         ## only these 3 are returned by GetNamesLPMT
     NNVTMCP_HiQE    ##
     R12860          ##
     WP_PMT
@@ -201,7 +201,7 @@ inline void JPMT::init_rindex_thickness()
     assert( PMTProperty ); 
 
     std::vector<std::string> names ; 
-    GetNames20(names); 
+    GetNamesLPMT(names); 
     assert( names.size() == NUM_PMTCAT ); 
 
     for(int i=0 ; i < NUM_PMTCAT ; i++) 
