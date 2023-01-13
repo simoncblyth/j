@@ -9,10 +9,22 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
+* https://login.ihep.ac.cn
+
 * https://bitbucket.org/simoncblyth/opticks/commits/
 * https://code.ihep.ac.cn/JUNO/offline/junosw/
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/main/Simulation/SimSvc/MultiFilmSimSvc/src
 * https://github.com/simoncblyth/j/blob/main/Layr/Layr.h
+
+
+
+PMTSimParamSvc and PMTParamSvc
+---------------------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/66
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-66-low-dependency-PMT-data-access
+
 
 Reminders
 -----------
@@ -56,7 +68,7 @@ How to test compilation without Opticks ?
 
 1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
 2. close terminal session and start a new one
-3. get into env : jre  (the "o" command should not be found, showing opticks not hookedup)
+3. get into env : jre  (the "o" command should not be found, showing opticks not hooked up)
 4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
 5. ntds3 should fail at DetSim0Svc::initializeOpticks 
 6. ntds0 should complete 
@@ -190,6 +202,7 @@ can still switch to the branch just created via web interface.
 
 Examples::
 
+   * git checkout -b blyth-66-low-dependency-PMT-data-access
    * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
    * git checkout -b blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
    * git checkout -b blyth-24-DsG4Scintillation-debug-machinery
@@ -3832,6 +3845,15 @@ logging(){
    #export GNodeLib=INFO
    #export SEvt=INFO
    export junoSD_PMT_v2_Opticks=INFO
+}
+
+debug(){
+   export GEOM=J005
+   export OPTICKS_EVENT_MODE=StandardFullDebug
+   #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM  
+   export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM  
+   export G4CXOpticks__simulate_saveEvent=1 
+
 }
 
 

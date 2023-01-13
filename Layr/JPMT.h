@@ -10,11 +10,34 @@ that contain all the PMT param needed for TMM ART calculation.
 This is aiming to provide the input arrays for the CPU counterpart 
 of a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
 
+
+Higher level variant of JPMT.h ?
+----------------------------------
+
+JPMT.h takes a very low level approach by loading the 
+property files directly without using PMTSimParamSvc at all. 
+That is appropriate for small scale standalone tests, but 
+now need to customize G4OpBoundary and have access to the
+PMT data within it in order to do the Stack calculation 
+there. 
+
+Using PMTSimParamSvc directly is not appealing because:
+
+1. requires a bunch of irrelevant headers 
+2. excess dependencies make standalone testing too difficult to setup
+3. pedestrian API
+
+So have cut out the heart of PMTSimParamSvc into PMTSimParamData. 
+Hence I get access to the exact same data as the Svc but 
+have full control of the API and the dependencies : fixing 
+all the above problems. 
+
+
+
 What exactly is JUNO specific, can it be split off/made an argument/configuration ?
 -----------------------------------------------------------------------------------------
 
 * PMTCAT names, num layers, property keys 
-
 
 Choices
 --------
@@ -24,7 +47,7 @@ Choices
 
 Incorporating NPFold.h and updating NP.hh in 
 offline would allow this to live in junosw, 
-if get rid of StackSpec ? 
+if get rid of StackSpec ?   StackSpec is rather handy though. 
 
 
 **/
@@ -39,13 +62,13 @@ struct JPMT
     static constexpr int         _PMTType_catfield = 1 ; 
     static NP* LoadPMTType(const char* base, const char* cats, const char* names, int catfield, char delim=',' ); 
 
-
     static constexpr const char* _HZC = "HZC_3inch" ; 
     static constexpr const char* _WPP = "WP_PMT" ; 
 
     static constexpr const char* _HAMA = "R12860" ; 
     static constexpr const char* _NNVT = "NNVTMCP" ; 
     static constexpr const char* _NNVTQ = "NNVTMCP_HiQE" ; 
+
     static void GetNamesLPMT(  std::vector<std::string>& names );  // formerly GetNames20
     static void GetNamesAll( std::vector<std::string>& names ); 
     static int FindCatLPMT( const char* name );  // formerly FindCat20
@@ -60,7 +83,6 @@ struct JPMT
 
     enum { DEFAULT_CAT = HAMA }; 
 
-    
     NPFold* PMTProperty ; 
     NPFold* Pyrex ; 
     NPFold* Vacuum ; 
@@ -76,6 +98,7 @@ struct JPMT
     NP* cat ; 
 
     JPMT(); 
+
     void init(); 
     void init_rindex_thickness(); 
     void init_qe_shape(); 
