@@ -1600,7 +1600,8 @@ j-scp(){
     eval $cmd
 }
 
-jvi(){ vi $BASH_SOURCE ~/j/jx.bash && jfu ; }
+jvi(){ echo $BASH_SOURCE : should now use jxv not jvi  ; }
+#jvi(){ vi $BASH_SOURCE ~/j/jx.bash && jfu ; }
 jfu(){ source $BASH_SOURCE ; }
 
 
@@ -3857,11 +3858,10 @@ debug(){
 }
 
 
-ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
-ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
-#ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
+ntds0_old(){ OPTICKS_MODE=0 ntds3_old ; }  #0b00   Ordinary running without Opticks involved at all  
+ntds1_old(){ OPTICKS_MODE=1 ntds3_old ; }  #0b01   Running with only Opticks doing the optical propagation 
                                     #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
-ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
+ntds3_old()  # see jx.bash for the new one  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 

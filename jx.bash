@@ -413,7 +413,7 @@ ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks invo
 ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
 #ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
                                     #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
-ntds3()                            #0b11   Running with both Geant4 and Opticks optical propagation
+ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 
@@ -489,7 +489,8 @@ ntds3()                            #0b11   Running with both Geant4 and Opticks 
    fi 
 
    if [ -n "$GEOM" ]; then 
-       export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
+       #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
+       export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
        export G4CXOpticks=INFO   # to see the directory 
    else
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM

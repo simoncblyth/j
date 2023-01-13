@@ -523,13 +523,107 @@ Should put it here::
 
 
 
+abo
+----
 
-PMTSimParamData
------------------
+::
 
-TODO:
+    X4Solid::convertPolycone@1724: all_z_descending detected, reversing PMT_3inch_cntr_solid
+    X4Solid::convertPolycone@1724: all_z_descending detected, reversing PMT_3inch_pmt_solid_cyl
+    GInstancer::dumpRepeatCandidates@464:  num_repcan 9 dmax 20
+     pdig 159961bde1896fe286c02b4c3f05c8c9 ndig  25600 nprog      4 placements  25600 n PMT_3inch_log_phys
+     pdig b82765dbe93381d08867b5bc550ceed3 ndig  12615 nprog      6 placements  12615 n pLPMT_NNVT_MCPPMT
+     pdig 838cd73cc9dd9d9add66efd658630c12 ndig   4997 nprog      6 placements   4997 n pLPMT_Hamamatsu_R12860
+     pdig 29c21c0b8afac0824902c82e6fbe3146 ndig   2400 nprog      5 placements   2400 n mask_PMT_20inch_vetolMaskVirtual_phys
+     pdig ed3d2c21991e3bef5e069713af9fa6ca ndig    590 nprog      0 placements    590 n lSteel_phys
+     pdig ac627ab1ccbdb62ec96e702f07f6425b ndig    590 nprog      0 placements    590 n lFasteners_phys
+     pdig f899139df5e1059396431415e770c6dd ndig    590 nprog      0 placements    590 n lUpper_phys
+     pdig 38b3eff8baf56627478ec76a704e9b52 ndig    590 nprog      0 placements    590 n lAddition_phys
+     pdig 4c29bcd2a52a397de5036b415af92efe ndig    504 nprog    129 placements    504 n pPanel_0_f_
+    G4CXOpticks::setGeometry@245: 
+    NP::load Failed to load from path /tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy
+    G4CXOpticks::setGeometry@276: [ G4CXOpticks__setGeometry_saveGeometry 
+    G4CXOpticks::saveGeometry@499: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry@500: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry [ /home/blyth/.opticks/GEOM/J005
+    python: /data/blyth/junotop/opticks/ggeo/GGeo.cc:767: void GGeo::save_to_dir(const char*, const char*): Assertion `idpath == nullptr' failed.
 
-1. remove G4SystemOfUnits
-2. split off PMTQty.h 
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    Missing separate debuginfos, use: debuginfo-install bzip2-libs-1.0.6-13.el7.x86_64 cyrus-sasl-lib-2.1.26-23.el7.x86_64 expat-2.1.0-10.el7_3.x86_64 freetype-2.8-12.el7_6.1.x86_64 glibc-2.17-307.el7.1.x86_64 keyutils-libs-1.5.8-3.el7.x86_64 krb5-libs-1.15.1-37.el7_6.x86_64 libICE-1.0.9-9.el7.x86_64 libSM-1.2.2-2.el7.x86_64 libX11-1.6.7-4.el7_9.x86_64 libXau-1.0.8-2.1.el7.x86_64 libXext-1.3.3-3.el7.x86_64 libXmu-1.1.2-2.el7.x86_64 libXt-1.1.5-3.el7.x86_64 libcom_err-1.42.9-13.el7.x86_64 libcurl-7.29.0-59.el7_9.1.x86_64 libglvnd-1.0.1-0.8.git5baa1e5.el7.x86_64 libglvnd-glx-1.0.1-0.8.git5baa1e5.el7.x86_64 libicu-50.2-4.el7_7.x86_64 libidn-1.28-4.el7.x86_64 libpng-1.5.13-7.el7_2.x86_64 libselinux-2.5-14.1.el7.x86_64 libssh2-1.8.0-3.el7.x86_64 libuuid-2.23.2-59.el7_6.1.x86_64 libxcb-1.13-1.el7.x86_64 mesa-libGLU-9.0.0-4.el7.x86_64 ncurses-libs-5.9-14.20130511.el7_4.x86_64 nspr-4.19.0-1.el7_5.x86_64 nss-3.36.0-7.1.el7_6.x86_64 nss-softokn-freebl-3.36.0-5.el7_5.x86_64 nss-util-3.36.0-1.1.el7_6.x86_64 openldap-2.4.44-25.el7_9.x86_64 openssl-libs-1.0.2k-25.el7_9.x86_64 pcre-8.32-17.el7.x86_64 readline-6.2-11.el7.x86_64 xz-libs-5.2.2-1.el7.x86_64 zlib-1.2.7-18.el7.x86_64
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd1e8dcec in GGeo::save_to_dir (this=0xc6548c0, base=0x1031b240 "/home/blyth/.opticks/GEOM/J005", reldir=0x7fffd2f07ec7 "GGeo")
+        at /data/blyth/junotop/opticks/ggeo/GGeo.cc:767
+    #5  0x00007fffd2ed3614 in G4CXOpticks::saveGeometry (this=0x7180250, dir_=0x7fffffffc300 "/home/blyth/.opticks/GEOM/J005")
+        at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:504
+    #6  0x00007fffd2ed1712 in G4CXOpticks::setGeometry (this=0x7180250, fd_=0x156c8ef20) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:277
+    #7  0x00007fffd2ed15d9 in G4CXOpticks::setGeometry (this=0x7180250, gg_=0xc6548c0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:250
+    #8  0x00007fffd2ed14b2 in G4CXOpticks::setGeometry (this=0x7180250, world=0x570c470) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:239
+    #9  0x00007fffd2ecfd59 in G4CXOpticks::SetGeometry (world=0x570c470) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:64
+    #10 0x00007fffce57a132 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=3, world=0x570c470, sd=0x58f9250, ppd=0x922ce0, 
+        psd=0x9256e0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:26
+    #11 0x00007fffce56ab01 in LSExpDetectorConstruction::setupOpticks (this=0x5525d00, world=0x570c470)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:394
+    #12 0x00007fffce56a6dc in LSExpDetectorConstruction::Construct (this=0x5525d00)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:361
+    #13 0x00007fffdbf5ecbe in G4RunManager::InitializeGeometry() ()
+
+
+
+
+
+    G4CXOpticks::setGeometry@245: 
+    NP::load Failed to load from path /tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy
+    G4CXOpticks::setGeometry@276: [ G4CXOpticks__setGeometry_saveGeometry 
+    G4CXOpticks::saveGeometry@499: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry@500: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry [ /home/blyth/.opticks/GEOM/J005
+    GGeo::save_to_dir@768:  idpath expected nullptr at this juncture, but isnt [/tmp/blyth/opticks/GGeo]
+    python: /data/blyth/junotop/opticks/ggeo/GGeo.cc:773: void GGeo::save_to_dir(const char*, const char*): Assertion `idpath == nullptr' failed.
+
+
+    N[blyth@localhost opticks]$ env | grep G4CXOpticks
+    G4CXOpticks=INFO
+    G4CXOpticks__simulate_saveEvent=1
+    G4CXOpticks__setGeometry_saveGeometry=/home/blyth/.opticks/GEOM/J005
+    G4CXOpticks__SaveGeometry_DIR=/home/blyth/.opticks/GEOM/J005
+    N[blyth@localhost opticks]$ 
+
+
+
+idpath non-null in GGeo::save_to_dir
+---------------------------------------
+
+It is defaulting to::
+
+  54 const char* BOpticksResource::IDPATH_TRANSITIONAL = SPath::Resolve("$CFBaseFromGEOM/GGeo", NOOP) ;
+
+So can control the idpath via two envvars::
+
+    epsilon:sysrap blyth$ GEOM=hello hello_CFBaseFromGEOM=/dbasjkdajd SPathTest 
+    test_Resolve@204: 
+                                                            $TMP :                                           /tmp/blyth/opticks
+                                               $DefaultOutputDir :                      /tmp/blyth/opticks/GEOM/hello/SPathTest
+                                                    $OPTICKS_TMP :                                           /tmp/blyth/opticks
+                                             $OPTICKS_EVENT_BASE :                                           /tmp/blyth/opticks
+                                                    $HOME/hello  :                                          /Users/blyth/hello 
+                             $TMP/somewhere/over/the/rainbow.txt :            /tmp/blyth/opticks/somewhere/over/the/rainbow.txt
+                            $NON_EXISTING_EVAR/elsewhere/sub.txt :                         /tmp/blyth/opticks/elsewhere/sub.txt
+                                         $CFBase/CSGFoundry/SSim :                           /tmp/blyth/opticks/CSGFoundry/SSim
+                                         $CFBASE/CSGFoundry/SSim :                           /tmp/blyth/opticks/CSGFoundry/SSim
+                                             /just/some/path.txt :                                          /just/some/path.txt
+                                                        stem.ext :                                                     stem.ext
+                                                               / :                                                            /
+                                                               $ :                                           /tmp/blyth/opticks
+                                                         $RNGDir :                           /Users/blyth/.opticks/rngcache/RNG
+                                            $CFBaseFromGEOM/GGeo :                                             /dbasjkdajd/GGeo
+    epsilon:sysrap blyth$ 
+
+
+
 
 
