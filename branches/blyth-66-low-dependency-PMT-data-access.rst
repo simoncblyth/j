@@ -2,6 +2,16 @@ blyth-66-low-dependency-PMT-data-access.rst
 =============================================
 
 
+TODO
+------
+
+1. check the serialized PMT Data looks OK 
+2. check that the PMT Svc operate normally and give same results as low dependency data API
+3. complete the PMT data collection and serialization (bunch of mpv not yet included)
+   maybe can simplify the reference for everything approach currently using 
+4. make the MR 
+
+
 Workflow overview for getting changes into junosw
 ----------------------------------------------------
 
@@ -15,8 +25,6 @@ Workflow overview for getting changes into junosw
      changes into multiple easily understood focussed commits
 
    * make commits with the commit message prefixed with "WIP:" 
-
-
 
 
 Checkout the Branch on workstation and laptop
@@ -626,4 +634,128 @@ So can control the idpath via two envvars::
 
 
 
+::
+
+    N[blyth@localhost junosw]$ GEOM=J005 SAVE=1 ntds3
+    === ntds3 : TDS_DIR /tmp/u4debug/ntds3 SCRIPT ntds3 U4Debug_SaveDir /tmp/u4debug/ntds3
+    === ntds3 : DEBUG NOT-enabled
+    === ntds3 : DISABLE-NOT-enabled
+    === ntds3 : ZEROPHO-NOT-enabled
+
+
+
+
+
+::
+
+    G4CXOpticks::setGeometry@245: 
+    NP::load Failed to load from path /tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy
+    G4CXOpticks::setGeometry@285: [ fd 0x156c62db0
+    G4CXOpticks::setGeometry@287:  [ new SEvt 
+    G4CXOpticks::setGeometry@289:  ] new SEvt 
+    G4CXOpticks::setGeometry@294: [ CSGOptiX::Create 
+    G4CXOpticks::setGeometry@296: ] CSGOptiX::Create 
+    G4CXOpticks::setGeometry@298:  cx 0x15a19ca80 qs 0x159d18c40 QSim::Get 0x159d18c40
+    G4CXOpticks::setGeometry@301: ] fd 0x156c62db0
+    G4CXOpticks::SaveGeometry@541:  save to dir /home/blyth/.opticks/GEOM/J005 configured via envvar G4CXOpticks__SaveGeometry_DIR
+    G4CXOpticks::saveGeometry@499: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry@500: [ /home/blyth/.opticks/GEOM/J005
+    G4CXOpticks::saveGeometry [ /home/blyth/.opticks/GEOM/J005
+    GGeo::save_to_dir@768:  default idpath : [/tmp/blyth/opticks/GGeo] is overridden : [/home/blyth/.opticks/GEOM/J005/GGeo]
+    BFile::preparePath@837: created directory /home/blyth/.opticks/GEOM/J005/GGeo/GItemList
+    python: /data/blyth/junotop/opticks/ggeo/GMeshLib.cc:171: void GMeshLib::saveAltReferences(): Assertion `unsigned(index) == i' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    (gdb) 
+
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd1eb7fec in GMeshLib::saveAltReferences (this=0xca19200) at /data/blyth/junotop/opticks/ggeo/GMeshLib.cc:171
+    #5  0x00007fffd1eb7621 in GMeshLib::save (this=0xca19200) at /data/blyth/junotop/opticks/ggeo/GMeshLib.cc:99
+    #6  0x00007fffd1e8e654 in GGeo::save_ (this=0xc6296b0) at /data/blyth/junotop/opticks/ggeo/GGeo.cc:834
+    #7  0x00007fffd1e8e253 in GGeo::save (this=0xc6296b0) at /data/blyth/junotop/opticks/ggeo/GGeo.cc:820
+    #8  0x00007fffd1e8de0a in GGeo::save_to_dir (this=0xc6296b0, base=0x15aafa810 "/home/blyth/.opticks/GEOM/J005", 
+        reldir=0x7fffd2f07ec7 "GGeo") at /data/blyth/junotop/opticks/ggeo/GGeo.cc:774
+    #9  0x00007fffd2ed3614 in G4CXOpticks::saveGeometry (this=0x7155080, dir_=0x7fffffffc7fe "/home/blyth/.opticks/GEOM/J005")
+        at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:504
+    #10 0x00007fffd2ed3a6c in G4CXOpticks::SaveGeometry () at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:542
+    #11 0x00007fffce57a1df in LSExpDetectorConstruction_Opticks::Setup (opticksMode=3, world=0x56e1300, sd=0x58ce0e0, ppd=0x922d80, 
+        psd=0x925780) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:37
+    #12 0x00007fffce56ab01 in LSExpDetectorConstruction::setupOpticks (this=0x54fabc0, world=0x56e1300)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:394
+    #13 0x00007fffce56a6dc in LSExpDetectorConstruction::Construct (this=0x54fabc0)
+
+
+
+    (gdb) f 4
+    #4  0x00007fffd1eb7fec in GMeshLib::saveAltReferences (this=0xca19200) at /data/blyth/junotop/opticks/ggeo/GMeshLib.cc:171
+    171	        assert( unsigned(index) == i );  // not expecting same GMesh instance more than once
+    (gdb) list
+    166	    {
+    167	        const GMesh* mesh = m_meshes[i]; 
+    168	        const NCSG* solid = m_solids[i];  
+    169	
+    170	        int index = findMeshIndex(mesh); 
+    171	        assert( unsigned(index) == i );  // not expecting same GMesh instance more than once
+    172	
+    173	        const GMesh* altmesh = mesh->getAlt(); 
+    174	        if(altmesh == NULL) continue ; 
+    175	
+    (gdb) p i 
+    $1 = 141
+    (gdb) p index
+    $2 = 139
+    (gdb) 
+    (gdb) p m_meshes.size()
+    $3 = 143
+
+    (gdb) p *mesh
+      ...
+      m_name = 0xfd7bb20 "solidSJReceiverFastern", 
+      m_shortname = 0xfd7bb40 "solidSJReceiverFastern", 
+      m_version = 0x0, 
+      m_geocode = 84 'T', 
+      ...
+
+
+
+Problem with a duplicate solid perhaps, causing saving gg to fail. 
+
+
+
+Chase down the fail to load
+-----------------------------
+
+::
+
+    (gdb) bt
+    #0  0x00007ffff741e4fb in raise () from /lib64/libpthread.so.0
+    #1  0x00007fffcf92f54d in NP::load (this=0x159180b20, path=0x10155810 "/tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy")
+        at /data/blyth/junotop/opticks/sysrap/NP.hh:4116
+    #2  0x00007fffcf92f2bd in NP::Load_ (path=0x10155810 "/tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy")
+        at /data/blyth/junotop/opticks/sysrap/NP.hh:2158
+    #3  0x00007fffcf92f13e in NP::Load (path_=0x1020f7e0 "/tmp/blyth/opticks/GScintillatorLib/LS_ori/RINDEX.npy")
+        at /data/blyth/junotop/opticks/sysrap/NP.hh:2135
+    #4  0x00007fffcf96acb1 in SProp::MockupCombination (path_=0x7fffd1edfcb8 "$IDPath/GScintillatorLib/LS_ori/RINDEX.npy")
+        at /data/blyth/junotop/opticks/sysrap/SProp.cc:37
+    #5  0x00007fffd1e97ae1 in GGeo::convertSim_Prop (this=0xc6299f0, sim=0x5e8bcd0) at /data/blyth/junotop/opticks/ggeo/GGeo.cc:2579
+    #6  0x00007fffd1e972c7 in GGeo::convertSim (this=0xc6299f0) at /data/blyth/junotop/opticks/ggeo/GGeo.cc:2506
+    #7  0x00007fffd216fcc2 in CSG_GGeo_Convert::convertSim (this=0x7fffffff4480) at /data/blyth/junotop/opticks/CSG_GGeo/CSG_GGeo_Convert.cc:200
+    #8  0x00007fffd216efd9 in CSG_GGeo_Convert::convert (this=0x7fffffff4480) at /data/blyth/junotop/opticks/CSG_GGeo/CSG_GGeo_Convert.cc:120
+    #9  0x00007fffd216e6a5 in CSG_GGeo_Convert::Translate (ggeo=0xc6299f0) at /data/blyth/junotop/opticks/CSG_GGeo/CSG_GGeo_Convert.cc:50
+    #10 0x00007fffd2ed15bf in G4CXOpticks::setGeometry (this=0x7155450, gg_=0xc6299f0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:249
+    #11 0x00007fffd2ed14b2 in G4CXOpticks::setGeometry (this=0x7155450, world=0x56e1640) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:239
+    #12 0x00007fffd2ecfd59 in G4CXOpticks::SetGeometry (world=0x56e1640) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:64
+    #13 0x00007fffce57a132 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=3, world=0x56e1640, sd=0x58ce420, ppd=0x922e20, 
+        psd=0x925820) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:26
+    #14 0x00007fffce56ab01 in LSExpDetectorConstruction::setupOpticks (this=0x54faed0, world=0x56e1640)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:394
+
+
+
+
+
+
+
+/Users/blyth/.opticks/GEOM/J005/CSGFoundry/SSim/juno
 

@@ -529,9 +529,9 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
 
 ninfo(){ env | grep =INFO ; }
 
-getgeomtmp(){ source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/${GEOM:-J004} ; : j/jx.bash ;  }
+getgeomtmp(){ source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/${GEOM:-J005} ; : j/jx.bash ;  }
 
-getgeom(){    source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-J004} ; : j/jx.bash ; }  
+getgeom(){    source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-J005} ; : j/jx.bash ; }  
 
 
 
