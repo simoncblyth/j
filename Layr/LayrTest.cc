@@ -52,7 +52,8 @@ void test_scan(const JPMT& jpmt, int wavelength, int pmtcat)
     test_scan_<float,N>( jpmt, wavelength, pmtcat ); 
 }
 
-int main(int argc, char** argv)
+
+void test_scans()
 {
     JPMT jpmt ; 
     std::cout << jpmt.desc() << std::endl ; 
@@ -60,13 +61,40 @@ int main(int argc, char** argv)
     int mode = U::GetEnvInt("LAYRTEST_MODE", 4) ; 
     int wl = U::GetEnvInt("LAYRTEST_WL", 440) ; 
     const char* cat = U::GetEnv("LAYRTEST_PMTCAT", JPMT::_NNVTQ ); 
-    int pmtcat = JPMT::FindCat(cat); 
+    int pmtcat = JPMT::FindCatLPMT(cat); 
 
     switch(mode)
     {
         case 4: test_scan<4>( jpmt, wl, pmtcat );  break ; 
         case 2: test_scan<2>( jpmt, wl, pmtcat );  break ; 
     }
+}
+
+void test_StackSpec_serialize()
+{
+    StackSpec<double, 4> ss0 ;  
+    ss0.ls[0] = {0.50, 0.51, 0.52, 0.0 } ; 
+    ss0.ls[1] = {0.60, 0.61, 0.62, 0.0 } ; 
+    ss0.ls[2] = {0.70, 0.71, 0.72, 0.0 } ; 
+    ss0.ls[3] = {0.80, 0.81, 0.82, 0.0 } ; 
+    std::cout << " ss0 " << ss0 << std::endl ; 
+
+    std::array<double, 16> aa0 ; 
+    ss0.serialize(aa0); 
+    std::cout << " aa0 " << aa0 ; 
+
+    StackSpec<double, 4> ss1 ; 
+    ss1.import(aa0); 
+    std::cout << " ss1 " << ss1 << std::endl ; 
+}
+
+
+int main(int argc, char** argv)
+{
+    /*
+    test_scans()
+    */
+    test_StackSpec_serialize(); 
 
     return 0 ; 
 }

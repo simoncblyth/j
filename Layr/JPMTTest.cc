@@ -18,16 +18,16 @@ const char* FOLD = "/tmp/JPMTTest" ;
 
 void test_FindCat20()
 {
-    int pmtcat_0 = JPMT::FindCat20(JPMT::_HAMA) ; 
+    int pmtcat_0 = JPMT::FindCatLPMT(JPMT::_HAMA) ; 
     assert( pmtcat_0 == JPMT::HAMA ); 
 
-    int pmtcat_1 = JPMT::FindCat20(JPMT::_NNVT) ; 
+    int pmtcat_1 = JPMT::FindCatLPMT(JPMT::_NNVT) ; 
     assert( pmtcat_1 == JPMT::NNVT ); 
 
-    int pmtcat_2 = JPMT::FindCat20(JPMT::_NNVTQ) ; 
+    int pmtcat_2 = JPMT::FindCatLPMT(JPMT::_NNVTQ) ; 
     assert( pmtcat_2 == JPMT::NNVTQ ); 
 
-    int pmtcat_3 = JPMT::FindCat20("other") ; 
+    int pmtcat_3 = JPMT::FindCatLPMT("other") ; 
     assert( pmtcat_3 == -1 ); 
 }
 
@@ -46,12 +46,26 @@ void test_JPMT()
 }
 
 
+void test_JPMT_get_stackspec()
+{
+    JPMT jpmt ; 
+    std::array<double, 16> aa ; 
+
+    int pmtcat = 0 ; 
+    double energy_eV = 10. ; 
+    jpmt.get_stackspec( aa, pmtcat, energy_eV ); 
+
+    std::cout << " aa " << aa ; 
+}
+
+
 int main(int argc, char** argv)
 {
     /*
     test_FindCat20(); 
-    */
     test_JPMT(); 
+    */
+    test_JPMT_get_stackspec(); 
 
     return 0 ; 
 }

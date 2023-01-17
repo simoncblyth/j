@@ -9,12 +9,12 @@ if __name__ == '__main__':
 
     assert np.all( t.PMTSimParamData == t.IPMTSimParamSvc )
 
-    for i, name in enumerate(t.times_names):
-        print(" %40s : %10.2f s " % (name, t.times[i] ))
+     
+    for i, name in enumerate(t.scantime_names):
+        print(" %40s : %10.2f s " % (name, t.scantime[i] ))
     pass
-    name = "/".join(t.times_names)
-    factor = t.times[0]/t.times[1]
-    print(" %40s : %10.2f " % (name, factor ))
+    factor = t.scantime[0]/t.scantime[1]
+    print(" %40s : %10.2f " % ("factor", factor ))
 
     pass
 pass

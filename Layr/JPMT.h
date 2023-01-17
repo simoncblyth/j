@@ -106,6 +106,7 @@ struct JPMT
     const char* get_pmtcat( int pmtcat ) const ; 
     double get_thickness_nm(int pmtcat, int layer) const  ; 
     double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
+    void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
 
 #ifdef WITH_STACKSPEC
     template<typename T, int N> StackSpec<T,N> get(int pmtcat, T wavelength_nm) const ; 
@@ -397,7 +398,7 @@ inline NP* JPMT::LoadPMTType(const char* base, const char* cats, const char* nam
     for(unsigned i=0 ; i < names.size() ; i++)
     {
         const char* name = names[i].c_str(); 
-        NP* a = NP::LoadCategoryArrayFromTxtFile(base, name, catfield, cats); 
+        NP* a = NPX::LoadCategoryArrayFromTxtFile(base, name, catfield, cats); 
         v_cat.push_back(a); 
     }
 
@@ -436,6 +437,22 @@ inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV
     return rindex->combined_interp_5( pmtcat, layer, prop, energy_eV ) ; 
 }
 
+inline void JPMT::get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const 
+{
+    ss.fill(0.); 
+
+    ss[4*0+0] = get_rindex(       pmtcat, L0, RINDEX, energy_eV );
+ 
+    ss[4*1+0] = get_rindex(       pmtcat, L1, RINDEX, energy_eV );
+    ss[4*1+1] = get_rindex(       pmtcat, L1, KINDEX, energy_eV );
+    ss[4*1+2] = get_thickness_nm( pmtcat, L1 ); 
+
+    ss[4*2+0] = get_rindex(       pmtcat, L2, RINDEX, energy_eV );
+    ss[4*2+1] = get_rindex(       pmtcat, L2, KINDEX, energy_eV );
+    ss[4*2+2] = get_thickness_nm( pmtcat, L2 ); 
+
+    ss[4*3+0] = get_rindex(       pmtcat, L3, RINDEX, energy_eV );
+}
 
 inline void JPMT::save(const char* dir) const 
 {

@@ -68,6 +68,7 @@ template <typename T, int N> struct Stack : (constituents persisted separately)
 #include <cassert>
 #include <cstdlib>
 #include <vector>
+#include <array>
 #endif
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
@@ -363,12 +364,22 @@ struct LayrSpec
     T nr, ni, d, pad ; 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
+    void serialize(std::array<T,4>& a) const ; 
     static int EGet(LayrSpec<T>& ls, int idx); 
 #endif
 };
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
+template<typename T>
+LAYR_METHOD void LayrSpec<T>::serialize(std::array<T,4>& a) const 
+{
+    a[0] = nr ; 
+    a[1] = ni ; 
+    a[2] = d ; 
+    a[3] = pad  ;  
+}
+
 template<typename T>
 LAYR_METHOD int LayrSpec<T>::EGet(LayrSpec<T>& ls, int idx)
 {
@@ -406,8 +417,11 @@ struct StackSpec
     LayrSpec<T> ls[N] ; 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
-    const T* data() const ; 
     LAYR_METHOD void eget() ; 
+    LAYR_METHOD T* data() const ; 
+    LAYR_METHOD const T* cdata() const ; 
+    LAYR_METHOD void serialize(std::array<T,N*4>& a) const ; 
+    LAYR_METHOD void import(const std::array<T,N*4>& a) ;  
 #endif
 
 }; 
@@ -423,17 +437,53 @@ LAYR_METHOD void StackSpec<T,N>::eget()
 }
 
 template<typename T, int N>
-LAYR_METHOD const T* StackSpec<T,N>::data() const 
+LAYR_METHOD T* StackSpec<T,N>::data() const 
 {
     return (T*)&(ls[0].nr) ; 
 }
 
+template<typename T, int N>
+LAYR_METHOD const T* StackSpec<T,N>::cdata() const 
+{
+    return (T*)&(ls[0].nr) ; 
+}
 
+template<typename T, int N>
+LAYR_METHOD void StackSpec<T,N>::serialize(std::array<T,N*4>& a) const 
+{
+    for(int i=0 ; i < N ; i++)
+    {
+        std::array<T,4> ls_i ; 
+        ls[i].serialize(ls_i) ; 
+        for(int j=0 ; j < 4 ; j++) a[i*4+j] = ls_i[j] ;   
+    }
+}
+
+template<typename T, int N>
+LAYR_METHOD void StackSpec<T,N>::import(const std::array<T,N*4>& a) 
+{
+    memcpy( data(), a.data(), a.size()*sizeof(T) );  
+}
+
+
+template<typename T>
+LAYR_METHOD std::ostream& operator<<(std::ostream& os, const std::array<T,16>& aa )
+{
+    // curiously fails to template match with generic int N  template param
+    os << std::endl ; 
+    for(int i=0 ; i < 16 ; i++) os 
+        << ( i % 4 == 0 ? '\n' : ' ' ) 
+        << std::setw(10) << std::fixed << std::setprecision(4) << aa[i] 
+        ;   
+    os << std::endl ; 
+    return os ; 
+}
 
 template<typename T, int N>
 LAYR_METHOD std::ostream& operator<<(std::ostream& os, const StackSpec<T,N>& ss )  
 {
     os 
+        << std::endl 
         << "StackSpec<" 
         << ( sizeof(T) == 8 ? "double" : "float" ) 
         << "," << N

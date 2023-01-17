@@ -2,14 +2,49 @@ blyth-66-low-dependency-PMT-data-access.rst
 =============================================
 
 
-TODO
+DONE
 ------
 
-1. check the serialized PMT Data looks OK 
-2. check that the PMT Svc operate normally and give same results as low dependency data API
-3. complete the PMT data collection and serialization (bunch of mpv not yet included)
-   maybe can simplify the reference for everything approach currently using 
+1. check the serialized PMT Data looks OK : DONE
+2. check that the PMT Svc operate normally and give same results as low dependency data API : DONE
+3. complete the PMT data collection and serialization : DECIDED TO FOCUS ON API USED BY junoPMTOpticalModel only 
 4. make the MR 
+
+
+   DONE : https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/126
+
+
+Create the MR
+----------------
+
+::
+
+    remote: 
+    remote: To create a merge request for blyth-66-low-dependency-PMT-data-access, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-66-low-dependency-PMT-data-access
+    remote: 
+
+    N[blyth@localhost junosw]$ git add . 
+    N[blyth@localhost junosw]$ git commit -m "branch blyth-66 is ready for merge as it addresses the problem outlined in issue 66" 
+    [blyth-66-low-dependency-PMT-data-access 4a9d093] branch blyth-66 is ready for merge as it addresses the problem outlined in issue 66
+     1 file changed, 1 insertion(+), 4 deletions(-)
+    N[blyth@localhost junosw]$ git push 
+    Enumerating objects: 12, done.
+    Counting objects: 100% (12/12), done.
+    Delta compression using up to 48 threads
+    Compressing objects: 100% (7/7), done.
+    Writing objects: 100% (7/7), 827 bytes | 827.00 KiB/s, done.
+    Total 7 (delta 4), reused 0 (delta 0), pack-reused 0
+    remote: 
+    remote: To create a merge request for blyth-66-low-dependency-PMT-data-access, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-66-low-dependency-PMT-data-access
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw
+       3fe6f7e..4a9d093  blyth-66-low-dependency-PMT-data-access -> blyth-66-low-dependency-PMT-data-access
+    N[blyth@localhost junosw]$ 
+
+
+
 
 
 Workflow overview for getting changes into junosw
