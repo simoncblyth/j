@@ -759,3 +759,188 @@ Chase down the fail to load
 
 /Users/blyth/.opticks/GEOM/J005/CSGFoundry/SSim/juno
 
+
+
+HMM : dont need all Svc API in Data but do need the below API
+-----------------------------------------------------------------
+
+::
+
+    123 void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
+    124 {
+    125     const G4Track* track = fastTrack.GetPrimaryTrack();
+    126 
+    127     int pmtid  = get_pmtid(track);
+    128     int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid);
+    129    
+    130     _photon_energy  = energy;
+    131     _wavelength     = twopi*hbarc/energy;
+    132     n_glass         = _rindex_glass->Value(_photon_energy);
+    133    
+    134     _qe             = m_PMTSimParSvc->get_pmtid_qe(pmtid, energy);
+    135 
+    136     n_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_RINDEX", _photon_energy);
+    137     k_coating       = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "ARC_KINDEX", _photon_energy);
+    138     d_coating       = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "ARC_THICKNESS")/m;
+    139 
+    140     n_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_RINDEX", _photon_energy);
+    141     k_photocathode  = m_PMTSimParSvc->get_pmtcat_prop(pmtcat, "PHC_KINDEX", _photon_energy);
+    142     d_photocathode  = m_PMTSimParSvc->get_pmtcat_const_prop(pmtcat, "PHC_THICKNESS")/m;
+    143 
+
+
+::
+
+    826 double PMTSimParamSvc::get_pmtid_qe(int pmtid, double energy){
+    827 
+    828   int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid) ;
+
+    /// already have this DiscoMap 
+
+    829   assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    830   double qe = get_pmtcat_qe(pmtcat, energy);
+    831   double qe_scale = get_pmt_qe_scale(pmtid);
+    832   qe = qe*qe_scale;
+    833   assert(qe > 0 && qe < 1);
+    834   return qe;
+    835 }
+
+
+    818 double PMTSimParamSvc::get_pmtcat_qe(int pmtcat, double energy){
+    819     double qe = -1 ;
+    820     G4MaterialPropertyVector* vec = get_pmtcat_qe_vs_energy(pmtcat);
+    821     assert(vec);
+    822     qe = vec->Value(energy);
+    823     return qe;
+    824 }
+
+
+    898 G4MaterialPropertyVector*  PMTSimParamSvc::get_pmtcat_qe_vs_energy(int pmtcat)
+    899 {
+    900     assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+    901     G4MaterialPropertyVector * vec = 0 ;
+    902     switch(pmtcat)
+    903     {   //FIXME:KPMT_Unknown represent WP pmt,which use normal NNVTMCP ?
+    904         case kPMT_Unknown:     vec = m_QEshape_WP_PMT    ; break ;
+    905         case kPMT_NNVT:        vec = m_QEshape_NNVT      ; break ;
+    906         case kPMT_Hamamatsu:   vec = m_QEshape_R12860    ; break ;
+    907         case kPMT_HZC:         vec = m_QEshape_HZC       ; break ;
+    908         case kPMT_NNVT_HighQE: vec = m_QEshape_NNVT_HiQE ; break ;
+    909     }
+    910     assert(vec);
+    911     return vec;
+    912 }
+
+
+    837 double PMTSimParamSvc::get_pmt_qe_scale(int pmtid){
+    838       return get_real_qe_at420nm(pmtid)/get_shape_qe_at420nm(pmtid);
+    839 }
+
+
+
+Arghh : sniper or boost-python error capture drops the stack : so have to noddy debug
+--------------------------------------------------------------------------------------------
+
+::
+
+    START TO construct Calibration Units. 
+    /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:381 completed construction of physiWorld  m_opticksMode 3 WITH_G4CXOPTICKS  proceeding to setup Opticks 
+    Traceback (most recent call last):
+      File "/data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py", line 20, in <module>
+        juno_application.run()
+      File "/data/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py", line 161, in run
+        self.toptask.run()
+    IndexError: map::at
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+
+
+::
+
+    _PMTSimParamData::Scan_pmtid_qe pmtid 17608
+    _PMTSimParamData::Scan_pmtid_qe pmtid 17609
+    _PMTSimParamData::Scan_pmtid_qe pmtid 17610
+    _PMTSimParamData::Scan_pmtid_qe pmtid 17611
+    _PMTSimParamData::Scan_pmtid_qe pmtid 30000
+    Traceback (most recent call last):
+      File "/data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py", line 20, in <module>
+        juno_application.run()
+      File "/data/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py", line 161, in run
+        self.toptask.run()
+    IndexError: map::at
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+
+
+
+::
+
+    006 enum PMT_CATEGORY {
+      7   kPMT_Unknown=-1,
+      8   kPMT_NNVT,
+      9   kPMT_Hamamatsu,
+     10   kPMT_HZC,
+     11   kPMT_NNVT_HighQE
+     12 };
+     13 
+
+
+
+    c = t.pmtCat   
+
+    In [13]: c[17612-10:17612+10]
+    Out[13]: 
+    array([[ 17602,      1],
+           [ 17603,      1],
+           [ 17604,      1],
+           [ 17605,      1],
+           [ 17606,      1],
+           [ 17607,      1],
+           [ 17608,      1],
+           [ 17609,      1],
+           [ 17610,      1],
+           [ 17611,      1],
+           [300000,      2],
+           [300001,      2],
+           [300002,      2],
+           [300003,      2],
+           [300004,      2],
+           [300005,      2],
+           [300006,      2],
+           [300007,      2],
+           [300008,      2],
+           [300009,      2]], dtype=int32)
+
+
+
+
+    In [12]: t.pmtTotal
+    Out[12]: array([17612, 25600,  2400, 45612], dtype=int32)
+
+
+Hmm : m_all_pmt_category missing the WP 2400::
+
+    In [19]: 17612+25600+2400
+    Out[19]: 45612
+
+    In [20]: 17612+25600
+    Out[20]: 43212
+
+
+::
+
+    PMTSimParamData::desc
+                 m_all_pmtID.size 45612
+        m_all_pmtID_qe_scale.size 45612
+          m_map_pmt_category.size 17612
+          m_all_pmt_category.size 43212
+                 pd_map_SPMT.size 25600
+                   pd_vector.size 17612
+    pd_vector num_lpmt 17612
+
+
+::
+
+    GEOM=J006 SAVE=1 ntds3
+
+
+

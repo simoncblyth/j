@@ -482,6 +482,7 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    fi 
 
    if [ -n "$SAVE" ]; then
+       export LSExpDetectorConstruction__setupOpticks_pmtscan=1
        export G4CXOpticks__simulate_saveEvent=1
        export G4CXOpticks=INFO  
    else
