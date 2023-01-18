@@ -47,6 +47,25 @@ jcv DsPhysConsOptical::
      97       bool st = mcgt->Get("Material.LS.ConstantProperty", LS_constant_map);
 
 
+
+How to effect the customization with some impl flexibility ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* CustomART is templated on the accessor 
+
+* too tedious to turn CustomG4OpBoundaryProcess into a templated class
+
+* could add a templated method to slide in a flexible impl : but 
+  CustomART really needs instanciation in the ctor, so thats not 
+  very convenient  
+
+* customizing a Geant4 class is inherently fiddly, so dont 
+  worry too much about impl flexibility : just keep things 
+  clear by keeping changes in separate headers to minimize 
+  changes to CustomG4OpBoundaryProcess code
+
+
+
 u4/CustomBoundary.h : abandoned expt?
 -----------------------------------------
 
@@ -54,8 +73,11 @@ u4/CustomBoundary.h : abandoned expt?
   to reuse this functionality from the CustomG4OpBoundaryProcess host  
   
 
-u4/CustomART.h : doing less than CustomBoundary.h 
+u4/CustomART.h : CustomART<JPMT> doing less than CustomBoundary.h 
 ------------------------------------------------------------
+
+* need to converge standalone and full PMT data accessor APIs
+  such that CustomART can work with both of them 
 
 * currently instantiates J* parameter_accessor in ctor, 
   it makes more sense to pass ptr into ctor : clearer + more general 

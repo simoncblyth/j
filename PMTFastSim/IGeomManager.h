@@ -27,6 +27,7 @@ use lazy instanciation.
 #include <cstdlib>
 
 #include "NP.hh"
+#include "NPX.h"
 #include "G4ThreeVector.hh"
 #include "G4SystemOfUnits.hh"
 #include "PMTFASTSIM_API_EXPORT.hh"
@@ -234,7 +235,7 @@ inline NP* IGeomManager::getValues(const char* contains)
 { 
     getLV(); 
 
-    NP* vv = NP::MakeValues(m_values, contains) ; 
+    NP* vv = NPX::MakeValues(m_values, contains) ; 
     if(LEVEL > 0 ) std::cout 
         << "IGeomManager::getValues "
         << " m_objName " << m_objName 

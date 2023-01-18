@@ -103,10 +103,16 @@ struct JPMT
     void init_rindex_thickness(); 
     void init_qe_shape(); 
 
-    const char* get_pmtcat( int pmtcat ) const ; 
+    const char* get_pmtcat_name( int pmtcat ) const ; 
     double get_thickness_nm(int pmtcat, int layer) const  ; 
     double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
+
+    // high level API : should be close to the full (non-standalone) equivalent of JPMT.h 
+    double get_pmtid_qe( int pmtid, double energy ) const ;   // placeholder returing zero 
+    int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
+
+
 
 #ifdef WITH_STACKSPEC
     template<typename T, int N> StackSpec<T,N> get(int pmtcat, T wavelength_nm) const ; 
@@ -407,9 +413,7 @@ inline NP* JPMT::LoadPMTType(const char* base, const char* cats, const char* nam
     return c ;  
 }
 
-
-
-inline const char* JPMT::get_pmtcat( int pmtcat ) const
+inline const char* JPMT::get_pmtcat_name( int pmtcat ) const
 {
     const char* n = nullptr ; 
     switch(pmtcat)
@@ -437,6 +441,18 @@ inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV
     return rindex->combined_interp_5( pmtcat, layer, prop, energy_eV ) ; 
 }
 
+
+inline double JPMT::get_pmtid_qe( int pmtid, double energy ) const  // placeholder returing zero 
+{
+    // HMM: energy or energy_eV ? standalone uses energy_eV for GPU simularity where use float 
+    return 0. ; 
+}
+
+inline int JPMT::get_pmtcat( int pmtid  ) const  // placeholder returning default 
+{
+    // full equivalent needs access to PMT counts and other J headers to provide this 
+    return DEFAULT_CAT ; 
+}
 inline void JPMT::get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const 
 {
     ss.fill(0.); 

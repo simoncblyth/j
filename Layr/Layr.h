@@ -361,7 +361,8 @@ namespace sys
 template<typename T>
 struct LayrSpec
 {
-    T nr, ni, d, pad ; 
+    T nr, ni, d, pad  ; 
+
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
     void serialize(std::array<T,4>& a) const ; 
@@ -422,6 +423,8 @@ struct StackSpec
     LAYR_METHOD const T* cdata() const ; 
     LAYR_METHOD void serialize(std::array<T,N*4>& a) const ; 
     LAYR_METHOD void import(const std::array<T,N*4>& a) ;  
+    LAYR_METHOD bool is_equal( const StackSpec<T,N>& other ) const ; 
+    LAYR_METHOD std::string desc_compare( const StackSpec<T,N>& other ) const  ; 
 #endif
 
 }; 
@@ -464,6 +467,50 @@ LAYR_METHOD void StackSpec<T,N>::import(const std::array<T,N*4>& a)
 {
     memcpy( data(), a.data(), a.size()*sizeof(T) );  
 }
+
+template<typename T, int N>
+LAYR_METHOD bool StackSpec<T,N>::is_equal( const StackSpec<T,N>& other ) const 
+{
+    std::array<T, N*4> a ; 
+    serialize(a) ; 
+
+    std::array<T, N*4> b ; 
+    other.serialize(b); 
+
+    return a == b ; 
+}
+
+template<typename T, int N>
+LAYR_METHOD std::string StackSpec<T,N>::desc_compare( const StackSpec<T,N>& other ) const 
+{
+    std::array<T, N*4> a ; 
+    serialize(a) ; 
+
+    std::array<T, N*4> b ; 
+    other.serialize(b); 
+
+    std::stringstream ss ; 
+    ss << "StackSpec<" << ( sizeof(T) == 8 ? "double" : "float" ) << "," << N << ">::desc_compare " ;  
+    ss << " is_equal " << ( is_equal(other) ? "YES" : "NO"  ) ; 
+    ss << std::endl  ; 
+
+    for(int i=0 ; i < 4*N ; i++) ss 
+        << ( i % 4 == 0  ? "\n" : " " ) 
+        << ( a[i] == b[i] ? " " : "[" ) 
+        << std::fixed << std::setw(10) << std::setprecision(4) << a[i] << " " 
+        << std::fixed << std::setw(10) << std::setprecision(4) << b[i] << " " 
+        << ( a[i] == b[i] ? " " : "]" ) 
+        ;
+
+    std::string str = ss.str(); 
+    return str ; 
+}
+
+
+
+
+
+
 
 
 template<typename T>
