@@ -24,8 +24,8 @@ Considerations
    * no SLOG.hh : easily dropped 
    * no U4Touchable.h : U4Touchable::ReplicaNumber need to bring this header into monolith
 
-2. u4 depends on PMTFastSim package from whence it gets JPMT.h 
-   via ../Layr/JPMT.h in ~/j/PMTFastSim/CMakeLists.txt 
+2. u4 depends on PMTFastSim package from whence it gets JPMT.h Layr.h 
+   via ../Layr/JPMT.h ../Layr/Layr.h in ~/j/PMTFastSim/CMakeLists.txt 
 
 
 CustomG4OpBoundaryProcess
@@ -64,6 +64,27 @@ How to effect the customization with some impl flexibility ?
   clear by keeping changes in separate headers to minimize 
   changes to CustomG4OpBoundaryProcess code
 
+* HMM: CustomG4OpBoundaryProcess is an uncomfortable workplace : 
+  so need to do setup outside that in DsPhysConsOptical or equivalent (eg U4Physics::ConstructOp)
+  and pass in instances via ctor arguments 
+
+  * DID not feel that issue standalone as setup only "new JPMT" but the 
+    full setup is going to require a boatload of headers to access the 
+    Svc and get the PMTSimParamData and instanciate the PMTAccessor   
+
+  * BUT cannot have templated ctor arguments 
+  * could have a templated static factory function 
+    but thats excessive change to CustomG4OpBoundaryProcess 
+
+  * suggests defining a pure virtual IPMTAccessor protocol base 
+    that any accessor needs to follow (including JPMT.h) and having that as the extra 
+    CustomG4OpBoundaryProcess and CustomART ctor argument 
+
+    * so the protocol acts as dependency fire break 
+    * this way just need to add low dep headers to CustomG4OpBoundaryProcess 
+      and the extra ctor argument keeping minimal changes. 
+    * also CustomART doesnt need to be templated anymore 
+
 
 
 u4/CustomBoundary.h : abandoned expt?
@@ -80,7 +101,7 @@ u4/CustomART.h : CustomART<JPMT> doing less than CustomBoundary.h
   such that CustomART can work with both of them 
 
 * currently instantiates J* parameter_accessor in ctor, 
-  it makes more sense to pass ptr into ctor : clearer + more general 
+  it makes more sense to pass ptr into ctor : clearer + more general : DONE
 
 * CustomART::doIt prepares StackSpec<double,4> with multiple calls to 
   the J* parameter_accessor with pmtcat and energy_eV arguments, the 
@@ -97,7 +118,9 @@ u4/CustomART.h : CustomART<JPMT> doing less than CustomBoundary.h
   * but that means must split StackSpec and LayrSpec from current home in j/Layr.h  
   * (OR could just use std::array<double, 16>& to keep things decoupled? the spec is 
      simple enough that this makes sense)
-    
+   
+  * DONE : consolidated to a single call using std::array 
+
 
 
 j/Layr/JPMT.h

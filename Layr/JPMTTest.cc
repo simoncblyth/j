@@ -49,11 +49,14 @@ void test_JPMT()
 void test_JPMT_get_stackspec()
 {
     JPMT jpmt ; 
-    std::array<double, 16> aa ; 
+    IPMTAccessor* ipmt = dynamic_cast<IPMTAccessor*>(&jpmt) ; 
+   
+    std::cout << "test_JPMT_get_stackspec typename " << ipmt->get_typename() << std::endl ; 
 
+    std::array<double, 16> aa ; 
     int pmtcat = 0 ; 
     double energy_eV = 10. ; 
-    jpmt.get_stackspec( aa, pmtcat, energy_eV ); 
+    ipmt->get_stackspec( aa, pmtcat, energy_eV ); 
 
     std::cout << " aa " << aa ; 
 }

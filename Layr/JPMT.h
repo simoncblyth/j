@@ -53,9 +53,11 @@ if get rid of StackSpec ?   StackSpec is rather handy though.
 **/
 
 #include "NPFold.h"
+#include "IPMTAccessor.h"
 
-struct JPMT
+struct JPMT : public IPMTAccessor
 {
+    static constexpr const char* _TypeName = "JPMT" ;  
     static constexpr const char* _PMTType_base = "$JUNOTOP/data/Detector/Geometry" ;
     static constexpr const char* _PMTType_cats = "Unknown,NNVT,Hamamatsu,HZC,HighQENNVT" ;
     static constexpr const char* _PMTType_names = "PMTType_CD_LPMT.csv,PMTType_CD_SPMT.csv" ; 
@@ -107,11 +109,11 @@ struct JPMT
     double get_thickness_nm(int pmtcat, int layer) const  ; 
     double get_rindex(      int pmtcat, int layer, int prop, double energy_eV ) const  ; 
 
-    // high level API : should be close to the full (non-standalone) equivalent of JPMT.h 
+    // high level API fulfilling IPMTAccessor.h protocol base (common with non-standalone accessor)
     double get_pmtid_qe( int pmtid, double energy ) const ;   // placeholder returing zero 
     int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
-
+    const char* get_typename() const ; 
 
 
 #ifdef WITH_STACKSPEC
@@ -469,6 +471,13 @@ inline void JPMT::get_stackspec( std::array<double, 16>& ss, int pmtcat, double 
 
     ss[4*3+0] = get_rindex(       pmtcat, L3, RINDEX, energy_eV );
 }
+
+inline const char* JPMT::get_typename() const 
+{
+    return _TypeName ; 
+}
+
+
 
 inline void JPMT::save(const char* dir) const 
 {
