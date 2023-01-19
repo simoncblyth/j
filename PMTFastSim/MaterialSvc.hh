@@ -12,6 +12,30 @@ Standalone access to material properties, see::
    jcv LSExpDetectorConstructionMaterial
    jcv LSExpDetectorConstruction   helper_mpt 
 
+
+
+TODO : Follow PMTSimParamSvc/PMTSimParamData approach with MCParamsSvc/MCParamsData
+-------------------------------------------------------------------------------------
+
+Following the experience of pulling Data struct out of Services it is clear
+that an analogous approach could easily be used with MCParamsSvc. 
+
+The advantages are:
+
+1. reduces risk of standalone running using different material properties to full running 
+2. makes the grab part of the standard Opticks geometry translation and collection into SSim NPFold.  
+
++-------------------+-------------------------+-----------------+
+| Service           |  Data Carrier           | Notes           |
++===================+=========================+=================+
+| PMTSimParamSvc    |  PMTSimParamData        |                 |
++-------------------+-------------------------+-----------------+
+| PMTParamSvc       |  PMTParamData           |                 |
++-------------------+-------------------------+-----------------+
+| MCParamsSvc       |  MCParamsData           | NOT YET IMPL    |
++-------------------+-------------------------+-----------------+
+
+
 **/
 
 class G4MaterialPropertiesTable ; 

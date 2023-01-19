@@ -114,6 +114,32 @@ how to test the full PMTAccessor without doing it within the monolith
 
    * need to boot G4Materials first 
 
+Look at::
+
+    N=1 U4VolumeMaker=INFO VERBOSE=1 ./U4SimulateTest.sh 
+    BP=DetectorConstruction::DetectorConstruction N=1 VERBOSE=1 ./U4SimulateTest.sh 
+
+
+The materials get booted by DetectorConstruction::
+
+    *U4VolumeMaker::PVF_@239: [ WITH_PMTFASTSIM name [hamaLogicalPMT] has_manager_prefix 1
+    [ PMTFastSim::GetLV [hamaLogicalPMT]
+    PMTFastSim::init               yielded chars :  cout  21546 cerr      0 : set VERBOSE to see them 
+    cout[
+    [ DetectorConstruction::DetectorConstruction 
+    construct [Gadolinium] from code.
+     G4Material WARNING: define a material with density=0 is not allowed. 
+     The material Galactic will be constructed with the default minimal density: 1e-25g/cm3
+    LS is constructed from the code
+    Setup LS Material Tables from MCParamsSvc
+    Scale ABSLENGTH from 26 to 77 factor: 2.96154
+    Scale RAYLEIGH from 42 to 27 factor: 0.642857
+    Warning: Can't find  LS abslength to register 
+    DetectorConstruction::helper_mpt mname               RINDEX name                                                                                   Material.LS.RINDEX props.size 18
+    DetectorConstruction::helper_mpt mname        FASTCOMPONENT name                                                                            Material.LS.FASTCOMPONENT props.size 275
+
+
+
 
 u4/CustomBoundary.h : abandoned expt?
 -----------------------------------------

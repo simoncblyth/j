@@ -1,4 +1,13 @@
 #pragma once
+/**
+PMTFastSim.hh : NB name no longer appropriate as mostly not using FastSim now
+================================================================================ 
+
+This acts as a "portal" that allows some aspects of the junosw monolith 
+like the Geant4 JUNO PMT geometry to be accessed from Opticks packages that 
+depend on PMTFastSim package. 
+
+**/
 
 #include <vector>
 #include <string>

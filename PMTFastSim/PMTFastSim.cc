@@ -58,14 +58,15 @@ Sets switches depending of the content of the name string.
 * are in process of removing the SIMPLIFY_CSG switches
 * others : NOT_USE_REAL_SURFACE and PLUS_DYNODE are for debugging and can remain.
 
+
+HMM: DONT LIKE NAME DEPENDENCY HERE
+AS IT IS INCOMPATIBLE WITH USING SINGLETON APPROACH
+AS WANT TO INSTANCIATE PMTFastSim ONCE ONLY 
+
 **/
 
 void PMTFastSim::SetEnvironmentSwitches(const char* name)  // static
 {
-    // HMM: DONT LIKE NAME DEPENDENCY HERE
-    // ITS INCOMPATIBLE WITH USING SINGLETON APPROACH
-    // AS WANT TO INSTANCIATE PMTFastSim ONCE ONLY 
-
     std::vector<std::string> tagkeys = {
        ":scsg:JUNO_PMT20INCH_SIMPLIFY_CSG",
        ":nurs:JUNO_PMT20INCH_NOT_USE_REAL_SURFACE",
@@ -204,7 +205,7 @@ void PMTFastSim::init()
     
         m_dc = new DetectorConstruction ; 
 
-        // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
+        // TO SEE OUTPUT OF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
 
