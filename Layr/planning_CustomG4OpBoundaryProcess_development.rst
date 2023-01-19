@@ -86,6 +86,34 @@ How to effect the customization with some impl flexibility ?
     * also CustomART doesnt need to be templated anymore 
 
 
+u4/U4Physics.cc::
+
+    204     if(G4OpBoundaryProcess_DISABLE == 0)
+    205     {
+    206 
+    207 #ifdef WITH_PMTFASTSIM
+    208         IPMTAccessor* ipmt = dynamic_cast<IPMTAccessor*>(new JPMT) ;
+    209         fBoundary = new InstrumentedG4OpBoundaryProcess(ipmt);
+    210 #else
+    211         fBoundary = new InstrumentedG4OpBoundaryProcess();
+    212 #endif
+    213         LOG(info) << " fBoundary " << fBoundary ;
+    214     }
+
+
+
+how to test the full PMTAccessor without doing it within the monolith
+-------------------------------------------------------------------------
+
+* /Users/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.cc
+
+1. DONE : add bunch of junosw header-only headers to j/PMTFastSim/CMakeLists.txt 
+   so they get installed and are accessible from u4
+2. DONE : use them in u4/tests/U4PMTFastSimTest.{sh,cc} with _PMTSimParamData loading from file 
+3. TODO : develop PMTAccessor within the test, comparing results with JPMT.h  
+
+   * need to boot G4Materials first 
+
 
 u4/CustomBoundary.h : abandoned expt?
 -----------------------------------------
@@ -140,7 +168,7 @@ Used within PMTFASTSIM_STANDALONE blocks of:
 
 
 
-TODO : Review Priors 
+DONE : Review Priors 
 ----------------------
 
 p17

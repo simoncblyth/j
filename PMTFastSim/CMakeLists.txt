@@ -70,15 +70,30 @@ list(APPEND HEADERS
     ../Layr/IPMTAccessor.h  
     PMTFastSim.hh
     J_PMTFASTSIM_LOG.hh
-
 )
+
+
+set(BASE_Geometry $ENV{JUNOTOP}/junosw/Detector/Geometry/Geometry)
+list(APPEND HEADERS_Geometry
+    ${BASE_Geometry}/PMT.h
+    ${BASE_Geometry}/PMTCategory.h
+)
+
+set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
+list(APPEND HEADERS_PMTSimParamSvc
+    ${BASE_PMTSimParamSvc}/PMTSimParamData.h
+    ${BASE_PMTSimParamSvc}/_PMTSimParamData.h
+    ${BASE_PMTSimParamSvc}/PmtSimData_LPMT.h
+    ${BASE_PMTSimParamSvc}/PmtSimData_SPMT.h
+)
+
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "CMAKE_INSTALL_INCLUDEDIR : ${CMAKE_INSTALL_INCLUDEDIR}")
 message(STATUS "CMAKE_INSTALL_LIBDIR     : ${CMAKE_INSTALL_LIBDIR}")
 message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
-add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
+add_library( ${name}  SHARED ${SOURCES} ${HEADERS} ${HEADERS_Geometry} ${HEADERS_PMTSimParamSvc} )
 
 target_compile_definitions( ${name} PRIVATE OPTICKS_PMTFASTSIM PMTFASTSIM_STANDALONE PMTSIM_STANDALONE )
 
@@ -98,6 +113,9 @@ target_link_libraries(${name} PUBLIC
 )
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
-install(FILES ${HEADERS}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${HEADERS}           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${HEADERS_Geometry}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Geometry )
+install(FILES ${HEADERS_PMTSimParamSvc}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PMTSimParamSvc )
+
 
 add_subdirectory(tests)
