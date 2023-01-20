@@ -68,6 +68,7 @@ list(APPEND HEADERS
     ../Layr/Layr.h  
     ../Layr/JPMT.h  
     ../Layr/IPMTAccessor.h  
+    ../Layr/PMTAccessor.h  
     PMTFastSim.hh
     J_PMTFASTSIM_LOG.hh
 )
