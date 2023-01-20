@@ -73,7 +73,10 @@ struct JPMT : public IPMTAccessor
 
     static void GetNamesLPMT(  std::vector<std::string>& names );  // formerly GetNames20
     static void GetNamesAll( std::vector<std::string>& names ); 
+
+    static int FindIndex(const std::vector<std::string>& names, const char* name); 
     static int FindCatLPMT( const char* name );  // formerly FindCat20
+    static int FindCatAll( const char* name ); 
 
     static constexpr int NUM_PMTCAT = 3 ; 
     static constexpr int NUM_LAYER = 4 ; 
@@ -89,6 +92,7 @@ struct JPMT : public IPMTAccessor
     NPFold* Pyrex ; 
     NPFold* Vacuum ; 
 
+    std::array<int, 5> mapcat ; 
     std::vector<const NP*> v_rindex ; 
     std::vector<const NP*> v_thickness ; 
     std::vector<const NP*> v_qe_shape ; 
@@ -104,6 +108,10 @@ struct JPMT : public IPMTAccessor
     void init(); 
     void init_rindex_thickness(); 
     void init_qe_shape(); 
+    void init_mapcat(); 
+
+    std::string desc_mapcat() const ; 
+    int get_localcat( int pmtcat_ ) const ; 
 
     const char* get_pmtcat_name( int pmtcat ) const ; 
     double get_thickness_nm(int pmtcat, int layer) const  ; 
@@ -132,20 +140,35 @@ inline void JPMT::GetNamesLPMT( std::vector<std::string>& names ) // static
 }
 inline void JPMT::GetNamesAll( std::vector<std::string>& names ) // static
 {
-    names.push_back(_HZC);  
-    names.push_back(_HAMA);  
+    names.push_back(_WPP);   // follow PMT_CATEGORY enum order 
     names.push_back(_NNVT);  
+    names.push_back(_HAMA);  
+    names.push_back(_HZC);  
     names.push_back(_NNVTQ);  
-    names.push_back(_WPP);  
 }
 
+
+inline int JPMT::FindIndex(const std::vector<std::string>& names, const char* name) // static
+{
+    size_t idx = std::distance( names.begin(), std::find( names.begin(), names.end(), name )); 
+    return idx >= names.size() ? -1  : int(idx) ;  
+}
 inline int JPMT::FindCatLPMT( const char* name )  // static
 {
     std::vector<std::string> names ; 
     GetNamesLPMT(names); 
-    size_t idx = std::distance( names.begin(), std::find( names.begin(), names.end(), name )); 
-    return idx >= names.size() ? -1  : int(idx) ;  
+    return FindIndex(names, name); 
 } 
+inline int JPMT::FindCatAll( const char* name )  // static
+{
+    std::vector<std::string> names ; 
+    GetNamesAll(names); 
+    return FindIndex(names, name); 
+} 
+
+
+
+
 
 
 inline JPMT::JPMT()
@@ -226,6 +249,7 @@ inline void JPMT::init()
 {
     init_rindex_thickness(); 
     init_qe_shape(); 
+    init_mapcat(); 
 }
 
 inline void JPMT::init_rindex_thickness()
@@ -338,7 +362,7 @@ Added NP::LoadCategoryArrayFromTxtFile to load files like::
 
 **/
 
-inline void JPMT::init_qe_shape()
+inline void JPMT::init_qe_shape() // not currently used
 {
     assert( PMTProperty ); 
     std::vector<std::string> names ; 
@@ -353,6 +377,53 @@ inline void JPMT::init_qe_shape()
     }
     qe_shape = NP::Combine(v_qe_shape); 
     qe_shape->set_names(names);  
+}
+
+inline void JPMT::init_mapcat()
+{
+    std::vector<std::string> names_all ; 
+    GetNamesAll(names_all);
+    std::vector<std::string> names_lpmt ; 
+    GetNamesLPMT(names_lpmt);
+    
+    for(int i=0 ; i < int(names_all.size()) ; i++) 
+    {
+        const char* name = names_all[i].c_str(); 
+        int idx = FindIndex( names_lpmt,  name ); 
+        mapcat[i] = idx ;   // standard cat offset by one mapping to localcat
+    } 
+
+    //std::cout << desc_mapcat() ; 
+} 
+
+inline std::string JPMT::desc_mapcat() const 
+{
+    std::vector<std::string> names_all ; 
+    GetNamesAll(names_all);
+ 
+    std::stringstream ss ; 
+    ss << "JPMT::desc_mapcat" << std::endl ; 
+    for(unsigned i=0 ; i < mapcat.size() ; i++) 
+    {
+        const char* name = names_all[i].c_str(); 
+        int idx = mapcat[i] ; 
+        ss
+           << " i " << std::setw(3) << i 
+           << " name "   << std::setw(20) << name 
+           << " idx "    << std::setw(4) << idx 
+           << std::endl 
+           ;  
+    }
+    std::string str = ss.str(); 
+    return str ; 
+}
+
+inline int JPMT::get_localcat( int pmtcat_ ) const 
+{
+    assert( pmtcat_ >= -1 && pmtcat_ <= 3 ); 
+    int localcat = mapcat[1+pmtcat_] ;   // need to offset as kPMT_Unknown=-1 (corres to WP)
+    assert( localcat >= 0 && localcat <= 2 ); 
+    return localcat ; 
 }
 
 /**
@@ -429,18 +500,21 @@ inline const char* JPMT::get_pmtcat_name( int pmtcat ) const
 
 inline double JPMT::get_thickness_nm(int pmtcat, int layer) const  
 {
-    assert( pmtcat < NUM_PMTCAT ); 
+    int localcat = get_localcat(pmtcat) ; 
+    assert( localcat < NUM_PMTCAT && localcat >= 0); 
     assert( layer < NUM_LAYER ) ; 
-    return tt[pmtcat*NUM_LAYER+layer] ; 
+    return tt[localcat*NUM_LAYER+layer] ; 
 }
 
 inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV ) const  
 {
-    assert( pmtcat < NUM_PMTCAT ); 
+    int localcat = get_localcat(pmtcat) ; 
+
+    assert( localcat < NUM_PMTCAT && localcat >= 0); 
     assert( layer < NUM_LAYER ) ; 
     assert( prop < NUM_PROP ); 
 
-    return rindex->combined_interp_5( pmtcat, layer, prop, energy_eV ) ; 
+    return rindex->combined_interp_5( localcat, layer, prop, energy_eV ) ; 
 }
 
 

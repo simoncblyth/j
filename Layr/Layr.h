@@ -354,6 +354,37 @@ namespace sys
         }   
         return vec ; 
     }
+
+    template<typename T, unsigned long N>
+    inline T max_diff( const std::array<T,N>& a, const std::array<T,N>& b )
+    {
+        T mx = 0. ; 
+        for(unsigned long i=0 ; i < N ; i++) 
+        {
+            T df = std::abs(a[i]-b[i]) ; 
+            if(df > mx ) mx = df ; 
+        } 
+        return mx ; 
+    }
+
+    template<typename T, unsigned long N>
+    inline std::string desc_diff( const std::array<T,N>& a, const std::array<T,N>& b )
+    {
+        std::stringstream ss ; 
+        for(unsigned long i=0 ; i < N ; i++) 
+        {
+            ss 
+                << " i " << std::setw(2) << i   
+                << " a " << std::setw(10) << std::scientific << a[i]
+                << " b " << std::setw(10) << std::scientific << b[i]
+                << " a - b  " << std::setw(10) << std::scientific << ( a[i] - b[i] )
+                << std::endl 
+                ;   
+        }
+        std::string str = ss.str(); 
+        return str ; 
+    }
+
 }
 #endif
 
@@ -480,6 +511,7 @@ LAYR_METHOD bool StackSpec<T,N>::is_equal( const StackSpec<T,N>& other ) const
     return a == b ; 
 }
 
+
 template<typename T, int N>
 LAYR_METHOD std::string StackSpec<T,N>::desc_compare( const StackSpec<T,N>& other ) const 
 {
@@ -489,9 +521,12 @@ LAYR_METHOD std::string StackSpec<T,N>::desc_compare( const StackSpec<T,N>& othe
     std::array<T, N*4> b ; 
     other.serialize(b); 
 
+    T mx = sys::max_diff(a, b) ; 
+
     std::stringstream ss ; 
     ss << "StackSpec<" << ( sizeof(T) == 8 ? "double" : "float" ) << "," << N << ">::desc_compare " ;  
     ss << " is_equal " << ( is_equal(other) ? "YES" : "NO"  ) ; 
+    ss << " max_diff " << std::setw(10) << std::scientific << mx ; 
     ss << std::endl  ; 
 
     for(int i=0 ; i < 4*N ; i++) ss 
@@ -505,7 +540,6 @@ LAYR_METHOD std::string StackSpec<T,N>::desc_compare( const StackSpec<T,N>& othe
     std::string str = ss.str(); 
     return str ; 
 }
-
 
 
 
