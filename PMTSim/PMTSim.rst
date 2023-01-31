@@ -38,7 +38,6 @@ CMakeLists.txt::
          PMTSIM_API_EXPORT.hh
 
          ZSolid.h  
-         SCanvas.hh
          MaterialSvc.hh
 
          PMTSim.hh
@@ -47,6 +46,10 @@ CMakeLists.txt::
          ../Layr/Layr.h 
          ../Layr/JPMT.h 
     )
+
+
+NB removed SCanvas.hh as scanvas.h already in sysrap
+
 
 
 

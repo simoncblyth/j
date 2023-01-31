@@ -54,11 +54,12 @@ list(APPEND SOURCES
 )
 
 
+
+
 list(APPEND HEADERS
      PMTSIM_API_EXPORT.hh
 
      ZSolid.h  
-     SCanvas.hh
      MaterialSvc.hh
 
      PMTSim.hh
