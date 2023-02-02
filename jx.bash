@@ -9,6 +9,12 @@ jx.bash : Started Sept 2022 : Updating to git junosw
 Update of the former j/j.bash for the git+CMake based junosw environment 
 
 
+Database/ParaDB/src/ParaPayload.cc
+
+-    const ParaPayload& null_payload() {
++    const ParaPayload& ParaPayload::null_payload() {
+
+
 
 EOU
 }

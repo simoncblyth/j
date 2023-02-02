@@ -26,6 +26,30 @@
 #include "NPFold.h"
 #include "NP.hh"
 
+#include <chrono>
+
+namespace schrono
+{
+    typedef std::chrono::time_point<std::chrono::high_resolution_clock> TP ; 
+    typedef std::chrono::duration<double> DT ; 
+
+    inline std::chrono::time_point<std::chrono::high_resolution_clock> stamp()
+    {   
+        TP t = std::chrono::high_resolution_clock::now();
+        return t ; 
+    }   
+    inline double duration( 
+        std::chrono::time_point<std::chrono::high_resolution_clock>& t0, 
+        std::chrono::time_point<std::chrono::high_resolution_clock>& t1 )
+    {   
+        DT _dt = t1 - t0; 
+        double dt = _dt.count() ;
+        return dt ; 
+    }   
+}
+
+
+
 
 IPMTSimParamSvc* Get_IPMTSimParamSvc()
 {
@@ -64,7 +88,15 @@ NP* scan_di( std::function<double(int)> fn, const std::vector<int>& ii  )
     int ni = ii.size() ; 
     NP* a = NP::Make<double>( ni );
     double* aa = a->values<double>() ;    
+
+    schrono::TP t0 = schrono::stamp();
+
     for(int i=0 ; i < ni ; i++) aa[i] = fn(ii[i]) ;
+
+    schrono::TP t1 = schrono::stamp();
+    double dt = schrono::duration(t0, t1 );  
+    a->set_meta<double>("scantime", dt );  
+
     return a ; 
 }
 
@@ -74,47 +106,165 @@ NP* scan_did( std::function<double(int, double)> fn, const std::vector<int>& ii,
     int nj = jj.size() ; 
     NP* a = NP::Make<double>( ni, nj );
     double* aa = a->values<double>() ;    
+
+    schrono::TP t0 = schrono::stamp();
+
     for(int i=0 ; i < ni ; i++) for(int j=0 ; j < nj ; j++) aa[i*nj+j] = fn(ii[i], jj[j]) ;
+
+    schrono::TP t1 = schrono::stamp();
+    double dt = schrono::duration(t0, t1 );  
+    a->set_meta<double>("scantime", dt );  
+
     return a ; 
 } 
 
 
-int main(int, char** argv)
+
+struct Scan
 {
-    std::cout << argv[0] << std::endl ; 
+    static void Linspace( std::vector<double>& val, double v0, v1, int num ); 
 
-    IPMTSimParamSvc* ipsps = Get_IPMTSimParamSvc(); 
-    std::cout << " ipsps " << ipsps << std::endl ; 
-    if(ipsps == nullptr) return 1 ; 
+    IPMTSimParamSvc* ipsps ; 
+    NPFold* fold ; 
 
-    const std::vector<int>& all_pmtID = ipsps->get_all_pmtID() ; 
-    int num_pmt = all_pmtID.size(); 
-    std::cout << " num_pmt " << num_pmt << std::endl ; 
+    const std::vector<int>& all_pmtID ; 
+    std::vector<int> all_pmtcat ; 
+    std::vector<double> energy ; 
+    std::vector<double> theta ; 
 
-    int num_energy = 100 ; 
-    double en0 = 1.55*CLHEP::eV ; 
-    double en1 = 15.5*CLHEP::eV ; 
-    std::vector<double> energy(num_energy) ; 
-    for(int j=0 ; j < num_energy ; j++)
+    int num_id ; 
+    int num_cat ; 
+    int num_energy ; 
+    int num_theta ; 
+  
+    Scan(IPMTSimParamSvc* ipsps); 
+    std::string desc() const ; 
+    void init(); 
+    void add_scan(const char* name, NP* a);
+    void add_scan();
+    void save() const ; 
+
+};
+
+inline void Scan::Linspace( std::vector<double>& val, double v0, v1, int num ) // static
+{
+    val.resize(num); 
+    for(int j=0 ; j < num ; j++)
     {
-        double fr = double(j)/double(num_energy-1) ; 
-        energy[j] = en0*(1.-fr) + en1*fr ;  
+        double fr = double(j)/double(-1) ; 
+        val[j] = v0*(1.-fr) + v1*fr ;  
     }
+}
 
-    NPFold* fold = new NPFold ; 
+inline Scan::Scan(IPMTSimParamSvc* ipsps_ )
+    :
+    ipsps(ipsps_),
+    fold(new NPFold),
+    all_pmtID(ipsps->get_all_pmtID()),
+    all_pmtcat( {kPMT_Unknown, kPMT_NNVT, kPMT_Hamamatsu, kPMT_HZC, kPMT_NNVT_HighQE }),
+    num_id(all_pmtID.size()),
+    num_cat(all_pmtcat.size()),
+    num_energy(-1),
+    num_theta(-1)
+{
+    init(); 
+}
 
-    std::function<double(int, double)> _get_pmtid_qe         = std::bind( &IPMTSimParamSvc::get_pmtid_qe, ipsps, std::placeholders::_1, std::placeholders::_2 ) ; 
-    std::function<double(int)>         _get_pmt_qe_scale     = std::bind( &IPMTSimParamSvc::get_pmt_qe_scale, ipsps, std::placeholders::_1 ) ; 
-    std::function<double(int)>         _get_shape_qe_at420nm = std::bind( &IPMTSimParamSvc::get_shape_qe_at420nm, ipsps, std::placeholders::_1 ) ; 
+inline std::string Scan::desc() const 
+{
+    std::stringstream ss ; 
+    ss << "Scan::desc"
+       << " num_id  " << num_id << std::endl 
+       << " num_cat " << num_cat << std::endl 
+       << " num_theta " << num_theta << std::endl 
+       << " num_energy " << num_energy << std::endl 
+       ; 
 
-    fold->add( "get_pmtid_qe",         scan_did(_get_pmtid_qe,         all_pmtID, energy ) ); 
-    fold->add( "get_pmt_qe_scale",     scan_di( _get_pmt_qe_scale,     all_pmtID ) ); 
-    fold->add( "get_shape_qe_at420nm", scan_di( _get_shape_qe_at420nm, all_pmtID ) ); 
+    std::string str = ss.str(); 
+    return str ; 
+}
 
+inline void Scan::init()
+{
+    Linspace(energy, 1.55*CLHEP::eV, 15.5*CLHEP::eV, 100 ); 
+    num_energy = energy.size(); 
+
+    Linspace(theta, 0.*CLHEP::degree, 90.*CLHEP::degree, 100 ); 
+    num_theta = theta.size();  
+}
+inline void Scan::add_scan(const char* name, NP* a)
+{
+    std::cout << "Scan::add_scan " << name << std::endl ; 
+    fold->add(name, a);  
+}
+
+inline void Scan::add_scan()
+{
+    typedef std::function<double(int, double)> DID ; 
+    typedef std::function<double(int)>         DI ;  
+    typedef std::placeholders::_1 P1 ; 
+    typedef std::placeholders::_2 P2 ; 
+
+    DI _get_gain              = std::bind( &IPMTSimParamSvc::get_gain,             ipsps, P1 ); 
+    DI _get_sigmaGain         = std::bind( &IPMTSimParamSvc::get_sigmaGain,        ipsps, P1 ); 
+    DI _get_pde               = std::bind( &IPMTSimParamSvc::get_pde,              ipsps, P1 ); 
+    DI _get_dcr               = std::bind( &IPMTSimParamSvc::get_dcr,              ipsps, P1 ); 
+    DI _get_afterPulseProb    = std::bind( &IPMTSimParamSvc::get_afterPulseProb,   ipsps, P1 ); 
+    DI _get_prePulseProb      = std::bind( &IPMTSimParamSvc::get_prePulseProb,     ipsps, P1 ); 
+    DI _get_tts               = std::bind( &IPMTSimParamSvc::get_tts,              ipsps, P1 ); 
+    DI _get_timeOffset        = std::bind( &IPMTSimParamSvc::get_timeOffset,       ipsps, P1 ); 
+    DI _get_efficiency        = std::bind( &IPMTSimParamSvc::get_efficiency,       ipsps, P1 ); 
+    DI _get_QE                = std::bind( &IPMTSimParamSvc::get_QE,               ipsps, P1 ); 
+
+    DID _get_pmtid_ce         = std::bind( &IPMTSimParamSvc::get_pmtid_ce,         ipsps, P1, P2 ); 
+    DID _get_pmtcat_ce        = std::bind( &IPMTSimParamSvc::get_pmtcat_ce,        ipsps, P1, P2 ); 
+    DID _get_pmtid_qe         = std::bind( &IPMTSimParamSvc::get_pmtid_qe,         ipsps, P1, P2 ); 
+    DID _get_pmtcat_qe        = std::bind( &IPMTSimParamSvc::get_pmtcat_qe,        ipsps, P1, P2 ); 
+
+    DI  _get_pmt_qe_scale     = std::bind( &IPMTSimParamSvc::get_pmt_qe_scale,     ipsps, P1 ); 
+    DI  _get_shape_qe_at420nm = std::bind( &IPMTSimParamSvc::get_shape_qe_at420nm, ipsps, P1 ); 
+    DI  _get_real_qe_at420nm  = std::bind( &IPMTSimParamSvc::get_real_qe_at420nm,  ipsps, P1 ); 
+
+    add_scan( "get_gain",             scan_di( _get_gain,             all_pmtID ) ); 
+    add_scan( "get_sigmaGain",        scan_di( _get_sigmaGain,        all_pmtID ) ); 
+    add_scan( "get_pde",              scan_di( _get_pde,              all_pmtID ) ); 
+    add_scan( "get_dcr",              scan_di( _get_dcr,              all_pmtID ) ); 
+    add_scan( "get_afterPulseProb",   scan_di( _get_afterPulseProb,   all_pmtID ) ); 
+    add_scan( "get_prePulseProb",     scan_di( _get_prePulseProb,     all_pmtID ) ); 
+    add_scan( "get_tts",              scan_di( _get_tts,              all_pmtID ) ); 
+    add_scan( "get_timeOffset",       scan_di( _get_timeOffset,       all_pmtID ) ); 
+    add_scan( "get_efficiency",       scan_di( _get_efficiency,       all_pmtID ) ); 
+    add_scan( "get_QE",               scan_di( _get_QE,               all_pmtID ) ); 
+
+    add_scan( "get_pmtid_ce",         scan_did(_get_pmtid_ce,         all_pmtID,  theta ) ); 
+    add_scan( "get_pmtcat_ce",        scan_did(_get_pmtcat_ce,        all_pmtcat, theta ) ); 
+    add_scan( "get_pmtid_qe",         scan_did(_get_pmtid_qe,         all_pmtID,  energy ) ); 
+    add_scan( "get_pmtcat_qe",        scan_did(_get_pmtcat_qe,        all_pmtcat, energy ) ); 
+
+    add_scan( "get_pmt_qe_scale",     scan_di( _get_pmt_qe_scale,     all_pmtID ) ); 
+    add_scan( "get_shape_qe_at420nm", scan_di( _get_shape_qe_at420nm, all_pmtID ) ); 
+    add_scan( "get_real_qe_at420nm",  scan_di( _get_real_qe_at420nm,  all_pmtID ) ); 
+}
+
+inline void Scan::save() const 
+{
     char* FOLD = getenv("FOLD"); 
     std::cout << " save to FOLD " << ( FOLD ? FOLD : "-" ) << std::endl;
     assert(FOLD); 
     fold->save(FOLD); 
+}
+
+
+int main(int, char**)
+{
+    IPMTSimParamSvc* ipsps = Get_IPMTSimParamSvc(); 
+    std::cout << " ipsps " << ipsps << std::endl ; 
+    if(ipsps == nullptr) return 1 ; 
+
+    Scan scan(ipsps) ; 
+    std::cout << scan.desc() << std::endl ; 
+    scan.add_scan(); 
+    scan.save(); 
 
     return 0 ; 
 }
