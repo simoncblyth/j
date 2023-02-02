@@ -122,7 +122,7 @@ NP* scan_did( std::function<double(int, double)> fn, const std::vector<int>& ii,
 
 struct Scan
 {
-    static void Linspace( std::vector<double>& val, double v0, v1, int num ); 
+    static void Linspace( std::vector<double>& val, double v0, double v1, int num ); 
 
     IPMTSimParamSvc* ipsps ; 
     NPFold* fold ; 
@@ -146,7 +146,7 @@ struct Scan
 
 };
 
-inline void Scan::Linspace( std::vector<double>& val, double v0, v1, int num ) // static
+inline void Scan::Linspace( std::vector<double>& val, double v0, double v1, int num ) // static
 {
     val.resize(num); 
     for(int j=0 ; j < num ; j++)
@@ -202,39 +202,39 @@ inline void Scan::add_scan()
 {
     typedef std::function<double(int, double)> DID ; 
     typedef std::function<double(int)>         DI ;  
-    typedef std::placeholders::_1 P1 ; 
-    typedef std::placeholders::_2 P2 ; 
+    using std::placeholders::_1 ; 
+    using std::placeholders::_2 ; 
 
-    DI _get_gain              = std::bind( &IPMTSimParamSvc::get_gain,             ipsps, P1 ); 
-    DI _get_sigmaGain         = std::bind( &IPMTSimParamSvc::get_sigmaGain,        ipsps, P1 ); 
-    DI _get_pde               = std::bind( &IPMTSimParamSvc::get_pde,              ipsps, P1 ); 
-    DI _get_dcr               = std::bind( &IPMTSimParamSvc::get_dcr,              ipsps, P1 ); 
-    DI _get_afterPulseProb    = std::bind( &IPMTSimParamSvc::get_afterPulseProb,   ipsps, P1 ); 
-    DI _get_prePulseProb      = std::bind( &IPMTSimParamSvc::get_prePulseProb,     ipsps, P1 ); 
-    DI _get_tts               = std::bind( &IPMTSimParamSvc::get_tts,              ipsps, P1 ); 
-    DI _get_timeOffset        = std::bind( &IPMTSimParamSvc::get_timeOffset,       ipsps, P1 ); 
-    DI _get_efficiency        = std::bind( &IPMTSimParamSvc::get_efficiency,       ipsps, P1 ); 
-    DI _get_QE                = std::bind( &IPMTSimParamSvc::get_QE,               ipsps, P1 ); 
+    DI _get_gain              = std::bind( &IPMTSimParamSvc::get_gain,             ipsps, _1 ); 
+    DI _get_sigmaGain         = std::bind( &IPMTSimParamSvc::get_sigmaGain,        ipsps, _1 ); 
+    DI _get_pde               = std::bind( &IPMTSimParamSvc::get_pde,              ipsps, _1 ); 
+    DI _get_dcr               = std::bind( &IPMTSimParamSvc::get_dcr,              ipsps, _1 ); 
+    DI _get_afterPulseProb    = std::bind( &IPMTSimParamSvc::get_afterPulseProb,   ipsps, _1 ); 
+    DI _get_prePulseProb      = std::bind( &IPMTSimParamSvc::get_prePulseProb,     ipsps, _1 ); 
+    DI _get_tts               = std::bind( &IPMTSimParamSvc::get_tts,              ipsps, _1 ); 
+    DI _get_timeOffset        = std::bind( &IPMTSimParamSvc::get_timeOffset,       ipsps, _1 ); 
+    DI _get_efficiency        = std::bind( &IPMTSimParamSvc::get_efficiency,       ipsps, _1 ); 
+    DI _get_QE                = std::bind( &IPMTSimParamSvc::get_QE,               ipsps, _1 ); 
 
-    DID _get_pmtid_ce         = std::bind( &IPMTSimParamSvc::get_pmtid_ce,         ipsps, P1, P2 ); 
-    DID _get_pmtcat_ce        = std::bind( &IPMTSimParamSvc::get_pmtcat_ce,        ipsps, P1, P2 ); 
-    DID _get_pmtid_qe         = std::bind( &IPMTSimParamSvc::get_pmtid_qe,         ipsps, P1, P2 ); 
-    DID _get_pmtcat_qe        = std::bind( &IPMTSimParamSvc::get_pmtcat_qe,        ipsps, P1, P2 ); 
+    DID _get_pmtid_ce         = std::bind( &IPMTSimParamSvc::get_pmtid_ce,         ipsps, _1, _2 ); 
+    DID _get_pmtcat_ce        = std::bind( &IPMTSimParamSvc::get_pmtcat_ce,        ipsps, _1, _2 ); 
+    DID _get_pmtid_qe         = std::bind( &IPMTSimParamSvc::get_pmtid_qe,         ipsps, _1, _2 ); 
+    DID _get_pmtcat_qe        = std::bind( &IPMTSimParamSvc::get_pmtcat_qe,        ipsps, _1, _2 ); 
 
-    DI  _get_pmt_qe_scale     = std::bind( &IPMTSimParamSvc::get_pmt_qe_scale,     ipsps, P1 ); 
-    DI  _get_shape_qe_at420nm = std::bind( &IPMTSimParamSvc::get_shape_qe_at420nm, ipsps, P1 ); 
-    DI  _get_real_qe_at420nm  = std::bind( &IPMTSimParamSvc::get_real_qe_at420nm,  ipsps, P1 ); 
+    DI  _get_pmt_qe_scale     = std::bind( &IPMTSimParamSvc::get_pmt_qe_scale,     ipsps, _1 ); 
+    DI  _get_shape_qe_at420nm = std::bind( &IPMTSimParamSvc::get_shape_qe_at420nm, ipsps, _1 ); 
+    DI  _get_real_qe_at420nm  = std::bind( &IPMTSimParamSvc::get_real_qe_at420nm,  ipsps, _1 ); 
 
     add_scan( "get_gain",             scan_di( _get_gain,             all_pmtID ) ); 
     add_scan( "get_sigmaGain",        scan_di( _get_sigmaGain,        all_pmtID ) ); 
-    add_scan( "get_pde",              scan_di( _get_pde,              all_pmtID ) ); 
+    //add_scan( "get_pde",              scan_di( _get_pde,              all_pmtID ) );  // map.at assert 30000
     add_scan( "get_dcr",              scan_di( _get_dcr,              all_pmtID ) ); 
     add_scan( "get_afterPulseProb",   scan_di( _get_afterPulseProb,   all_pmtID ) ); 
     add_scan( "get_prePulseProb",     scan_di( _get_prePulseProb,     all_pmtID ) ); 
     add_scan( "get_tts",              scan_di( _get_tts,              all_pmtID ) ); 
     add_scan( "get_timeOffset",       scan_di( _get_timeOffset,       all_pmtID ) ); 
-    add_scan( "get_efficiency",       scan_di( _get_efficiency,       all_pmtID ) ); 
-    add_scan( "get_QE",               scan_di( _get_QE,               all_pmtID ) ); 
+    //add_scan( "get_efficiency",       scan_di( _get_efficiency,       all_pmtID ) ); // std::out_of_range
+    //add_scan( "get_QE",               scan_di( _get_QE,               all_pmtID ) ); 
 
     add_scan( "get_pmtid_ce",         scan_did(_get_pmtid_ce,         all_pmtID,  theta ) ); 
     add_scan( "get_pmtcat_ce",        scan_did(_get_pmtcat_ce,        all_pmtcat, theta ) ); 

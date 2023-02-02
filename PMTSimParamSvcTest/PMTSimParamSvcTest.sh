@@ -31,6 +31,12 @@ Then repeat the above procedure for a different branch being tested, eg::
 NB make sure to rebuild both junosw and the test after checkout
 of the different branch 
 
+Issue
+-------
+
+#8  0x00007ffff7bae81b in PMTSimParamSvc::get_pde (this=0x217c350, pmtId=30000) at /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:616
+
+
 EOU
 }
 
@@ -89,9 +95,14 @@ if [ "${arg/run}" != "$arg" ]; then
     [ $? -ne 0 ] && echo $BASH_SOURCE run error && exit 4
 fi 
 
+if [ "${arg/dbg}" != "$arg" ]; then 
+    gdb__ $idir/bin/$bin
+    [ $? -ne 0 ] && echo $BASH_SOURCE dbg error && exit 5
+fi 
+
 if [ "${arg/ana}" != "$arg" ]; then 
     AFOLD=$FOLD ${IPYTHON:-ipython} --pdb -i $sdir/$bin.py 
-    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 5 
+    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 6
 fi 
 
 if [ "${arg/cf}" != "$arg" ]; then 
@@ -100,7 +111,7 @@ if [ "${arg/cf}" != "$arg" ]; then
     export BFOLD=$odir/blyth-66-low-dependency-PMT-data-access
  
     ${IPYTHON:-ipython} --pdb -i $sdir/$bin.py 
-    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 5 
+    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 7 
 fi 
 
 
