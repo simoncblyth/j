@@ -17,6 +17,10 @@ See also:
 * j/PMTFastSim/tests/PMTAccessorTest.sh 
 * u4/tests/U4PMTAccessorTest.sh 
 
+Note:
+
+* G4MaterialPropertiesTable::GetProperty is not const-correct
+
 **/
 
 #include <string>
@@ -35,12 +39,12 @@ struct PMTAccessor : public IPMTAccessor
 
     const PMTSimParamData* data ; 
 
-    const G4Material* Pyrex  ; 
-    const G4Material* Vacuum ; 
-    G4MaterialPropertiesTable* PyrexMPT ; // GetProperty is not const-correct
+    const G4Material*          Pyrex  ; 
+    const G4Material*          Vacuum ; 
+    G4MaterialPropertiesTable* PyrexMPT ; 
     G4MaterialPropertiesTable* VacuumMPT ; 
-    G4MaterialPropertyVector* PyrexRINDEX ;  
-    G4MaterialPropertyVector* VacuumRINDEX ; 
+    G4MaterialPropertyVector*  PyrexRINDEX ;  
+    G4MaterialPropertyVector*  VacuumRINDEX ; 
 
     static std::string Desc(); 
     static const PMTSimParamData* LoadPMTSimParamData(const char* base=nullptr ); 
@@ -49,12 +53,14 @@ struct PMTAccessor : public IPMTAccessor
     PMTAccessor(const PMTSimParamData* data); 
     std::string desc() const ; 
 
+
+    // IPMTAccessor interace
     double get_pmtid_qe( int pmtid, double energy ) const ; 
     int    get_pmtcat( int pmtid  ) const ; 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
-    // HMM: is the argument really energy_eV or energy (factor of 1e-6 between them)
-
     const char* get_typename() const ; 
+
+    // HMM: is the argument really energy_eV or energy (factor of 1e-6 between them)
 };
 
 inline std::string PMTAccessor::Desc()  // static  

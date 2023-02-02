@@ -502,7 +502,9 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
-   opts="$opts --disable-pmt-optical-model"
+   opts="$opts --old-optical-model"
+   #opts="$opts --disable-pmt-optical-model"
+
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "
 

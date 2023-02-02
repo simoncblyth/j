@@ -117,6 +117,155 @@ Switch to relative image links
 
 
 
+PMTSimParamSvcTest
+--------------------
+
+::
+
+    epsilon:junosw blyth$ find . -name PMTSimParamSvc.cc
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc
+
+
+Simulation/SimSvc/PMTSimParamSvcTest/CMakeLists.txt::
+
+    PKG(PMTSimParamSvcTest
+            src/PMTSimParamSvcTest.cc
+        NOAUX
+        APPONLY PMTSimParamSvcTestApp
+        DEPENDS
+            PMTSimParamSvc  
+    )
+
+::
+
+     10 
+     11 install(EXPORT ${PROJECT_NAME}Targets
+     12         NAMESPACE ${PROJECT_NAME}::
+     13         FILE "${PROJECT_NAME}Targets.cmake"
+     14         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/")
+     15 
+
+
+
+
+
+cmake/Modules/PKG.cmake 
+-------------------------
+
+::
+
+     39 # = NOTE: build library as shared or module? =
+     40 #
+     41 # * In principle, all the SNiPER's dynamically-loadable elements should be
+     42 #   built as modules. 
+     43 # * The module could not be linked by other libraries.
+     44 # * Due to some reasons, the interface of service and the implementation is
+     45 #   not separated. This cause such libraries should be built as shared. 
+     46 # 
+     47 # The plan is to move to a more clean interface and a separate implemenataion.
+     48 # The default policy is building a 'shared' library.
+     49 # User can use option 'MODULE' to enable a 'module' library. 
+     50 # For consistency, 'SHARED' will be also provided. 
+     51 # It is also same to the CMake add_library. 
+
+
+::
+
+    312         ######################################################################
+    313         # = Build App =
+    314         ######################################################################
+    315         #
+    316         # In addition to the built libraries, an executable will be built. 
+    317         #
+    318         # ARG_FILES will be used to build the App when ARG_APP exists
+    319         # 
+    320         # The limitation is that only one app could be built in one package
+    321         # 
+    322         ######################################################################
+
+
+
+::
+
+    epsilon:junosw blyth$ find . -name CMakeLists.txt -exec grep -H APP {} \;
+    ./EventDisplay/VisClient/CMakeLists.txt:    APP serena
+
+    ./Generator/RadioActivity/Cs137/CMakeLists.txt:    APPONLY Cs137
+    ./Generator/RadioActivity/AmC/CMakeLists.txt:    APPONLY AmC
+    ./Generator/RadioActivity/Cf252/CMakeLists.txt:    APPONLY Cf252
+    ./Generator/RadioActivity/AmBe/CMakeLists.txt:    APPONLY AmBe
+    ./Generator/RadioActivity/Mn54/CMakeLists.txt:    APPONLY Mn54
+    ./Generator/RadioActivity/K40/CMakeLists.txt:    APPONLY K40
+    ./Generator/RadioActivity/Co60/CMakeLists.txt:    APPONLY Co60
+    ./Generator/RadioActivity/Ge68/CMakeLists.txt:    APPONLY Ge68
+    ./Generator/RadioActivity/PuC/CMakeLists.txt:    APPONLY PuC
+    ./Generator/UnifiedGen/UnifiedInverseBeta/CMakeLists.txt:    APPONLY UnifiedIBD
+    ./Generator/UnifiedGen/UnifiedGeoNu/CMakeLists.txt:    APPONLY UnifiedGeoNu
+    ./Generator/InverseBeta/CMakeLists.txt:    APPONLY IBD
+    ./Generator/ReactorNuES/CMakeLists.txt:    APPONLY ReactorNuES
+    ./Generator/Supernova/CMakeLists.txt:    APPONLY SN
+    ./Generator/NuSolGen/CMakeLists.txt:    # APP NuSolGenApp
+    ./Generator/GeoNu/CMakeLists.txt:    APPONLY GeoNu
+    ./Generator/AtmNuGen/CMakeLists.txt:    APPONLY
+    ./Generator/ProtonDecay/CMakeLists.txt:    APPONLY ProtonDecay
+    ./Generator/Muon/CMakeLists.txt:    APPONLY Muon
+
+
+* Generator APPONLY aprobably just depend on externals (CLHEP and ROOT)
+  not on the rest of the junosw so not interesting from point of view of
+  developing a C++ test of PMTSimParamSvc for example
+
+
+* WOW : serena is the only APP in junosw 
+
+junosw/EventDisplay/VisClient/CMakeLists.txt::
+
+     01 PKG(VisClient
+      2         src/VisClient.cc
+      3         src/VisHelp.cc
+      4     NOAUX
+      5     APP serena
+      6     FILES
+      7         src/jvis.C
+      8     DICTS
+      9         VisClient
+     10     DEPENDS
+     11         JVisLib
+     12         Gui Eve EG TreePlayer Geom Ged RGL
+     13 )
+          
+
+
+
+APPONLY binaries for tests ?
+-----------------------------
+
+::
+
+    epsilon:junosw blyth$ find . -name CMakeLists.txt -exec grep -A 5 -B 5 -H APPONLY {} \;
+
+    epsilon:junosw blyth$ find . -name '*.cc' -exec grep -H int\ main {} \; 
+
+
+cmake/Modules/PKG.cmake::
+
+::
+
+    epsilon:junosw blyth$ find . -name test 
+    ./Simulation/DetSimV2/MCParamsSvc/src/test
+    ./Generator/Supernova/test
+    ./RootIO/RootIOTest/test
+    ./Reconstruction/RecMuon/BundleRecByChargeTool/test
+    ./Reconstruction/RecMuon/CdLpmtQSpecMuonRecTool/test
+    ./Reconstruction/RecMuon/PoolMuonRecTool/test
+    ./Reconstruction/RecMuon/SpmtMuonRecTool/test
+    ./Reconstruction/RecMuon/RecWpMuonAlg/test
+    ./Reconstruction/RecMuon/RecCdMuonAlg/test
+    ./DataModel/Context/test
+    epsilon:junosw blyth$ 
+        
+
+
 
 Adding documentation
 -----------------------

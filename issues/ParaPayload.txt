@@ -1,0 +1,24 @@
+
+
+Attempting to use the junosw CMake exported targets::
+
+    cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+    set(name PMTSimParamSvcTest)
+    project(${name} VERSION 0.1.0)
+
+    include("$ENV{JUNOTOP}/junosw/InstallArea/lib64/cmake/junosw/JUNODependencies.cmake")
+    include("$ENV{JUNOTOP}/junosw/InstallArea/lib64/cmake/junosw/junoswTargets.cmake")
+
+    add_executable(${name} ${name}.cc)
+
+    target_link_libraries(${name} junosw::PMTSimParamSvc)
+
+    install(TARGETS ${name} DESTINATION bin)
+
+
+Gives undefined reference error::
+
+    /data/blyth/junotop/junosw/InstallArea/lib64/libParaDB.so: undefined reference to `ParaDB::ParaPayload::null_payload()'
+    collect2: error: ld returned 1 exit status
+    make[2]: *** [PMTSimParamSvcTest] Error 1
+    make[2]: Leaving directory `/tmp/blyth/opticks/Use_junosw/bu
