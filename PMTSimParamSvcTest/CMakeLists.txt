@@ -6,6 +6,7 @@ include("$ENV{JUNOTOP}/junosw/InstallArea/lib64/cmake/junosw/JUNODependencies.cm
 include("$ENV{JUNOTOP}/junosw/InstallArea/lib64/cmake/junosw/junoswTargets.cmake")
 
 include_directories(
+   $ENV{HOME}/np
    $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc
    $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc
 )

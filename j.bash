@@ -147,6 +147,83 @@ Simulation/SimSvc/PMTSimParamSvcTest/CMakeLists.txt::
 
 
 
+Examples/Tutorial/python/Tutorial/JUNOApplication.py::
+
+    138         import Sniper
+    139 
+    140         # Create all tasks: top task + sub tasks
+    141         self.toptask = Sniper.TopTask("junotoptask")
+    142         self.toptask.setEvtMax(self.args.evtmax)
+    143         self.toptask.setLogLevel(self.DATA_LOG_MAP[self.args.loglevel])
+    144         Sniper.setLogLevel(self.DATA_LOG_MAP[self.args.loglevel])
+    145 
+    146         for module_container in self.module_containers.values():
+    147             # create task in toptask
+    148             module_container.create_task(self.toptask)
+    149         # Initialize all the modules: default + others
+    150         self.module_container_default.init(self.toptask, self.args)
+    151 
+    152         for module_container in self.module_containers.values():
+    153             # init all the modules 
+    154             for module in module_container.modules:
+    155                 module.init(module_container.task, self.args)
+    156 
+    157             self.setup_profiling(module_container.task)
+    158 
+    159         self.setup_profiling(self.toptask)
+    160 
+    161         self.toptask.show()
+    162         self.toptask.run()
+
+
+Examples/Tutorial/python/Tutorial/JUNODetSimModule.py::
+
+    0144     def init(self, toptask, args):
+     145         self.init_common(toptask, args)
+     146         self.init_data_registrition(toptask, args)
+     147         self.init_rootio_buffer(toptask, args)
+     148         self.init_dbsvc(toptask, args)
+     149         self.init_random_service(toptask, args)
+     150         self.init_rootwriter(toptask, args)
+     151         self.init_global_time(toptask, args)
+     152         self.init_juno_timer(toptask, args)
+     153         self.init_mc_parameters(toptask, args)
+     154         self.init_geometry_and_parameters(toptask, args)
+     155 
+
+    1086     def init_geometry_and_parameters(self, task, args):
+    1087         import Geometry
+    1088         pmt_param_svc = task.createSvc("PMTParamSvc")
+    1089 
+    1090         if args.ranges_pmt_enabled:
+    1091             l = args.ranges_pmt_enabled.split(",")
+    1092             l = [int(i) for i in l if i.isdigit()]
+    1093             pmt_param_svc.property("Ranges_PMT_Enabled").set(l)
+    1094 
+    1095         if args.ranges_pmt_constructed:
+    1096             l = args.ranges_pmt_constructed.split(",")
+    1097             l = [int(i) for i in l if i.isdigit()]
+    1098             pmt_param_svc.property("Ranges_PMT_Constructed").set(l)
+    1099 
+    1100 
+    1101         tt_geom_svc = task.createSvc("TTGeomSvc")
+    1102 
+    1103         import PMTSimParamSvc
+    1104         print(" == PMTSimParamSvc == ")
+    1105         pmt_sim_param_svc = task.createSvc("PMTSimParamSvc")
+    1106         pmt_sim_param_svc.property("DBType").set(args.dbtype)
+    1107 
+
+junosw/Simulation/SimSvc/PMTSimParamSvc/python/PMTSimParamSvc/__init__.py::
+
+    import Sniper
+    Sniper.loadDll("libPMTSimParamSvc.so")
+    del Sniper
+
+
+
+
+
 
 
 cmake/Modules/PKG.cmake 
