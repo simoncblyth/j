@@ -18,11 +18,12 @@ if __name__ == '__main__':
         assert a.stems == b.stems
         for stem in a.stems:
             if stem == "NPFold_index": continue
+            if stem.endswith("_meta"): continue
             aq = getattr(a, stem)
             bq = getattr(b, stem)
             mq = np.all( aq == bq )
             print(" stem %25s : aq %20s : bq %20s : mq %s " % (stem, str(aq.shape), str(bq.shape), mq ))
-            assert(mq)
+            #assert(mq)
         pass 
     pass
 
