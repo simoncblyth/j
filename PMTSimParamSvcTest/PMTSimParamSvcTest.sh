@@ -90,9 +90,20 @@ if [ "${arg/run}" != "$arg" ]; then
 fi 
 
 if [ "${arg/ana}" != "$arg" ]; then 
+    AFOLD=$FOLD ${IPYTHON:-ipython} --pdb -i $sdir/$bin.py 
+    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 5 
+fi 
+
+if [ "${arg/cf}" != "$arg" ]; then 
+
+    export AFOLD=$odir/main
+    export BFOLD=$odir/blyth-66-low-dependency-PMT-data-access
+ 
     ${IPYTHON:-ipython} --pdb -i $sdir/$bin.py 
     [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 5 
 fi 
+
+
 
 info 
 
