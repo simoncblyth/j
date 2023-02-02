@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <functional>
 #include <cstdlib>
+#include <cassert>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
@@ -61,7 +62,7 @@ IPMTSimParamSvc* Get_IPMTSimParamSvc()
 NP* scan_di( std::function<double(int)> fn, const std::vector<int>& ii  )
 {
     int ni = ii.size() ; 
-    NP* a = NP::Make<double>( ni, nj );
+    NP* a = NP::Make<double>( ni );
     double* aa = a->values<double>() ;    
     for(int i=0 ; i < ni ; i++) aa[i] = fn(ii[i]) ;
     return a ; 
@@ -77,7 +78,6 @@ NP* scan_did( std::function<double(int, double)> fn, const std::vector<int>& ii,
     return a ; 
 } 
 
-const FOLD = getenv("FOLD"); 
 
 int main(int, char** argv)
 {
@@ -111,6 +111,8 @@ int main(int, char** argv)
     fold->add( "get_pmt_qe_scale",     scan_di( _get_pmt_qe_scale,     all_pmtID ) ); 
     fold->add( "get_shape_qe_at420nm", scan_di( _get_shape_qe_at420nm, all_pmtID ) ); 
 
+    char* FOLD = getenv("FOLD"); 
+    std::cout << " save to FOLD " << ( FOLD ? FOLD : "-" ) << std::endl;
     assert(FOLD); 
     fold->save(FOLD); 
 
