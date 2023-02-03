@@ -13,8 +13,13 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 
 #include "Geometry/PMTParamSvc.h"
-#include "Geometry/PMT.h"
-#include "Geometry/PMTCategory.h"
+
+// split off of PMT.h and PMTCategory.h not yet in main
+// but get them from IPMTSimParamSvc.h anyhow
+// so its version agnostic to rely on that for both main and the branch 
+//
+//#include "Geometry/PMT.h"
+//#include "Geometry/PMTCategory.h"
 
 // The below includes need special include_directories setting in CMakeLists.txt 
 // in order to grab from src directories.
