@@ -17,6 +17,9 @@ Common source for JUNO high level bash functions
 * https://github.com/simoncblyth/j/blob/main/Layr/Layr.h
 
 
+* https://github.com/JUNO-collaboration
+* https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
+
 
 PMTSimParamSvc and PMTParamSvc
 ---------------------------------

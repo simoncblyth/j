@@ -24,15 +24,18 @@ Is dependency build order wrong ? junosw/Simulation/CMakeLists.txt::
     add_subdirectory (GenTools)
     add_subdirectory (GenDecay)
 
-    # SCB : SimSvc was previously after ElecSimV3, but surely needed by DetSimV2 ?
-    add_subdirectory (SimSvc)
 
     add_subdirectory (DetSimV2)
     add_subdirectory (EvtMixing)
     add_subdirectory (ElecSimV3)
 
+    add_subdirectory (SimSvc)
 
     add_subdirectory (SNMonitorSim)
+
+
+Would have expected SimSvc needed by DetSimV2 ?
+
        
 
 
@@ -45,6 +48,8 @@ jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
 jx-vi(){ vi $BASH_SOURCE ; }
 jxf(){ source $BASH_SOURCE ; }
 jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
+
+jxp(){  cd ~/j/PMTSimParamSvcTest ; pwd ; }
 
 jproj(){ cat << EOL
 

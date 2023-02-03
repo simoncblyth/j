@@ -114,6 +114,15 @@ if [ "${arg/cf}" != "$arg" ]; then
     [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 7 
 fi 
 
+if [ "${arg/grab}" != "$arg" ]; then
+
+    dir=/tmp/$USER/j/PMTSimParamSvcTest/output
+    mkdir -p $dir 
+    cmd="rsync -rtz --progress P:${dir}/ ${dir}/"
+    echo $cmd
+    eval $cmd 
+fi 
+
 
 
 info 
