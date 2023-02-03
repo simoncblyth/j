@@ -13,6 +13,8 @@
 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
 
 #include "Geometry/PMTParamSvc.h"
+#include "Geometry/PMT.h"
+#include "Geometry/PMTCategory.h"
 
 // The below includes need special include_directories setting in CMakeLists.txt 
 // in order to grab from src directories.
@@ -119,6 +121,12 @@ NP* scan_did( std::function<double(int, double)> fn, const std::vector<int>& ii,
 } 
 
 
+namespace PMTID
+{
+    bool IsLPMT(int pmtID){ return pmtID >= kOFFSET_CD_LPMT && pmtID < kOFFSET_WP_PMT ; }
+    bool IsWPMT(int pmtID){ return pmtID >= kOFFSET_WP_PMT  && pmtID < kOFFSET_CD_SPMT ; }
+    bool IsSPMT(int pmtID){ return pmtID >= kOFFSET_CD_SPMT ; }
+}; 
 
 struct Scan
 {
@@ -128,9 +136,16 @@ struct Scan
     NPFold* fold ; 
 
     const std::vector<int>& all_pmtID ; 
+    std::vector<int> lpmtID ; 
+    std::vector<int> spmtID ; 
+    std::vector<int> wpmtID ; 
+
     std::vector<int> all_pmtcat ; 
     std::vector<double> energy ; 
     std::vector<double> theta ; 
+
+    static constexpr const char* PROP = "ARC_RINDEX ARC_KINDEX PHC_RINDEX PHC_KINDEX" ;  
+    std::vector<std::string> prop ; 
 
     int num_id ; 
     int num_cat ; 
@@ -138,6 +153,7 @@ struct Scan
     int num_theta ; 
   
     Scan(IPMTSimParamSvc* ipsps); 
+
     std::string desc() const ; 
     void init(); 
     void add_scan(const char* name, NP* a);
@@ -184,6 +200,7 @@ inline std::string Scan::desc() const
     return str ; 
 }
 
+
 inline void Scan::init()
 {
     Linspace(energy, 1.55*CLHEP::eV, 15.5*CLHEP::eV, 100 ); 
@@ -191,6 +208,20 @@ inline void Scan::init()
 
     Linspace(theta, 0.*CLHEP::degree, 90.*CLHEP::degree, 100 ); 
     num_theta = theta.size();  
+
+    std::stringstream ss(PROP); 
+    std::string str;
+    while (std::getline(ss, str, ' ')) prop.push_back(str) ; 
+
+    for(int i=0 ; i < int(all_pmtID.size()) ; i++)
+    {
+        int pmtID = all_pmtID[i] ; 
+        if(     PMTID::IsLPMT(pmtID)) lpmtID.push_back(pmtID) ; 
+        else if(PMTID::IsWPMT(pmtID)) wpmtID.push_back(pmtID) ; 
+        else if(PMTID::IsSPMT(pmtID)) spmtID.push_back(pmtID) ; 
+        else assert(0) ; 
+    }
+
 }
 inline void Scan::add_scan(const char* name, NP* a)
 {
@@ -227,14 +258,14 @@ inline void Scan::add_scan()
 
     add_scan( "get_gain",             scan_di( _get_gain,             all_pmtID ) ); 
     add_scan( "get_sigmaGain",        scan_di( _get_sigmaGain,        all_pmtID ) ); 
-    //add_scan( "get_pde",              scan_di( _get_pde,              all_pmtID ) );  // map.at assert 30000
+    add_scan( "get_pde_lpmt",         scan_di( _get_pde,              lpmtID ) );    
     add_scan( "get_dcr",              scan_di( _get_dcr,              all_pmtID ) ); 
     add_scan( "get_afterPulseProb",   scan_di( _get_afterPulseProb,   all_pmtID ) ); 
     add_scan( "get_prePulseProb",     scan_di( _get_prePulseProb,     all_pmtID ) ); 
     add_scan( "get_tts",              scan_di( _get_tts,              all_pmtID ) ); 
     add_scan( "get_timeOffset",       scan_di( _get_timeOffset,       all_pmtID ) ); 
-    //add_scan( "get_efficiency",       scan_di( _get_efficiency,       all_pmtID ) ); // std::out_of_range
-    //add_scan( "get_QE",               scan_di( _get_QE,               all_pmtID ) ); 
+    add_scan( "get_efficiency",       scan_di( _get_efficiency,       spmtID ) ); 
+    add_scan( "get_QE",               scan_di( _get_QE,               spmtID ) ); 
 
     add_scan( "get_pmtid_ce",         scan_did(_get_pmtid_ce,         all_pmtID,  theta ) ); 
     add_scan( "get_pmtcat_ce",        scan_did(_get_pmtcat_ce,        all_pmtcat, theta ) ); 
@@ -253,7 +284,6 @@ inline void Scan::save() const
     assert(FOLD); 
     fold->save(FOLD); 
 }
-
 
 int main(int, char**)
 {

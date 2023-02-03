@@ -14,6 +14,28 @@ Database/ParaDB/src/ParaPayload.cc
 -    const ParaPayload& null_payload() {
 +    const ParaPayload& ParaPayload::null_payload() {
 
+::
+
+   perl -pi -e 's/ null_payload/ ParaPayload::null_payload/' Database/ParaDB/src/ParaPayload.cc
+
+
+Is dependency build order wrong ? junosw/Simulation/CMakeLists.txt::
+
+    add_subdirectory (GenTools)
+    add_subdirectory (GenDecay)
+
+    # SCB : SimSvc was previously after ElecSimV3, but surely needed by DetSimV2 ?
+    add_subdirectory (SimSvc)
+
+    add_subdirectory (DetSimV2)
+    add_subdirectory (EvtMixing)
+    add_subdirectory (ElecSimV3)
+
+
+    add_subdirectory (SNMonitorSim)
+       
+
+
 
 
 EOU
