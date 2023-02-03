@@ -126,7 +126,7 @@ namespace PMTID
     bool IsLPMT(int pmtID){ return pmtID >= kOFFSET_CD_LPMT && pmtID < kOFFSET_WP_PMT ; }
     bool IsWPMT(int pmtID){ return pmtID >= kOFFSET_WP_PMT  && pmtID < kOFFSET_CD_SPMT ; }
     bool IsSPMT(int pmtID){ return pmtID >= kOFFSET_CD_SPMT ; }
-}; 
+}
 
 struct Scan
 {
