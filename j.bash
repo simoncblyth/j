@@ -830,6 +830,20 @@ Now following the merge of the MR, tidy up : by deleting the now merged branch.
     N[blyth@localhost junosw]$ 
 
 
+Why this complaint ? Maybe as forgot to pull before deleting::
+
+    N[blyth@localhost junosw]$ git branch -d blyth-66-low-dependency-PMT-data-access
+    warning: deleting branch 'blyth-66-low-dependency-PMT-data-access' that has been merged to
+             'refs/remotes/origin/blyth-66-low-dependency-PMT-data-access', but not yet merged to HEAD.
+    Deleted branch blyth-66-low-dependency-PMT-data-access (was 57cd3e0).
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git pull 
+    Already up to date.
+    N[blyth@localhost junosw]$ 
+
+
+
+
 Another example::
 
     N[blyth@localhost junosw]$ git branch 
