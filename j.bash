@@ -388,6 +388,17 @@ Getting laptop to follow an upstream branch
 
 ::
 
+    epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+    Branch blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess set up to track remote branch blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess from origin.
+    epsilon:junosw blyth$ 
+
+    N[blyth@localhost junosw]$  git branch --set-upstream-to=origin/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess \
+    > blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+    Branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess' set up to track remote branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess' from 'origin'.
+    N[blyth@localhost junosw]$ 
+
+ 
+
     epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
     Branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap set up to track remote branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap from origin.
     epsilon:junosw blyth$ 

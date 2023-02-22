@@ -28,7 +28,7 @@ JPMT.h
 JPMTTest.cc
 JPMTTest.py
 JPMTTest.sh
-   test 
+   various tests including of IPMTAccessor::get_stackspec interface 
 
 
 Standalone access to PMT data using persisted PMTSimParamData
@@ -42,7 +42,7 @@ PMTAccessor.h
      obtained from the PMTSimParamSvc 
 
    * without monolith boot the accessor using PMTSimParamData_BASE envvar
-     that points to a persisted folder : this despite standalone usage 
+     that points to a persisted folder : thus despite standalone usage 
      the data does come from the Svc   
 
 
@@ -68,7 +68,6 @@ LayrMin.cc
 
 
 planning_CustomG4OpBoundaryProcess_development.rst
-
 
 
 

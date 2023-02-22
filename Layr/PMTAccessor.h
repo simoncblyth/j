@@ -26,6 +26,9 @@ Note:
 **/
 
 #include <string>
+#include <sstream>
+#include <cstdlib>
+
 #include "G4Material.hh"
 
 #include "Geometry/PMT.h"
@@ -56,7 +59,7 @@ struct PMTAccessor : public IPMTAccessor
     std::string desc() const ; 
 
 
-    // IPMTAccessor interace
+    // IPMTAccessor interface
     double get_pmtid_qe( int pmtid, double energy ) const ; 
     int    get_pmtcat( int pmtid  ) const ; 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 

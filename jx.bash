@@ -51,6 +51,36 @@ jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline
 
 jxp(){  cd ~/j/PMTSimParamSvcTest ; pwd ; }
 
+jxcustom(){
+
+   cd $JUNOTOP/junosw/Simulation/DetSimV2/PhysiSim 
+   g4-
+   local msg="$BASH_SOURCE :"
+   local hh_source=$(g4-dir)/source/processes/optical/include/G4OpBoundaryProcess.hh
+   local hh_target="include/CustomG4OpBoundaryProcess.hh"
+
+   if [ ! -f "$hh_target" ]; then
+       echo $msg copying to hh_target $hh_target 
+       cp $hh_source $hh_target
+   else
+       echo $msg hh_target $hh_target exists already 
+   fi 
+
+   local cc_source=$(g4-dir)/source/processes/optical/src/G4OpBoundaryProcess.cc
+   local cc_target="src/CustomG4OpBoundaryProcess.cc"
+
+   if [ ! -f "$cc_target" ]; then
+       echo $msg copying to cc_target $cc_target 
+       cp $cc_source $cc_target
+   else
+       echo $msg cc_target $cc_target exists already 
+   fi 
+
+
+}
+
+
+
 jproj(){ cat << EOL
 
 Simulation/DetSimV2/PhysiSim
