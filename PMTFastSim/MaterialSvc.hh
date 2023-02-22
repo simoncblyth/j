@@ -6,7 +6,7 @@ MaterialSvc.hh
 Standalone access to material properties, see::
 
    jcv IMCParamsSvc
-       protocal base using boost::tuple
+       protocol base using boost::tuple
 
    jcv MCParamsFileSvc
    jcv LSExpDetectorConstructionMaterial

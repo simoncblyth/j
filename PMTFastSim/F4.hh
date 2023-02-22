@@ -1,4 +1,11 @@
 #pragma once
+/**
+F4.hh : Geant4 FastTrack Utilities Drawing on Opticks U4
+===========================================================
+
+Used from junoPMTOpticalModel.cc
+
+**/
 
 struct F4
 {

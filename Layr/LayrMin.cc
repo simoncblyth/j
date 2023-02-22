@@ -23,13 +23,5 @@ int main(int argc, char** argv)
 
     std::cout << ss << stack ; 
 
-
-     
-     
-
-
-
-
-
     return 0 ; 
 } 

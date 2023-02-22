@@ -46,25 +46,29 @@ struct PMTFASTSIM_API IGeomManager
     static constexpr const int LEVEL = 0 ;  // using PLOG across projects inconvenient ?
     static constexpr const char* PREFIX = "0123" ; 
 
-    static const char* EnvKey(const std::string& prefix, const std::string& key, char sep='_' ); 
-    template<typename T>
-    static bool  Envv(const char* ekey, T& var ); 
- 
+    const std::string& m_objName;
+    char*              m_geom ;
+    char*              m_head ;
+    char*              m_tail ;
+    std::vector<std::pair<std::string, double>> m_values ;
+
+
 
     IGeomManager( const std::string& objName ); 
 
-    const std::string& m_objName;
-    char* m_geom ;
-    char* m_head ;
-    char* m_tail ;
-
-    std::vector<std::pair<std::string, double>> m_values ;
+    static const char* EnvKey(const std::string& prefix, const std::string& key, char sep='_' ); 
+    template<typename T>
+    static bool  Envv(const char* ekey, T& var ); 
 
     template<typename Type>
     bool declProp(const std::string& key, Type& var); 
 
+
+
     static void Chop( char** head, char** tail, const char* delim, const char* str );
     void setGeom(const char* geom); 
+
+    const std::string& objName() { return m_objName; }
     const char* getGeom() const ;  
     const char* getHead() const ;  
     const char* getTail() const ;  
@@ -72,7 +76,6 @@ struct PMTFASTSIM_API IGeomManager
     bool hasOpt(const char* q) const ; 
 
 
-    const std::string& objName() { return m_objName; }
 
     void addValue( const char* k , double v ); 
     NP*  getValues(const char* prefix) ;             
@@ -85,6 +88,15 @@ struct PMTFASTSIM_API IGeomManager
     virtual junoPMTOpticalModel* getPMTOpticalModel(const char* name) = 0 ; 
 }; 
 
+
+inline IGeomManager::IGeomManager( const std::string& objName )
+    :
+    m_objName(objName), 
+    m_geom(nullptr),
+    m_head(nullptr),
+    m_tail(nullptr)
+{
+}
 
 inline const char* IGeomManager::EnvKey(const std::string& prefix, const std::string& key, char sep ) // static
 {
@@ -108,15 +120,6 @@ inline bool  IGeomManager::Envv(const char* ekey, T& var )
 }
 
 
-
-inline IGeomManager::IGeomManager( const std::string& objName )
-    :
-    m_objName(objName), 
-    m_geom(nullptr),
-    m_head(nullptr),
-    m_tail(nullptr)
-{
-}
 
 /**
 IGeomManager::declProp

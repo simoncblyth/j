@@ -21,6 +21,12 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+DocDB
+-------
+
+* https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowCalendar?year=2023&month=2
+
+
 PMTSimParamSvc and PMTParamSvc
 ---------------------------------
 
@@ -427,6 +433,31 @@ can still switch to the branch just created via web interface.
 
 * this leave working copy changes asis (but if there are lots of them could use stash for safety)
 
+List branches::
+
+    epsilon:junosw blyth$ git branch 
+      blyth-66-low-dependency-PMT-data-access
+    * main
+
+    epsilon:junosw blyth$ git checkout -b blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+    Switched to a new branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess'
+    epsilon:junosw blyth$ 
+
+    epsilon:junosw blyth$ git branch 
+      blyth-66-low-dependency-PMT-data-access
+    * blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+      main
+
+    epsilon:junosw blyth$ git branch -d blyth-66-low-dependency-PMT-data-access
+    warning: deleting branch 'blyth-66-low-dependency-PMT-data-access' that has been merged to
+             'refs/remotes/origin/blyth-66-low-dependency-PMT-data-access', but not yet merged to HEAD.
+    Deleted branch blyth-66-low-dependency-PMT-data-access (was 4a9d093).
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ git branch 
+    * blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+      main
+    epsilon:junosw blyth$ 
 
 
 Examples::

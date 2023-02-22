@@ -10,7 +10,9 @@ can be obtained from PMTSimParamSvc.
 Fortunately due to PMTSimParamData persisting from _PMTSimParamData 
 this struct which is intended to be a monolith resident used together
 with a CustomG4OpBoundaryProcess can be compared with JPMT.h 
-outside the monolith. 
+outside the monolith using "PMTAccessor::Create()" without data argument, 
+which will cause the data to be loaded from the directory pointed to 
+by envvar PMTSimParamData_BASE
 
 See also:
 
