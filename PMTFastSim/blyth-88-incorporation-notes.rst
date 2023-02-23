@@ -1,0 +1,678 @@
+blyth-88-incorporation-notes.rst
+=====================================
+
+Review UsePMTOpticalModel switch effect, consider how to switch between impl
+-----------------------------------------------------------------------------------------------------------
+
+Four cases to consider::
+   
+               +-------------------------+--------------------------+-------------------------------+   
+               |                         | Unnatural PMT            |  Natural PMT                  |
+               +=========================+==========================+===============================+   
+               |  Traditional POM        |                          |                               |
+               |                         |  ProcessHits QE          |  CustomG4OpBoundaryProcess    |
+               |                         |                          |                               |
+               |                         |                          |                               |
+               |                         | OpticalSurfaceName       |  OpticalSurfaceName           |
+               |                         | without special prefix   |  starting '#'                 |
+               |                         |                          |                               |
+               |  (ph stop at cathode)   |                          |                               |
+               +-------------------------+--------------------------+-------------------------------+
+               |  MultiFilm POM          |                          |                               |
+               |                         | junoPMTOpticalModel.hh   | Layr.h                        |
+               |                         | FastSim in control       | CustomART.h                   |
+               |                         | (boundary not run)       | CustomG4OpBoundaryProcess     |
+               |                         |                          |                               |
+               |                         |                          |                               |
+               |                         |                          |                               |
+               |                         | OpticalSurfaceName       |  OpticalSurfaceName           |
+               |                         | without special prefix   |  starting '@'                 |
+               |                         |                          |                               |
+               |                         |                          |                               |
+               |                         |                          |                               |
+               |  (photons inside PMT)   |                          |                               |
+               +-------------------------+--------------------------+-------------------------------+
+
+
+MultiFilm POM
+----------------
+
+Q: In MultiFilm POM, what allows photons to refract into PMT ?
+
+A0(Unnatural PMT): body-Pyrex is the FastSim region so the boundary process does not get to run, 
+   so the opsurf has no chance to do anything. Instead FastSim ModelTrigger/DoIT runs 
+   implementing refraction into the PMT.  
+
+A1(Natural PMT): CustomG4OpticalBoundaryProcess/CustomART kicks in for OpticalSurfaceName[0] == '@' at local_z > 0 
+   which calculates theTransmittance,theReflectivity,theEfficiency using the MultiFilm Layr calc with pmtid param 
+
+
+
+How to switch between the Traditional POM and MultiFilm POM impl : Try control via OpticalSurfaceName prefix
+---------------------------------------------------------------------------------------------------------------
+
+* putting this switch into geometry is convenient 
+
+::
+
+     333 void HamamatsuR12860PMTManager::init_mirror_surface()
+     334 {
+     335     if(m_mirror_opsurf) return ;
+     336 
+     337     G4String name ;
+     338     if(m_natural_geometry) name += ( m_enable_optical_model ? '@' : '#' ) ; // prefix controls CustomG4OpBoundaryProcess 
+     339     name += GetName() ;
+     340     name += "_Mirror_opsurf" ;
+
+
+HMM : CustomG4OpBoundaryProcess/CustomART with traditional POM ?
+------------------------------------------------------------------
+
+Try generalization to handle both Traditional POM and MultiFilm POM::
+
+            //[OpticalSurface.mpt.CustomBoundary
+            char osn = OpticalSurfaceName[0] ; 
+            if(  osn == '@' || osn == '#' )  // only customize specially named OpticalSurfaces 
+            {
+                if( m_custom_art->local_z(aTrack) < 0. ) // lower hemi : No customization, standard boundary  
+                {
+                    theCustomStatus = 'Z' ;
+                }
+                else if( osn == '@') //  upper hemi with name starting @ : MultiFilm ART transmit thru into PMT
+                {
+                    theCustomStatus = 'Y' ;
+                    m_custom_art->doIt(aTrack, aStep) ;  // calculate theReflectivity theTransmittance theEfficiency 
+
+                    type = dielectric_dielectric ;
+                    theModel = glisur ;
+                    theFinish = polished ;
+                    // guide thru the below jungle : only when custom handling is triggered 
+                }
+                else if( osn == '#' ) // upper hemi with name starting # : Traditional Detection at photocathode
+                {
+                    theCustomStatus = '-' ;
+
+                    type == dielectric_metal ;
+                    theModel = glisur ;
+                    theReflectivity = 0. ;
+                    theTransmittance = 0. ;
+                    theEfficiency = 1. ;
+                }
+            }
+            else
+            {
+                theCustomStatus = 'X' ; 
+            }
+
+
+
+::
+
+     717             //[OpticalSurface.mpt.CustomBoundary
+     718 #ifdef WITH_PMTFASTSIM
+     719             //theCustomStatus = m_custom_boundary->maybe_doIt( OpticalSurfaceName, aTrack, aStep );  
+     720             theCustomStatus = m_custom_art->maybe_doIt( OpticalSurfaceName, aTrack, aStep );
+     721             if(theCustomStatus == 'Y')
+     722             {
+     723                 type = dielectric_dielectric ;
+     724                 theModel = glisur ;
+     725                 theFinish = polished ;
+     726                 // guide thru the below jungle : only when custom handling is triggered 
+     727             }
+     728 #else
+     729             theCustomStatus = 'X' ;
+     730 #endif
+     731             //]OpticalSurface.mpt.CustomBoundary
+     ...
+     812     //[type_switch 
+     813 #ifdef WITH_PMTFASTSIM
+     814     if( theCustomStatus == 'Y' )
+     815     {
+     816         G4double rand = G4UniformRand();
+     817 
+     818         G4double A = 1. - (theReflectivity + theTransmittance) ;
+     819 
+     820         if ( rand < A )  // HMM: more normally rand > theReflectivity + theTransmittance 
+     821         {
+     822             DoAbsorption();   // theStatus is set to Detection/Absorption depending on a random and theEfficiency  
+     823         }
+     824         else
+     825         {
+     826             DielectricDielectric();
+     827         }
+     828     }
+     829     else
+     830 #endif
+     831     if (type == dielectric_metal)
+     832     {
+     833         //[type_switch.dime
+     834         DielectricMetal();
+     835         //]type_switch.dime
+     836     }
+
+
+
+
+
+Traditional POM
+------------------
+
+Q: In traditional POM, what stops photons that are not detected at Photocathode from entering PMT ?
+
+A0(Unnatural PMT): HamamatsuR12860PMTManager::Photocathode_opsurf NNVTMCPPMTManager::Photocathode_opsurf
+   between body-Pyrex and inner1-Vacuum is dielectric_metal opsurface with  EFFICIENCY 1. REFLECTIVITY 0. 
+
+   * that always DoAbsorption/theStatus=Detection 
+   * so there is no reflection or refraction between body-Pyrex and inner1-Vacuum 
+   * every photon gets "Detection" so ProcessHits will get called 
+
+A1(Natural PMT):
+
+   * HMM: COULD ENCODE THE TRADITIONAL SWITCH WITH : OpticalSurfaceName[0] == '#' 
+   * HMM: CustomG4OpticalBoundaryProcess/CustomART needs a "traditional" switch that sets:
+     dielectric_metal,theTransmittance:0.,theReflectivity:0.,theEfficiency:1.
+
+
+
+Old Surface POM::
+
+      +---------------pmt-Pyrex----------------+
+      | +-------------body-Pyrex-------------+ |
+      | |                                    | |
+      | |                                    | |
+      | |     +------------------------+     | |
+      | |     |                        |     | |
+      | |     |                        |     | |
+      | |     |        inner1-Vacuum   |     |-|
+      | |     |                        |     |1e-3
+      | |     |                        |     | |
+      | |     +~~coincident~face~~~~~~~+     | |
+      | |     |                        |     | |
+      | |     |                        |     | |
+      | |     |        inner2-Vacuum   |     | |
+      | |     |                        |     | |
+      | |     |                        |     | |
+      | |     +------------------------+     | |
+      | |                                    | |
+      | |                                    | |
+      | +------------------------------------+ |
+      +----------------------------------------+
+
+
+
+G4OpBoundaryProcess::DielectricMetal with REFLECTIVITY 0. TRANSMITTANCE 0. (default) ALWAYS DoAbsorption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* DielectricMetal with REFLECTIVITY 0. always Detection/Absorption 
+* Further with EFFICIENCY 1. always Detection
+
+::
+
+    1061 void InstrumentedG4OpBoundaryProcess::DielectricMetal()
+    1062 {
+    1067     G4int n = 0;
+    1068     G4double rand, PdotN, EdotN;
+    1069     G4ThreeVector A_trans, A_paral;
+    1070 
+    1071     do
+    1072     {
+    1073         n++;
+    1074 
+    1075         rand = G4UniformRand();
+    1076 
+    1090         if ( rand > theReflectivity && n == 1 )   // ALWAYS rand > theReflectivity:0.
+    1091         {
+    1092             if (rand > theReflectivity + theTransmittance)  // ALWAYS rand > theReflectivity:0. + theTransmittance:0. (default)  
+    1093             {
+    1094                 DoAbsorption();
+    1095             }
+    1096             else
+    1097             {
+    1098                 theStatus = Transmission;
+    1099                 NewMomentum = OldMomentum;
+    1100                 NewPolarization = OldPolarization;
+    1101             }
+    1102             LOG(LEVEL) << " rand > theReflectivity && n == 1  break " ;
+    1103             break;
+    1104         }
+
+
+    1953 void InstrumentedG4OpBoundaryProcess::DoAbsorption()
+    1954 {
+    1955     LOG(LEVEL)
+    1956         << " PostStepDoIt_count " << PostStepDoIt_count
+    1957         << " theEfficiency " << theEfficiency
+    1958         ;
+    1959 
+    1960     bool detect = G4BooleanRand_theEfficiency(theEfficiency) ;
+    1961     theStatus = detect ? Detection : Absorption ;
+    1962 
+    1963     NewMomentum = OldMomentum;
+    1964     NewPolarization = OldPolarization;
+    1965 
+    1966     aParticleChange.ProposeLocalEnergyDeposit(detect ? thePhotonMomentum : 0.0);
+    1967     aParticleChange.ProposeTrackStatus(fStopAndKill);
+    1968 }
+
+
+
+
+Photocathode_Opsurf
+~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+     197 void
+     198 HamamatsuR12860PMTManager::init_material() {
+     199 
+     200      GlassMat = G4Material::GetMaterial("Pyrex");
+     201      PMT_Vacuum = G4Material::GetMaterial("Vacuum");
+     202      DynodeMat = G4Material::GetMaterial("Steel");
+     203 
+     204      Photocathode_opsurf =  new G4OpticalSurface(GetName()+"_Photocathode_opsurf");
+     205      Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined
+     206      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
+     207 
+     208 #ifdef PMTSIM_STANDALONE
+     209      G4Material* mat = G4Material::GetMaterial("photocathode_Ham20inch");
+     210      Photocathode_opsurf->SetMaterialPropertiesTable(mat ? mat->GetMaterialPropertiesTable() : nullptr ) ;
+     211 #else
+     212      Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_Ham20inch")->GetMaterialPropertiesTable() );
+     213 #endif
+     214      if (m_fast_cover) {
+     215          m_cover_mat = G4Material::GetMaterial(m_cover_mat_str);
+     216          assert(m_cover_mat);
+     217      }
+     218 }
+
+::
+
+    190 void NNVTMCPPMTManager::init_material()
+    191 {
+    192      GlassMat = G4Material::GetMaterial("Pyrex");
+    193      PMT_Vacuum = G4Material::GetMaterial("Vacuum");
+    194      DynodeMat = G4Material::GetMaterial("Steel");
+    195 
+    196      Photocathode_opsurf =  new G4OpticalSurface(GetName()+"_Photocathode_opsurf");
+    197      Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined
+    198      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
+    199      Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_MCP20inch")->GetMaterialPropertiesTable() );
+    200 
+    201      if (m_fast_cover) {
+    202          m_cover_mat = G4Material::GetMaterial(m_cover_mat_str);
+    203          assert(m_cover_mat);
+    204      }
+    205 }
+
+
+::
+
+    epsilon:DetSim blyth$ cd $JUNOTOP/data
+    epsilon:data blyth$ find . -name photocathode_*
+    ./Simulation/DetSim/Material/photocathode_Ham20inch
+    ./Simulation/DetSim/Material/photocathode_HZC9inch
+    ./Simulation/DetSim/Material/photocathode_MCP8inch
+    ./Simulation/DetSim/Material/photocathode_3inch
+    ./Simulation/DetSim/Material/photocathode_Ham8inch
+    ./Simulation/DetSim/Material/photocathode_MCP20inch
+    epsilon:data blyth$ 
+
+
+
+
+EFFICIENCY 1. REFLECTIVITY 0::
+
+    epsilon:photocathode_MCP20inch blyth$ l
+    total 48
+    0 drwxr-xr-x   8 blyth  staff   256 Oct 27 17:55 .
+    0 drwxr-xr-x  35 blyth  staff  1120 Oct 27 17:55 ..
+    8 -rw-r--r--   1 blyth  staff    90 Oct 27 17:55 EFFICIENCY_v2
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 KINDEX
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 REFLECTIVITY
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 RINDEX
+    8 -rw-r--r--   1 blyth  staff   106 Oct 27 17:55 THICKNESS
+    8 -rw-r--r--   1 blyth  staff   214 Oct 27 17:55 scale
+    epsilon:photocathode_MCP20inch blyth$ 
+    epsilon:photocathode_MCP20inch blyth$ 
+    epsilon:photocathode_MCP20inch blyth$ cat EFFICIENCY_v2 
+    1.55                *eV   1.0               
+    15.5                *eV   1.0               
+    epsilon:photocathode_MCP20inch blyth$ cat KINDEX 
+    3.26274             *eV   1.69                
+    4.13                *eV   2                   
+    4.96                *eV   1.79                
+    15.5                *eV   1.79                
+    epsilon:photocathode_MCP20inch blyth$ cat RINDEX 
+    3.26274             *eV   1.92                
+    4.13                *eV   1.49                
+    4.96                *eV   0.564               
+    15.5                *eV   0.88                
+    epsilon:photocathode_MCP20inch blyth$ cat scale
+    # This file is used for scale some variables quickly
+    #   XXXBefore 1
+    #   XXXAfter  1.5
+    # so we could calculate the ratio is 1.5/1
+
+    qe_before              0.273
+    qe_after               0.8
+    pmt_qe_scale_for_elec  1.0
+    epsilon:photocathode_MCP20inch blyth$ cat THICKNESS
+    0                   *m    2.6e-08             *m    
+    0.375               *m    2.6e-08             *m    
+    epsilon:photocathode_MCP20inch blyth$ 
+    epsilon:photocathode_MCP20inch blyth$ 
+    epsilon:photocathode_MCP20inch blyth$ cat REFLECTIVITY 
+    1.55                *eV   0                   
+    6.2                 *eV   0                   
+    10.33               *eV   0                   
+    15.5                *eV   0                   
+    epsilon:photocathode_MCP20inch blyth$ 
+
+
+
+    epsilon:photocathode_Ham20inch blyth$ l
+    total 48
+    0 drwxr-xr-x   8 blyth  staff   256 Oct 27 17:55 .
+    0 drwxr-xr-x  35 blyth  staff  1120 Oct 27 17:55 ..
+    8 -rw-r--r--   1 blyth  staff    90 Oct 27 17:55 EFFICIENCY_v2
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 KINDEX
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 REFLECTIVITY
+    8 -rw-r--r--   1 blyth  staff   188 Oct 27 17:55 RINDEX
+    8 -rw-r--r--   1 blyth  staff   106 Oct 27 17:55 THICKNESS
+    8 -rw-r--r--   1 blyth  staff   236 Oct 27 17:55 scale
+    epsilon:photocathode_Ham20inch blyth$ cat EFFICIENCY_v2 
+    1.55                *eV   1.0               
+    15.5                *eV   1.0               
+    epsilon:photocathode_Ham20inch blyth$ cat REFLECTIVITY 
+    1.55                *eV   0                   
+    6.2                 *eV   0                   
+    10.33               *eV   0                   
+    15.5                *eV   0                   
+    epsilon:photocathode_Ham20inch blyth$ 
+
+
+
+
+Without Opticks Fails : FIXED
+---------------------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/jobs/19094/raw
+
+
+CustomG4OpBoundaryProcess
+----------------------------
+
+* what about old non-MultiFilm PMT optical model ? How to organize the switch ?
+
+  * must use same natural geometry 
+  * review the PMT code to help with this  
+
+* incorporate selection of changes from u4/InstrumentedCustomG4OpBoundaryProcess
+* theRecoveredNormal 
+* CustomART instanciation    
+* decide where to keep CustomART.h Layr.h ? 
+* consider rename Layr.h ? MultiFilmLayr.h
+
+
+review existing POM switch
+-----------------------------
+
+::
+
+    epsilon:junosw blyth$ jcv JUNODetSimModule
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+
+
+The below should be changed to ls_optical_model::
+
+    0408         # add new optical model
+     409 
+     410         grp_pmt_op.add_argument("--new-optical-model", dest="new_optical_model", action="store_true",
+     411                       help=mh("Use the new optical model."))
+     412         grp_pmt_op.add_argument("--old-optical-model", dest="new_optical_model", action="store_false",
+     413                       help=mh("Use the old optical model"))
+     414         grp_pmt_op.set_defaults(new_optical_model=False)
+     415 
+
+
+To avoid confusion with pmt-optical-model::
+
+     474         # == use new pmt optical model or not ==
+     475         grp_pmt_op.add_argument("--pmt-optical-model", dest="pmt_optical_model", action="store_true", help=mh("Enable New PMT optical model (default is enabled)"))
+     476         grp_pmt_op.add_argument("--no-pmt-optical-model", dest="pmt_optical_model", action="store_false", help=mh("Disable New PMT optical model"))
+     477         grp_pmt_op.set_defaults(pmt_optical_model=True)
+     478 
+
+
+::
+
+    1681         if args.pmt_optical_model:
+    1682             detsimfactory.property("UsePMTOpticalModel").set("new")
+    1683         else:
+    1684             detsimfactory.property("UsePMTOpticalModel").set("old")
+
+
+Impl of existing POM switch
+------------------------------
+
+
+::                   
+                     
+    epsilon:junosw b-lyth$ jgr UsePMTOpticalModel
+    ./Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:    declProp("UsePMTOpticalModel", m_doFastSim=false); // just the fast simulation
+
+    ## m_doFastSim 
+
+    239     G4VProcess* boundproc_ = nullptr ;
+    240     G4FastSimulationManagerProcess* fast_sim_man = 0;
+    241 
+    242     if(m_doFastSim)  // using m_doFastSim to configure use of the old impl 
+    243     {
+    244         G4OpBoundaryProcess* boundproc = new G4OpBoundaryProcess();
+    245         boundproc->SetInvokeSD(false);
+    246         boundproc_ = boundproc ;
+    247 
+    248         fast_sim_man = new G4FastSimulationManagerProcess("fast_sim_man");
+    249     }
+    250     else
+    251     {
+    252         CustomG4OpBoundaryProcess* boundproc = CreateCustomG4OpBoundaryProcess();
+    253         boundproc->SetInvokeSD(false);
+    254         boundproc_ = boundproc ;
+    255     }
+    256 
+
+
+
+    ./Simulation/DetSimV2/G4DAEChroma/src/phys/DAEDsPhysConsOptical.cc:    declProp("UsePMTOpticalModel", m_doFastSim=true); // just the fast simulation
+    ## junk code to be removed
+
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:    declProp("UsePMTOpticalModel", m_enable_optical_model=false);
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc:    declProp("UsePMTOpticalModel", m_enable_optical_model=false);
+
+    BOTH PMT IMPLEMENTED SIMILARLY 
+
+    0308 void HamamatsuR12860PMTManager::init_pmt()
+     309 {
+     310   helper_make_solid();
+     311   helper_make_logical_volume();
+     312   helper_make_physical_volume();
+     313 
+     314   if(m_enable_optical_model || m_plus_dynode)
+     315   {
+     316       helper_make_dynode_volume();
+     317   }
+     318 
+     319   helper_make_optical_surface();
+     320 
+     321   if(m_enable_optical_model)
+     322   {
+     323       helper_fast_sim();
+     324   }
+     325  
+     326   helper_vis_attr();
+     327 }
+
+    SOME GEOMETRY DEPENDENCE
+
+    312 void NNVTMCPPMTManager::helper_make_solid()
+    313 {
+    314     double pmt_delta = 1E-3*mm ;
+    315     double inner_delta = -5*mm ;
+    316 
+    317     double body_delta = m_enable_optical_model == false ? 0. : inner_delta+1E-3*mm ;
+    318     // TODO: find out why body_delta depends on m_enable_optical_model and add comment about that 
+    319 
+
+helper_fast_sim instanciates junoPMTOpticalModel and hooks up fast sim and svc to it.
+All that needs to be switched off in new impl::
+
+    0975 void
+     976 HamamatsuR12860PMTManager::helper_fast_sim()
+     977 {
+     978 #ifdef PMTSIM_STANDALONE
+     979 #else
+     980     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
+     981     body_log->SetRegion(body_region);
+     982     body_region->AddRootLogicalVolume(body_log);
+     983     
+     984     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
+     985                                                                    body_phys, body_region);
+     986     
+     987     m_pmt_param_svc = 0;
+     988     LogInfo << "Retrieving PMTParamSvc." << std::endl;
+     989     SniperPtr<IPMTParamSvc> parsvc(*getParent(), "PMTParamSvc");
+     990     if(parsvc.invalid()){
+     991         LogError << "Can't get PMTParamSvc. We can't initialize PMT." << std::endl;
+     992         assert(0);
+     993         exit(EXIT_FAILURE);
+     994     }else{
+     995         LogInfo << "Retrieve PMTParamSvc successfully." << std::endl;
+     996         m_pmt_param_svc = parsvc.data();
+     997     }
+     998     pmtOpticalModel->setPMTParamSvc(m_pmt_param_svc);
+     999     
+    1000     m_pmt_sim_param_svc = 0;
+    1001     LogInfo << "Retrieving PMTSimParamSvc." << std::endl;
+    1002     SniperPtr<IPMTSimParamSvc> simsvc(*getParent(), "PMTSimParamSvc");
+    1003     if(simsvc.invalid()){
+    1004         LogError << "Can't get PMTSimParamSvc. We can't initialize PMT." << std::endl;
+    1005         assert(0);
+    1006         exit(EXIT_FAILURE);
+    1007     }else{
+    1008         LogInfo <<"Retrieve PMTSimParamSvc successfully." << std::endl;
+    1009         m_pmt_sim_param_svc = simsvc.data();
+    1010     }
+    1011     pmtOpticalModel->setPMTSimParamSvc(m_pmt_sim_param_svc);
+    1012     
+    1013     // We don't support the original PMT optical model in this new class.
+    1014     // new dywPMTOpticalModel( GetName()+"_optical_model", 
+    1015     //        body_phys, body_region);
+    1016 
+    1017 #endif
+    1018 
+    1019 }
+
+
+
+
+    ./Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc:    declProp("UsePMTOpticalModel", m_enable_optical_model=false);
+
+    147         if(m_enable_optical_model){
+    148             LogInfo << "junoSD_PMT_v2::The new PMT optical model is enabled now." << std::endl;
+    149             sd->enableOpticalModel();
+    150         }
+
+    jcv junoSD_PMT_v2
+    85         void enableOpticalModel() { m_enable_optical_model = true; }
+
+
+    0335 G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
+     336 {
+
+     389     if (!m_enable_optical_model) {
+     390        G4OpBoundaryProcessStatus theStatus = Undefined;
+     391        theStatus = boundary_proc->GetStatus();
+     392 
+     393        if (theStatus != Detection) {
+     394            return false;
+     395        }
+     396     }
+
+     In old model non-Detection photons get st
+
+     In old model getting past the above means theStatus is Detection otherwise not treated as a hit. 
+     HMM: MAYBE in new impl suspect will need to remove that  ?
+
+
+     
+
+
+    ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:    declProp("UsePMTOpticalModel", m_pmt_optical_model = "old");
+
+    087  //   declProp("GdLSAbsLengthMode", m_GdLSAbsLengthMode="old");
+     88     declProp("UsePMTOpticalModel", m_pmt_optical_model = "old");
+     89     declProp("UseLSOpticalModel", m_LS_optical_model = "old");
+     90 
+     91     declProp("CDInnerReflectorEnabled", m_isCDInnerReflectorEnabled = true);
+     92 
+     93     declProp("UsePmtSimSvc",m_use_pmtsimsvc=true);
+
+
+    175 G4VUserDetectorConstruction*
+    176 DetSim0Svc::createDetectorConstruction()
+    177 {
+    178     LSExpDetectorConstruction* dc = new LSExpDetectorConstruction;
+    ...
+    231     //dc->setGdLSAbsLengthMode(m_GdLSAbsLengthMode);
+    232     dc->setPMTOpticalModel(m_pmt_optical_model);
+    233     dc->setLSOpticalModel(m_LS_optical_model);
+    234 
+    235     dc->setCDInnerReflector(m_isCDInnerReflectorEnabled);
+    236 
+
+jcv LSExpDetectorConstruction::
+
+    396   private:
+    397   //  std::string m_GdLSAbsLengthMode;
+    398     std::string m_pmt_optical_model;
+    399     std::string m_LS_optical_model;
+    400   public:
+    401     // void setGdLSAbsLengthMode(std::string GdLSAbsLengthMode) {m_GdLSAbsLengthMode = GdLSAbsLengthMode ;}
+    402      void setPMTOpticalModel(std::string mode ){ m_pmt_optical_model = mode;}
+    403      void setLSOpticalModel(std::string mode ){m_LS_optical_model = mode ;}
+    404 
+         
+    0170 //  m_GdLSAbsLengthMode = "old";
+     171   m_pmt_optical_model = "old";
+     172   m_LS_optical_model = "old";
+     173   m_use_pmtsimsvc = true;
+
+    HUH ALL THAT AND IT SEEMS ITS NOT USED ?
+
+
+
+
+
+
+
+    ./Simulation/DetSimV2/DetSimOptions/python/DetSimOptions/ConfAcrylic.py:        #op.property("UsePMTOpticalModel").set(False)
+    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype_any.py:    op.property("UsePMTOpticalModel").set(False)
+    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype.py:    op.property("UsePMTOpticalModel").set(False)
+    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype_onepmt.py:            pmtmgr.property("UsePMTOpticalModel").set(True)
+    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype_onepmt.py:    op.property("UsePMTOpticalModel").set(False)
+
+
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            detsimfactory.property("UsePMTOpticalModel").set("new")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            detsimfactory.property("UsePMTOpticalModel").set("old")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            pmtsdmgr.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            op_process.property("UsePMTOpticalModel").set(True)
+    epsilon:junosw blyth$ 
+
+
+
+

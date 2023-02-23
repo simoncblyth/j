@@ -2,8 +2,6 @@
 # ~/.bash_profile > ~/.bashrc > ~/j/j.bash
 [ "$DBG" == "1" ] && dbg_head $BASH_SOURCE
 
-
-
 j-usage(){ cat << EOU
 Common source for JUNO high level bash functions
 ====================================================
