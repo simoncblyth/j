@@ -2,16 +2,19 @@ blyth-88-incorporation-notes.rst
 =====================================
 
 Review UsePMTOpticalModel switch effect, consider how to switch between impl
------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
-Four cases to consider::
+Must maintain clear distinction in mind between the high level PMT Optical Model (POM) approach
+and the PMT geometry Unnatural/natural implementation. 
+
+Four POM*PMT cases to consider::
    
                +-------------------------+--------------------------+-------------------------------+   
-               |                         | Unnatural PMT            |  Natural PMT                  |
+               |  4 POM*PMT cases        | Unnatural PMT Impl       |  Natural PMT Impl             |
                +=========================+==========================+===============================+   
                |  Traditional POM        |                          |                               |
-               |                         |  ProcessHits QE          |  CustomG4OpBoundaryProcess    |
-               |                         |                          |                               |
+               |  (all Detection         |  ProcessHits QE          |  CustomG4OpBoundaryProcess    |
+               |   at photocathode)      |                          |                               |
                |                         |                          |                               |
                |                         | OpticalSurfaceName       |  OpticalSurfaceName           |
                |                         | without special prefix   |  starting '#'                 |
@@ -19,9 +22,9 @@ Four cases to consider::
                |  (ph stop at cathode)   |                          |                               |
                +-------------------------+--------------------------+-------------------------------+
                |  MultiFilm POM          |                          |                               |
-               |                         | junoPMTOpticalModel.hh   | Layr.h                        |
-               |                         | FastSim in control       | CustomART.h                   |
-               |                         | (boundary not run)       | CustomG4OpBoundaryProcess     |
+               |  (photons refract       | junoPMTOpticalModel.hh   | MultiLayrStack.h              |
+               |   into PMT, complex     | FastSim in control       | CustomART.h                   |
+               |   rindex layers)        | (boundary not run)       | CustomG4OpBoundaryProcess     |
                |                         |                          |                               |
                |                         |                          |                               |
                |                         |                          |                               |
@@ -30,8 +33,40 @@ Four cases to consider::
                |                         |                          |                               |
                |                         |                          |                               |
                |                         |                          |                               |
-               |  (photons inside PMT)   |                          |                               |
+               |                         |                          |                               |
                +-------------------------+--------------------------+-------------------------------+
+
+TODO
+------
+
+* add high level and low level NaturalPMT switches 
+* NNVT + HAMA : obey switches : considering all 4 POM*PMT cases::
+
+    jcv HamamatsuR12860PMTManager
+    jcv NNVTMCPPMTManager    
+    # what more than OpticalSurfaceName controlling customization + simpler geometry ?
+  
+* review code in the light of all 4 POM*PMT cases 
+* devise some tests within monolith
+* update standalone tests to use the added monolith code
+
+
+Where should the incorporated code live within the monolith ?
+----------------------------------------------------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/commits/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+
+
+As the stack calc is only needed from CustomG4OpBoundaryProcess
+the calculation can live  ?
+
+::
+
+   junotop/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART.h
+   junotop/junosw/Simulation/DetSimV2/PhysiSim/include/Layr.h
+
+   junotop/junosw/Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h
+
 
 
 MultiFilm POM
