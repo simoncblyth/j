@@ -1,12 +1,13 @@
 #ifndef HamamatsuR12860PMTManager_hh
 #define HamamatsuR12860PMTManager_hh
+/**
+HamamatsuR12860PMTManager.hh
+===============================
 
-/*
- * This is the implementation of Hamamatsu R12860.
- * See JUNO-doc-XXX.
- *
- * -- Tao Lin, 2017/05/29
- */
+* Updated implementation -- Simon C Blyth, 2023/02
+* Original implementation -- Tao Lin, 2017/05/29
+
+**/
 
 #ifdef PMTFASTSIM_STANDALONE
 #include "IGeomManager.h"
@@ -29,7 +30,6 @@ class G4VSolid;
 class G4Tubs;
 
 class junoPMTOpticalModel ; 
-class junoPMTOpticalModelSimple ; 
 
 class Hamamatsu_R12860_PMTSolid;
 
@@ -64,6 +64,7 @@ private:
     void init();
     void init_material();
     void init_variables();
+    char GetMirrorOpticalSurfacePrefix() const ; 
     void init_mirror_surface();
     void init_pmt();
     void init_fast_cover();
@@ -78,7 +79,6 @@ private:
     Hamamatsu_R12860_PMTSolid* m_pmtsolid_maker;
 public:
     junoPMTOpticalModel*       pmtOpticalModel ;  
-    junoPMTOpticalModelSimple* pmtOpticalModelSimple ;  
 private:
 
 

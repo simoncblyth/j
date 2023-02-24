@@ -1,6 +1,15 @@
 blyth-88-incorporation-notes.rst
 =====================================
 
+Speeddial
+----------
+
+::
+ 
+    jcv HamamatsuR12860PMTManager
+    jcv NNVTMCPPMTManager
+
+
 Review UsePMTOpticalModel switch effect, consider how to switch between impl
 -------------------------------------------------------------------------------
 
@@ -49,6 +58,74 @@ TODO
 * review code in the light of all 4 POM*PMT cases 
 * devise some tests within monolith
 * update standalone tests to use the added monolith code
+
+
+
+Incorporation Commits
+-------------------------
+
+
+::
+
+    epsilon:junosw blyth$ git --no-pager l -n 5
+    commit 318ad8a3bd5b4b0e8593e51943a9fd13ffe88664 (HEAD -> blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess, origin/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess)
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Thu Feb 23 20:09:32 2023 +0000
+
+        incorporate CustomART.h MultiLayrStack.h customization into CustomG4OpBoundaryProcess
+
+    M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+    A	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+    M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+    A	Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
+    M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+    A	Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h
+
+    commit 2ab30fac7786f0a56b73af2c599a121b8161c4e5
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Thu Feb 23 10:14:51 2023 +0000
+
+        fix without Opticks build fail with preprocessor macros in PMTAccessor::LoadPMTSimParamData, quell some compilation warnings
+
+    M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+    M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+    M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_LPMT.h
+    M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h
+
+    commit fce28c08bdb857e20f3735cae0eecc3a754db684
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Wed Feb 22 20:39:13 2023 +0000
+
+        start integration of CustomG4OpBoundaryProcess using IPMTAccessor/PMTAccessor connector created from PMTSimParamData struct obtained from the PMTSimParamSvc
+
+    M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+    M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+    M	Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+    M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+    M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+    A	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/IPMTAccessor.h
+    A	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+
+    commit e843201a22ba1f29500cf46cca5fa17430466063
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Wed Feb 22 17:01:43 2023 +0000
+
+        change classname to CustomG4OpBoundaryProcess for clarity
+
+    M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+    M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+    commit 636e78a25b8ce07ee8e16cbafc97bcb41954d996
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Wed Feb 22 16:58:04 2023 +0000
+
+        bring in original Geant4 1042 G4OpBoundaryProcess under different name, ready for customization
+
+    A	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+    A	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+    epsilon:junosw blyth$ 
+
+
 
 
 Where should the incorporated code live within the monolith ?

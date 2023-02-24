@@ -3,7 +3,6 @@
 #define LogInfo  std::cout 
 #define LogError std::cerr 
 #include "junoPMTOpticalModel.hh"
-#include "junoPMTOpticalModelSimple.hh"
 #else
 //#include <boost/python.hpp>
 #include "junoPMTOpticalModel.hh"
@@ -25,6 +24,7 @@
 #include "G4SDManager.hh"
 #include "G4Polycone.hh"
 
+#include "CommonPMTManager.h"
 #include "HamamatsuR12860PMTManager.hh"
 #include "Hamamatsu_R12860_PMTSolid.hh"
 #include "ZSolid.h"
@@ -128,7 +128,6 @@ HamamatsuR12860PMTManager::HamamatsuR12860PMTManager(const G4String& plabel )
     m_label(plabel),
     m_pmtsolid_maker(0),
     pmtOpticalModel(nullptr),
-    pmtOpticalModelSimple(nullptr),
     pmt_solid(nullptr), 
     body_solid(nullptr), 
     inner_solid(nullptr),
@@ -224,25 +223,30 @@ void HamamatsuR12860PMTManager::init() {
 HamamatsuR12860PMTManager::init_material
 ------------------------------------------
 
-For G4OpticalSurface with names starting with '@' 
-the InstrumentedG4OpBoundaryProcess has special handling 
-that depends on the local z of the intersect position. 
+This code had an old comment saying "dielectric_metal" type is ignored when RINDEX is defined. 
+That is untrue, when dielectic_metal is set and the BoundaryProcess is in use 
+then dielectric_metal applies irrespective of RINDEX. 
 
-local_z > 0. 
-   InstrumentedG4OpBoundaryProcess::CustomART kicks in 
-   doing the multi-layer stack TMM calculation 
-   of ARTD absorption/reflection/transmission/detection 
-   and effecting the change in momentum and polarization.
-   In this case the OpticalSurface type and properties
-   are entirely ignored.  
+The Photocathode_opsurf created below is only relevant in one config quadrant:
 
-!(local > 0.)
-   standard Geant4 surface handling applies, so 
-   the type (eg DielectricMetal) and OpticalSurface 
-   properties like REFLECIVITY are used 
+ +-------------+--------------+-----------+
+ |             |   PMT:false  |  PMT:true |
+ +=============+==============+===========+
+ |  POM:false  |  YES         |  NO       | 
+ +-------------+--------------+-----------+
+ |  POM:true   |  NO:FastSim  |  NO       |
+ +-------------+--------------+-----------+
 
-Note that this means that for "@" surfaces need to give 
-the properties of the mirror portion. 
+In the FastSim quadrant the boundary process does not get to 
+run as the the photocathode is within the FastSim region and
+the junoPMTOpticalModel::ModelTrigger arranges to control 
+what happens at the photocathode.  
+
+Note that the Photocathode_opsurf setup below is::
+
+    dielectric_metal with EFFICIENCY 1. REFLECTIVITY 0. 
+
+This corresponds to traditional Detection at photocathode behaviour. 
 
 **/
 
@@ -252,11 +256,8 @@ void HamamatsuR12860PMTManager::init_material() {
      PMT_Vacuum = G4Material::GetMaterial("Vacuum"); 
      DynodeMat = G4Material::GetMaterial("Steel");
 
-     G4String name ; 
-     name += GetName() + "_Photocathode_opsurf" ; 
-
-     Photocathode_opsurf =  new G4OpticalSurface(name);
-     Photocathode_opsurf->SetType(dielectric_metal); // ignored if RINDEX defined (SCB: this comment is untrue : dielectric_metal applies)
+     Photocathode_opsurf =  new G4OpticalSurface(GetName()+"_Photocathode_opsurf");
+     Photocathode_opsurf->SetType(dielectric_metal); 
      //Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode")->GetMaterialPropertiesTable() );
 
      std::cout 
@@ -324,52 +325,36 @@ void HamamatsuR12860PMTManager::init_variables() {
     m_pmtsolid_maker = new Hamamatsu_R12860_PMTSolid();
 }
 
-/**
-HamamatsuR12860PMTManager::init_mirror_surface
-------------------------------------------------
-
-**/
-
-void HamamatsuR12860PMTManager::init_mirror_surface() 
+void
+ HamamatsuR12860PMTManager::init_mirror_surface() 
 {
-    if(m_mirror_opsurf) return ; 
+    if( m_mirror_opsurf != nullptr ) return ;
+ 
+        // construct a static mirror surface with idealized properties
+        G4String name ; 
+        name += CommonPMTManager::GetMirrorOpticalSurfacePrefix(m_natural_geometry, m_enable_optical_model ) ;  // control customization, see above 
+        name += GetName() ; 
+        name += "_Mirror_opsurf" ; 
 
-    G4String name ; 
-    if(m_natural_geometry) name += '@' ; 
-    name += GetName() ; 
-    name += "_Mirror_opsurf" ; 
+        m_mirror_opsurf = new G4OpticalSurface(name);
+        m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
+        m_mirror_opsurf->SetModel(glisur); 
+        m_mirror_opsurf->SetType(dielectric_metal); 
+        m_mirror_opsurf->SetPolish(0.999);
 
-    m_mirror_opsurf = new G4OpticalSurface(name);
-    m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
-    m_mirror_opsurf->SetModel(glisur); 
-    m_mirror_opsurf->SetType(dielectric_metal); 
-    m_mirror_opsurf->SetPolish(0.999);
+        G4Material* matMirror = G4Material::GetMaterial("PMT_Mirror");
+        G4MaterialPropertiesTable* propMirror = matMirror ? matMirror->GetMaterialPropertiesTable() : nullptr ;
 
-    G4Material* matMirror = G4Material::GetMaterial("PMT_Mirror");
-    G4MaterialPropertiesTable* propMirror = matMirror ? matMirror->GetMaterialPropertiesTable() : nullptr ;
-
-    if(propMirror == nullptr) 
-    {
-        propMirror= new G4MaterialPropertiesTable();
-        propMirror->AddProperty("REFLECTIVITY", new G4MaterialPropertyVector());
-        propMirror->AddEntry("REFLECTIVITY", 1.55*eV, 0.92);
-        propMirror->AddEntry("REFLECTIVITY", 15.5*eV, 0.92);
-    }
-
-    m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
+        if(propMirror == nullptr) 
+        {
+            propMirror= new G4MaterialPropertiesTable();
+            propMirror->AddProperty("REFLECTIVITY", new G4MaterialPropertyVector());
+            propMirror->AddEntry("REFLECTIVITY", 1.55*eV, 0.92);
+            propMirror->AddEntry("REFLECTIVITY", 15.5*eV, 0.92);
+        }
+        m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
 }
 
-/**
-HamamatsuR12860PMTManager::init_pmt
-------------------------------------
-
-* dynode geometry serves no purpose with the old optical model when  *m_enable_optical_model=false*
-
-* *m_plus_dynode* adds the dynode geometry even when *m_enable_optical_model* is false, this is
-  for debugging only : such as to check if the dynode geometry fits inside the cut PMT 
-
-
-**/
 
 void HamamatsuR12860PMTManager::init_pmt() 
 {
@@ -398,7 +383,7 @@ void HamamatsuR12860PMTManager::init_pmt()
 
   helper_make_optical_surface();
 
-  if(m_enable_optical_model)
+  if(m_enable_optical_model == true && m_natural_geometry == false )
   {
       helper_fast_sim();
   }
@@ -410,8 +395,47 @@ void HamamatsuR12860PMTManager::init_pmt()
 HamamatsuR12860PMTManager::helper_make_solid
 ----------------------------------------------
 
-* body_delta depends on m_enable_optical_model 
-* TODO: find out why body solid is needed at all 
+
+
+          m_natural_geometry:false                                      m_natural_geometry:true
+
+
+     +---------------pmt-Pyrex----------------+                 +---------------pmt-Pyrex----------------+
+     |                                        |                 |                                        |
+     |                                        |                 |                                        |
+     |     +----------body-Pyrex--------+     |                 |                                        |
+     |     | +------------------------+ |     |                 |       +~inner~Vacuum~~~~~~~~~~~+       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | |        inner1-Vacuum   |-|     |                 |       !                        !       |
+     |     | |                        |1e-3   |                 |       !                        !       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | +~~coincident~face~~~~~~~+ |     |                 |       +                        +       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |        inner2-Vacuum   | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | +------------------------+ |     |                 |       +------------------------+       |
+     |     +----------------------------+     |                 |                                        |
+     |                                        |                 |                                        |
+     |                                        |                 |                                        |
+     +----------------------------------------+                 +----------------------------------------+
+
+
+
+m_natural_geometry:true
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* no body solid, just pmt and inner.
+* geometry same for both m_enable_optical_model
+
+
+m_natural_geometry:false
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is geometry dependency on m_enable_optical_model 
+changing the position of the "fake" via different body_delta. 
 
 m_enable_optical_model:false
 
@@ -427,6 +451,7 @@ m_enable_optical_model:true
     |         Py                 Py  |    Vac 
     |                         |      |
    pmt                       body   inner
+
 
 **/
 
@@ -444,7 +469,6 @@ void HamamatsuR12860PMTManager::helper_make_solid()
     {
         pmt_solid    = maker->GetSolid(GetName() + "_pmt_solid",    pmt_delta  , ' ');
         body_solid   = maker->GetSolid(GetName() + "_body_solid",   body_delta , ' ');
-        //inner_solid  = maker->GetSolid(GetName() + "_inner_solid",  inner_delta, ' '); 
         inner1_solid = maker->GetSolid(GetName() + "_inner1_solid", inner_delta, 'H');
         inner2_solid = maker->GetSolid(GetName() + "_inner2_solid", inner_delta, 'T');
 
@@ -1112,45 +1136,6 @@ void HamamatsuR12860PMTManager::helper_make_dynode_volume()
     new G4LogicalBorderSurface(GetName()+"_shield_opsurface", parent_phys, shield_phy, shieldOpSurface);
 }
 
-/**
-
-Current four volume geometry ~features two fake boundaries
-(Pyrex/Pyrex and Vacuum/Vacuum) plus has one coincident face
-and two nearly coincident: the 2nd Pyrex and inner1-Vacuum and inner2-Vacuum 
-are separated by only 1e-3 mm):: 
-
-
-     +---------------pmt-Pyrex----------------+
-     |                                        |
-     |                                        |
-     |     +----------body-Pyrex--------+     |
-     |     | +------------------------+ |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | |        inner1-Vacuum   |-|     |
-     |     | |                        |1e-3   |
-     |     | |                        | |     |
-     |     | +~~coincident~face~~~~~~~+ |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | |        inner2-Vacuum   | |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | +------------------------+ |     |
-     |     +----------------------------+     |
-     |                                        |
-     |                                        |
-     +----------------------------------------+
-
-
-Q: When m_enable_optical_model=true is photocathode_logsurf doing anything ?
-A: I think not, because body volume is handled by FastSim when ModelTrigger:true
-   which will be the case for body<->inner1
-
-   * so does this mean can set the mirror_logsurf for the entire PMT such 
-     that ModelTrigger:false will get the same behaviour       
-
-**/
 
 
 /**
@@ -1158,36 +1143,58 @@ HamamatsuR12860PMTManager::helper_make_optical_surface
 ----------------------------------------------------------
 
 
-::
+          m_natural_geometry:false                                      m_natural_geometry:true
 
 
-     +---------------pmt-Pyrex----------------+
-     |                                        |
-     |                                        |
-     |     +----------body-Pyrex--------+     |
-     |     | +------------------------+ |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | |        inner1-Vacuum   |-|     |
-     |     | |                        |1e-3   |
-     |     | |                        | |     |
-     |     | +~~coincident~face~~~~~~~+ |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | |        inner2-Vacuum   | |     |
-     |     | |                        | |     |
-     |     | |                        | |     |
-     |     | +------------------------+ |     |
-     |     +----------------------------+     |
-     |                                        |
-     |                                        |
-     +----------------------------------------+
+     +---------------pmt-Pyrex----------------+                 +---------------pmt-Pyrex----------------+
+     |                                        |                 |                                        |
+     |                                        |                 |                                        |
+     |     +----------body-Pyrex--------+     |                 |                                        |
+     |     | +------------------------+ |     |                 |       +~inner~Vacuum~~~~~~~~~~~+       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | |        inner1-Vacuum   |-|     |                 |       !                        !       |
+     |     | |                        |1e-3   |                 |       !                        !       |
+     |     | |                        | |     |                 |       !                        !       |
+     |     | +~~coincident~face~~~~~~~+ |     |                 |       +                        +       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |        inner2-Vacuum   | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | |                        | |     |                 |       |                        |       |
+     |     | +------------------------+ |     |                 |       +------------------------+       |
+     |     +----------------------------+     |                 |                                        |
+     |                                        |                 |                                        |
+     |                                        |                 |                                        |
+     +----------------------------------------+                 +----------------------------------------+
 
 
 HMM: notice that the optical surface is not with the pmt-Pyrex but the body-Pyrex
 
 * photocathode_logsurf1,2 : inner1_phys<->body_phys
-* mirror_logsurf1,2 : inner2_phys<->body_phys
+* mirror_logsurf1,2       : inner2_phys<->body_phys
+
+
+m_natural_geometry:false
+   Note that the G4LogicalBorderSurface properties are the same in both directions
+   Ordinarily would use a SkinSurface when that is the case. 
+
+m_natural_geometry:true
+   As the interface provides an unplaced LV (not a PV)
+   it is not convenient to use G4LogicalBorderSurface
+   when using very simple geometry without fakes as
+   do not easily have a "pmt_phys".  
+   But using unplaced G4LogicalSkinSurface does exactly the same thing more cheaply. 
+
+
+
+Q: For m_enable_optical_model:true is photocathode_logsurf doing anything ?
+A: NO, because body volume is handled by FastSim when ModelTrigger:true
+   which will be the case for body<->inner1
+
+   * so does this mean can set the mirror_logsurf for the entire PMT such 
+     that ModelTrigger:false will get the same behaviour       
+
 
 
 
@@ -1203,21 +1210,9 @@ void HamamatsuR12860PMTManager::helper_make_optical_surface()
 
         new G4LogicalBorderSurface(GetName()+"_mirror_logsurf1", inner2_phys, body_phys, m_mirror_opsurf); 
         new G4LogicalBorderSurface(GetName()+"_mirror_logsurf2", body_phys, inner2_phys, m_mirror_opsurf); 
-
-        // Thats funny : same mirror properties from both directions ? 
-        // the point of using G4LogicalBorderSurface is to control directionality ? 
-        // Otherwise should use SkinSurface 
     }
     else
     {
-        // As the interface provides an unplaced LV (not a PV)
-        // it is not convenient to use G4LogicalBorderSurface
-        // when using very simple geometry without fakes as
-        // do not easily have a "pmt_phys".  
-        //
-        // But using unplaced G4LogicalSkinSurface does exactly 
-        // the same thing more cheaply. 
-
         new G4LogicalSkinSurface(GetName()+"_composite_photocathode_mirror_logsurf",
                 inner_log, m_mirror_opsurf);
     }
@@ -1226,37 +1221,15 @@ void HamamatsuR12860PMTManager::helper_make_optical_surface()
 void
 HamamatsuR12860PMTManager::helper_fast_sim()
 {
+    assert( m_enable_optical_model == true && m_natural_geometry == false); 
+
     G4String name = GetName()+"_optical_model" ; 
 
-    if(m_natural_geometry == false)
-    {
-        G4Region* body_region = new G4Region(name);
-        body_log->SetRegion(body_region);
-        body_region->AddRootLogicalVolume(body_log);
+    G4Region* body_region = new G4Region(name);
+    body_log->SetRegion(body_region);
+    body_region->AddRootLogicalVolume(body_log);
 
-        pmtOpticalModel = new junoPMTOpticalModel(name, body_phys, body_region);
-    }
-    else
-    {
-        /*
-        G4Region* inner_region = new G4Region(name);
-        inner_log->SetRegion(inner_region);
-        inner_region->AddRootLogicalVolume(inner_log);
-        pmtOpticalModelSimple = new junoPMTOpticalModelSimple(name, inner_phys, inner_region); 
-        */
-        // INSTEAD TRY CUSTOMIZING u4/InstrumentedG4OpBoundaryProcess 
-
-     } 
-
-#ifdef PMTFASTSIM_STANDALONE
-    std::cout 
-        << "HamamatsuR12860PMTManager::helper_fast_sim" 
-        << "  pmtOpticalModel " << pmtOpticalModel 
-        << "  pmtOpticalModelSimple " << pmtOpticalModelSimple 
-        << std::endl 
-        ; 
-#endif
-
+    pmtOpticalModel = new junoPMTOpticalModel(name, body_phys, body_region);
 
 
 #ifndef PMTFASTSIM_STANDALONE
