@@ -28,6 +28,11 @@ find_package(SysRap REQUIRED)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParamsSvc)  # for IMCParamsSvc.hh
+include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)   
+include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc)
+
+
+
 
 set(SOURCES)
 set(HEADERS)
@@ -41,6 +46,13 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
+
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+     $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+     $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc
+     $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Layer.cc
+     $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.cc
+     $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Material.cc
 
      # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
 

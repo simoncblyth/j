@@ -10,6 +10,45 @@ Speeddial
     jcv NNVTMCPPMTManager
 
 
+
+
+TODO : Standalone U4SimulateTest.sh : checking all the quadrants are operational 
+---------------------------------------------------------------------------------------
+
++----------------+------------------------+----------------------+
+|                | PMT:0  (unnatural)     | PMT:1  (natural)     |  
++================+========================+======================+
+| POM:0          |                        |  CustomG4OpBoundary  |
+| (traditional)  |                        |                      | 
++----------------+------------------------+----------------------+
+| POM:1          |     FastSim            |  CustomG4OpBoundary  | 
+| (ph in PMT)    |                        |                      | 
++----------------+------------------------+----------------------+
+
+
+DONE : Standalone U4SimtraceTest.sh with PMTSim standalone geometry, including hama and nnvt PMTs
+---------------------------------------------------------------------------------------------------------
+
+HMM: currently U4SimtraceTest.sh/U4SimulateTest.sh is limited to 
+a single type of PMT picked via GEOM envvar. 
+
+* extended U4VolumeMaker to remove that limitation using "${GEOM}_GEOMList" envvar etc..   
+
+
+GEOMWrap::
+
+    export ${GEOM}_GEOMWrap=AroundCircle 
+    export U4VolumeMaker_MakeTransforms_AroundCircle_radius=250
+    export U4VolumeMaker_MakeTransforms_AroundCircle_numInRing=2
+    export U4VolumeMaker_MakeTransforms_AroundCircle_fracPhase=0
+
+Allows multiple PMTs but they are currently restricted to all 
+being from the same manager (eg same PMT type). 
+
+Need to generalize to constructing geometries with more than one type of PMT. 
+
+
+
 Review UsePMTOpticalModel switch effect, consider how to switch between impl
 -------------------------------------------------------------------------------
 
