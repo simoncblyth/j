@@ -30,6 +30,15 @@ include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParamsSvc)  # for IMCParamsSvc.hh
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)   
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include)
+
+
+set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
+
+list(APPEND HEADERS_PMTSimParamSvc
+    ${BASE_PMTSimParamSvc}/IPMTAccessor.h
+    ${BASE_PMTSimParamSvc}/PMTAccessor.h
+)
 
 
 
@@ -53,6 +62,9 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Layer.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Material.cc
+
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
 
      # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
 
@@ -79,6 +91,8 @@ list(APPEND HEADERS
 
      ../Layr/Layr.h 
      ../Layr/JPMT.h 
+
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
@@ -106,6 +120,10 @@ target_link_libraries(${name} PUBLIC
 )
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
-install(FILES ${HEADERS}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(FILES ${HEADERS}                 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${HEADERS_PMTSimParamSvc}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PMTSimParamSvc )
+
+
 
 add_subdirectory(tests)

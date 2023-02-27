@@ -10,6 +10,16 @@ that contain all the PMT param needed for TMM ART calculation.
 This is aiming to provide the input arrays for the CPU counterpart 
 of a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
 
+Usage
+-------
+
+::
+
+    #include "JPMT.h"
+    JPMT* JPMT::INSTANCE = nullptr ;   
+    // plant static into compilation unit as JPMT.h is headeronly 
+
+
 
 Higher level variant of JPMT.h ?
 ----------------------------------
@@ -53,10 +63,13 @@ if get rid of StackSpec ?   StackSpec is rather handy though.
 **/
 
 #include "NPFold.h"
-#include "IPMTAccessor.h"
+#include "PMTSimParamSvc/IPMTAccessor.h"
 
 struct JPMT : public IPMTAccessor
 {
+    static JPMT* INSTANCE ; 
+    static JPMT* Get(); 
+
     static constexpr const char* _TypeName = "JPMT" ;  
     static constexpr const char* _PMTType_base = "$JUNOTOP/data/Detector/Geometry" ;
     static constexpr const char* _PMTType_cats = "Unknown,NNVT,Hamamatsu,HZC,HighQENNVT" ;
@@ -167,9 +180,14 @@ inline int JPMT::FindCatAll( const char* name )  // static
 } 
 
 
+inline JPMT* JPMT::INSTANCE = nullptr ; 
 
-
-
+inline JPMT* JPMT::Get()  // static
+{
+    if(INSTANCE == nullptr) new JPMT ; 
+    assert(INSTANCE) ; 
+    return INSTANCE ; 
+}
 
 inline JPMT::JPMT()
     :
@@ -182,6 +200,7 @@ inline JPMT::JPMT()
     qe_shape(nullptr),
     cat(LoadPMTType(_PMTType_base, _PMTType_cats, _PMTType_names, _PMTType_catfield, ','))
 {
+    INSTANCE = this ; 
     init(); 
 }
 

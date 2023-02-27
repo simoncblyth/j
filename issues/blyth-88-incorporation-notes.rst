@@ -10,20 +10,88 @@ Speeddial
     jcv NNVTMCPPMTManager
 
 
+TODO : Standalone U4SimulateTest.sh : checking all four quadrants are operational for both hama and nnvt PMTs
+----------------------------------------------------------------------------------------------------------------
 
 
-TODO : Standalone U4SimulateTest.sh : checking all the quadrants are operational 
----------------------------------------------------------------------------------------
++----------------+------------------------+--------------------------+
+|                | PMT:0  (unnatural)     | PMT:1  (natural)         |  
++================+========================+==========================+
+| POM:0          |                        |  #CustomG4OpBoundary     |
+| (traditional)  |                        |                          | 
++----------------+------------------------+--------------------------+
+| POM:1          |     FastSim            |  @CustomG4OpBoundary     | 
+| (ph in PMT)    |                        |                          | 
++----------------+------------------------+--------------------------+
 
-+----------------+------------------------+----------------------+
-|                | PMT:0  (unnatural)     | PMT:1  (natural)     |  
-+================+========================+======================+
-| POM:0          |                        |  CustomG4OpBoundary  |
-| (traditional)  |                        |                      | 
-+----------------+------------------------+----------------------+
-| POM:1          |     FastSim            |  CustomG4OpBoundary  | 
-| (ph in PMT)    |                        |                      | 
-+----------------+------------------------+----------------------+
+HMM: this means must switch from the InstrumentedG4OpBoundaryProcess to CustomG4OpBoundary ?
+
+
+
+Where to hookup the Accessor ? : DOING THIS IN junoPMTOpticalModel
+-----------------------------------------------------------------------
+
+::
+
+    (lldb) f 4
+    frame #4: 0x0000000100872641 libPMTSim.dylib`junoPMTOpticalModel::DoIt(this=0x000000010724a5a0, fastTrack=0x000000010724ae80, fastStep=0x000000010724afd8) at junoPMTOpticalModel.cc:141
+       138 	    int pmtid  = get_pmtid(track);
+       139 	
+       140 	#ifdef PMTSIM_STANDALONE
+    -> 141 	    assert( m_PMTAccessor ); 
+       142 	    int pmtcat = m_PMTAccessor->get_pmtcat(pmtid) ; 
+       143 	    _qe  = m_PMTAccessor->get_pmtid_qe(pmtid, energy);
+       144 	
+    (lldb) ^D
+    epsilon:tests blyth$ 
+
+
+
+
+HMM : some Instrumented still left 
+-------------------------------------
+
+::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGABRT
+      * frame #0: 0x00007fff55664b66 libsystem_kernel.dylib`__pthread_kill + 10
+        frame #1: 0x00007fff5582f080 libsystem_pthread.dylib`pthread_kill + 333
+        frame #2: 0x00007fff555c01ae libsystem_c.dylib`abort + 127
+        frame #3: 0x00007fff555881ac libsystem_c.dylib`__assert_rtn + 320
+        frame #4: 0x00000001002487fb libU4.dylib`U4Recorder::Check_TrackStatus_Flag(this=0x00000001070e5ea0, tstat=fStopAndKill, flag=0, from="UserSteppingAction_Optical") at U4Recorder.cc:600
+        frame #5: 0x0000000100249eeb libU4.dylib`void U4Recorder::UserSteppingAction_Optical<InstrumentedG4OpBoundaryProcess>(this=0x00000001070e5ea0, step=0x00000001070bc060) at U4Recorder.cc:546
+        frame #6: 0x0000000100248d76 libU4.dylib`void U4Recorder::UserSteppingAction<InstrumentedG4OpBoundaryProcess>(this=0x00000001070e5ea0, step=0x00000001070bc060) at U4Recorder.cc:101
+        frame #7: 0x0000000100033c21 U4SimulateTest`U4RecorderTest::UserSteppingAction(this=0x00000001070e74e0, step=0x00000001070bc060) at U4RecorderTest.h:179
+        frame #8: 0x0000000100033c5c U4SimulateTest`non-virtual thunk to U4RecorderTest::UserSteppingAction(this=0x00000001070e74e0, step=0x00000001070bc060) at U4RecorderTest.h:0
+
+
+
+::
+
+    (lldb) f 1
+    frame #1: 0x0000000100247dd6 libU4.dylib`void U4Recorder::UserSteppingAction<InstrumentedG4OpBoundaryProcess>(this=0x00000001076ab9b0, step=0x0000000107681b50) at U4Recorder.cc:101
+       98  	void U4Recorder::PostUserTrackingAction(const G4Track* track){ LOG(LEVEL) ; if(U4Track::IsOptical(track)) PostUserTrackingAction_Optical(track); }
+       99  	
+       100 	template<typename T>
+    -> 101 	void U4Recorder::UserSteppingAction(const G4Step* step){ if(U4Track::IsOptical(step->GetTrack())) UserSteppingAction_Optical<T>(step); }
+       102 	
+       103 	/**
+       104 	U4Recorder::PreUserTrackingAction_Optical
+    (lldb) f 0
+    frame #0: 0x00000001002480c9 libU4.dylib`void U4Recorder::UserSteppingAction_Optical<InstrumentedG4OpBoundaryProcess>(this=0x00000001076ab9b0, step=0x0000000107681b50) at U4Recorder.cc:434
+       431 	    quad4& current_aux = sev->current_ctx.aux ; 
+       432 	
+       433 	    SOpBoundaryProcess* bop = SOpBoundaryProcess::Get(); 
+    -> 434 	    current_aux.q0.f.x = bop->getU0() ; 
+       435 	    current_aux.q0.i.w = bop->getU0_idx() ; 
+       436 	
+       437 	    /*
+    (lldb) p bop
+    (SOpBoundaryProcess *) $0 = 0x0000000000000000
+    (lldb) 
+
+
 
 
 DONE : Standalone U4SimtraceTest.sh with PMTSim standalone geometry, including hama and nnvt PMTs
