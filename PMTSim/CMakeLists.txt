@@ -66,6 +66,7 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
 
 
+
      # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
 
      LowerChimney.cc
@@ -74,6 +75,8 @@ list(APPEND SOURCES
      MaterialSvc.cc
 
      PMTSim.cc
+     J_PMTSIM_LOG.cc 
+
      DetectorConstruction.cc
 )
 
@@ -87,6 +90,8 @@ list(APPEND HEADERS
      MaterialSvc.hh
 
      PMTSim.hh
+     J_PMTSIM_LOG.hh
+
      DetectorConstruction.hh
 
      ../Layr/Layr.h 

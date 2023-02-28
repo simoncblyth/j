@@ -107,8 +107,437 @@ Decided to use simple compile time switch between Custom and Instrumented::
 
 
 
+Get Oriented 
+---------------
+
+
+All 1000 photons are starting from same position along Z axis and travelling in +X direction::
+
+    In [10]: t.record[:,0,0]
+    Out[10]: 
+    array([[   0.,    0., -120.,    0.],
+           [   0.,    0., -120.,    0.],
+           [   0.,    0., -120.,    0.],
+           [   0.,    0., -120.,    0.],
+           [   0.,    0., -120.,    0.],
+           [   0.,    0., -120.,    0.],
+
+    In [11]: t.record[:,0,1]
+    Out[11]: 
+    array([[ 1.,  0.,  0., nan],
+           [ 1.,  0.,  0., nan],
+           [ 1.,  0.,  0., nan],
+           [ 1.,  0.,  0., nan],
+           [ 1.,  0.,  0., nan],
+
+
+
+Refraction angle difference 
+-----------------------------
+
+::
+
+    APID=17 BPID=7  N=1 ./U4SimtraceTest.sh ana
+
+
+
+::
+
+    junoPMTOpticalModel::DoIt@344:  pmtid 0 pmtcat 0 status R A 0.376787 R 0.292582 A+R 0.669369 D 0 label spho (gs:ix:id:gn   0 451  451[  0,  0,  0, 82])
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   451 seq TO BT BT BT BT SR SR SR BT BR BT SR SR SR BT BR BT SR SR BT BR BT SR SA
+    junoPMTOpticalModel::DoIt@173:  pmtid 0 pmtcat 0 _qe 0 _photon_energy/eV 2.952 n_glass 1.48426 n_coating 1.53735 k_coating 0 d_coating 40 n_photocathode 2.33045 k_photocathode 1.22533 d_photocathode 20.58 n_vacuum 1
+
+
+    In [1]: q[451]
+    Out[1]: array([b'TO BT BT BT BT SR SR SR BT BR BT SR SR SR BT BR BT SR SR BT BR BT SR SA                         '], dtype='|S96')
+
+
+
+
+Global vs Local normal mixup ?
+-----------------------------------
+
+
+Compare A:17 with B:7 because of similar history:: 
+
+
+    epsilon:tests blyth$ N=0 POM=1 PIDX=17 ./U4SimulateTest.sh
+
+    junoPMTOpticalModel::Refract@441:  PIDX 17 m_label->ix 17 norm (0.377629,-0,-0.925957) dir (-0.149856,0,-0.988708) _n1 1.48426 _n4 1 _cos_theta1 0.938589
+
+
+
+    epsilon:tests blyth$ N=1 POM=1 PIDX=7 ./U4SimulateTest.sh 
+
+    *CustomG4OpBoundaryProcess::PostStepDoIt@209:  PIDX 7 m_label spho (gs:ix:id:gn   0   7    7[  0,  0,  0,  0])
+    *CustomG4OpBoundaryProcess::PostStepDoIt@306:  PIDX 7 haveEnteredDaughter 1 theGlobalNormal (0.928166,0,0.372166) theRecoveredNormal (-0.928166,-0,-0.372166)
+    *CustomG4OpBoundaryProcess::PostStepDoIt@209:  PIDX 7 m_label spho (gs:ix:id:gn   0   7    7[  0,  0,  0,  0])
+    *CustomG4OpBoundaryProcess::PostStepDoIt@306:  PIDX 7 haveEnteredDaughter 1 theGlobalNormal (0.925957,0,0.377629) theRecoveredNormal (-0.925957,-0,-0.377629)
+    *CustomG4OpBoundaryProcess::PostStepDoIt@209:  PIDX 7 m_label spho (gs:ix:id:gn   0   7    7[  0,  0,  0,  0])
+    *CustomG4OpBoundaryProcess::PostStepDoIt@306:  PIDX 7 haveEnteredDaughter 1 theGlobalNormal (1,-0,-0) theRecoveredNormal (-1,0,0)
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id     7 seq TO BT BT SA
+
+
+
+HMM the transition from local dir, pol directions back to global must happen here::
+
+    401 void junoPMTOpticalModel::UpdateTrackInfo(G4FastStep &fastStep)
+    402 {
+    403     fastStep.SetPrimaryTrackFinalTime(time);
+    404     fastStep.SetPrimaryTrackFinalPosition(pos);
+    405     fastStep.SetPrimaryTrackFinalMomentum(dir);
+    406     fastStep.SetPrimaryTrackFinalPolarization(pol);
+    407     fastStep.ForceSteppingHitInvocation();
+    408 }
+
+    123 void
+    124 G4FastStep::
+    125 ProposePrimaryTrackFinalMomentumDirection(const G4ThreeVector &momentum,
+    126                                           G4bool localCoordinates)
+    127 {
+    128   // Compute the momentum in global reference
+    129   // system if needed ...
+    130   G4ThreeVector globalMomentum = momentum;
+    131   if (localCoordinates)
+    132     globalMomentum = fFastTrack->GetInverseAffineTransformation()->
+    133       TransformAxis(momentum);
+    134   // ...and feed the globalMomentum (ensuring unitarity)
+    135   SetMomentumChange(globalMomentum.unit());
+    136 }
+    137 
+    138 void
+    139 G4FastStep::
+    140 SetPrimaryTrackFinalMomentum(const G4ThreeVector &momentum,
+    141                              G4bool localCoordinates)
+    142 {
+    143   ProposePrimaryTrackFinalMomentumDirection(momentum, localCoordinates);
+    144 }
+
+Is that immediately set back into the track ?
+
+::
+
+    CustomG4OpBoundaryProcess::PostStepDoIt@306:  PIDX 17 haveEnteredDaughter 1 theGlobalNormal (0.925958,0,0.377628) theRecoveredNormal (-0.925958,-0,-0.377628)
+    junoPMTOpticalModel::Refract@447:  PIDX 17 m_label->ix 17 norm (0.377629,-0,-0.925957) dir (-0.149856,0,-0.988708) _n1 1.48426 _n4 1 _cos_theta1 0.938589
+    junoPMTOpticalModel::DoIt@343:  PIDX 17 track.GetMomentumDirection (0.999389,0,0.0349492)
+
+
+    In [6]: t.record[17,:6,:2]
+    Out[6]: 
+    array([[[   0.   ,    0.   , -120.   ,    0.   ],
+            [   1.   ,    0.   ,    0.   ,      nan]],
+
+           [[  82.54 ,    0.   , -120.   ,    0.379],
+            [   0.999,    0.   ,    0.035,      nan]],
+
+           [[  87.824,    0.   , -119.815,    0.406],
+            [   0.999,    0.   ,    0.035,      nan]],
+
+           [[  87.826,    0.   , -119.815,    0.406],
+            [   0.989,    0.   ,   -0.15 ,      nan]],
+
+           [[ 250.   ,    0.   , -144.396,    1.241],
+            [   0.989,    0.   ,   -0.15 ,      nan]],
+
+           [[ 392.859,    0.   , -166.048,    1.978],
+            [   0.989,    0.   ,   -0.15 ,      nan]]], dtype=float32)
+
+    In [2]: t.record[7,:4,:2]
+    Out[2]: 
+    array([[[   0.   ,    0.   , -120.   ,    0.   ],
+            [   1.   ,    0.   ,    0.   ,      nan]],
+
+           [[  82.54 ,    0.   , -120.   ,    0.379],
+            [   0.999,    0.   ,    0.035,      nan]],
+
+           [[  87.826,    0.   , -119.815,    0.406],
+            [   0.999,    0.   ,    0.035,      nan]],    ### HMM: SAW THIS BEFORE : TRANSMITTED WITHOUT CHANGE IN DIRECTION 
+
+           [[ 402.44 ,    0.   , -108.813,    1.456],
+            [   0.999,    0.   ,    0.035,      nan]]], dtype=float32)
+
+
+
+
+
+
+
+Second most prolific history : "TO BT BT SA" getting absorbed at back of PMT
+------------------------------------------------------------------------------
+
+::
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'583' b'0' b'TO BT SA                                                                                        ']
+     [b'313' b'7' b'TO BT BT SA                                                                                     ']
+     [b'78' b'13' b'TO BT BR BT SA                                                                                  ']
+     [b'10' b'8' b'TO BT BT SR SA                                                                                  ']
+     [b'3' b'23' b'TO BT BT SR SR SR SA                                                                            ']
+
+
+Look into lots of "TO BT BT SA" for 4th quadrant::
+
+    N=1 POM=1 ./U4SimulateTest.sh  
+
+::
+
+    In [18]: ws_ = 1   ## 2nd most prolific history 
+    In [19]: ws = np.where( q[:,0] == qu[quo][ws_] )
+
+
+    In [24]: t.record[ws, :4,0]
+    Out[24]: 
+    array([[[[   0.   ,    0.   , -120.   ,    0.   ],
+             [  82.54 ,    0.   , -120.   ,    0.379],
+             [  87.826,    0.   , -119.815,    0.406],
+             [ 402.44 ,    0.   , -108.813,    1.456]],
+
+            [[   0.   ,    0.   , -120.   ,    0.   ],
+             [  82.54 ,    0.   , -120.   ,    0.379],
+             [  87.826,    0.   , -119.815,    0.406],
+             [ 402.44 ,    0.   , -108.813,    1.456]],
+
+            [[   0.   ,    0.   , -120.   ,    0.   ],
+             [  82.54 ,    0.   , -120.   ,    0.379],
+             [  87.826,    0.   , -119.815,    0.406],
+             [ 402.44 ,    0.   , -108.813,    1.456]],
+
+::
+
+     N=1 BPID=7 ./U4SimtraceTest.sh ana
+
+HMM: N=0 POM=1 ending up somewhere else::
+
+            [[   0.   ,    0.   , -120.   ,    0.   ],
+             [  82.54 ,    0.   , -120.   ,    0.379],
+             [  87.824,    0.   , -119.815,    0.406],
+             [  87.826,    0.   , -119.815,    0.406],
+             [ 250.   ,    0.   , -144.396,    1.241],
+             [ 392.859,    0.   , -166.048,    1.978]]]], dtype=float32)
+
+
+Use two U4SimulateTest.sh sessions::
+
+     N=0 POM=1 ./U4SimulateTest.sh ph  
+     N=1 POM=1 ./U4SimulateTest.sh ph
+
+
+
+Look for adjacent quadrant equivalent::
+
+    N=0 POM=1 ./U4SimulateTest.sh  
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'571' b'0' b'TO BT BT SA                                                                                     ']
+     [b'104' b'2' b'TO BT BT BT BT SR BT SA                                                                         ']
+     [b'104' b'6' b'TO BT BT BR BT BT SA                                                                            ']
+     [b'92' b'5' b'TO BT BT BT BT SR BT BT BT BT SA                                                                ']
+     [b'37' b'30' b'TO BT BT BT BT SR BT BR BT SA                                                                   ']
+     5: [b'31' b'65' b'TO BT BT BT BT SA                                                                               ']
+     [b'20' b'32' b'TO BT BT BT BT SR BT BR BT SR SR BT SA                                                          ']
+     [b'13' b'55' b'TO BT BT BT BT SR BT BR BT SR SR BT BT BT BT SA                                                 ']
+     [b'5' b'278' b'TO BT AB                                                                                        ']
+     [b'4' b'190' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT SA                                              ']
+     [b'3' b'306' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT SA                                  ']
+
+
+
+Sixth most prolific::
+
+    In [1]: ws_ = 5
+    In [2]: ws = np.where( q[:,0] == qu[quo][ws_] )
+
+    In [3]: q[ws]
+    Out[3]: 
+    array([[b'TO BT BT BT BT SA                                                                               '],
+           [b'TO BT BT BT BT SA                                                                               '],
+           [b'TO BT BT BT BT SA                                                                               '],
+
+    In [5]: t.record[ws,:6,0]   
+    Out[5]: 
+    array([[[[   0.   ,    0.   , -120.   ,    0.   ],
+             [ -87.828,    0.   , -120.   ,    0.403],
+             [ -93.087,    0.   , -119.822,    0.43 ],
+             [ -93.088,    0.   , -119.822,    0.43 ],
+             [-250.   ,    0.   , -142.762,    1.238],
+             [-385.576,    0.   , -162.583,    1.936]],
+
+
+    ## AHHA : photon going the other way, so will hit the other PMT type giving very different history  
+
+
+    In [8]: t.record[:,0,1]     ## recall flipping the direction, where did I do that ?
+    Out[8]: 
+    array([[-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+           [-1.,  0.,  0., nan],
+
+Direction was flipped at bash level in U4SimulateTest.sh get rid of that flip::
+
+    126 ## when comparing quadrants between N=0/1 VERSION 
+    127 ## it is confusing to flip direction : so keep them the same +X for now
+    128 mom=1,0,0
+    129 case $VERSION in
+    130    0) mom=1,0,0 ;;
+    131    1) mom=1,0,0  ;;
+    132 esac
+
+
+After avoid the mom direction flip::
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'595' b'0' b'TO BT BT SA                                                                                     ']
+     [b'105' b'3' b'TO BT BT BR BT BT SA                                                                            ']
+     [b'105' b'5' b'TO BT BT BT BT SR SA                                                                            ']
+     [b'46' b'13' b'TO BT BT BT BT SR SR SR BT SA                                                                   ']
+     [b'38' b'41' b'TO BT BT BT BT SR SR SR BT BT BT BT SA                                                          ']
+     [b'27' b'48' b'TO BT BT BT BT SR SR SR BT BR BT SR SA                                                          ']
+     6: [b'22' b'17' b'TO BT BT BT BT SA                                                                               ']
+     [b'13' b'201' b'TO BT BT BT BT SR SR SR BT BR BT SR SR SR BT SA                                                 ']
+     [b'9' b'336' b'TO BT BT BT BT SR SR SA                                                                         ']
+     [b'8' b'203' b'TO BT BT BT BT SR SR SR BT BR BT SR SR SR BT BR BT SR SR BT BT BT BT SA                         ']
+
+
+
+
+
+
+
+
+Fourth Quadrant
+-----------------
+
+::
+
+    epsilon:tests blyth$ N=1 POM=1 ./U4SimulateTest.sh 
+
+
+    CustomART::doIt count 0 pmtid -1 _si    0.34504 _si2    0.34504 theRecoveredNormal (-0.92596,-0.00000,-0.37763) OldPolarization*OldMomentum.cross(theRecoveredNormal) -0.34504 E_s2    1.00000
+    CustomART::doIt count 0 S    1.00000 P    0.00000 T    0.30529 R    0.10361 A    0.59110
+    CustomART::desc theGlobalPoint (87.8255,0,-119.815) theRecoveredNormal (-0.925957,-0,-0.377629) theTransmittance    0.30529 theReflectivity    0.10361 theEfficiency    0.00000
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id     3 seq TO BT SA
+    CustomART::doIt pmtid -1 pmtcat 0 minus_cos_theta -0.93859 _qe 0.00000 wavelength_nm 420.00000 energy_eV 2.95200 spec 
+
+
+* because only one PMT of each type (one HAMA, one NNVT) get pmtid -1, pmtcat 0
+* WHY is that causing lots of "TO BT SA" ? 
+
+::
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'583' b'0' b'TO BT SA                                                                                        ']
+     [b'313' b'7' b'TO BT BT SA                                                                                     ']
+     [b'78' b'13' b'TO BT BR BT SA                                                                                  ']
+     [b'10' b'8' b'TO BT BT SR SA                                                                                  ']
+     [b'3' b'23' b'TO BT BT SR SR SR SA                                                                            ']
+     [b'3' b'287' b'TO BT BT SR SR SR BT BT SA                                                                      ']
+     [b'3' b'452' b'TO AB                                                                                           ']
+     [b'2' b'117' b'TO BT AB                                                                                        ']
+     [b'1' b'239' b'TO SC SA                                                                                        ']
+     [b'1' b'295' b'TO BT BT SR SR SR BR SR SR SR SA                                                                ']
+     [b'1' b'18' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ']
+     [b'1' b'136' b'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ']
+     [b'1' b'373' b'TO BT BT SR SR SR BR SA                                                                         ']]
+
+
+After fixing FastSim nan issue, the histories are more similar (modulo the fakes)::
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'571' b'0' b'TO BT BT SA                                                                                     ']
+     [b'104' b'2' b'TO BT BT BT BT SR BT SA                                                                         ']
+     [b'104' b'6' b'TO BT BT BR BT BT SA                                                                            ']
+     [b'92' b'5' b'TO BT BT BT BT SR BT BT BT BT SA                                                                ']
+     [b'37' b'30' b'TO BT BT BT BT SR BT BR BT SA                                                                   ']
+     [b'31' b'65' b'TO BT BT BT BT SA                                                                               ']
+     [b'20' b'32' b'TO BT BT BT BT SR BT BR BT SR SR BT SA                                                          ']
+     [b'13' b'55' b'TO BT BT BT BT SR BT BR BT SR SR BT BT BT BT SA                                                 ']
+     [b'5' b'278' b'TO BT AB                                                                                        ']
+     [b'4' b'190' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT SA                                              ']
+     [b'3' b'306' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT SA                                  ']
+     [b'3' b'137' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SA                                                    ']
+     [b'2' b'82' b'TO BR SA                                                                                        ']
+     [b'2' b'221' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT BT BT BT BT BT SA                   ']
+     [b'1' b'36' b'TO BT BT BR BT BT AB                                                                            ']
+     [b'1' b'626' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT BT BT BT BT BT BR BT BT SA          ']
+     [b'1' b'59' b'TO BT BT BT BT SR BT BR BT SR SA                                                                ']
+     [b'1' b'283' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT BR BT SR BT BR BT SA                ']
+     [b'1' b'350' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BR BT SR BT BR BT SR BT BT BT BT SA             ']
+     [b'1' b'866' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BT BT BT BT BT BR BT BT SA                      ']
+     [b'1' b'273' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BT BT BT BT BT BT BT SA                         ']
+     [b'1' b'114' b'TO BT BT BT BT SR BT BR BT SR SR BT BR BT SR BT BT BT BT BT BT SA                               ']
+     [b'1' b'972' b'TO AB                                                                                           ']]
+
+
+
+
+With lots of nan causing FastSim to only transmit::
+
+    epsilon:tests blyth$ N=0 POM=1 ./U4SimulateTest.sh 
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index 
+    [[b'900' b'0' b'TO BT BT BT BT SR BT BT BT BT SA                                                                ']
+     [b'88' b'19' b'TO BT BT BT BT SA                                                                               ']
+     [b'2' b'146' b'TO BT BT BT BT SR BT BT BT BT SC SA                                                             ']
+     [b'2' b'283' b'TO BT BT BT BT SR BT BT BT BT AB                                                                ']
+     [b'2' b'137' b'TO BT BT BT BT SR BT BT BT BR BT BT BT SR SR BT BT BT BT SA                                     ']
+     [b'2' b'594' b'TO BT AB                                                                                        ']
+     [b'2' b'351' b'TO BR SA                                                                                        ']
+     [b'1' b'206' b'TO BT BT BT BT SR BT BT BT AB                                                                   ']
+     [b'1' b'218' b'TO AB                                                                                           ']]
+
+Adding junoPMTOpticalModel debug see that FastSim quadrant has lots of nan::
+
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status X
+    junoPMTOpticalModel::DoIt@157:  pmtid 0 pmtcat 0 _qe 0 _photon_energy/eV 2.952
+    junoPMTOpticalModel::DoIt@263:  E_s2 1 fT_s nan fT_p nan T nan fR_s nan fR_p nan R nan A nan fT_n 0 fR_n nan An nan escape_fac nan
+    junoPMTOpticalModel::DoIt@326:  pmtid 0 pmtcat 0 status T A nan R nan A+R nan D nan
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id    25 seq TO BT BT BT BT SR BT BT BT BT SA
+    junoPMTOpticalModel::DoIt@157:  pmtid 0 pmtcat 0 _qe 0 _photon_energy/eV 2.952
+
+
+nan were caused by mixing m and nm for wavelength units::
+
+    junoPMTOpticalModel::DoIt@344:  pmtid 0 pmtcat 0 status A A 0.589441 R 0.103227 A+R 0.692668 D 0
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id    20 seq TO BT BT SA
+    junoPMTOpticalModel::DoIt@173:  pmtid 0 pmtcat 0 _qe 0 _photon_energy/eV 2.952 n_glass 1.48426 n_coating 1.53735 k_coating 0 d_coating 40 n_photocathode 2.33045 k_photocathode 1.22533 d_photocathode 20.58 n_vacuum 1
+    junoPMTOpticalModel::DoIt@250:  _cos_theta1 0.942086 _aoi 19.5951
+    junoPMTOpticalModel::DoIt@281:  E_s2 1 fT_s 0.307332 fT_p 0.36157 T 0.307332 fR_s 0.103227 fR_p 0.086352 R 0.103227 A 0.589441 fT_n 0.338183 fR_n 0.0969988 An 0.564818 escape_fac 0
+    junoPMTOpticalModel::DoIt@344:  pmtid 0 pmtcat 0 status A A 0.589441 R 0.103227 A+R 0.692668 D 0
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id    19 seq TO BT BT SA
+    junoPMTOpticalModel::DoIt@173:  pmtid 0 pmtcat 0 _qe 0 _photon_energy/eV 2.952 n_glass 1.48426 n_coating 1.53735 k_coating 0 d_coating 40 n_photocathode 2.33045 k_photocathode 1.22533 d_photocathode 20.58 n_vacuum 1
+    junoPMTOpticalModel::DoIt@250:  _cos_theta1 0.942086 _aoi 19.5951
+    junoPMTOpticalModel::DoIt@281:  E_s2 1 fT_s 0.307332 fT_p 0.36157 T 0.307332 fR_s 0.1032
+
+
+
 @Custom quadrant very different histories to FastSim quadrant
 ----------------------------------------------------------------
+
+* getting loadsa "TO BT SA"
+
+
+::
+
+    epsilon:tests blyth$ N=1 POM=1 ./U4SimulateTest.sh 
+
+
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   129 seq TO BT BR BT SA
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   128 seq TO BT SA
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   127 seq TO BT SA
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   126 seq TO BT SA
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   125 seq TO BT SA
+    CustomG4OpBoundaryProcess::PostStepDoIt m_custom_status Y
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   124 seq TO BT SA
+
 
 
 
