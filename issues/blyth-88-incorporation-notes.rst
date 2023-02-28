@@ -47,11 +47,144 @@ Where to hookup the Accessor ? : DOING THIS IN junoPMTOpticalModel
 
 
 
+BoundaryProcess compile-time or run-time switch ?
+----------------------------------------------------
+
+G4OpBoundaryProcess
+   standard
+
+CustomG4OpBoundaryProcess
+   customizations only take effect for special '@' '#' OpticalSurfaceName[0]
+
+InstrumentedG4OpBoundaryProcess
+   TODO: review the changes, what does history recording depend on ? 
+
+
+
+U4Recorder.{h,cc}:: 
+
+    068     // HMM: anyway to hide the type here ? 
+     69     template<typename T> void UserSteppingAction(const G4Step*);
+     70     template<typename T> void UserSteppingAction_Optical(const G4Step*);
+
+    613 #include "InstrumentedG4OpBoundaryProcess.hh"
+    615 template void U4Recorder::UserSteppingAction<InstrumentedG4OpBoundaryProcess>(const G4Step*) ;
+    616 template void U4Recorder::UserSteppingAction_Optical<InstrumentedG4OpBoundaryProcess>(const G4Step*) ;
+
+    # just plants the symbols it doesnt mean they will be used
+    # could those be moved to the Test.cc ?
+
+tests/U4RecorderTest.h::
+
+    180 #include "InstrumentedG4OpBoundaryProcess.hh"
+    181 void U4RecorderTest::UserSteppingAction(const G4Step* step){     fRecorder->UserSteppingAction<InstrumentedG4OpBoundaryProcess>(step); }
+    182 // HMM: can this be templated ?
+
+
+tests/U4SimulateTest.cc::
+
+    011 #include "U4RecorderTest.h"
+
+
+
+Decided to use simple compile time switch between Custom and Instrumented::
+
+
+    613 #ifdef WITH_PMTSIM
+    614 
+    615 #include "CustomG4OpBoundaryProcess.hh"
+    616 template void U4Recorder::UserSteppingAction<CustomG4OpBoundaryProcess>(const G4Step*) ;
+    617 template void U4Recorder::UserSteppingAction_Optical<CustomG4OpBoundaryProcess>(const G4Step*) ;
+    618 
+    619 #else
+    620 
+    621 #include "InstrumentedG4OpBoundaryProcess.hh"
+    622 template void U4Recorder::UserSteppingAction<InstrumentedG4OpBoundaryProcess>(const G4Step*) ;
+    623 template void U4Recorder::UserSteppingAction_Optical<InstrumentedG4OpBoundaryProcess>(const G4Step*) ;
+    624 
+    625 #endif
+
+
+
+
+@Custom quadrant very different histories to FastSim quadrant
+----------------------------------------------------------------
+
+
+
+
+FastSim quadrant with Custom missing something needed by the recorder
+--------------------------------------------------------------------------
+
+::
+
+    u4t
+    ./U4SimulateTest.sh 
+
+    ..
+
+    U4Recorder::PostUserTrackingAction_Optical@353:  l.id   921 seq TO BT BT    BT SR BT    BT BT SA
+    U4Recorder::UserSteppingAction_Optical@519:  DEFER_FSTRACKINFO  FAILED TO GET THE FastSim status from trackinfo  fstrackinfo_stat 
+    U4Recorder::UserSteppingAction_Optical@532:  ERR flag zero : post U4StepPoint::Desc
+     proc 5 procName fast_sim_man procNameRaw fast_sim_man
+     status 1 statusName fGeomBoundary
+     bstat 12 bstatName SameMaterial
+     flag 2097152 flagName DEFER_FSTRACKINFO
+
+
+
+j/PMTFastSim/junoPMTOpticalModel has instrumentation to plant FastSim status info into track label::
+
+     310 void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
+     311 {
+     ...
+     563     spho* label = STrackInfo<spho>::GetRef(track);
+     564     LOG_IF(fatal, !label)
+     565         << " all photon tracks must be labelled "
+     566         << " track " << track
+     567         << std::endl
+     568         << STrackInfo<spho>::Desc(track)
+     569         ;
+     570 
+     571     assert( label );
+     572     label->uc4.w = status ;
+
+
+Fixed FastSim quadrant by doing something similar in monolith "jcv junoPMTOpticalModel"::
+
+    280 #ifdef PMTSIM_STANDALONE
+    281     G4double& u0 = rand_absorb ;
+    282     G4double& u1 = rand_escape ;
+    283     G4double& D  = escape_fac ;
+    284  
+    285     char status = '?' ;
+    286     if(      u0 < A)    status = u1 < D ? 'D' : 'A' ;
+    287     else if( u0 < A+R)  status = 'R' ; 
+    288     else                status = 'T' ;
+    289 
+    290     spho* label = STrackInfo<spho>::GetRef(track);
+    291     assert( label && "all photon tracks must be labelled" );
+    292     label->uc4.w = status ;
+    293 
+    294     if(status != 'T') std::cout << "junoPMTOpticalModel::DoIt " << status << std::endl ;
+    295 #endif  
+    296 
+    297     return;
+    298 }       
+
+
+
 
 HMM : some Instrumented still left 
 -------------------------------------
 
+
+
 ::
+
+    u4t
+    ./U4SimulateTest.sh dbg
+
 
     (lldb) bt
     * thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGABRT
