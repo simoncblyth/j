@@ -1,6 +1,12 @@
 blyth-88-incorporation-notes.rst
 =====================================
 
+Next
+-----
+
+* :doc:`blyth-88-quadrant-matching`
+
+
 Speeddial
 ----------
 
@@ -10,7 +16,7 @@ Speeddial
     jcv NNVTMCPPMTManager
 
 
-TODO : Standalone U4SimulateTest.sh : checking all four quadrants are operational for both hama and nnvt PMTs
+WIP : Standalone U4SimulateTest.sh : checking all four quadrants are operational for both hama and nnvt PMTs
 ----------------------------------------------------------------------------------------------------------------
 
 
