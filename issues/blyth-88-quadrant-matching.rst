@@ -426,41 +426,87 @@ Visualize that photon::
     APID=31 N=0 ./U4SimtraceTest.sh ana
 
 
+Dont Think General (Its too difficult) : Think specific
+-----------------------------------------------------------
+
+Thinking about all possible photon paths that yield fakes 
+there is a plethora of arrangements making it very difficult 
+for reliable detection and skipping in general.  
+
+* BUT : DO NOT NEED A GENERAL SOLUTION 
+* JUST NEED SOLUTION THAT WORKS FOR A SPECIFIC FASTSIM-COMPOMISED-KLUDGED-MONSTROSITY OF A GEOMETRY
+
+  * THAT MAKES IT MUCH EASIER : CAN IDENTIFY USING PRE-KNOWLEDGE OF WHERE THEY ARE 
+    BASED ON VOL-NAMES AND LOCAL POSITIONS 
+
+  * HOPEFULLY THAT CAN AVOID THE NEED TO PASS INFO BETWEEN STEPS,
+    SO CAN SKIP LIVE WITHOUT HAVING TO DECREMENT THE SLOT AND OVERWRITE ?
+
+
+10k WITH FIRST TRY AT FAKES_SKIP 
+-------------------------------------
+
+::
+
+     82 
+     83 if [ "$VERSION" == "0" ]; then
+     84     f0=Pyrex/Pyrex:AroundCircle0/hama_body_phys
+     85     f1=Pyrex/Pyrex:hama_body_phys/AroundCircle0
+     86     f2=Vacuum/Vacuum:hama_inner1_phys/hama_inner2_phys
+     87     f3=Vacuum/Vacuum:hama_inner2_phys/hama_inner1_phys
+     88     export U4Recorder__FAKES="$f0,$f1,$f2,$f3"
+     89     export U4Recorder__FAKES_SKIP=1
+     90     echo $BASH_SOURCE : U4Recorder__FAKES_SKIP ENABLED 
+     91 fi
+     92 
+     93 
+
+
+The simple U4Step::Spec based fake skipping looks to be working ok::
+
+    epsilon:tests blyth$ N=0 POM=1 ./U4SimulateTest.sh # unnatural geom , multifilm POM     epsilon:tests blyth$ N=1 POM=1 ./U4SimulateTest.sh # natural geom , multifilm POM 
+
+
+    np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first     np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi firindex 
+    [[b'5867' b'0' b'TO BT SA                                                               [[b'5799' b'0' b'TO BT SA                                                        
+     [b'1006' b'2' b'TO BT BR BT SA                                                          [b'1039' b'24' b'TO BT BR BT SA                                                 
+     [b'963' b'4' b'TO BT BT SR SA                                                           [b'987' b'1' b'TO BT BT SR SA                                                   
+     [b'527' b'56' b'TO BT BT SR SR SR SA                                                    [b'544' b'2' b'TO BT BT SR SR SR SA                                             
+     [b'411' b'26' b'TO BT BT SR SR SR BT BT SA                                              [b'413' b'4' b'TO BT BT SR SR SR BT BT SA                                       
+
+     [b'260' b'39' b'TO BT BT SR SR SR BR SR SA                                              [b'245' b'77' b'TO BT BT SA                                                     
+     [b'218' b'11' b'TO BT BT SA                                                             [b'243' b'64' b'TO BT BT SR SR SR BR SR SA                                      
+
+     [b'152' b'5' b'TO BT BT SR SR SR BR SR SR SR SA                                         [b'150' b'190' b'TO BT BT SR SR SA                                              
+     [b'133' b'20' b'TO BT BT SR SR SA                                                       [b'132' b'89' b'TO BT BT SR SR SR BR SR SR SR SA                                
+
+     [b'66' b'13' b'TO BT BT SR SR SR BR SA                                                  [b'64' b'75' b'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                        
+     [b'63' b'35' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                             [b'55' b'72' b'TO BT BT SR SR SR BR SA                                          
+     [b'51' b'15' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                          [b'53' b'62' b'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                        
+     [b'45' b'297' b'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                               [b'41' b'483' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                 
+     [b'30' b'772' b'TO BT AB                                                                [b'30' b'777' b'TO BT BT SR SR SR BR SR SR SA                                   
+     [b'23' b'788' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                         [b'26' b'621' b'TO BT AB                                                        
+     [b'22' b'899' b'TO BR SA                                                                [b'26' b'342' b'TO BR SA                                                        
+     [b'20' b'1069' b'TO BT BT SR SR SR BR SR SR SA                                          [b'21' b'2443' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                   
+     [b'19' b'2445' b'TO AB                                                                  [b'16' b'349' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                 
+     [b'16' b'966' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SR BT SA                [b'15' b'34' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                  
+     [b'14' b'1190' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                           [b'14' b'485' b'TO AB                                                           
+     [b'13' b'619' b'TO BT BT SR SR SR BR SR SR SR BR SA                                     [b'13' b'69' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA            
+     [b'12' b'222' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SR BT BT BT BT SA       [b'13' b'129' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                 
+     [b'11' b'866' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BR BT BT SA                   [b'13' b'2114' b'TO BT BT SR SR SR BR SR SR SR BR SA                            
+     [b'8' b'717' b'TO BT BR BT AB                                                           [b'7' b'400' b'TO BT BT SR SR SR BR SR SR SR BR SR SA                           
+     [b'8' b'793' b'TO BT BT SR SR SR BR SR SR SR BR SR SA                                   [b'6' b'23' b'TO BT BR BT AB                                                    
+     [b'4' b'2664' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SA                      [b'5' b'584' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR SA            
+     [b'4' b'741' b'TO BT BT SR SR SR BT AB                                                  [b'4' b'4412' b'TO BT BT SR SR SR BT BT AB                                      
+                                                                                             [b'4' b'1409' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR BT BT BT SA  
+                                                                                             [b'3' b'2019' b'TO BT BR BT SC SA                                               
 
 
 
 Where did I do skipping before ? microstep ?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
-
-~~~~~~~
-
-::
-
-    epsilon:opticks blyth$ opticks-fl StepTooSmall
-    ./ana/g4lldb.py
-    ./cfg4/CBoundaryProcess.hh
-    ./cfg4/CRecorderLive.cc
-    ./cfg4/DsG4OpBoundaryProcessStatus.h
-    ./cfg4/CBoundaryProcess.cc
-    ./cfg4/OpStatus.cc
-    ./cfg4/CRandomEngine.cc
-    ./cfg4/CCtx.cc
-    ./cfg4/CRecorder.cc
-    ./cfg4/CRecorder.hh
-    ./cfg4/DsG4OpBoundaryProcess.cc
-    ./cfg4/CRec.cc
-    ./integration/tests/tboolean.bash
-    ./extg4/X4OpBoundaryProcessStatus.hh
-    ./u4/U4OpBoundaryProcessStatus.h
-    ./u4/U4StepPoint.cc
-    ./u4/U4Recorder.cc
-    ./u4/InstrumentedG4OpBoundaryProcess.hh
-    ./u4/InstrumentedG4OpBoundaryProcess.cc
-    ./examples/Geant4/BoundaryStandalone/G4OpBoundaryProcess_MOCK.cc
-    ./examples/Geant4/BoundaryStandalone/G4OpBoundaryProcess_MOCK.hh
-    epsilon:opticks blyth$ 
-
+* HMM: MAYBE THERE IS SOMETHING MORE RECENT THAN CRecorder ? 
 
 ::
 
