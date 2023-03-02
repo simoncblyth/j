@@ -314,7 +314,181 @@ Thats getting much closer to A::
      [b'219' b'110'   b'TO AB                                                                                           ']
 
 
+
+Quantified Statistical A-B comparison
+-----------------------------------------
+
 * HMM: Need automated statistical and quantified A-B comparison. 
-* Previously did that in a highly designed way, need a more flexibly approach
+* Previously did that in a highly designed and not very flexible way "ana/ab.py" 
+* need a more flexibly approach : like a general tool 
+
+BUT: this means need to remove the fakes in the A histories so they can be 
+compared in an automated way 
+
+* could do that manually for specific photon paths, but that is not practical generally
+* SO: need to skip the fakes (maybe "U4Recorder_SkipSameMaterialBoundary" ?) 
+
+
+How to skip fakes with U4Recorder ?
+---------------------------------------
+
+::
+
+    N=0 POM=1 ./U4SimulateTest.sh   # unnatural geom , multifilm POM 
+
+    U4Recorder::UserSteppingAction_Optical@474:  l.id   2 same_material_step NO  step_mm    82.5401 pre/post : Water/Pyrex pv Water_lv_pv
+    U4Recorder::UserSteppingAction_Optical@474:  l.id   2 same_material_step YES step_mm     5.2876 pre/post : Pyrex/Pyrex pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id   2 same_material_step YES step_mm     0.0011 pre/post : Pyrex/Pyrex pv hama_body_phys
+    U4Recorder::PostUserTrackingAction_Optical@355:  l.id     2 seq TO BT BT SA
+
+    ## HMM: when pre->post is a small step need to skip the pre which was already collected (when it was post of the prior step)
+    ##
+    ## SO IT LOOKS LIKE CANNOT DO FAKE SKIPPING WITH LIVE WRITING 
+    ## UNLESS OVERWRITE THE PRIOR BY NOT INCREMENTING THE SLOT WHEN DISCOVER THE FAKE 
+    ##
+    ## SO EVERYTHING STAYS THE SAME : JUST NEED TO DECREMENT THE SLOT WHEN DISCOVER THAT LAST WRITE WAS THE FAKE
+    ##
+
+    N=1 POM=1 ./U4SimulateTest.sh   # natural geom , multifilm POM 
+
+    U4Recorder::UserSteppingAction_Optical@474:  l.id   2 same_material_step NO  step_mm    82.5401 pre/post : Water/Pyrex pv Water_lv_pv
+    U4Recorder::UserSteppingAction_Optical@474:  l.id   2 same_material_step NO  step_mm     5.2887 pre/post : Pyrex/Vacuum pv AroundCircle0
+    U4Recorder::PostUserTrackingAction_Optical@355:  l.id     2 seq TO BT SA
+
+
+The N=0 FastSim-region-kludge results in always getting two same material steps::
+
+    N=0              
+            
+                    Py/Py 
+             |     ! |
+             |     ! |
+      Wa/Py  |Py/Py! |
+             |     ! |
+    0--------1-----2-3        To allow comparison need to suppress steppoint 2. 
+             |     ! |
+             |     ! |
+    TO      BT    BT SA  
+
+
+    N=1
+
+       Wa/Py  | Py/Va|
+              |      |
+     0--------1------2
+              |      |
+              |      |
+     TO       BT     SA
+
+
+
+* notice few-per-1000 same_material_step for N=1 (TODO: investigate those) 
+
+
+Need to find an approach that also handles the  Vacuum/Vacuum fake::
+
+    N=0 POM=1 ./U4SimulateTest.sh 
+
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm    82.5401 pre/post : Water/Pyrex pv Water_lv_pv
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step YES step_mm     5.2876 pre/post : Pyrex/Pyrex pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step YES step_mm     0.0011 pre/post : Pyrex/Pyrex pv hama_body_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step YES step_mm   164.0267 pre/post : Vacuum/Vacuum pv hama_inner1_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   144.4904 pre/post : Vacuum/Pyrex pv hama_inner2_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Pyrex/Vacuum pv hama_body_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm    83.2208 pre/post : Vacuum/Steel pv hama_inner2_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Steel/Vacuum pv hama_dynode_tube_phy
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   180.3831 pre/post : Vacuum/Pyrex pv hama_inner2_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Pyrex/Vacuum pv hama_body_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step YES step_mm    10.5976 pre/post : Vacuum/Vacuum pv hama_inner2_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step YES step_mm   342.8424 pre/post : Vacuum/Vacuum pv hama_inner1_phys
+    U4Recorder::PostUserTrackingAction_Optical@355:  l.id    31 seq TO BT BT BT BT SR SR SR BT SA
+
+    In [1]: 164.0267 + 144.4904
+    Out[1]: 308.5171
+
+    N=1 POM=1 ./U4SimulateTest.sh 
+
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm    82.5401 pre/post : Water/Pyrex pv Water_lv_pv
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     5.2887 pre/post : Pyrex/Vacuum pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   308.5171 pre/post : Vacuum/Pyrex pv hama_inner_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Pyrex/Vacuum pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm    83.2208 pre/post : Vacuum/Steel pv hama_inner_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Steel/Vacuum pv hama_dynode_tube_phy
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   180.3831 pre/post : Vacuum/Pyrex pv hama_inner_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     0.0000 pre/post : Pyrex/Vacuum pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   353.4399 pre/post : Vacuum/Pyrex pv hama_inner_phys
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm     5.7919 pre/post : Pyrex/Water pv AroundCircle0
+    U4Recorder::UserSteppingAction_Optical@474:  l.id  31 same_material_step NO  step_mm   360.7316 pre/post : Water/Rock pv Water_lv_pv
+    U4Recorder::PostUserTrackingAction_Optical@355:  l.id    31 seq TO BT BT SR SR SR BT BT SA
+
+Visualize that photon::
+
+    APID=31 N=0 ./U4SimtraceTest.sh ana
+
+
+
+
+
+Where did I do skipping before ? microstep ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+~~~~~~~
+
+::
+
+    epsilon:opticks blyth$ opticks-fl StepTooSmall
+    ./ana/g4lldb.py
+    ./cfg4/CBoundaryProcess.hh
+    ./cfg4/CRecorderLive.cc
+    ./cfg4/DsG4OpBoundaryProcessStatus.h
+    ./cfg4/CBoundaryProcess.cc
+    ./cfg4/OpStatus.cc
+    ./cfg4/CRandomEngine.cc
+    ./cfg4/CCtx.cc
+    ./cfg4/CRecorder.cc
+    ./cfg4/CRecorder.hh
+    ./cfg4/DsG4OpBoundaryProcess.cc
+    ./cfg4/CRec.cc
+    ./integration/tests/tboolean.bash
+    ./extg4/X4OpBoundaryProcessStatus.hh
+    ./u4/U4OpBoundaryProcessStatus.h
+    ./u4/U4StepPoint.cc
+    ./u4/U4Recorder.cc
+    ./u4/InstrumentedG4OpBoundaryProcess.hh
+    ./u4/InstrumentedG4OpBoundaryProcess.cc
+    ./examples/Geant4/BoundaryStandalone/G4OpBoundaryProcess_MOCK.cc
+    ./examples/Geant4/BoundaryStandalone/G4OpBoundaryProcess_MOCK.hh
+    epsilon:opticks blyth$ 
+
+
+::
+
+    094 CRecorder::CRecorder(CCtx& ctx)
+     95     :
+     96     m_ctx(ctx),
+     97     m_ok(m_ctx.getOpticks()),
+     98     m_microStep_mm(0.004),              //  see notes/issues/ok_lacks_SI-4BT-SD.rst
+     99     m_suppress_same_material_microStep(true),
+    100     m_suppress_all_microStep(true),
+    101     m_mode(m_ok->getManagerMode()),   // --managermode
+
+    550         unsigned premat = m_material_bridge->getPreMaterial(step) ;
+    552         unsigned postmat = m_material_bridge->getPostMaterial(step) ;
+    553 
+    554         bool suppress_microStep = false ;
+    555         if(m_suppress_same_material_microStep ) suppress_microStep = premat == postmat && microStep ;
+    556         if(m_suppress_all_microStep )           suppress_microStep = microStep ;
+    557         // suppress_all_microStep trumps suppress_same_material_microStep
+    558 
+
+    590 #ifdef USE_CUSTOM_BOUNDARY
+    591         bool postSkip = ( boundary_status == Ds::StepTooSmall || suppress_microStep ) && !lastPost  ;
+    592         bool matSwap = next_boundary_status == Ds::StepTooSmall ;
+    593 #else
+    594         bool postSkip = ( boundary_status == StepTooSmall || suppress_microStep ) && !lastPost  ;
+    595         bool matSwap = next_boundary_status == StepTooSmall ;
+    596 #endif
+    597 
 
 
