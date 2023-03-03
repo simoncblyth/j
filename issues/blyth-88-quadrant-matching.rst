@@ -538,3 +538,203 @@ Where did I do skipping before ? microstep ?
     597 
 
 
+
+
+Need to revive statistical A-B comparison and make it work with extended histories
+------------------------------------------------------------------------------------
+
+Old machinery is based on assumption can fit the history into 64 bits 
+that is no longer the case (now 128 bits). 
+
+
+::
+
+    epsilon:ana blyth$ grep SeqTable *.py 
+    dv.py:        :param seqtab: ab.ahis SeqTable
+    evt.py:            c_tab = a_tab.compare(b_tab, ordering=ordering, shortname=shortname)   # see seq.py SeqTable.compare 
+
+    hismask.py:from opticks.ana.seq import MaskType, SeqTable, SeqAna
+    hismask.py:def test_HisMask_SeqTable(aa, af):
+    hismask.py:     st = SeqTable(cu, af)
+    hismask.py:         #test_HisMask_SeqTable(ht, af)
+    hismask.py:         #test_HisMask_SeqTable(ox, af)
+    histype.py:from opticks.ana.seq import SeqType, SeqTable, SeqAna
+    histype.py:def test_load_SeqTable(ok, af):
+    histype.py:     ht = SeqTable(cu, af, smry=True)
+    histype.py:     test_load_SeqTable(ok, af)
+    qdv.py:        self.seqtab = ab.ahis   # SeqTable
+    seq.py:class SeqTable(object):
+    seq.py:        log.debug("SeqTable.__init__ dbgseq %x" % dbgseq)
+    seq.py:        :param other: SeqTable instance
+    seq.py:        log.debug("SeqTable.compare START")
+    seq.py:        cftab = SeqTable(cf, self.af, cnames=cnames, dbgseq=self.dbgseq, dbgmsk=self.dbgmsk, dbgzero=self.dbgzero, cmx=self.cmx, shortname=shortname)    
+    seq.py:        log.debug("SeqTable.compare DONE")
+    seq.py:    In addition to holding the SeqTable instance SeqAna provides
+    seq.py:    SeqAna and its contained SeqTable exist within a particular selection, 
+    seq.py:    ie changing selection entails recreation of SeqAna and its contained SeqTable
+    seq.py:        self.table = SeqTable(cu, af, cnames=cnames, dbgseq=self.dbgseq, dbgmsk=self.dbgmsk, dbgzero=self.dbgzero, cmx=self.cmx, shortname=table_shortname)
+    seq.py:    table = SeqTable(cu, af) 
+    seq.py:    table = SeqTable(cu, af) 
+    seq.py:    table = SeqTable.FromTxt(txt, af) 
+    epsilon:ana blyth$ 
+
+
+
+
+A few notable dropout zeros to chase
+----------------------------------------
+
+
+::
+
+    epsilon:tests blyth$ ./U4SimulateTest.sh cf
+    ...    
+    Fold : symbol a base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL0 
+    Fold : symbol b base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL1 
+
+    np.c_[aqn,aqi,aqu][aquo][lim]  ## aexpr : unique histories aqu in descending count aqn order, aqi first index 
+    [[b'58664' b'0' b'TO BT SA                                                                                        ']
+     [b'9979' b'9' b'TO BT BR BT SA                                                                                  ']
+     [b'9697' b'2' b'TO BT BT SR SA                                                                                  ']
+     [b'5358' b'4' b'TO BT BT SR SR SR SA                                                                            ']
+     [b'4150' b'28' b'TO BT BT SR SR SR BT BT SA                                                                      ']
+     [b'2416' b'1' b'TO BT BT SA                                                                                     ']
+     [b'2359' b'39' b'TO BT BT SR SR SR BR SR SA                                                                      ']
+     [b'1400' b'91' b'TO BT BT SR SR SA                                                                               ']
+     [b'1394' b'55' b'TO BT BT SR SR SR BR SR SR SR SA                                                                ']
+     [b'642' b'136' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ']]
+
+    np.c_[bqn,bqi,bqu][bquo][lim]  ## bexpr : unique histories bqu in descending count bqn order, bqi first index 
+    [[b'58337' b'0' b'TO BT SA                                                                                        ']
+     [b'10133' b'2' b'TO BT BR BT SA                                                                                  ']
+     [b'9857' b'3' b'TO BT BT SR SA                                                                                  ']
+     [b'5478' b'7' b'TO BT BT SR SR SR SA                                                                            ']
+     [b'4112' b'20' b'TO BT BT SR SR SR BT BT SA                                                                      ']
+     [b'2470' b'167' b'TO BT BT SA                                                                                     ']
+     [b'2289' b'78' b'TO BT BT SR SR SR BR SR SA                                                                      ']
+     [b'1418' b'45' b'TO BT BT SR SR SA                                                                               ']
+     [b'1348' b'15' b'TO BT BT SR SR SR BR SR SR SR SA                                                                ']
+     [b'654' b'254' b'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ']]
+
+    np.c_[quo,abo[:,2,:],abo[:,1,:]][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[b'TO BT SA                                                                                        ' b'58664' b'58337' b'0' b'0']
+     [b'TO BT BR BT SA                                                                                  ' b'9979' b'10133' b'9' b'2']
+     [b'TO BT BT SR SA                                                                                  ' b'9697' b'9857' b'2' b'3']
+     [b'TO BT BT SR SR SR SA                                                                            ' b'5358' b'5478' b'4' b'7']
+     [b'TO BT BT SR SR SR BT BT SA                                                                      ' b'4150' b'4112' b'28' b'20']
+     [b'TO BT BT SA                                                                                     ' b'2416' b'2470' b'1' b'167']
+     [b'TO BT BT SR SR SR BR SR SA                                                                      ' b'2359' b'2289' b'39' b'78']
+     [b'TO BT BT SR SR SA                                                                               ' b'1400' b'1418' b'91' b'45']
+     [b'TO BT BT SR SR SR BR SR SR SR SA                                                                ' b'1394' b'1348' b'55' b'15']
+
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ' b'0' b'654' b'-1' b'254']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ' b'642' b'29' b'136' b'8642']
+
+           ## MAYBE FAKE NOT BEING DETECTED ? 
+
+           BPID=8642 ./U4SimtraceTest.sh ana    
+           APID=136  ./U4SimtraceTest.sh ana    
+           APID=136 BPID=8642 BOFF=0,0,10 ./U4SimtraceTest.sh ana 
+
+           ## YES: the photon bounces around inside HAMA and then crosses over inside NNVT
+           ## DID NOT YET SETUP FAKE DETECTION FOR NNVT VOL NAMES 
+           ## HMM BUT B IS N=1 NO FAKE DETECTION 
+
+
+     [b'TO BT BT SR SR SR BR SA                                                                         ' b'600' b'570' b'153' b'62']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                                                       ' b'452' b'451' b'283' b'514']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                                                 ' b'416' b'376' b'251' b'303']
+     [b'TO BT BT SR SR SR BR SR SR SA                                                                   ' b'323' b'359' b'58' b'357']
+     [b'TO BT AB                                                                                        ' b'314' b'358' b'303' b'116']
+     [b'TO BR SA                                                                                        ' b'272' b'259' b'642' b'54']
+     [b'TO AB                                                                                           ' b'219' b'226' b'110' b'1167']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                                                 ' b'186' b'166' b'383' b'131']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SR BT SA                                        ' b'133' b'0' b'1398' b'-1']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ' b'0' b'127' b'-1' b'875']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                                                 ' b'0' b'124' b'-1' b'693']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                                                    ' b'124' b'122' b'1252' b'699']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BR BT BT SA                                           ' b'113' b'0' b'131' b'-1']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SR BT BT BT BT SA                               ' b'110' b'0' b'836' b'-1']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SR SA                                                          ' b'109' b'106' b'835' b'4067']
+     [b'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ' b'94' b'105' b'1270' b'923']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA                                           ' b'0' b'103' b'-1' b'1360']
+     [b'TO BT BR BT AB                                                                                  ' b'70' b'76' b'2234' b'798']
+     [b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT BT BT SR BT BR BT SR BT SA                            ' b'35' b'0' b'551' b'-1']]
+
+    In [1]: aq[110]                                                                                                                                                             
+    Out[1]: array([b'TO AB                                                                                           '], dtype='|S96')
+
+    In [2]: bq[1167]                                                                                                                                                            
+    Out[2]: array([b'TO AB                                                                                           '], dtype='|S96')
+
+
+
+After add NNVT fake skipping : No obvious zero dropouts in A-B comparison
+----------------------------------------------------------------------------
+
+After extending Fake skipping to NNVT::
+
+     83 if [ "$VERSION" == "0" ]; then
+     84     f0=Pyrex/Pyrex:AroundCircle0/hama_body_phys
+     85     f1=Pyrex/Pyrex:hama_body_phys/AroundCircle0
+     86     f2=Vacuum/Vacuum:hama_inner1_phys/hama_inner2_phys
+     87     f3=Vacuum/Vacuum:hama_inner2_phys/hama_inner1_phys
+     88 
+     89     f4=Pyrex/Pyrex:AroundCircle1/nnvt_body_phys
+     90     f5=Pyrex/Pyrex:nnvt_body_phys/AroundCircle1
+     91     f6=Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys
+     92     f7=Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys
+     93 
+     94     export U4Recorder__FAKES="$f0,$f1,$f2,$f3,$f4,$f5,$f6,$f7"
+     95     export U4Recorder__FAKES_SKIP=1
+     96     echo $BASH_SOURCE : U4Recorder__FAKES_SKIP ENABLED 
+     97 fi
+
+
+There are no obvious zero dropouts in the A-B comparison::
+
+    epsilon:tests blyth$ ./U4SimulateTest.sh cf
+    ...
+
+    np.c_[np.arange(len(quo)),quo,np.arange(len(quo)),abo[:,2,:],abo[:,1,:]][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[b'0' b'TO BT SA                                                                                        ' b'0' b'58664' b'58337' b'0' b'0']
+     [b'1' b'TO BT BR BT SA                                                                                  ' b'1' b'9979' b'10133' b'9' b'2']
+     [b'2' b'TO BT BT SR SA                                                                                  ' b'2' b'9697' b'9857' b'2' b'3']
+     [b'3' b'TO BT BT SR SR SR SA                                                                            ' b'3' b'5358' b'5478' b'4' b'7']
+     [b'4' b'TO BT BT SR SR SR BT BT SA                                                                      ' b'4' b'4150' b'4112' b'28' b'20']
+     [b'5' b'TO BT BT SA                                                                                     ' b'5' b'2416' b'2470' b'1' b'167']
+     [b'6' b'TO BT BT SR SR SR BR SR SA                                                                      ' b'6' b'2359' b'2289' b'39' b'78']
+     [b'7' b'TO BT BT SR SR SA                                                                               ' b'7' b'1400' b'1418' b'91' b'45']
+     [b'8' b'TO BT BT SR SR SR BR SR SR SR SA                                                                ' b'8' b'1394' b'1348' b'55' b'15']
+     [b'9' b'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ' b'9' b'642' b'654' b'136' b'254']
+     [b'10' b'TO BT BT SR SR SR BR SA                                                                         ' b'10' b'600' b'570' b'153' b'62']
+     [b'11' b'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                                                       ' b'11' b'452' b'451' b'283' b'514']
+     [b'12' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                                                 ' b'12' b'416' b'376' b'251' b'303']
+     [b'13' b'TO BT BT SR SR SR BR SR SR SA                                                                   ' b'13' b'323' b'359' b'58' b'357']
+     [b'14' b'TO BT AB                                                                                        ' b'14' b'314' b'358' b'303' b'116']
+     [b'15' b'TO BR SA                                                                                        ' b'15' b'272' b'259' b'642' b'54']
+     [b'16' b'TO AB                                                                                           ' b'16' b'219' b'226' b'110' b'1167']
+     [b'17' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                                                 ' b'17' b'186' b'166' b'383' b'131']
+     [b'18' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ' b'18' b'133' b'127' b'1398' b'875']
+     [b'19' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                                                 ' b'19' b'113' b'124' b'131' b'693']
+     [b'20' b'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                                                    ' b'20' b'124' b'122' b'1252' b'699']
+     [b'21' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA                                           ' b'21' b'110' b'103' b'836' b'1360']
+     [b'22' b'TO BT BT SR SR SR BR SR SR SR BR SR SA                                                          ' b'22' b'109' b'106' b'835' b'4067']
+     [b'23' b'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ' b'23' b'94' b'105' b'1270' b'923']
+     [b'24' b'TO BT BR BT AB                                                                                  ' b'24' b'70' b'76' b'2234' b'798']
+     [b'25' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR SA                                           ' b'25' b'35' b'31' b'551' b'5431']
+     [b'26' b'TO BT BT SR SR SR BT BT AB                                                                      ' b'26' b'34' b'34' b'517' b'638']
+     [b'27' b'TO BT BR AB                                                                                     ' b'27' b'34' b'27' b'51' b'447']
+     [b'28' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ' b'28' b'33' b'29' b'18155' b'8642']
+     [b'29' b'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR BT BT BT SA                                  ' b'29' b'12' b'29' b'7276' b'1992']]
+
+
+
+Next : Statistical Comparison of history counts : whats the chi2 ? Any significant deviants ?
+-----------------------------------------------------------------------------------------------
+
+
+
+
+
+
