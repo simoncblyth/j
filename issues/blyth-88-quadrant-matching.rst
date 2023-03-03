@@ -4,6 +4,16 @@ blyth-88-quadrant-matching.rst
 * from :doc:`blyth-88-incorporation-notes`
 
 
+Speeddial
+----------
+
+::
+ 
+    jcv HamamatsuR12860PMTManager
+    jcv NNVTMCPPMTManager
+
+
+
 WIP : Comparing U4SimulateTest.sh between corresponding N=0,1 quadrants for both hama and nnvt PMTs
 ------------------------------------------------------------------------------------------------------
 
@@ -730,8 +740,278 @@ There are no obvious zero dropouts in the A-B comparison::
 
 
 
-Next : Statistical Comparison of history counts : whats the chi2 ? Any significant deviants ?
+1M Statistical Comparison of history counts : whats the chi2 ? Any significant deviants ?
 -----------------------------------------------------------------------------------------------
+
+::
+
+    epsilon:tests blyth$ ./U4SimulateTest.sh cf 
+    layout two_pmt
+    FewPMT.sh N=0 unnatural geometry : FastSim/jPOM
+    POM 0 : traditional stop at photocathode : PMT with no innards
+    ./U4SimulateTest.sh : U4Recorder__FAKES_SKIP ENABLED
+    PID : -1 
+    Fold : symbol a base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL0 
+    Fold : symbol b base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL1 
+
+    ...
+
+    c2sum :    66.3813 c2n :    61.0000 c2per:     1.0882 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SA                                                                                        ' ' 0' '585683 585608' ' 0.0048' '     0      1']
+     [' 1' 'TO BT BR BT SA                                                                                  ' ' 1' '101296 101008' ' 0.4100' '     5      0']
+     [' 2' 'TO BT BT SR SA                                                                                  ' ' 2' ' 97899  97419' ' 1.1796' '     1      9']
+     [' 3' 'TO BT BT SR SR SR SA                                                                            ' ' 3' ' 53988  54285' ' 0.8147' '    20     17']
+     [' 4' 'TO BT BT SR SR SR BT BT SA                                                                      ' ' 4' ' 41036  41260' ' 0.6097' '    47     32']
+
+     [' 5' 'TO BT BT SA                                                                                     ' ' 5' ' 23986  24442' ' 4.2937' '    44      5']
+
+     [' 6' 'TO BT BT SR SR SR BR SR SA                                                                      ' ' 6' ' 22975  22604' ' 3.0198' '    27     13']
+     [' 7' 'TO BT BT SR SR SA                                                                               ' ' 7' ' 14247  14493' ' 2.1056' '     9     84']
+     [' 8' 'TO BT BT SR SR SR BR SR SR SR SA                                                                ' ' 8' ' 13766  13649' ' 0.4993' '   537     82']
+     [' 9' 'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ' ' 9' '  6299   6397' ' 0.7565' '   158    159']
+     ['10' 'TO BT BT SR SR SR BR SA                                                                         ' '10' '  5756   5580' ' 2.7325' '    40    196']
+     ['11' 'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                                                       ' '11' '  4503   4416' ' 0.8486' '   358    436']
+     ['12' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                                                 ' '12' '  3816   3818' ' 0.0005' '   100    290']
+     ['13' 'TO BT BT SR SR SR BR SR SR SA                                                                   ' '13' '  3359   3452' ' 1.2699' '   399    675']
+     ['14' 'TO BT AB                                                                                        ' '14' '  3282   3414' ' 2.6022' '    73     22']
+     ['15' 'TO BR SA                                                                                        ' '15' '  2760   2655' ' 2.0360' '   149      6']
+     ['16' 'TO AB                                                                                           ' '16' '  2190   2230' ' 0.3620' '   243    157']
+     ['17' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                                                 ' '17' '  1829   1805' ' 0.1585' '    38    351']
+     ['18' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ' '18' '  1282   1321' ' 0.5843' '   250     20']
+     ['19' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                                                    ' '19' '  1178   1225' ' 0.9193' '  1000     91']
+     ['20' 'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ' '20' '  1145   1084' ' 1.6694' '  2193    921']
+     ['21' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                                                 ' '21' '  1064   1065' ' 0.0005' '   111   2270']
+     ['22' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA                                           ' '22' '  1046   1061' ' 0.1068' '    99   1873']
+     ['23' 'TO BT BT SR SR SR BR SR SR SR BR SR SA                                                          ' '23' '  1008   1002' ' 0.0179' '  2889    117']
+     ['24' 'TO BT BR BT AB                                                                                  ' '24' '   674    736' ' 2.7262' '   120   1309']
+     ['25' 'TO BT BT SR SR SR BT BT AB                                                                      ' '25' '   380    376' ' 0.0212' '  5043   5602']
+     ['26' 'TO BT BR AB                                                                                     ' '26' '   362    318' ' 2.8471' '  6974    900']
+     ['27' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR SA                                           ' '27' '   356    331' ' 0.9098' '  5397   1299']
+     ['28' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ' '28' '   266    289' ' 0.9532' '   682   1221']
+     ['29' 'TO SC SA                                                                                        ' '29' '   210    215' ' 0.0588' '   132    408']]
+
+
+HMM: IS THERE SOME ISSUE WITH FAKE SKIPPING ?
+
+     [' 5' 'TO BT BT SA                                                                                     ' ' 5' ' 23986  24442' ' 4.2937' '    44      5']
+
+
+
+
+
+Visualizing the first two photons with that history::
+
+    POM=1 N=0 APID=44 ./U4SimtraceTest.sh ana  
+    POM=1 N=1 APID=-44 BPID=5 ./U4SimtraceTest.sh ana
+
+"TO BT BT SA" enters PMT and gets absorbed on back hemi
+
+
+Look at end position of all photons in A and B with history "TO BT BT SA"::
+
+    In [8]: aw = np.where( aq[:,0] == aq[44] )[0]
+
+    In [9]: bw = np.where( bq[:,0] == aq[44] )[0]
+
+    In [15]: aw,bw,aw.shape,bw.shape
+    Out[15]: 
+    (array([    44,    117,    125,    190,    203, ..., 999775, 999815, 999878, 999927, 999981]),
+     array([     5,     11,     24,     42,     51, ..., 999972, 999979, 999985, 999989, 999993]),
+     (23986,),
+     (24442,))
+
+Nothing unexpected all end at same place::
+
+    In [20]: a.photon[aw,0,:]
+    Out[20]: 
+    array([[ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           ...,
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978],
+           [ 392.859,    0.   , -166.048,    1.978]], dtype=float32)
+
+    In [25]: np.where( a.photon[aw[0],0,0] != a.photon[aw,0,0] )
+    Out[25]: (array([], dtype=int64),)
+
+    In [26]: np.where( a.photon[aw[0],0,1] != a.photon[aw,0,1] )
+    Out[26]: (array([], dtype=int64),)
+
+    In [27]: np.where( a.photon[aw[0],0,2] != a.photon[aw,0,2] )
+    Out[27]: (array([], dtype=int64),)
+
+
+    In [28]: b.photon[bw,0,:]   ## NOTE THE EARLIER TIME : KNOWN PYREX SPEED IN VACCUUM ABOVE
+    Out[28]: 
+    array([[ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           ...,
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435],
+           [ 392.859,    0.   , -166.048,    1.435]], dtype=float32)
+
+    In [29]: np.where( b.photon[bw[0],0,0] != b.photon[bw,0,0] )
+    Out[29]: (array([], dtype=int64),)
+
+    In [30]: np.where( b.photon[bw[0],0,1] != b.photon[bw,0,1] )
+    Out[30]: (array([], dtype=int64),)
+
+    In [31]: np.where( b.photon[bw[0],0,2] != b.photon[bw,0,2] )
+    Out[31]: (array([], dtype=int64),)
+
+
+Look at the fraction absorbed/reflected at the inside back hemi
+-----------------------------------------------------------------
+
+HMM: What fraction is absorbed/reflected at the back there ? Does that correspond to input ?  YES
+
+* select indices where t.record position of point 3 matches the first
+
+::
+
+    In [37]: a.record[aw[0],:4,0]
+    Out[37]: 
+    array([[   0.   ,    0.   , -120.   ,    0.   ],
+           [  82.54 ,    0.   , -120.   ,    0.379],
+           [  87.826,    0.   , -119.815,    0.406],
+           [ 392.859,    0.   , -166.048,    1.978]], dtype=float32)
+
+    In [38]: b.record[bw[0],:4,0]
+    Out[38]: 
+    array([[   0.   ,    0.   , -120.   ,    0.   ],
+           [  82.54 ,    0.   , -120.   ,    0.379],
+           [  87.826,    0.   , -119.815,    0.406],
+           [ 392.859,    0.   , -166.048,    1.435]], dtype=float32)
+
+::
+
+    zw = np.where( np.logical_and( a.record[aw[0],3,0,0] == a.record[:,3,0,0], a.record[aw[0],3,0,2] == a.record[:,3,0,2] ) ) 
+
+    In [45]: zw[0].shape
+    Out[45]: (302814,)     ## how many have point 3 at the back there 
+
+    In [46]: 23986/302814
+    Out[46]: 0.07921034034093535     ## fraction absorbed
+
+    In [48]: 1.- (23986/302814)
+    Out[48]: 0.9207896596590647      ## fraction reflected
+
+
+
+    In [49]: bzw = np.where( np.logical_and( b.record[bw[0],3,0,0] == b.record[:,3,0,0], b.record[bw[0],3,0,2] == b.record[:,3,0,2] ) )
+
+    In [50]: bzw[0].shape
+    Out[50]: (303092,)
+
+    In [51]: 24442/303092, 1-24442/303092
+    Out[51]: (0.08064218125189711, 0.9193578187481029)
+
+
+Reflectivity of 0.92 is the default when no PMT_Mirror
+
+
+    0328 void
+     329  HamamatsuR12860PMTManager::init_mirror_surface()
+     330 {
+     331     if( m_mirror_opsurf != nullptr ) return ;
+     332 
+     333         // construct a static mirror surface with idealized properties
+     334         G4String name ;
+     335         name += CommonPMTManager::GetMirrorOpticalSurfacePrefix(m_natural_geometry, m_enable_optical_model ) ;  // control customization, see above 
+     336         name += GetName() ;
+     337         name += "_Mirror_opsurf" ;
+     338 
+     339         m_mirror_opsurf = new G4OpticalSurface(name);
+     340         m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
+     341         m_mirror_opsurf->SetModel(glisur);
+     342         m_mirror_opsurf->SetType(dielectric_metal);
+     343         m_mirror_opsurf->SetPolish(0.999);
+
+     ///   MY READING OF G4OpBoundaryProcess SUGGESTS THE BELOW SETTINGS DO NOTHING FOR type:dielectric_metal 
+     ///
+     ///        finish:polishedfrontpainted 
+     ///        polish:0.999 
+     ///
+     ///   HOWEVER model:glisur IS ACTUALLY NEEDED 
+     ///   
+
+     344 
+     345         G4Material* matMirror = G4Material::GetMaterial("PMT_Mirror");
+     346         G4MaterialPropertiesTable* propMirror = matMirror ? matMirror->GetMaterialPropertiesTable() : nullptr ;
+     347 
+     348         if(propMirror == nullptr)
+     349         {
+     350             propMirror= new G4MaterialPropertiesTable();
+     351             propMirror->AddProperty("REFLECTIVITY", new G4MaterialPropertyVector());
+     352             propMirror->AddEntry("REFLECTIVITY", 1.55*eV, 0.92);
+     353             propMirror->AddEntry("REFLECTIVITY", 15.5*eV, 0.92);
+     354         }
+     355         m_mirror_opsurf->SetMaterialPropertiesTable( propMirror );
+     356 }
+
+::
+
+    epsilon:tests blyth$ cd $NP_PROP_BASE
+    epsilon:DetSim blyth$ find . -name PMT_Mirror
+    epsilon:DetSim blyth$ 
+
+::
+
+    epsilon:tests blyth$ export BP="CustomG4OpBoundaryProcess::DielectricMetal CustomG4OpBoundaryProcess::ChooseReflection CustomG4OpBoundaryProcess::DoAbsorption" 
+         POM=1 N=1 ./U4SimulateTest.sh dbg 
+
+
+
+SetPolish(0.999) DOES IT DO ANYTHING ? YES : Small smear to GetFacetNormal 
+---------------------------------------------------------------------------------
+
+g4-cls G4OpticalSurface::
+
+    186     G4double GetPolish() const { return polish; }
+    187         // Returns the optical surface polish type.
+    188     inline void SetPolish(const G4double plsh) { polish=plsh; }
+    189         // Sets the optical surface polish type.
+
+
+::
+
+    epsilon:junosw blyth$ g4-cc GetPolish 
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/processes/optical/src/G4OpBoundaryProcess.cc:           if (OpticalSurface) polish = OpticalSurface->GetPolish();
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/persistency/gdml/src/G4GDMLWriteSolids.cc:   G4double sval = (smodel==glisur) ? surf->GetPolish() : surf->GetSigmaAlpha();
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ g4-hh GetPolish 
+    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/materials/include/G4OpticalSurface.hh:	G4double GetPolish() const { return polish; }
+    epsilon:junosw blyth$ 
+
+
+See u4/tests/G4OpBoundaryProcess_GetFacetNormal_Test.sh
+
+
+TODO : POM:0 COMPARISON BETWEEN N=0/1 A-B comparison
+------------------------------------------------------
+
+Expect very simple histories in this case
+
+
+TODO : WIDE BEAM, RANDOM DIRECTIONS FOR 3D CHECK
+--------------------------------------------------------
+
+
+
+TODO : 4 PMTs (2 HAMA, 2 NNVT) to check PMTAccessor access to specific PMT qe, also check get SD
+----------------------------------------------------------------------------------------------------
 
 
 
