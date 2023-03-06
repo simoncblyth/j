@@ -740,7 +740,7 @@ There are no obvious zero dropouts in the A-B comparison::
 
 
 
-1M Statistical Comparison of history counts : whats the chi2 ? Any significant deviants ?
+1M Statistical Comparison of history counts : whats the chi2 ? Any significant deviants ? NO 
 -----------------------------------------------------------------------------------------------
 
 ::
@@ -753,7 +753,6 @@ There are no obvious zero dropouts in the A-B comparison::
     PID : -1 
     Fold : symbol a base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL0 
     Fold : symbol b base /tmp/blyth/opticks/GEOM/FewPMT/U4SimulateTest/ALL1 
-
     ...
 
     c2sum :    66.3813 c2n :    61.0000 c2per:     1.0882 
@@ -796,9 +795,6 @@ There are no obvious zero dropouts in the A-B comparison::
 HMM: IS THERE SOME ISSUE WITH FAKE SKIPPING ?
 
      [' 5' 'TO BT BT SA                                                                                     ' ' 5' ' 23986  24442' ' 4.2937' '    44      5']
-
-
-
 
 
 Visualizing the first two photons with that history::
@@ -937,12 +933,11 @@ Reflectivity of 0.92 is the default when no PMT_Mirror
      340         m_mirror_opsurf->SetFinish(polishedfrontpainted); // needed for mirror
      341         m_mirror_opsurf->SetModel(glisur);
      342         m_mirror_opsurf->SetType(dielectric_metal);
-     343         m_mirror_opsurf->SetPolish(0.999);
-
-     ///   MY READING OF G4OpBoundaryProcess SUGGESTS THE BELOW SETTINGS DO NOTHING FOR type:dielectric_metal 
+     343         m_mirror_opsurf->SetPolish(0.999);             // Causes very slight smearing of GetFacetNormal result, is that always used? 
+    
+     ///   MY READING OF G4OpBoundaryProcess SUGGESTS THE "polishedfrontpainted" DOES NOTHING FOR type:dielectric_metal 
      ///
      ///        finish:polishedfrontpainted 
-     ///        polish:0.999 
      ///
      ///   HOWEVER model:glisur IS ACTUALLY NEEDED 
      ///   
@@ -973,7 +968,6 @@ Reflectivity of 0.92 is the default when no PMT_Mirror
          POM=1 N=1 ./U4SimulateTest.sh dbg 
 
 
-
 SetPolish(0.999) DOES IT DO ANYTHING ? YES : Small smear to GetFacetNormal 
 ---------------------------------------------------------------------------------
 
@@ -999,19 +993,193 @@ g4-cls G4OpticalSurface::
 See u4/tests/G4OpBoundaryProcess_GetFacetNormal_Test.sh
 
 
-TODO : POM:0 COMPARISON BETWEEN N=0/1 A-B comparison
-------------------------------------------------------
+DONE : POM:0 COMPARISON BETWEEN N=0/1 A-B comparison  : no significant deviation
+-------------------------------------------------------------------------------------
 
 Expect very simple histories in this case
 
+::
 
-TODO : WIDE BEAM, RANDOM DIRECTIONS FOR 3D CHECK
---------------------------------------------------------
+    POM=0 N=0 ./U4SimulateTest.sh 
+    POM=0 N=1 ./U4SimulateTest.sh 
+    POM=0 ./U4SimulateTest.sh cf
+
+::
+
+    c2sum :     6.7669 c2n :     6.0000 c2per:     1.1278 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SD                                                                                        ' ' 0' ' 99119  99129' ' 0.0005' '     0      0']
+     [' 1' 'TO BT AB                                                                                        ' ' 1' '   352    334' ' 0.4723' '   156     28']
+     [' 2' 'TO BR SA                                                                                        ' ' 2' '   280    259' ' 0.8182' '   175    163']
+     [' 3' 'TO AB                                                                                           ' ' 3' '   214    221' ' 0.1126' '  1421    187']
+     [' 4' 'TO SC SA                                                                                        ' ' 4' '    17     33' ' 5.1200' '   560   1415']
+     [' 5' 'TO SC BT SD                                                                                     ' ' 5' '    17     20' ' 0.2432' ' 10268    255']
+     [' 6' 'TO SC AB                                                                                        ' ' 6' '     0      3' ' 0.0000' '    -1   5474']
+     [' 7' 'TO BR AB                                                                                        ' ' 7' '     1      1' ' 0.0000' '  9335  86580']]
+
+
+Efficiency is set to 1. for::
+
+     560                 else if( OpticalSurfaceName0 == '#' ) // upper hemi with name starting # : Traditional Detection at photocathode
+     561                 {
+     562                     m_custom_status = '-' ;
+     563 
+     564                     type = dielectric_metal ;
+     565                     theModel = glisur ;
+     566                     theReflectivity = 0. ;
+     567                     theTransmittance = 0. ;
+     568                     theEfficiency = 1. ;
+     569                 }
+
+
+TODO : POM:0 CHECK OF THE MIRROR PORTION : IE SHOOT THE SIDE/BACK OF PMT
+------------------------------------------------------------------------------
+
+
+
+
+
+POM:1 SINGLE POINT IS CONSISTENT : BUT WHY NO SD ?
+-----------------------------------------------------
+
+::
+
+    POM=0 N=0 ./U4SimulateTest.sh 
+    POM=0 N=1 ./U4SimulateTest.sh 
+    POM=0 ./U4SimulateTest.sh cf
+
+
+    c2sum :    29.0921 c2n :    32.0000 c2per:     0.9091 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SA                                                                                        ' ' 0' ' 58664  58337' ' 0.9139' '     0      0']
+     [' 1' 'TO BT BR BT SA                                                                                  ' ' 1' '  9979  10133' ' 1.1792' '     9      2']
+     [' 2' 'TO BT BT SR SA                                                                                  ' ' 2' '  9697   9857' ' 1.3092' '     2      3']
+     [' 3' 'TO BT BT SR SR SR SA                                                                            ' ' 3' '  5358   5478' ' 1.3289' '     4      7']
+     [' 4' 'TO BT BT SR SR SR BT BT SA                                                                      ' ' 4' '  4150   4112' ' 0.1748' '    28     20']
+     [' 5' 'TO BT BT SA                                                                                     ' ' 5' '  2416   2470' ' 0.5968' '     1    167']
+     [' 6' 'TO BT BT SR SR SR BR SR SA                                                                      ' ' 6' '  2359   2289' ' 1.0542' '    39     78']
+     [' 7' 'TO BT BT SR SR SA                                                                               ' ' 7' '  1400   1418' ' 0.1150' '    91     45']
+     [' 8' 'TO BT BT SR SR SR BR SR SR SR SA                                                                ' ' 8' '  1394   1348' ' 0.7717' '    55     15']
+     [' 9' 'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ' ' 9' '   642    654' ' 0.1111' '   136    254']
+     ['10' 'TO BT BT SR SR SR BR SA                                                                         ' '10' '   600    570' ' 0.7692' '   153     62']
+     ['11' 'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                                                       ' '11' '   452    451' ' 0.0011' '   283    514']
+     ['12' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                                                 ' '12' '   416    376' ' 2.0202' '   251    303']
+     ['13' 'TO BT BT SR SR SR BR SR SR SA                                                                   ' '13' '   323    359' ' 1.9003' '    58    357']
+     ['14' 'TO BT AB                                                                                        ' '14' '   314    358' ' 2.8810' '   303    116']
+     ['15' 'TO BR SA                                                                                        ' '15' '   272    259' ' 0.3183' '   642     54']
+     ['16' 'TO AB                                                                                           ' '16' '   219    226' ' 0.1101' '   110   1167']
+     ['17' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                                                 ' '17' '   186    166' ' 1.1364' '   383    131']
+     ['18' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ' '18' '   133    127' ' 0.1385' '  1398    875']
+     ['19' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                                                 ' '19' '   113    124' ' 0.5105' '   131    693']
+     ['20' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                                                    ' '20' '   124    122' ' 0.0163' '  1252    699']
+     ['21' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA                                           ' '21' '   110    103' ' 0.2300' '   836   1360']
+     ['22' 'TO BT BT SR SR SR BR SR SR SR BR SR SA                                                          ' '22' '   109    106' ' 0.0419' '   835   4067']
+     ['23' 'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ' '23' '    94    105' ' 0.6080' '  1270    923']
+     ['24' 'TO BT BR BT AB                                                                                  ' '24' '    70     76' ' 0.2466' '  2234    798']
+     ['25' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR SA                                           ' '25' '    35     31' ' 0.2424' '   551   5431']
+     ['26' 'TO BT BT SR SR SR BT BT AB                                                                      ' '26' '    34     34' ' 0.0000' '   517    638']
+     ['27' 'TO BT BR AB                                                                                     ' '27' '    34     27' ' 0.8033' '    51    447']
+     ['28' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ' '28' '    33     29' ' 0.2581' ' 18155   8642']
+     ['29' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR BT BT BT SA                                  ' '29' '    12     29' ' 7.0488' '  7276   1992']]
+
+
+    
+
+Presumably POM:1 HAS NO SD because theEfficiency is zero ? Why is theEfficiency 0 ? FIX that 
+-----------------------------------------------------------------------------------------------
+
+::
+
+    540 inline double JPMT::get_pmtid_qe( int pmtid, double energy ) const  // placeholder returing zero 
+    541 {
+    542     // HMM: energy or energy_eV ? standalone uses energy_eV for GPU simularity where use float 
+    543     return 0. ;
+    544 }
+
+The N=0,1 standalone tests are still using JPMT for their IPMTAccessor. 
+Need to use the persisted PMTSimParamData approach for the full PMT data 
+to be available. 
+
+N=0 standalone test sets the PMTAccessor, jcv HamamatsuR12860PMTManager::
+
+    1221 void
+    1222 HamamatsuR12860PMTManager::helper_fast_sim()
+    1223 {
+    1224     assert( m_enable_optical_model == true && m_natural_geometry == false);
+    1225 
+    1226     G4String name = GetName()+"_optical_model" ;
+    1227 
+    1228     G4Region* body_region = new G4Region(name);
+    1229     body_log->SetRegion(body_region);
+    1230     body_region->AddRootLogicalVolume(body_log);
+    1231 
+    1232     pmtOpticalModel = new junoPMTOpticalModel(name, body_phys, body_region);
+    1233 
+    1234 #ifdef PMTSIM_STANDALONE
+    1235     const IPMTAccessor* accessor = JPMT::Get() ;   // feels silly to have more than one of these ? 
+    1236     pmtOpticalModel->setPMTAccessor(accessor);
+    1237 #else
+
+
+N=1 standalone test also sets the PMTAccessor, u4/U4Physics::
+
+    161 void U4Physics::ConstructOp()
+    ...
+    210     if(G4OpBoundaryProcess_DISABLE == 0)
+    211     {
+    212 #ifdef WITH_PMTSIM
+    213         IPMTAccessor* ipmt = dynamic_cast<IPMTAccessor*>(new JPMT) ;
+    214         fBoundary = new CustomG4OpBoundaryProcess(ipmt);
+    215 #elif WITH_PMTFASTSIM
+    216         IPMTAccessor* ipmt = dynamic_cast<IPMTAccessor*>(new JPMT) ;
+    217         fBoundary = new InstrumentedG4OpBoundaryProcess(ipmt);
+    218 #else
+    219         fBoundary = new InstrumentedG4OpBoundaryProcess();
+    220 #endif
+    221         LOG(info) << " fBoundary " << fBoundary ;
+    222     }
+
+
+NB in standard running the hookup happens elsewhere, jcv DsPhysConsOptical::
+
+    336 CustomG4OpBoundaryProcess* DsPhysConsOptical::CreateCustomG4OpBoundaryProcess()
+    337 {
+    338     SniperPtr<IPMTSimParamSvc> psps_ptr(*getParent(), "PMTSimParamSvc");
+    339 
+    340     if(psps_ptr.invalid())
+    341     {
+    342         std::cout << "invalid" << std::endl ;
+    343         return nullptr ;
+    344     }
+    345 
+    346     IPMTSimParamSvc* ipsps = psps_ptr.data();
+    347     PMTSimParamData* pspd = ipsps->getPMTSimParamData() ;
+    348     IPMTAccessor* accessor = new PMTAccessor(pspd) ;
+    349 
+    350     CustomG4OpBoundaryProcess* boundproc = new CustomG4OpBoundaryProcess(accessor) ;
+    351     return boundproc ;
+    352 }
+
+
+
+j/PMTSimParamData test loaded PMT data 
+--------------------------------------------
+
+
 
 
 
 TODO : 4 PMTs (2 HAMA, 2 NNVT) to check PMTAccessor access to specific PMT qe, also check get SD
 ----------------------------------------------------------------------------------------------------
+
+
+
+
+
+TODO : WIDE BEAM, RANDOM DIRECTIONS FOR 3D CHECK
+--------------------------------------------------------
 
 
 
