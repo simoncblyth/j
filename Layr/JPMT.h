@@ -132,9 +132,11 @@ struct JPMT : public IPMTAccessor
 
     // high level API fulfilling IPMTAccessor.h protocol base (common with non-standalone accessor)
     double get_pmtid_qe( int pmtid, double energy ) const ;   // placeholder returing zero 
+    double get_qescale( int pmtid ) const ;   // placeholder returning zero 
     int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
     const char* get_typename() const ; 
+    int get_num_lpmt() const ; 
 
 
 #ifdef WITH_STACKSPEC
@@ -539,9 +541,19 @@ inline double JPMT::get_rindex(int pmtcat, int layer, int prop, double energy_eV
 
 inline double JPMT::get_pmtid_qe( int pmtid, double energy ) const  // placeholder returing zero 
 {
-    // HMM: energy or energy_eV ? standalone uses energy_eV for GPU simularity where use float 
     return 0. ; 
 }
+inline double JPMT::get_qescale( int pmtid ) const  // placeholder returing zero 
+{
+    return 0. ; 
+}
+inline int JPMT::get_num_lpmt() const 
+{
+    return 0 ; 
+}
+
+
+
 
 inline int JPMT::get_pmtcat( int pmtid  ) const  // placeholder returning default 
 {

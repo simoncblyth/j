@@ -31,6 +31,7 @@ include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParam
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)   
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include)
+include_directories($ENV{JUNOTOP}/junosw/Detector/Geometry)
 
 
 set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
@@ -38,8 +39,22 @@ set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PM
 list(APPEND HEADERS_PMTSimParamSvc
     ${BASE_PMTSimParamSvc}/IPMTAccessor.h
     ${BASE_PMTSimParamSvc}/PMTAccessor.h
+    ${BASE_PMTSimParamSvc}/PMTSimParamData.h
+    ${BASE_PMTSimParamSvc}/_PMTSimParamData.h
+    ${BASE_PMTSimParamSvc}/PmtSimData_LPMT.h
+    ${BASE_PMTSimParamSvc}/PmtSimData_SPMT.h
 )
 
+set(BASE_Geometry       $ENV{JUNOTOP}/junosw/Detector/Geometry/Geometry)
+list(APPEND HEADERS_Geometry
+    ${BASE_Geometry}/PMT.h
+    ${BASE_Geometry}/PMTCategory.h
+)
+
+set(BASE_SimUtil      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil/SimUtil)
+list(APPEND HEADERS_SimUtil
+    ${BASE_SimUtil}/S4Touchable.h
+)
 
 
 
@@ -98,6 +113,13 @@ list(APPEND HEADERS
      ../Layr/JPMT.h 
 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART.h
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
+
+
+
+
 )
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
@@ -107,7 +129,7 @@ message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
 add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
 
-target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE )
+target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE WITH_NP )
 
 target_include_directories(${name}
      PUBLIC
@@ -128,6 +150,8 @@ bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 
 install(FILES ${HEADERS}                 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${HEADERS_PMTSimParamSvc}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PMTSimParamSvc )
+install(FILES ${HEADERS_Geometry}        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Geometry)
+install(FILES ${HEADERS_SimUtil}         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SimUtil)
 
 
 
