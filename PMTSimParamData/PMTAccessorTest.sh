@@ -1,6 +1,6 @@
 #!/bin/bash -l 
 
-defarg="build_run"
+defarg="build_run_ana"
 arg=${1:-$defarg}
 
 name=PMTAccessorTest
@@ -17,6 +17,7 @@ g4-
 
 if [ "${arg/build}" != "$arg" ]; then 
 
+    echo build
     gcc $name.cc \
           -g -std=c++11 -lstdc++ \
           -I$HOME/opticks/sysrap \
@@ -36,6 +37,7 @@ if [ "${arg/build}" != "$arg" ]; then
 fi
 
 if [ "${arg/run}" != "$arg" ]; then 
+    echo run
     $bin
     [ $? -ne 0 ] && echo $BASH_SOURCE run error && exit 2
 fi 
@@ -49,7 +51,11 @@ if [ "${arg/dbg}" != "$arg" ]; then
 fi 
 
 if [ "${arg/ana}" != "$arg" ]; then 
-    FOLD=$FOLD/test_get_pmtid_qe_max ${IPYTHON:-ipython} --pdb -i $name.py 
+    echo ana
+    #test=test_get_pmtid_qe_max
+    test=test_get_pmtid_qe_all
+    export TEST=${TEST:-$test}
+    FOLD=$FOLD/$TEST ${IPYTHON:-ipython} --pdb -i $name.py 
     [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 4
 fi 
 

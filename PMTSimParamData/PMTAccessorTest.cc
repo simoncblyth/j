@@ -36,17 +36,62 @@ void test_get_pmtid_qe(const IPMTAccessor& d )
     }
 }
 
+void test_get_pmtid_qe_all(const IPMTAccessor& d )
+{
+    int num_lpmt = d.get_num_lpmt() ; 
+    const int N = 401 ; 
+
+    NPFold* fold = new NPFold ; 
+    NP* a = NP::Make<double>( num_lpmt, N, 3 ) ; 
+    NP* b = NP::Make<int>(    num_lpmt, 2 ) ; 
+
+    fold->add("a", a); 
+    fold->add("b", b); 
+
+    double* aa = a->values<double>(); 
+    int* bb = b->values<int>();  
+
+    double wl0 = 300. ; 
+    double wl1 = 700. ; 
+
+    for(int i=0 ; i < num_lpmt ;  i++)
+    {
+        int pmtid = i ; 
+        int cat = d.get_pmtcat(pmtid) ; 
+        bb[i*2+0] = pmtid ; 
+        bb[i*2+1] = cat ; 
+
+        for(int j=0 ; j < N ; j++)
+        {
+            double wl = wl0 + (wl1-wl0)*(double(j)/(N-1)) ;  
+            double wavelength = wl*CLHEP::nm ; 
+            double energy = CLHEP::twopi*CLHEP::hbarc/wavelength ;
+            double qe = d.get_pmtid_qe(pmtid, energy);   
+
+            aa[i*N*3+j*3+0] = wl  ; 
+            aa[i*N*3+j*3+1] = energy/CLHEP::eV ;  
+            aa[i*N*3+j*3+2] = qe ;  
+        }
+    }
+ 
+    fold->save("$FOLD/test_get_pmtid_qe_all"); 
+
+}
+
+
 void test_get_pmtid_qe_max(const IPMTAccessor& d )
 {
     int num_lpmt = d.get_num_lpmt() ; 
     std::cout << " num_lpmt " << num_lpmt << std::endl ; 
 
-    const int N = 1000 ; 
+    const int N = 400 ; 
     double en0 = 1.55 ; 
-    double en1 = 15.5 ; 
+    double en1 = 15.5 ;
+ 
     
     NP* a = NP::Make<int>( num_lpmt, 2) ; 
     NP* b = NP::Make<double>( num_lpmt, 4) ; 
+
 
     NPFold* fold = new NPFold ; 
     fold->add("a", a); 
@@ -60,7 +105,6 @@ void test_get_pmtid_qe_max(const IPMTAccessor& d )
         int pmtid = i ; 
         int cat = d.get_pmtcat(pmtid) ; 
         double scale = d.get_qescale(pmtid) ; 
-
 
         aa[2*i+0] = pmtid ; 
         aa[2*i+1] = cat ; 
@@ -111,6 +155,7 @@ void test_get_pmtid_qe_max(const IPMTAccessor& d )
 
 
 
+
 void test_get_pmtcat( const IPMTAccessor& d )
 {
     int pcat = -2 ; 
@@ -136,9 +181,10 @@ int main()
     /*
     test_get_pmtcat(*ip); 
     test_get_pmtid_qe(*ip); 
+    test_get_pmtid_qe_max(*ip); 
     */
 
-    test_get_pmtid_qe_max(*ip); 
+    test_get_pmtid_qe_all(*ip); 
 
 
     return 0 ; 
