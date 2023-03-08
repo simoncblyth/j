@@ -14,6 +14,36 @@ Speeddial
 
 
 
+POM : Open Questions
+------------------------
+
+Thoughts while reading ~/opticks_refs/Optical_Properties_of_Bialkali_Photocathodes_Motta_and_Schonert_MPI_0408075.pdf 
+and looking at the junoPOM code
+
+* Paper talks about photocathode A,R,T surely it should talk about the A,R,T of the stack of layers ? Is that what is means ? 
+
+  * seems not, Fig 2 R does not go to 1. at glancing incidence 
+    (huh comment about that saying "first order Fresnel reflection from glass not included")
+  * this makes this diffult to compare with my plots  
+
+* JUNO POM MultiLayer stack is 4 layers (Pyrex/ARC/PHC/Vacuum) not 5 (Water/Pyrex/ARC/PHC/Vacuum). 
+  Does that cause an "interpretation model matching" problem, 
+  eg when trying to use the QE from another measurement to get escape fraction ? 
+
+* The stacks are Pyrex/ARC/PHC/Vacuum NOT Water/Pyrex/ARC/PHC/Vacuum which 
+  makes me suspect apples-vs-oranges issue with "escape_fac  = _qe/An" 
+  because surely _qe is coming from an in Water measurement ? 
+  Unless it was somehow corrected ? 
+
+  *  ~/opticks_refs/JUNO_MultiFilm_PMT_Optical_Model_2204.02703.pdf section 4. 
+     characterization measuremnents are done in LAB (linear alkylbenzene) 
+     which has refractive index close to Pyrex so that provides some justification 
+   
+     * google: LAB 1.481-1.485 Pyrex 1.474    
+
+
+
+
 WIP : Comparing U4SimulateTest.sh between corresponding N=0,1 quadrants for both hama and nnvt PMTs
 ------------------------------------------------------------------------------------------------------
 
@@ -1033,15 +1063,10 @@ Efficiency is set to 1. for::
      569                 }
 
 
-TODO : POM:0 CHECK OF THE MIRROR PORTION : IE SHOOT THE SIDE/BACK OF PMT
-------------------------------------------------------------------------------
 
 
-
-
-
-POM:1 SINGLE POINT IS CONSISTENT : BUT WHY NO SD ?
------------------------------------------------------
+POM:1 SINGLE POINT IS CONSISTENT : BUT WHY NO SD ? BECAUSE WAS USING JPMT NOT PMTSimParamData 
+------------------------------------------------------------------------------------------------------------
 
 ::
 
@@ -1087,7 +1112,7 @@ POM:1 SINGLE POINT IS CONSISTENT : BUT WHY NO SD ?
 
     
 
-Presumably POM:1 HAS NO SD because theEfficiency is zero ? Why is theEfficiency 0 ? FIX that 
+Presumably POM:1 HAS NO SD because theEfficiency is zero ? Why is theEfficiency 0 ? FIXED that 
 -----------------------------------------------------------------------------------------------
 
 ::
@@ -1141,8 +1166,14 @@ N=1 standalone test also sets the PMTAccessor, u4/U4Physics::
     221         LOG(info) << " fBoundary " << fBoundary ;
     222     }
 
+Now loading from persisted PMTSimParamData::
 
-NB in standard running the hookup happens elsewhere, jcv DsPhysConsOptical::
+    213         const IPMTAccessor* ipmt = PMTAccessor::Load("$PMTSimParamData_BASE/PMTSimParamData") ;
+    214         fBoundary = new CustomG4OpBoundaryProcess(ipmt);
+
+
+
+NB in monolithic running the hookup happens at physics setup, jcv DsPhysConsOptical::
 
     336 CustomG4OpBoundaryProcess* DsPhysConsOptical::CreateCustomG4OpBoundaryProcess()
     337 {
@@ -1167,6 +1198,652 @@ NB in standard running the hookup happens elsewhere, jcv DsPhysConsOptical::
 j/PMTSimParamData test loaded PMT data 
 --------------------------------------------
 
+The test demonstrates loading the PMT data from NPFold folders. Now how to 
+use that capability in the tests to replace JPMT ? 
+
+Doing this within a PMTAccessor::Load seems natural. 
+
+
+
+DONE : Handle not enough PMTs for standalone testing giving pmtid -1 using copyNo in PMTSIM_STANDALONE
+-----------------------------------------------------------------------------------------------------------
+
+HMM : THE VERY SIMPLE N=1 PMT GEOMETRY MEANS THAT PERHAPS CAN AVOID THE COMPLICATED S4Touchable/U4Touchable ?
+
+
+
+U4VolumeMaker::WrapAround::
+
+    0992 void U4VolumeMaker::WrapAround( const char* prefix, const NP* trs, std::vector<G4LogicalVolume*>& lvs, G4LogicalVolume* mother_lv )
+     993 {
+     994     unsigned num_place = trs->shape[0] ;
+     995     unsigned place_tr = trs->shape[1] ;
+     996     unsigned place_values = place_tr*4*4 ;
+     997     unsigned num_lv = lvs.size();
+     998 
+     999 
+    1000     assert( trs->has_shape(num_place,place_tr,4,4) );
+    1001     assert( place_tr == 6 );  // expected number of different options from "TR,tr,R,T,r,t"
+    1002     enum { _TR, _tr, _R, _T, _r, _t } ;  // order must match opts "TR,tr,R,T,r,t"
+    1003 
+    1004     const double* tt = trs->cvalues<double>();
+    1005 
+    1006     for(unsigned i=0 ; i < num_place ; i++)
+    1007     {
+    1008         const double* T = tt + place_values*i + _T*16 ;
+    1009         const double* R = tt + place_values*i + _R*16 ;
+    1010 
+    1011         // TODO: get these from a single matrix, not 6 
+    1012 
+    1013         G4ThreeVector tla( T[12], T[13], T[14] );
+    1014 
+    1015         LOG(LEVEL) << " i " << std::setw(7) << " tla " << U4ThreeVector::Desc(tla) ;
+    1016 
+    1017         bool transpose = true ;
+    1018         U4RotationMatrix* rot = new U4RotationMatrix( R, transpose );  // ISA G4RotationMatrix
+    1019 
+    1020         LOG(LEVEL) << " i " << std::setw(7) << " rot " << U4RotationMatrix::Desc(rot) ;
+    1021 
+    1022         const char* iname = PlaceName(prefix, i, nullptr);
+    1023 
+    1024         G4bool pMany_unused = false ;
+    1025         G4int  pCopyNo = (i+1)*10 ;
+    1026         G4LogicalVolume* lv = lvs[i%num_lv] ;
+    1027 
+    1028         const G4VPhysicalVolume* pv_n = new G4PVPlacement(rot, tla, lv, iname, mother_lv, pMany_unused, pCopyNo ); // 1st ctor
+    1029         assert( pv_n );
+    1030     }
+    1031 }
+
+
+
+
+WITH SD COMPARISONS IN POM 0,1  : c2 OK : SURPRISED BY SO MUCH SD ? efficiency not that much ?
+----------------------------------------------------------------------------------------------------
+
+
+
+
+::
+
+    c2sum :    34.4124 c2n :    34.0000 c2per:     1.0121 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SD                                                                                        ' ' 0' ' 36013  36183' ' 0.4003' '     6      0']
+     [' 1' 'TO BT SA                                                                                        ' ' 1' ' 30863  31002' ' 0.3123' '     2     13']
+     [' 2' 'TO BT BT SR SA                                                                                  ' ' 2' '  9431   9442' ' 0.0064' '     3      8']
+     [' 3' 'TO BT BT SR SR SR SA                                                                            ' ' 3' '  3905   3801' ' 1.4036' '     0     37']
+     [' 4' 'TO BT BT SR SR SR BT BT SA                                                                      ' ' 4' '  3872   3710' ' 3.4614' '    24    147']
+     [' 5' 'TO BT BR BT SA                                                                                  ' ' 5' '  2871   2814' ' 0.5715' '    15     40']
+     [' 6' 'TO BT BT SR SR SR BR SR SA                                                                      ' ' 6' '  2746   2601' ' 3.9321' '    26     34']
+     [' 7' 'TO BT BT SA                                                                                     ' ' 7' '  2333   2351' ' 0.0692' '    70     54']
+     [' 8' 'TO BT BT SR SR SA                                                                               ' ' 8' '  1346   1447' ' 3.6523' '    60      4']
+     [' 9' 'TO BT BT SR SR SR BR SR SR SR SA                                                                ' ' 9' '  1183   1183' ' 0.0000' '   159     18']
+     ['10' 'TO BT BT SR SR SR BR SA                                                                         ' '10' '   634    700' ' 3.2654' '    98      1']
+     ['11' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BT BT SA                                                 ' '11' '   587    556' ' 0.8408' '   606    111']
+     ['12' 'TO BT BT SR SR SR BR SR SR SR BR SR SR SA                                                       ' '12' '   569    573' ' 0.0140' '   377    160']
+     ['13' 'TO BT BT SR SR SR BR SR SR SR BT BT BT SD                                                       ' '13' '   419    432' ' 0.1986' '     1    209']
+     ['14' 'TO BT BT SR SR SR BR SR SR SA                                                                   ' '14' '   419    407' ' 0.1743' '    56    180']
+     ['15' 'TO BT BT SR SR SR BR SR SR SR BT BT BT SA                                                       ' '15' '   367    371' ' 0.0217' '   509     51']
+     ['16' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SA                                                 ' '16' '   333    345' ' 0.2124' '  1040    371']
+     ['17' 'TO BT AB                                                                                        ' '17' '   304    341' ' 2.1225' '   157    497']
+     ['18' 'TO BR SA                                                                                        ' '18' '   312    265' ' 3.8284' '   365   1717']
+     ['19' 'TO AB                                                                                           ' '19' '   224    243' ' 0.7730' '   262     10']
+     ['20' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SA                                                    ' '20' '   227    224' ' 0.0200' '    47   1813']
+     ['21' 'TO BT BT SR SR SR BR SR SR SR BR SA                                                             ' '21' '   161    157' ' 0.0503' '   222     88']
+     ['22' 'TO BT BT SR SR SR BR SR SR SR BR SR SA                                                          ' '22' '   152    144' ' 0.2162' '   345    196']
+     ['23' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BT BT SA                                           ' '23' '   139    130' ' 0.3011' '   361   1026']
+     ['24' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR SA                                                 ' '24' '   126    101' ' 2.7533' '  1274    443']
+     ['25' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SR BR SR SA                                           ' '25' '    39     53' ' 2.1304' '  4042    701']
+     ['26' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BT SA                                                    ' '26' '    40     35' ' 0.3333' '  4710    665']
+     ['27' 'TO BT BT SR SR SR BT BT AB                                                                      ' '27' '    37     29' ' 0.9697' '  2303     99']
+     ['28' 'TO BT BT SR SR SR BR SR SR SR BR SR SR BR SR SR SA                                              ' '28' '    27     33' ' 0.6000' '  1668   3548']
+     ['29' 'TO BT BT SR SR SR BR SR SR SR BT BT BT BR BT SA                                                 ' '29' '    30     33' ' 0.1429' '  2521    269']]
+
+
+
+
+DONE : Checked _qe upscaling by An : COMES DOWN TO HOW _qe defined and measured
+-------------------------------------------------------------------------------------
+
+The below from CustomART.h is just duplicating what junoPMTOpticalModel does. 
+Now I need to check validity of that::
+
+    312     // stackNormal is not flipped (as minus_cos_theta is fixed at -1.) presumably this is due to _qe definition
+    313     Stack<double,4> stackNormal(wavelength_nm, -1. , spec ); 
+    314     
+    315     // at normal incidence S/P become meaningless, and the values converge anyhow : so no polarization worries here
+    316     double An = one - (stackNormal.art.T + stackNormal.art.R) ; 
+    317     double D = _qe/An;   // LOOKS STRANGE TO DIVIDE BY An : BUT IT COMES DOWN TO THE _qe DEFINITION : TODO: Check with experts. 
+    318     
+    319     theEfficiency = D ;
+    320     
+
+
+junoPMTOpticalModel::
+
+    271     G4double R  = 0.;
+    272     G4double A  = 0.;
+    273     G4double An = 0.;
+    274     G4double escape_fac = 0.;
+    275     G4double E_s2 = 0.;
+    276 
+    277     if(_sin_theta1 > 0.){
+    278         E_s2 = (pol*dir.cross(norm))/_sin_theta1;
+    279         E_s2 *= E_s2;
+    280     }else{
+    281         E_s2 = 0.;
+    282     }
+    283 
+    284     T = fT_s*E_s2 + fT_p*(1.0-E_s2);
+    285     R = fR_s*E_s2 + fR_p*(1.0-E_s2);
+    286     A = 1.0 - (T+R);
+    287 
+    288     An = 1.0 - (fT_n+fR_n);
+    289     escape_fac  = _qe/An;
+
+   
+    /**
+
+
+
+
+    At normal incidence factorize the QE (signal_electrons/incident_photons) into two terms::
+    
+    
+             qe = An * escape_fac    <= fraction of photoelectrons that get from cathode to dynode and form a signal  
+                                        (depends on fields inside the PMT vacuum, shape of dynodes etc.., ) 
+                  ^^
+                  Normal incidence absorption (from An = 1-Rn-Tn) 
+                  depending on wl, properties of ARC, PHC (complex refractive indices). 
+                  Material properties and EM (Maxwells) boundary conditions. 
+                  (NOTHING TO DO WITH THE PMT, OTHER THAN ITS MATERIALS)
+
+    **/
+ 
+
+    ...
+    309 
+    310     if(escape_fac > 1.){
+    311         G4cout<<"junoPMTOpticalModel: QE is larger than absorption coeff."<<G4endl;
+    312     }
+    313 
+    314     G4double rand_absorb = G4UniformRand();
+    315     G4double rand_escape = G4UniformRand();
+    316 
+    317     if(rand_absorb < A){
+    318         // absorbed
+    319         fastStep.ProposeTrackStatus(fStopAndKill);
+    320         if(rand_escape<escape_fac){
+    321         // detected
+    322             fastStep.ProposeTotalEnergyDeposited(_photon_energy);
+    323         }
+    324     }else if(rand_absorb < A+R){
+    325         // fastStep.ProposeTrackStatus(fStopAndKill);
+    326         // reflected
+
+
+Quantum Efficiency
+---------------------
+
+* https://en.wikipedia.org/wiki/Quantum_efficiency
+
+
+
+
+
+google : absorption at boundary complex refractive index
+------------------------------------------------------------
+
+* https://geant4-forum.web.cern.ch/t/complex-refractive-index-reflectivity-absorption-at-the-surface-optical-surfaces/6290
+* https://geant4-forum.web.cern.ch/t/complex-refractive-index-for-a-dielectric-dielectric-interface-photon-absorption-at-the-interface/1617
+
+
+
+
+* https://www.sciencedirect.com/science/article/abs/pii/S0168900204022132
+
+
+
+
+Optical Properties of Bialkali Photocathodes, D. Motta and S. Shonert
+-------------------------------------------------------------------------
+
+* https://arxiv.org/pdf/physics/0408075.pdf
+* ~/opticks_refs/Optical_Properties_of_Bialkali_Photocathodes_Motta_and_Schonert_MPI_0408075.pdf
+
+
+
+Spicer Three-step model for photoemission
+-------------------------------------------
+
+* https://www.slac.stanford.edu/pubs/slacpubs/6250/slac-pub-6306.pdf
+
+  Modern Theory and Applications of Photocathodes, W.E.Spicer
+
+
+Bulk treatment to calculate QE 
+  
+* Optical absorption 
+* Electron transport
+* Escape across surface, work functions
+
+
+
+A new optical model for photomultiplier tubes, Published: 16 April 2022
+--------------------------------------------------------------------------
+
+
+* ~/opticks_refs/JUNO_MultiFilm_PMT_Optical_Model_2204.02703.pdf
+
+* https://link.springer.com/article/10.1140/epjc/s10052-022-10288-y
+
+Yaoguang Wang, Guofu Cao, Liangjian Wen & Yifang Wang 
+
+The European Physical Journal C volume 82, Article number: 329 (2022) Cite this article
+
+
+
+Interestingly, the proposed model predicts a similar level (20–30%) of light
+yield excess observed in the experimental data of many liquid
+scintillator-based neutrino detectors, compared with that predicted at the
+stage of detector design. However, this excess has never been explained, and
+the proposed PMT model provides a good explanation for it, which highlights the
+imperfections of PMT models used in their detector simulations.
+
+
+PDE : Photon Detection Efficiency
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The PDE is defined as the ratio of the number of detected photons to the number
+of incident photons on the PMT. In general, PDE can be further decomposed into
+QE and collection efficiency (CE). Based on Spicer’s three-step model [21], QE
+can be considered a product of two terms: one is the absorption probability of
+converting an incident photon to a photoelectron in the photocathode via the
+photoelectric effect, and the other is the escape probability of the generated
+photoelectrons that overcome the photocathode’s potential and become free
+photoelectrons. CE is the probability of successfully collecting free
+photoelectrons via built-in electrodes of the PMT. It depends on the electrical
+field distributed inside the PMT. The electrical field accelerates the
+photoelectrons to hit the first dynode or micro-channel plate (MCP) and knock
+out secondary electrons. Then, the secondary electrons are multiplied in
+multistage dynodes (MCPs) and eventually collected by the anode to form an
+electrical signal. The following factors must be managed correctly to obtain an
+accurate PMT optical model aimed at describing the angular and spectral
+dependence of the PDE and its uniformity on PMTs. 
+
+
+
+WIP : Directing beam at NNVT PMT gives worse chi2 
+------------------------------------------------------
+
+::
+
+    In [2]: np.c_[siq,quo,siq,sabo2,sc2,sabo1][:50]                                                                                                                             
+    Out[2]: 
+    array([[' 0', 'TO BT SD                                                                                        ', ' 0', ' 35832  36034', ' 0.5678', '     2      0'],
+           [' 1', 'TO BT SA                                                                                        ', ' 1', ' 30792  30754', ' 0.0235', '     0      1'],
+           [' 2', 'TO BT BT SR BT BT SA                                                                            ', ' 2', '  8735   8684', ' 0.1493', '     6     34'],
+           [' 3', 'TO BT BT SR SA                                                                                  ', ' 3', '  7970   8032', ' 0.2402', '     3     10'],
+           [' 4', 'TO BT BT SR BR SA                                                                               ', ' 4', '  3657   3561', ' 1.2768', '    19     55'],
+           [' 5', 'TO BT BR BT SA                                                                                  ', ' 5', '  2973   2853', ' 2.4717', '    27     48'],
+           [' 6', 'TO BT BT SA                                                                                     ', ' 6', '  2288   2371', ' 1.4786', '    28     50'],
+           [' 7', 'TO BT BT SR BR SR SR BT BT SA                                                                   ', ' 7', '  1895   1963', ' 1.1985', '    25    110'],
+           [' 8', 'TO BT BT SR BR SR SR SA                                                                         ', ' 8', '  1881   1807', ' 1.4848', '    17     33'],
+           [' 9', 'TO BT BT SR BR SR SR BR SR SA                                                                   ', ' 9', '   612    635', ' 0.4242', '   304    292'],
+           ['10', 'TO BT BT SR BR SR SA                                                                            ', '10', '   530    545', ' 0.2093', '   130     92'],
+           ['11', 'TO BT AB                                                                                        ', '11', '   340    322', ' 0.4894', '   165     78'],
+           ['12', 'TO BR SA                                                                                        ', '12', '   291    274', ' 0.5115', '  1074    908'],
+           ['13', 'TO AB                                                                                           ', '13', '   228    241', ' 0.3603', '   261    398'],
+           ['14', 'TO BT BT SR BR SR SR BR SR BR SR SA                                                             ', '14', '   236    234', ' 0.0085', '   282    326'],
+           ['15', 'TO BT BT SR BR SR SR BR SR BT BT BT SD                                                          ', '15', '   218    203', ' 0.5344', '   115    125'],
+           ['16', 'TO BT BT SR BR SR SR BR SA                                                                      ', '16', '   211    201', ' 0.2427', '   253    470'],
+           ['17', 'TO BT BT SR BR SR SR BR SR BT BT BT SA                                                          ', '17', '   199    198', ' 0.0025', '  2626     65'],
+           ['18', 'TO BT BT SR BR SR SR BR SR BT BT BT BT SA                                                       ', '18', '   198    195', ' 0.0229', '   251    341'],
+           ['19', 'TO BT BT SR BR SR SR BR SR BR SR BT BT BT SD                                                    ', '19', '   117    106', ' 0.5426', '   127     23'],
+           ['20', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BT BT SA                                                 ', '20', '    98    105', ' 0.2414', '  3337   1715'],
+           ['21', 'TO BT BT SR BR SR SR BR SR BR SR BT BT BT SA                                                    ', '21', '   105    103', ' 0.0192', '   516    308'],
+           ['22', 'TO BT BT SR BR SR SR BR SR BR SR BR SR SA                                                       ', '22', '   103    100', ' 0.0443', '   520   2403'],
+           ['23', 'TO BT BT SR BR SR SR BR SR BR SA                                                                ', '23', '    81     81', ' 0.0000', '   246    131'],
+           ['24', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SA                                                 ', '24', '    42     48', ' 0.4000', '  2562   4391'],
+
+           ['25', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR SD                                              ', '25', '    36      0', '36.0000', '  4772     -1'],
+           ['32', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BT BT SA                                        ', '32', '     0     24', ' 0.0000', '    -1   6043'],
+           ['34', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BR SA                                           ', '34', '     0     15', ' 0.0000', '    -1   3566'],
+           ['40', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BR BT BT SA                                     ', '40', '     0     10', ' 0.0000', '    -1   4730'],
+
+
+::
+
+    N=0 APID=4772 ./U4SimtraceTest.sh ana
+    ## lots of bouncing around inside NNVT ending with an SD on the fake border, which makes no sense at all
+
+    N=1 BPID=6043 ./U4SimtraceTest.sh ana
+
+    N=0 APID=4772 BPID=6043 BOFF=400,0,0 ./U4SimtraceTest.sh ana
+    
+    w = np.where( q[:,0] == q[4772] )[0]    
+
+    In [19]: w[:10]
+    Out[19]: array([ 4772,  8809,  8909, 10099, 12715, 13162, 14008, 19524, 20787, 21350])
+
+    In [17]: t.photon[w,0]   ## ALL ENDING WITH SD AT THE SAME PLACE : LOOKS LIKE A BUG 
+    Out[17]: 
+    array([[-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+           [-250.   ,    0.   ,  183.618,   20.122],
+
+
+
+Getting Rerunning to work
+-----------------------------
+
+
+u4t/U4SimulateTest.sh::
+
+    118 if [ -n "$RERUN" ]; then 
+    119    export OPTICKS_G4STATE_RERUN=$RERUN
+    120    running_mode=SRM_G4STATE_RERUN
+    121 else
+    122    running_mode=SRM_G4STATE_SAVE
+    123 fi
+    124 
+    125 case $running_mode in 
+    126    SRM_G4STATE_SAVE)  reldir=ALL$VERSION ;;
+    127    SRM_G4STATE_RERUN) reldir=SEL$VERSION ;;
+    128 esac
+    129 
+    130 ## sysrap/SEventConfig 
+    131 export OPTICKS_RUNNING_MODE=$running_mode   # see SEventConfig::RunningMode
+    132 export OPTICKS_MAX_BOUNCE=31                # can go upto 31 now that extended sseq.h 
+    133 export OPTICKS_EVENT_MODE=StandardFullDebug
+    134 
+
+SEventConfig.cc::
+
+    061 int SEventConfig::_RunningMode = SRM::Type(SSys::getenvvar(kRunningMode, _RunningModeDefault));
+     62 const char* SEventConfig::_G4StateSpec  = SSys::getenvvar(kG4StateSpec,  _G4StateSpecDefault );
+     63 int         SEventConfig::_G4StateRerun = SSys::getenvint(kG4StateRerun, _G4StateRerunDefault) ;
+     64 
+
+     92 int         SEventConfig::RunningMode(){ return _RunningMode ; }
+     93 const char* SEventConfig::RunningModeLabel(){ return SRM::Name(_RunningMode) ; }
+     94 bool SEventConfig::IsRunningModeDefault(){      return RunningMode() == SRM_DEFAULT ; }
+     95 bool SEventConfig::IsRunningModeG4StateSave(){  return RunningMode() == SRM_G4STATE_SAVE ; }
+     96 bool SEventConfig::IsRunningModeG4StateRerun(){ return RunningMode() == SRM_G4STATE_RERUN ; }
+     97 
+     98 const char* SEventConfig::G4StateSpec(){  return _G4StateSpec ; }
+     99 
+    100 /**
+    101 SEventConfig::G4StateRerun
+    102 ----------------------------
+    103 
+    104 When rerun mode is not enabled returns -1 even when rerun id is set. 
+    105 
+    106 **/
+    107 int SEventConfig::G4StateRerun()
+    108 {
+    109     bool rerun_enabled = IsRunningModeG4StateRerun() ;
+    110     return rerun_enabled && _G4StateRerun > -1 ? _G4StateRerun : -1  ;
+    111 }
+    112 
+
+
+After config to save all g4state (not just 1000) by changing OPTICKS_G4STATE_SPEC to "$num_ph:38"
+can rerun the single photon::
+
+    RERUN=4772 N=0 POM=1 ./U4SimulateTest.sh 
+
+    RERUN=4772 BP=junoPMTOpticalModel::DoIt N=0 POM=1 ./U4SimulateTest.sh 
+
+
+
+
+HMM : LOOKS LIKE FASTSIM N=0 HAS ANOTHER BUG : SOMETIMES GETTING SURFACE_DETECT  AT THE VAC/VAC BOUNDARY
+-------------------------------------------------------------------------------------------------------------
+
+
+Rerun shows that are getting SD on the Fake boundary in middle of PMT::
+
+    RERUN=4772 N=0 POM=1 ./U4SimulateTest.sh 
+    RERUN=4772 BP=junoPMTOpticalModel::DoIt N=0 POM=1 ./U4SimulateTest.sh 
+
+::
+
+    (lldb) 
+    Process 52577 resuming
+    junoPMTOpticalModel::DoIt@183:  pmtid 0 pmtcat 1 _qe 0.347509 _photon_energy/eV 2.952 n_glass 1.48426 n_coating 1.94133 k_coating 0 d_coating 36.49 n_photocathode 2.27348 k_photocathode 1.40706 d_photocathode 21.13 n_vacuum 1
+    junoPMTOpticalModel::DoIt@261:  _cos_theta1 0.636195 _aoi 50.4914 m_label spho (gs:ix:id:gn   04772 4772[  0,  0,  0, 95])
+    junoPMTOpticalModel::DoIt@293:  E_s2 1 fT_s 1.44814e-17 fT_p 5.87806e-17 T 1.44814e-17 fR_s 0.0318883 fR_p 0.223724 R 0.0318883 A 0.968112 fT_n 0.327437 fR_n 0.0255893 An 0.646974 escape_fac 0.53713
+    Process 52577 stopped
+    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 2.1
+        frame #0: 0x00000001008d54e6 libPMTSim.dylib`junoPMTOpticalModel::DoIt(this=0x000000010770e780, fastTrack=0x000000010770e980, fastStep=0x000000010770ead8) at junoPMTOpticalModel.cc:322
+       319 	        fastStep.ProposeTrackStatus(fStopAndKill);
+       320 	        if(rand_escape<escape_fac){
+       321 	        // detected
+    -> 322 	            fastStep.ProposeTotalEnergyDeposited(_photon_energy);
+       323 	        }
+       324 	    }else if(rand_absorb < A+R){
+       325 	        // fastStep.ProposeTrackStatus(fStopAndKill);
+    Target 0: (U4SimulateTest) stopped.
+    (lldb) p A
+    (G4double) $0 = 0.9681117487651012
+    (lldb) p rand_absorb
+    (G4double) $1 = 0.63633601726184885
+    (lldb) p rand_escape
+    (G4double) $2 = 0.40912593597398816
+    (lldb) p escape_fac
+    (G4double) $3 = 0.53713009155559488
+    (lldb) 
+
+    (lldb) p pos
+    (G4ThreeVector) $4 = {
+      data = ([0] = -183.61805248417411, [1] = 0, [2] = 0)     ## local frame along -X axis
+    }
+    (lldb) p dist1
+    (G4double) $5 = 175.90799836311567
+
+    (lldb) p pmtid                      ## SUSPECT THIS IS DISCREPANT AS N=1 GETTING SPECIAL HANDLING TO SET THIS TO CopyNo EVEN THOUGH ONE OF EACH 
+    (int) $6 = 0
+    (lldb) p pmtcat
+    (int) $7 = 1
+    (lldb) p _qe
+    (G4double) $8 = 0.3475091505761605
+    (lldb) 
+
+    (lldb) p dir
+    (G4ThreeVector) $11 = {
+      data = ([0] = -0.77152860442434201, [1] = 0, [2] = 0.63619463417654443)
+    }
+    (lldb) p norm
+    (G4ThreeVector) $12 = {
+      data = ([0] = -0, [1] = -0, [2] = 1)
+    }
+    (lldb) 
+
+    (lldb) p A+R
+    (double) $13 = 1
+    (lldb) p whereAmI
+    (EWhereAmI) $14 = kInGlass         ## HUH: WRONG 
+    (lldb) 
+
+    (lldb) p dist1
+    (G4double) $15 = 175.90799836311567
+    (lldb) p dist2
+    (G4double) $16 = 8.9999999999999999E+99
+    (lldb) 
+
+    (lldb) p track->GetVolume()
+    (G4PVPlacement *) $18 = 0x000000010770c120
+    (lldb) p track->GetVolume()->GetName()
+    (const G4String) $19 = (std::__1::string = "nnvt_edge_phy")    ## HUH: NOT EXPECTED
+    (lldb) p track->GetNextVolume()->GetName()
+    (const G4String) $20 = (std::__1::string = "nnvt_edge_phy")
+    (lldb) 
+
+
+The "nnvt_edge_phy" is going to mess with the ModelTrigger giving kInGlass when actually in vacuum::
+
+    124 
+    125     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner1_phys){
+    126         whereAmI = kInVacuum;
+    127     }else{
+    128         whereAmI = kInGlass;
+    129     }
+    130 
+
+
+RERUN=4772 BP="junoPMTOpticalModel::DoIt junoPMTOpticalModel::ModelTrigger" N=0 POM=1 ./U4SimulateTest.sh 
+
+
+
+
+line test gives ReplicaDepth assert
+---------------------------------------
+
+::
+
+    (lldb) bt
+    * thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGABRT
+      * frame #0: 0x00007fff55664b66 libsystem_kernel.dylib`__pthread_kill + 10
+        frame #1: 0x00007fff5582f080 libsystem_pthread.dylib`pthread_kill + 333
+        frame #2: 0x00007fff555c01ae libsystem_c.dylib`abort + 127
+        frame #3: 0x00007fff555881ac libsystem_c.dylib`__assert_rtn + 320
+        frame #4: 0x0000000100250371 libU4.dylib`U4Touchable::ReplicaDepth(touch=0x0000000112c26770) at U4Touchable.h:66
+        frame #5: 0x000000010024bdc5 libU4.dylib`U4Touchable::ReplicaNumber(touch=0x0000000112c26770) at U4Touchable.h:36
+        frame #6: 0x00000001002495a1 libU4.dylib`void U4Recorder::UserSteppingAction_Optical<CustomG4OpBoundaryProcess>(this=0x000000010711a820, step=0x000000010743d330) at U4Recorder.cc:489
+        frame #7: 0x0000000100249076 libU4.dylib`void U4Recorder::UserSteppingAction<CustomG4OpBoundaryProcess>(this=0x000000010711a820, step=0x000000010743d330) at U4Recorder.cc:111
+        frame #8: 0x0000000100033c01 U4SimulateTest`U4RecorderTest::UserSteppingAction(this=0x000000010711be60, step=0x000000010743d330) at U4RecorderTest.h:190
+        frame #9: 0x0000000100033c3c U4SimulateTest`non-virtual thunk to U4RecorderTest::UserSteppingAction(this=0x000000010711be60, step=0x000000010743d330) at U4RecorderTest.h:0
+        frame #10: 0x0000000102afef06 libG4tracking.dylib`G4SteppingManager::Stepping(this=0x000000010743d1a0) at G4SteppingManager.cc:243
+        frame #11: 0x0000000102b1586f libG4tracking.dylib`G4TrackingManager::ProcessOneTrack(this=0x000000010743d160, apValueG4Track=0x0000000112c26330) at G4TrackingManager.cc:126
+
+
+    (lldb) f 6
+    frame #6: 0x00000001002495a1 libU4.dylib`void U4Recorder::UserSteppingAction_Optical<CustomG4OpBoundaryProcess>(this=0x000000010711a820, step=0x000000010743d330) at U4Recorder.cc:489
+       486 	
+       487 	    const G4VTouchable* touch = track->GetTouchable();  
+       488 	    LOG(LEVEL) << U4Touchable::Brief(touch) ;
+    -> 489 	    current_photon.iindex = U4Touchable::ReplicaNumber(touch); 
+       490 	
+       491 	    // first_point identified by the flagmask having a single bit (all genflag are single bits, set in beginPhoton)
+       492 	    bool first_point = current_photon.flagmask_count() == 1 ;  
+    (lldb) 
+
+
+    (lldb) f 5
+    frame #5: 0x000000010024bdc5 libU4.dylib`U4Touchable::ReplicaNumber(touch=0x0000000112c26770) at U4Touchable.h:36
+       33  	
+       34  	inline int U4Touchable::ReplicaNumber(const G4VTouchable* touch)  // static 
+       35  	{
+    -> 36  	    int d = ReplicaDepth(touch);
+       37  	    return d > -1 ? touch->GetReplicaNumber(d) : d  ;
+       38  	}
+       39  	
+    (lldb) f 4
+    frame #4: 0x0000000100250371 libU4.dylib`U4Touchable::ReplicaDepth(touch=0x0000000112c26770) at U4Touchable.h:66
+       63  	        << std::endl
+       64  	        ; 
+       65  	
+    -> 66  	    assert(expected); 
+       67  	
+       68  	    if(!expected) return -2 ; 
+       69  	
+    (lldb) 
+
+
+Check where this happens, probably when miss the PMT::
+
+    In [17]: iindex = t.photon[:,1,3].view(np.int32)
+
+    In [18]: w2 = np.where( iindex == -2 )[0]
+
+    In [19]: w2 
+    Out[19]: 
+    array([86000, 86001, 86002, 86003, 86004, 86005, 86006, 86007, 86008, 86009, 86010, 86011, 86012, 86013, 86014, 86015, 86016, 86017, 86018, 86019, 86020, 86021, 86022, 86023, 86024, 86025, 86026,
+           86027, 86028, 86029, 86030, 86031, 86032, 86033, 86034, 86035, 86036, 86037, 86038, 86039, 86040, 86041, 86042, 86043, 86044, 86045, 86046, 86047, 86048, 86049, ..., 99950, 99951, 99952,
+           99953, 99954, 99955, 99956, 99957, 99958, 99959, 99960, 99961, 99962, 99963, 99964, 99965, 99966, 99967, 99968, 99969, 99970, 99971, 99972, 99973, 99974, 99975, 99976, 99977, 99978, 99979,
+           99980, 99981, 99982, 99983, 99984, 99985, 99986, 99987, 99988, 99989, 99990, 99991, 99992, 99993, 99994, 99995, 99996, 99997, 99998, 99999])
+
+
+Yep, they are all BULK_ABSORB::
+
+    In [22]: np.unique(q[w2])
+    Out[22]: array([b'TO AB                                                                                           '], dtype='|S96')
+
+    In [26]: t.record[w2,0,0]
+    Out[26]: 
+    array([[   0.   ,    0.   , -300.   ,    0.   ],
+           [   0.   ,    0.   , -300.005,    0.   ],
+           [   0.   ,    0.   , -300.01 ,    0.   ],
+           [   0.   ,    0.   , -300.015,    0.   ],
+           [   0.   ,    0.   , -300.02 ,    0.   ],
+           [   0.   ,    0.   , -300.025,    0.   ],
+           [   0.   ,    0.   , -300.03 ,    0.   ],
+           [   0.   ,    0.   , -300.035,    0.   ],
+           [   0.   ,    0.   , -300.04 ,    0.   ],
+           [   0.   ,    0.   , -300.045,    0.   ],
+           [   0.   ,    0.   , -300.05 ,    0.   ],
+           [   0.   ,    0.   , -300.055,    0.   ],
+
+
+Looking at simtrace shows these are all starting in the Rock::
+
+   ./U4SimtraceTest.sh ana 
+
+
+
+Look into a point in unexpected position : probably scattered out of plane, YEP : all are scattered
+----------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    x_pick = np.logical_and( pos[:,0] > -90, pos[:,0] < -80 )     
+    z_pick = np.logical_and( pos[:,2] >  25, pos[:,2] <  35 )    
+    xz_pick = np.logical_and( x_pick, z_pick )
+    w_xz_pick = np.where(xz_pick)[0]  
+
+    In [4]: w_xz_pick
+    Out[4]: array([58825])
+
+    In [5]: q[w_xz_pick]
+    Out[5]: array([[b'TO SC BT SD                                                                                     ']], dtype='|S96')
+
+    In [6]: t.record[w_xz_pick, :4, 0]
+    Out[6]: 
+    array([[[  0.   ,   0.   , -44.125,   0.   ],
+            [-20.458,   0.   , -44.125,   0.094],
+            [-77.808,  85.647,  26.076,   0.666],
+            [-85.206,  91.938,  31.596,   0.723]]], dtype=float32)
+
+    In [34]: w_y_out = np.where( np.sum( t.record[:,:,0,1], axis=1 ) != 0. )[0]
+
+    In [35]: w_y_out
+    Out[35]: 
+    array([  338,   378,  2649,  3492,  6580,  6728,  7650, 11062, 12433, 12458, 13046, 13397, 14534, 15749, 16232, 19363, 20549, 21046, 21364, 21376, 22532, 22550, 24197, 24813, 26886, 29429, 30662,
+           30964, 32023, 32113, 32426, 33414, 34622, 35774, 40195, 43872, 44087, 45979, 49716, 50816, 52351, 53137, 53171, 53463, 54587, 57026, 58825, 61622, 61847, 63109, 67114, 67946, 68046, 68443,
+           69296, 73834, 73952, 74495, 75530, 77971, 78283, 79067, 79909, 81176, 84122, 84829, 87152, 89328, 89602, 90785, 91198, 91831, 93217, 94576, 95876, 96096, 96120, 98079, 99277, 99521])
+
+    In [36]: q[w_y_out]
+    Out[36]: 
+    array([[b'TO BT BR BT SC SA                                                                               '],
+           [b'TO SC BT BR BT SA                                                                               '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC BT SA                                                                                     '],
+           [b'TO SC BT SD                                                                                     '],
+           [b'TO SC BT SA                                                                                     '],
+           [b'TO SC BT SA                                                                                     '],
+
+
 
 
 
@@ -1175,11 +1852,18 @@ TODO : 4 PMTs (2 HAMA, 2 NNVT) to check PMTAccessor access to specific PMT qe, a
 ----------------------------------------------------------------------------------------------------
 
 
-
+TODO : MORE THAN 4 PMTs : JUST MACHINERY CHECK
+--------------------------------------------------
 
 
 TODO : WIDE BEAM, RANDOM DIRECTIONS FOR 3D CHECK
 --------------------------------------------------------
+
+
+TODO : POM:0,1 CHECK MIRROR PORTION : IE SHOOT THE SIDE/BACK OF PMT
+------------------------------------------------------------------------------
+
+
 
 
 
