@@ -129,7 +129,7 @@ message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
 add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
 
-target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE WITH_NP )
+target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE WITH_NP POM_DEBUG )
 
 target_include_directories(${name}
      PUBLIC

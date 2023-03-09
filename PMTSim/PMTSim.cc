@@ -42,6 +42,21 @@
 #include <iostream>
 #include <streambuf>
 
+#ifdef POM_DEBUG
+#include "NPX.h"
+#include "ModelTrigger_Debug.h"
+std::vector<ModelTrigger_Debug> ModelTrigger_Debug::RECORD = {} ; 
+UName                           ModelTrigger_Debug::PV  = {} ; 
+UName                           ModelTrigger_Debug::MLV = {} ; 
+
+
+NP* PMTSim::ModelTrigger_Debug_Array()   // static
+{
+    return ModelTrigger_Debug::Array() ; 
+}
+#endif
+
+
 struct cout_redirect {
     cout_redirect( std::streambuf * new_buffer ) 
         : old( std::cout.rdbuf( new_buffer ) ) 
@@ -987,4 +1002,5 @@ void PMTSim::Extract( std::vector<long>& vals, const char* s )  // static
     }   
     free(s0); 
 }
+
 

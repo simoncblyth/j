@@ -27,6 +27,10 @@ struct PMTSIM_API PMTSim
     static int LEVEL ; 
     bool verbose ; 
 
+#ifdef POM_DEBUG
+    static NP* ModelTrigger_Debug_Array(); 
+#endif
+
     static std::string OutputMessage(const char* msg, const std::string& out, const std::string& err, bool verbose ); 
 
 

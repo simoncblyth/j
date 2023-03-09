@@ -3,6 +3,8 @@ blyth-88-quadrant-matching.rst
 
 * from :doc:`blyth-88-incorporation-notes`
 
+* next :doc:`blyth-88-ModelTrigger_Debug`
+
 
 Speeddial
 ----------
@@ -1474,237 +1476,6 @@ dependence of the PDE and its uniformity on PMTs.
 
 
 
-WIP : Directing beam at NNVT PMT gives worse chi2 
-------------------------------------------------------
-
-::
-
-    In [2]: np.c_[siq,quo,siq,sabo2,sc2,sabo1][:50]                                                                                                                             
-    Out[2]: 
-    array([[' 0', 'TO BT SD                                                                                        ', ' 0', ' 35832  36034', ' 0.5678', '     2      0'],
-           [' 1', 'TO BT SA                                                                                        ', ' 1', ' 30792  30754', ' 0.0235', '     0      1'],
-           [' 2', 'TO BT BT SR BT BT SA                                                                            ', ' 2', '  8735   8684', ' 0.1493', '     6     34'],
-           [' 3', 'TO BT BT SR SA                                                                                  ', ' 3', '  7970   8032', ' 0.2402', '     3     10'],
-           [' 4', 'TO BT BT SR BR SA                                                                               ', ' 4', '  3657   3561', ' 1.2768', '    19     55'],
-           [' 5', 'TO BT BR BT SA                                                                                  ', ' 5', '  2973   2853', ' 2.4717', '    27     48'],
-           [' 6', 'TO BT BT SA                                                                                     ', ' 6', '  2288   2371', ' 1.4786', '    28     50'],
-           [' 7', 'TO BT BT SR BR SR SR BT BT SA                                                                   ', ' 7', '  1895   1963', ' 1.1985', '    25    110'],
-           [' 8', 'TO BT BT SR BR SR SR SA                                                                         ', ' 8', '  1881   1807', ' 1.4848', '    17     33'],
-           [' 9', 'TO BT BT SR BR SR SR BR SR SA                                                                   ', ' 9', '   612    635', ' 0.4242', '   304    292'],
-           ['10', 'TO BT BT SR BR SR SA                                                                            ', '10', '   530    545', ' 0.2093', '   130     92'],
-           ['11', 'TO BT AB                                                                                        ', '11', '   340    322', ' 0.4894', '   165     78'],
-           ['12', 'TO BR SA                                                                                        ', '12', '   291    274', ' 0.5115', '  1074    908'],
-           ['13', 'TO AB                                                                                           ', '13', '   228    241', ' 0.3603', '   261    398'],
-           ['14', 'TO BT BT SR BR SR SR BR SR BR SR SA                                                             ', '14', '   236    234', ' 0.0085', '   282    326'],
-           ['15', 'TO BT BT SR BR SR SR BR SR BT BT BT SD                                                          ', '15', '   218    203', ' 0.5344', '   115    125'],
-           ['16', 'TO BT BT SR BR SR SR BR SA                                                                      ', '16', '   211    201', ' 0.2427', '   253    470'],
-           ['17', 'TO BT BT SR BR SR SR BR SR BT BT BT SA                                                          ', '17', '   199    198', ' 0.0025', '  2626     65'],
-           ['18', 'TO BT BT SR BR SR SR BR SR BT BT BT BT SA                                                       ', '18', '   198    195', ' 0.0229', '   251    341'],
-           ['19', 'TO BT BT SR BR SR SR BR SR BR SR BT BT BT SD                                                    ', '19', '   117    106', ' 0.5426', '   127     23'],
-           ['20', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BT BT SA                                                 ', '20', '    98    105', ' 0.2414', '  3337   1715'],
-           ['21', 'TO BT BT SR BR SR SR BR SR BR SR BT BT BT SA                                                    ', '21', '   105    103', ' 0.0192', '   516    308'],
-           ['22', 'TO BT BT SR BR SR SR BR SR BR SR BR SR SA                                                       ', '22', '   103    100', ' 0.0443', '   520   2403'],
-           ['23', 'TO BT BT SR BR SR SR BR SR BR SA                                                                ', '23', '    81     81', ' 0.0000', '   246    131'],
-           ['24', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SA                                                 ', '24', '    42     48', ' 0.4000', '  2562   4391'],
-
-           ['25', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR SD                                              ', '25', '    36      0', '36.0000', '  4772     -1'],
-           ['32', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BT BT SA                                        ', '32', '     0     24', ' 0.0000', '    -1   6043'],
-           ['34', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BR SA                                           ', '34', '     0     15', ' 0.0000', '    -1   3566'],
-           ['40', 'TO BT BT SR BR SR SR BR SR BR SR BR SR BR SR SR BR BT BT SA                                     ', '40', '     0     10', ' 0.0000', '    -1   4730'],
-
-
-::
-
-    N=0 APID=4772 ./U4SimtraceTest.sh ana
-    ## lots of bouncing around inside NNVT ending with an SD on the fake border, which makes no sense at all
-
-    N=1 BPID=6043 ./U4SimtraceTest.sh ana
-
-    N=0 APID=4772 BPID=6043 BOFF=400,0,0 ./U4SimtraceTest.sh ana
-    
-    w = np.where( q[:,0] == q[4772] )[0]    
-
-    In [19]: w[:10]
-    Out[19]: array([ 4772,  8809,  8909, 10099, 12715, 13162, 14008, 19524, 20787, 21350])
-
-    In [17]: t.photon[w,0]   ## ALL ENDING WITH SD AT THE SAME PLACE : LOOKS LIKE A BUG 
-    Out[17]: 
-    array([[-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-           [-250.   ,    0.   ,  183.618,   20.122],
-
-
-
-Getting Rerunning to work
------------------------------
-
-
-u4t/U4SimulateTest.sh::
-
-    118 if [ -n "$RERUN" ]; then 
-    119    export OPTICKS_G4STATE_RERUN=$RERUN
-    120    running_mode=SRM_G4STATE_RERUN
-    121 else
-    122    running_mode=SRM_G4STATE_SAVE
-    123 fi
-    124 
-    125 case $running_mode in 
-    126    SRM_G4STATE_SAVE)  reldir=ALL$VERSION ;;
-    127    SRM_G4STATE_RERUN) reldir=SEL$VERSION ;;
-    128 esac
-    129 
-    130 ## sysrap/SEventConfig 
-    131 export OPTICKS_RUNNING_MODE=$running_mode   # see SEventConfig::RunningMode
-    132 export OPTICKS_MAX_BOUNCE=31                # can go upto 31 now that extended sseq.h 
-    133 export OPTICKS_EVENT_MODE=StandardFullDebug
-    134 
-
-SEventConfig.cc::
-
-    061 int SEventConfig::_RunningMode = SRM::Type(SSys::getenvvar(kRunningMode, _RunningModeDefault));
-     62 const char* SEventConfig::_G4StateSpec  = SSys::getenvvar(kG4StateSpec,  _G4StateSpecDefault );
-     63 int         SEventConfig::_G4StateRerun = SSys::getenvint(kG4StateRerun, _G4StateRerunDefault) ;
-     64 
-
-     92 int         SEventConfig::RunningMode(){ return _RunningMode ; }
-     93 const char* SEventConfig::RunningModeLabel(){ return SRM::Name(_RunningMode) ; }
-     94 bool SEventConfig::IsRunningModeDefault(){      return RunningMode() == SRM_DEFAULT ; }
-     95 bool SEventConfig::IsRunningModeG4StateSave(){  return RunningMode() == SRM_G4STATE_SAVE ; }
-     96 bool SEventConfig::IsRunningModeG4StateRerun(){ return RunningMode() == SRM_G4STATE_RERUN ; }
-     97 
-     98 const char* SEventConfig::G4StateSpec(){  return _G4StateSpec ; }
-     99 
-    100 /**
-    101 SEventConfig::G4StateRerun
-    102 ----------------------------
-    103 
-    104 When rerun mode is not enabled returns -1 even when rerun id is set. 
-    105 
-    106 **/
-    107 int SEventConfig::G4StateRerun()
-    108 {
-    109     bool rerun_enabled = IsRunningModeG4StateRerun() ;
-    110     return rerun_enabled && _G4StateRerun > -1 ? _G4StateRerun : -1  ;
-    111 }
-    112 
-
-
-After config to save all g4state (not just 1000) by changing OPTICKS_G4STATE_SPEC to "$num_ph:38"
-can rerun the single photon::
-
-    RERUN=4772 N=0 POM=1 ./U4SimulateTest.sh 
-
-    RERUN=4772 BP=junoPMTOpticalModel::DoIt N=0 POM=1 ./U4SimulateTest.sh 
-
-
-
-
-HMM : LOOKS LIKE FASTSIM N=0 HAS ANOTHER BUG : SOMETIMES GETTING SURFACE_DETECT  AT THE VAC/VAC BOUNDARY
--------------------------------------------------------------------------------------------------------------
-
-
-Rerun shows that are getting SD on the Fake boundary in middle of PMT::
-
-    RERUN=4772 N=0 POM=1 ./U4SimulateTest.sh 
-    RERUN=4772 BP=junoPMTOpticalModel::DoIt N=0 POM=1 ./U4SimulateTest.sh 
-
-::
-
-    (lldb) 
-    Process 52577 resuming
-    junoPMTOpticalModel::DoIt@183:  pmtid 0 pmtcat 1 _qe 0.347509 _photon_energy/eV 2.952 n_glass 1.48426 n_coating 1.94133 k_coating 0 d_coating 36.49 n_photocathode 2.27348 k_photocathode 1.40706 d_photocathode 21.13 n_vacuum 1
-    junoPMTOpticalModel::DoIt@261:  _cos_theta1 0.636195 _aoi 50.4914 m_label spho (gs:ix:id:gn   04772 4772[  0,  0,  0, 95])
-    junoPMTOpticalModel::DoIt@293:  E_s2 1 fT_s 1.44814e-17 fT_p 5.87806e-17 T 1.44814e-17 fR_s 0.0318883 fR_p 0.223724 R 0.0318883 A 0.968112 fT_n 0.327437 fR_n 0.0255893 An 0.646974 escape_fac 0.53713
-    Process 52577 stopped
-    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 2.1
-        frame #0: 0x00000001008d54e6 libPMTSim.dylib`junoPMTOpticalModel::DoIt(this=0x000000010770e780, fastTrack=0x000000010770e980, fastStep=0x000000010770ead8) at junoPMTOpticalModel.cc:322
-       319 	        fastStep.ProposeTrackStatus(fStopAndKill);
-       320 	        if(rand_escape<escape_fac){
-       321 	        // detected
-    -> 322 	            fastStep.ProposeTotalEnergyDeposited(_photon_energy);
-       323 	        }
-       324 	    }else if(rand_absorb < A+R){
-       325 	        // fastStep.ProposeTrackStatus(fStopAndKill);
-    Target 0: (U4SimulateTest) stopped.
-    (lldb) p A
-    (G4double) $0 = 0.9681117487651012
-    (lldb) p rand_absorb
-    (G4double) $1 = 0.63633601726184885
-    (lldb) p rand_escape
-    (G4double) $2 = 0.40912593597398816
-    (lldb) p escape_fac
-    (G4double) $3 = 0.53713009155559488
-    (lldb) 
-
-    (lldb) p pos
-    (G4ThreeVector) $4 = {
-      data = ([0] = -183.61805248417411, [1] = 0, [2] = 0)     ## local frame along -X axis
-    }
-    (lldb) p dist1
-    (G4double) $5 = 175.90799836311567
-
-    (lldb) p pmtid                      ## SUSPECT THIS IS DISCREPANT AS N=1 GETTING SPECIAL HANDLING TO SET THIS TO CopyNo EVEN THOUGH ONE OF EACH 
-    (int) $6 = 0
-    (lldb) p pmtcat
-    (int) $7 = 1
-    (lldb) p _qe
-    (G4double) $8 = 0.3475091505761605
-    (lldb) 
-
-    (lldb) p dir
-    (G4ThreeVector) $11 = {
-      data = ([0] = -0.77152860442434201, [1] = 0, [2] = 0.63619463417654443)
-    }
-    (lldb) p norm
-    (G4ThreeVector) $12 = {
-      data = ([0] = -0, [1] = -0, [2] = 1)
-    }
-    (lldb) 
-
-    (lldb) p A+R
-    (double) $13 = 1
-    (lldb) p whereAmI
-    (EWhereAmI) $14 = kInGlass         ## HUH: WRONG 
-    (lldb) 
-
-    (lldb) p dist1
-    (G4double) $15 = 175.90799836311567
-    (lldb) p dist2
-    (G4double) $16 = 8.9999999999999999E+99
-    (lldb) 
-
-    (lldb) p track->GetVolume()
-    (G4PVPlacement *) $18 = 0x000000010770c120
-    (lldb) p track->GetVolume()->GetName()
-    (const G4String) $19 = (std::__1::string = "nnvt_edge_phy")    ## HUH: NOT EXPECTED
-    (lldb) p track->GetNextVolume()->GetName()
-    (const G4String) $20 = (std::__1::string = "nnvt_edge_phy")
-    (lldb) 
-
-
-The "nnvt_edge_phy" is going to mess with the ModelTrigger giving kInGlass when actually in vacuum::
-
-    124 
-    125     if(fastTrack.GetPrimaryTrack()->GetVolume() == _inner1_phys){
-    126         whereAmI = kInVacuum;
-    127     }else{
-    128         whereAmI = kInGlass;
-    129     }
-    130 
-
-
-RERUN=4772 BP="junoPMTOpticalModel::DoIt junoPMTOpticalModel::ModelTrigger" N=0 POM=1 ./U4SimulateTest.sh 
-
-
-
-
 line test gives ReplicaDepth assert
 ---------------------------------------
 
@@ -1805,6 +1576,9 @@ Look into a point in unexpected position : probably scattered out of plane, YEP 
 
 ::
 
+    POM=1 N=1 ./U4SimulateTest.sh ph 
+
+
     x_pick = np.logical_and( pos[:,0] > -90, pos[:,0] < -80 )     
     z_pick = np.logical_and( pos[:,2] >  25, pos[:,2] <  35 )    
     xz_pick = np.logical_and( x_pick, z_pick )
@@ -1844,8 +1618,28 @@ Look into a point in unexpected position : probably scattered out of plane, YEP 
            [b'TO SC BT SA                                                                                     '],
 
 
+Its better to use np.abs and np.max rather than np.sum which could be tricked by symmetry::
+
+    In [3]: yy = t.record[:,:,0,1]
+
+    In [12]: myy = np.max( np.abs(yy), axis=1 )     ## max absolute y of all step points for each photon
+
+    In [17]: wyy = np.where( myy > 0 )[0]
+
+    In [18]: q[wyy]
+    Out[18]: 
+    array([[b'TO BT BR BT SC SA                                                                               '],
+           [b'TO SC BT BR BT SA                                                                               '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC SA                                                                                        '],
+           [b'TO SC BT SA                                                                                     '],
 
 
+
+
+TODO : Suspect N=0/1 POM=1 discrepant efficiency from different pmtid : IT IS PUSHING UP CHI2
+-----------------------------------------------------------------------------------------------
 
 
 TODO : 4 PMTs (2 HAMA, 2 NNVT) to check PMTAccessor access to specific PMT qe, also check get SD
@@ -1862,10 +1656,6 @@ TODO : WIDE BEAM, RANDOM DIRECTIONS FOR 3D CHECK
 
 TODO : POM:0,1 CHECK MIRROR PORTION : IE SHOOT THE SIDE/BACK OF PMT
 ------------------------------------------------------------------------------
-
-
-
-
 
 
 
