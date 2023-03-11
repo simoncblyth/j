@@ -989,6 +989,76 @@ Use UName URecorder::SPECS to collect unique U4Step::Spec indices for each step:
            ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
            ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys']], dtype='<U47')
 
+    In [2]: np.c_[st[61]]
+    Out[2]: 
+    array([['UNSET'],
+           ['Water/Pyrex:Water_lv_pv/AroundCircle1'],
+           ['Pyrex/Pyrex:AroundCircle1/nnvt_body_phys'],
+           ['Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['UNSET'],
+           ['UNSET'],
+           ['UNSET'],
+
+
+    UserSteppingAction_Optical@612:  l.id  61 step_mm    87.8283 abbrev BT spec              Water/Pyrex:Water_lv_pv/AroundCircle1 is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm     5.2615 abbrev BT spec           Pyrex/Pyrex:AroundCircle1/nnvt_body_phys is_fake YES FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm     0.0011 abbrev BT spec          Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm   158.5802 abbrev BT spec    Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys is_fake YES FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm   137.0169 abbrev SR spec       Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm     0.0000 abbrev NA spec       Pyrex/Vacuum:nnvt_body_phys/nnvt_inner2_phys is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm   237.8992 abbrev BT spec    Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys is_fake YES FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm   196.4194 abbrev BT spec    Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm     0.0000 abbrev BT spec          Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys is_fake NO  FAKES_SKIP YES
+    UserSteppingAction_Optical@612:  l.id  61 step_mm     0.0000 abbrev SA spec          Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys is_fake NO  FAKES_SKIP YES
+
+    PostUserTrackingAction_Optical@364:  l.id    61 seq TO BT BT SR BT BT SA
+
+
+
+
+
+    In [13]: t.record[61,:7,0]
+    Out[13]: 
+    array([[   0.   ,    0.   , -120.   ,    0.   ],
+           [ -87.828,    0.   , -120.   ,    0.403],
+           [ -93.088,    0.   , -119.822,    0.43 ],
+           [-385.576,    0.   , -162.583,    1.936],
+           [-138.063,    0.   ,  194.307,    3.804],
+           [-138.063,    0.   ,  194.307,    3.804],
+           [-138.063,    0.   ,  194.307,    3.804]], dtype=float32)
+
+
+HUH : Its as if fakes are not being skipped ? 
+
+::
+
+    epsilon:tests blyth$ POM=1 N=0 PIDX=61 ./U4SimulateTest.sh run_mt
+
+
+
+
+
+Current fakes::
+
+    086 if [ "$VERSION" == "0" ]; then
+     87     f0=Pyrex/Pyrex:AroundCircle0/hama_body_phys
+     88     f1=Pyrex/Pyrex:hama_body_phys/AroundCircle0
+     89     f2=Vacuum/Vacuum:hama_inner1_phys/hama_inner2_phys
+     90     f3=Vacuum/Vacuum:hama_inner2_phys/hama_inner1_phys
+     91 
+     92     f4=Pyrex/Pyrex:AroundCircle1/nnvt_body_phys
+     93     f5=Pyrex/Pyrex:nnvt_body_phys/AroundCircle1
+     94     f6=Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys
+     95     f7=Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys
+     96 
+     97     export U4Recorder__FAKES="$f0,$f1,$f2,$f3,$f4,$f5,$f6,$f7"
+     98     export U4Recorder__FAKES_SKIP=1
+     99     echo $BASH_SOURCE : U4Recorder__FAKES_SKIP ENABLED 
+    100 fi
+
 
 
 
@@ -1019,6 +1089,438 @@ Use UName URecorder::SPECS to collect unique U4Step::Spec indices for each step:
            ['Vacuum/Pyrex:nnvt_inner_phys/AroundCircle1'],
            ['Pyrex/Water:AroundCircle1/Water_lv_pv'],
            ['Water/Rock:Water_lv_pv/Rock_lv_pv']], dtype='<U44')
+
+
+Huh those are N=1 specs, no need for fakes there. 
+
+Change UName to place UNSET in 0th place. 
+
+
+
+Debug Lack of escapes to Rock in N=0 
+-----------------------------------------
+
+
+Suspect getting very few escapes to Rock in N=0::
+
+    N:0
+    np.c_[n_st,u_st][np.argsort(n_st)[::-1]]
+    [['28616' 'UNSET']
+     ['1038' 'Pyrex/Pyrex:AroundCircle1/nnvt_body_phys']
+     ['1000' 'Water/Pyrex:Water_lv_pv/AroundCircle1']
+     ['674' 'Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys']
+     ['491' 'Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys']
+     ['105' 'Vacuum/Steel:nnvt_inner2_phys/nnvt_tube_phy']
+     ['49' 'Vacuum/Steel:nnvt_inner2_phys/nnvt_edge_phy']
+     ['19' 'Vacuum/Steel:nnvt_inner2_phys/nnvt_plate_phy']
+     ['7' 'Vacuum/Steel:nnvt_inner2_phys/nnvt_mcp_phy']
+     ['1' 'Water/Rock:Water_lv_pv/Rock_lv_pv']]
+
+    In [2]: np.c_[SPECS]
+    Out[2]: 
+    array([['UNSET'],
+           ['Water/Pyrex:Water_lv_pv/AroundCircle1'],
+           ['Pyrex/Pyrex:AroundCircle1/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys'],
+           ['Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_tube_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_edge_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_plate_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_mcp_phy'],
+           ['Water/Rock:Water_lv_pv/Rock_lv_pv']], dtype='<U47')
+
+Only one gets to Rock and thats an external bounce::
+
+    In [3]: np.where( st_ == 10 )
+    Out[3]: (array([5]), array([2])
+
+    In [4]: q[5]                  
+    Out[4]: array([b'TO BR SA                                                                                        '], dtype='|S96')
+
+
+Supect issue with FAKES skipping to disable that.
+
+
+
+N:1 168/1000 manage to escape to Rock
+-----------------------------------------
+
+::
+
+    N:1
+    np.c_[n_st,u_st][np.argsort(n_st)[::-1]]
+    [['28801' 'UNSET']
+     ['998' 'Water/Pyrex:Water_lv_pv/AroundCircle1']
+     ['996' 'Pyrex/Vacuum:AroundCircle1/nnvt_inner_phys']
+     ['750' 'Vacuum/Pyrex:nnvt_inner_phys/AroundCircle1']
+     ['178' 'Pyrex/Water:AroundCircle1/Water_lv_pv']
+     ['168' 'Water/Rock:Water_lv_pv/Rock_lv_pv']
+     ['84' 'Vacuum/Steel:nnvt_inner_phys/nnvt_tube_phy']
+     ['10' 'Water/Pyrex:Water_lv_pv/AroundCircle0']
+     ['10' 'Pyrex/Vacuum:AroundCircle0/hama_inner_phys']
+     ['3' 'Vacuum/Steel:nnvt_inner_phys/nnvt_edge_phy']
+     ['2' 'Vacuum/Steel:hama_inner_phys/hama_shield_phy']]
+
+    In [17]: t.photon[np.where( st_ == 5 )[0]][:,0].shape
+    Out[17]: (168, 4)
+
+    In [16]: t.photon[np.where( st_ == 5 )[0]][:,0]
+    Out[16]: 
+    array([[  99.953,    0.   , -300.   ,    1.643],
+           [  99.953,    0.   , -300.   ,    1.643],
+           [  26.548,    0.   ,  300.   ,    5.889],
+           [  99.953,    0.   , -300.   ,    1.643],
+           [  99.953,    0.   , -300.   ,    1.643],
+           [  99.953,    0.   , -300.   ,    1.643],
+
+    In [18]: q[np.where( st_ == 5 )[0]]
+    Out[18]: 
+    array([[b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BT SR BR SR SR BT BT SA                                                                   '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BR BT SA                                                                                  '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BR SR SR BT BT SA                                                                   '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+
+
+
+
+
+Return to one_pmt shooting verically upwards from vacumm to debug in simpler situation
+-----------------------------------------------------------------------------------------
+
+N=1::
+
+    POM=1 N=1 ./U4SimulateTest.sh ph 
+
+    In [6]: N,t.record[1,:4,0]
+    Out[6]: 
+    (1,
+     array([[  0.   ,   0.   , 100.   ,   0.   ],
+            [  0.   ,   0.   , 179.   ,   0.264],
+            [  0.   ,   0.   , 184.001,   0.289],
+            [  0.   ,   0.   , 200.   ,   0.362]], dtype=float32))
+
+    In [7]: np.c_[qn,qi,qu][quo]  ## unique histories qu in descending count qn order, qi first index
+    Out[7]: 
+    array([[b'350', b'17', b'TO BR SA        bounce then absorbed on mcp                                                     '],
+           [b'331', b'1', b'TO BT BT SA      escape to rock                                                                 '],
+           [b'317', b'0', b'TO SA                                                                                           '],
+           [b'1', b'504', b'TO BT BT AB      absorbed in water before reaching rock                                         '],
+           [b'1', b'429', b'TO BT BR SD      curious one : bounces back from Pyrex/Water vacuum                             ']], dtype='|S96')
+
+::
+
+    epsilon:tests blyth$ POM=1 N=1 BPID=429 ./U4SimtraceTest.sh ana
+
+
+
+Initially without any U4Recorder__FAKE skipping.
+
+N=0::
+
+    POM=1 N=0 ./U4SimulateTest.sh ph 
+
+    In [1]: np.c_[qn,qi,qu][quo]
+    Out[1]: 
+    array([[b'357', b'6', b'TO BR BT SA      bounce then absorbed on mcp : extra BT is the fake                             '],
+           [b'306', b'2', b'TO SA                                                                                           '],
+           [b'126', b'1', b'TO BT BR BT SA                                                                                  '],
+           [b'100', b'0', b'TO BT SA                                                                                        '],
+           [b'39', b'4', b'TO BT BT BR BT SA                                                                               '],
+           [b'37', b'52', b'TO BT BT SA                                                                                     '],
+           [b'13', b'66', b'TO BT BT BT BR BT SA                                                                            '],
+           [b'7', b'36', b'TO BT BT BT SA                                                                                  '],
+           [b'4', b'253', b'TO BT BT BT BT SA                                                                               '],
+           [b'4', b'564', b'TO BT BT BT BT BT SA                                                                            '],
+           [b'3', b'605', b'TO BT BT BT BT BR BT SA                                                                         '],
+           [b'2', b'207', b'TO BT BT BT BT BT BT SA                                                                         '],
+           [b'2', b'61', b'TO BT BT BT BT BT BR BT SA                                                                      ']], dtype='|S96')
+
+
+    ## ABOVE HAS STEP STUCK ISSUES, BELOW REQUIRES dist1 > 0 TO GET A ModelTrigger SEEMS TO AVOID THE STEP STUCK ISSUE
+
+    In [1]:  np.c_[qn,qi,qu][quo]
+    Out[1]: 
+    array([[b'368', b'3', b'TO BR BT SA                                                                                     '],
+           [b'321', b'1', b'TO BT BT BT SA                                                                                  '],
+           [b'310', b'0', b'TO SA                                                                                           '],
+           [b'1', b'965', b'TO BT BT AB                                                                                     ']], dtype='|S96')
+
+
+
+
+
+    POM=1 N=0 APID=6 ./U4SimtraceTest.sh ana
+
+    POM=1 N=0 APID=61 ./U4SimtraceTest.sh ana
+
+
+    In [2]: t.record[61,:9,0]    ## WOW : STEPS REALLY GETTING HUNG UP 
+    Out[2]: 
+    array([[   0.   ,    0.   ,  100.   ,    0.   ],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,  179.   ,    0.264],
+           [   0.   ,    0.   ,    0.   ,    0.861],
+           [   0.   ,    0.   , -126.   ,    1.281]], dtype=float32)
+
+    In [5]: t.record[207,:8,0]
+    Out[5]: 
+    array([[  0.   ,   0.   , 100.   ,   0.   ],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.   ,   0.264]], dtype=float32)
+
+    PIDX:61
+    N:0
+    np.c_[n_st,u_st][np.argsort(n_st)[::-1]]
+    [['30920' 'UNSET']
+     ['540' 'Water/Pyrex:Water_lv_pv/AroundCircle1']
+     ['540' 'Pyrex/Pyrex:AroundCircle1/nnvt_body_phys']]
+
+    np.c_[mt_index, mt_whereAmI, mt_trig, mt_etrig, mt_pv, mt_mlv][mt_index == PIDX] ## ModelTrigger_Debug mlv and pv for PIDX 
+    [['61' 'kInVacuum  ' '1' '' 'nnvt_inner1_phys' 'nnvt_body_log']
+     ['61' 'kInVacuum  ' '1' '' 'nnvt_body_phys' 'nnvt_log']
+     ['61' 'kInVacuum  ' '1' '' 'nnvt_body_phys' 'nnvt_log']
+     ['61' 'kInVacuum  ' '1' '' 'nnvt_body_phys' 'nnvt_log']
+     ['61' 'kInVacuum  ' '1' '' 'nnvt_body_phys' 'nnvt_log']
+     ['61' 'kInVacuum  ' '1' '' 'nnvt_body_phys' 'nnvt_log']
+     ['61' 'kInVacuum  ' '0' '' 'nnvt_inner1_phys' 'nnvt_body_log']
+     ['61' 'kInVacuum  ' '0' '' 'nnvt_inner2_phys' 'nnvt_body_log']]
+    ## kInVacuum : ACTUALLY pv is inner1_phys 
+    ## kInGlass  : ACTUALLY pv NOT inner1_phys 
+    ## kUnset    : ACTUALLY pv is inner2_phys causing early exit 
+
+    np.c_[mt_index, mt_pos[:,2],mt_time, mt_gpos[:,:3], mt_gdir[:,:3], mt_dist1, mt_dist2][mt_index == PIDX]  ## ModelTrigger_Debug for PIDX 
+    [[ 61.    100.      0.      0.      0.    100.      0.      0.      1.     79.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.      1.      0.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.      1.      0.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.      1.      0.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.      1.      0.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.      1.      0.        inf]
+     [ 61.    179.      0.264   0.      0.    179.      0.      0.     -1.    179.    179.   ]
+     [ 61.      0.      0.861   0.      0.      0.      0.      0.     -1.     -0.    168.225]]
+
+    q[PIDX] ## 
+    [b'TO BT BT BT BT BT BR BT SA                                                                      ']
+
+::
+
+    In [5]: mt_dist1[mt_index == PIDX]
+    Out[5]: array([ 79.,   0.,   0.,   0.,   0.,   0., 179.,  -0.])
+
+    In [9]: np.where( mt_dist1[mt_index == PIDX]  == 0. )
+    Out[9]: (array([1, 2, 3, 4, 5, 7]),)
+
+    ## HMM FastSim is triggering but dist1 is precisely zero so nothing happens 
+
+
+
+
+Step specs look wrong::
+
+    In [6]: np.c_[t.record[1,:5,0], st[1,:5]]
+    Out[6]: 
+    array([['0.0', '0.0', '100.0', '0.0', 'UNSET'],
+           ['0.0', '0.0', '179.0', '0.2635159', 'UNSET'],
+           ['0.0', '0.0', '179.001', '0.26351923', 'Water/Pyrex:Water_lv_pv/AroundCircle1'],
+           ['0.0', '0.0', '184.001', '0.28019744', 'Pyrex/Pyrex:AroundCircle1/nnvt_body_phys'],
+           ['0.0', '0.0', '200.0', '0.35357454', 'Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys']], dtype='<U47')
+
+    In [8]: q[1]
+    Out[8]: array([b'TO BT BT BT SA                                                                                  '], dtype='|S96')
+
+
+* THIS WAS CAUSED BY USING STALE SPECS, AVOID THE ISSUE BY SEPARATING USING A DUMMY ARRAY TO HOLD THE SPECS 
+
+
+one_pmt is lacking fake skips causing huge chi2
+---------------------------------------------------
+
+::
+
+    np.c_[aqn,aqi,aqu][aquo][lim]  ## aexpr : unique histories aqu in descending count aqn order, aqi first index 
+    [[b'3707' b'0' b'TO BR BT SA                                                                                     ']
+     [b'3260' b'4' b'TO BT BT BT SA                                                                                  ']
+     [b'3020' b'1' b'TO SA                                                                                           ']
+     [b'8' b'1933' b'TO BT BT AB                                                                                     ']
+     [b'3' b'5253' b'TO BT BT BR BT BT BT SA                                                                         ']
+     [b'1' b'5599' b'TO BT BT BR BT SD                                                                               ']
+     [b'1' b'4511' b'TO BT BT BR BT SA                                                                               ']]
+
+    np.c_[bqn,bqi,bqu][bquo][lim]  ## bexpr : unique histories bqu in descending count bqn order, bqi first index 
+    [[b'3675' b'0' b'TO BR SA                                                                                        ']
+     [b'3259' b'3' b'TO BT BT SA                                                                                     ']
+     [b'3048' b'2' b'TO SA                                                                                           ']
+     [b'10' b'165' b'TO BT AB                                                                                        ']
+     [b'4' b'1085' b'TO BT BR SD                                                                                     ']
+     [b'2' b'5535' b'TO BT BR SA                                                                                     ']
+     [b'1' b'9504' b'TO BT BT AB                                                                                     ']
+     [b'1' b'1802' b'TO BT BR BR BT SA                                                                               ']]
+    c2sum : 13901.1289 c2n :     5.0000 c2per:  2780.2258 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BR BT SA                                                                                     ' ' 0' '  3707      0' '3707.0000' '     0     -1']
+     [' 1' 'TO BR SA                                                                                        ' ' 1' '     0   3675' '3675.0000' '    -1      0']
+     [' 2' 'TO BT BT BT SA                                                                                  ' ' 2' '  3260      0' '3260.0000' '     4     -1']
+     [' 3' 'TO BT BT SA                                                                                     ' ' 3' '     0   3259' '3259.0000' '    -1      3']
+     [' 4' 'TO SA                                                                                           ' ' 4' '  3020   3048' ' 0.1292' '     1      2']
+     [' 5' 'TO BT AB                                                                                        ' ' 5' '     0     10' ' 0.0000' '    -1    165']
+     [' 6' 'TO BT BT AB                                                                                     ' ' 6' '     8      1' ' 0.0000' '  1933   9504']
+     [' 7' 'TO BT BR SD                                                                                     ' ' 7' '     0      4' ' 0.0000' '    -1   1085']
+     [' 8' 'TO BT BT BR BT BT BT SA                                                                         ' ' 8' '     3      0' ' 0.0000' '  5253     -1']
+
+
+
+
+N=0 Maybe step specs shifted::
+
+    In [2]: np.c_[st[0,:5]] 
+    Out[2]: 
+    array([['UNSET'],
+           ['UNSET'],
+           ['Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['UNSET']], dtype='<U47')
+
+
+
+    UName::add idx    1 name Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys count 27229 size    11
+    UName::add idx    2 name Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv count 27230 size    11
+    UName::add idx    3 name Pyrex/Water:nnvt_log_pv/Water_lv_pv count 27231 size    11
+    UName::add idx    4 name Water/Rock:Water_lv_pv/Rock_lv_pv count 27232 size    11
+
+    U4Recorder::UserSteppingAction_Optical@613:  l.id   4 step_mm    79.0000 abbrev BT spec    Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys st   1 is_fake NO  FAKES_SKIP YES
+    U4Recorder::UserSteppingAction_Optical@613:  l.id   4 step_mm     0.0010 abbrev BT spec             Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv st   2 is_fake NO  FAKES_SKIP YES
+    U4Recorder::UserSteppingAction_Optical@613:  l.id   4 step_mm     5.0000 abbrev BT spec                Pyrex/Water:nnvt_log_pv/Water_lv_pv st   3 is_fake NO  FAKES_SKIP YES
+    U4Recorder::UserSteppingAction_Optical@613:  l.id   4 step_mm    15.9990 abbrev SA spec                  Water/Rock:Water_lv_pv/Rock_lv_pv st   4 is_fake NO  FAKES_SKIP YES
+
+    U4Recorder::PostUserTrackingAction_Optical@364:  l.id     4 seq TO BT BT BT SA
+
+    In [2]: np.c_[SPECS]                                                                                                                                                           
+    Out[2]: 
+    array([['UNSET'],
+           ['Water/Pyrex:Water_lv_pv/AroundCircle1'],
+           ['Pyrex/Pyrex:AroundCircle1/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys'],
+           ['Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys'],
+           ['Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_tube_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_edge_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_plate_phy'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_mcp_phy'],
+           ['Water/Rock:Water_lv_pv/Rock_lv_pv']], dtype='<U47')
+
+
+
+    UName::desc count 27232 size    11
+        0 : UNSET
+        1 : Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys
+        2 : Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv
+        3 : Pyrex/Water:nnvt_log_pv/Water_lv_pv
+        4 : Water/Rock:Water_lv_pv/Rock_lv_pv
+        5 : Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys
+        6 : Vacuum/Steel:nnvt_inner2_phys/nnvt_mcp_phy
+        7 : Pyrex/Pyrex:nnvt_log_pv/nnvt_log_pv
+        8 : Water/Pyrex:Water_lv_pv/nnvt_log_pv
+        9 : Pyrex/Pyrex:nnvt_log_pv/nnvt_body_phys
+       10 : Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys
+
+
+    In [1]: np.c_[SPECS]                                                                                                                                                           
+    Out[1]: 
+    array([['UNSET'],
+           ['Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys'],
+           ['Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv'],
+           ['Pyrex/Water:nnvt_log_pv/Water_lv_pv'],
+           ['Water/Rock:Water_lv_pv/Rock_lv_pv'],
+           ['Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys'],
+           ['Vacuum/Steel:nnvt_inner2_phys/nnvt_mcp_phy'],
+           ['Pyrex/Pyrex:nnvt_log_pv/nnvt_log_pv'],
+           ['Water/Pyrex:Water_lv_pv/nnvt_log_pv'],
+           ['Pyrex/Pyrex:nnvt_log_pv/nnvt_body_phys'],
+           ['Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys']], dtype='<U47')
+
+    In [3]: np.c_[st[4,:5]]                                                                                                                                                        
+    Out[3]: 
+    array([['UNSET'],
+           ['Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys'],
+           ['Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv'],
+           ['Pyrex/Water:nnvt_log_pv/Water_lv_pv'],
+           ['Water/Rock:Water_lv_pv/Rock_lv_pv']], dtype='<U47')
+
+    In [2]: t.record[4,:5,0]                                                                                                                                                       
+    Out[2]: 
+    array([[  0.   ,   0.   , 100.   ,   0.   ],
+           [  0.   ,   0.   , 179.   ,   0.264],
+           [  0.   ,   0.   , 179.001,   0.264],
+           [  0.   ,   0.   , 184.001,   0.28 ],
+           [  0.   ,   0.   , 200.   ,   0.354]], dtype=float32)
+
+
+
+After add needed fake detection : chi2 sinks to almost zero : this is with very simple one_pmt setup single point shooting
+----------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    np.c_[aqn,aqi,aqu][aquo][lim]  ## aexpr : unique histories aqu in descending count aqn order, aqi first index 
+    [[b'3707' b'0' b'TO BR SA                                                                                        ']
+     [b'3260' b'4' b'TO BT BT SA                                                                                     ']
+     [b'3020' b'1' b'TO SA                                                                                           ']
+     [b'8' b'1933' b'TO BT AB                                                                                        ']
+     [b'3' b'5253' b'TO BT BR BT BT SA                                                                               ']
+     [b'1' b'5599' b'TO BT BR BT SD                                                                                  ']
+     [b'1' b'4511' b'TO BT BR BT SA                                                                                  ']]
+
+    np.c_[bqn,bqi,bqu][bquo][lim]  ## bexpr : unique histories bqu in descending count bqn order, bqi first index 
+    [[b'3675' b'0' b'TO BR SA                                                                                        ']
+     [b'3259' b'3' b'TO BT BT SA                                                                                     ']
+     [b'3048' b'2' b'TO SA                                                                                           ']
+     [b'10' b'165' b'TO BT AB                                                                                        ']
+     [b'4' b'1085' b'TO BT BR SD                                                                                     ']
+     [b'2' b'5535' b'TO BT BR SA                                                                                     ']
+     [b'1' b'9504' b'TO BT BT AB                                                                                     ']
+     [b'1' b'1802' b'TO BT BR BR BT SA                                                                               ']]
+    c2sum :     0.2681 c2n :     3.0000 c2per:     0.0894 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BR SA                                                                                        ' ' 0' '  3707   3675' ' 0.1387' '     0      0']
+     [' 1' 'TO BT BT SA                                                                                     ' ' 1' '  3260   3259' ' 0.0002' '     4      3']
+     [' 2' 'TO SA                                                                                           ' ' 2' '  3020   3048' ' 0.1292' '     1      2']
+     [' 3' 'TO BT AB                                                                                        ' ' 3' '     8     10' ' 0.0000' '  1933    165']
+     [' 4' 'TO BT BR SD                                                                                     ' ' 4' '     0      4' ' 0.0000' '    -1   1085']
+     [' 5' 'TO BT BR BT BT SA                                                                               ' ' 5' '     3      0' ' 0.0000' '  5253     -1']
+     [' 6' 'TO BT BR SA                                                                                     ' ' 6' '     0      2' ' 0.0000' '    -1   5535']
+     [' 7' 'TO BT BT AB                                                                                     ' ' 7' '     0      1' ' 0.0000' '    -1   9504']
+     [' 8' 'TO BT BR BT SD                                                                                  ' ' 8' '     1      0' ' 0.0000' '  5599     -1']
+     [' 9' 'TO BT BR BT SA                                                                                  ' ' 9' '     1      0' ' 0.0000' '  4511     -1']
+     ['10' 'TO BT BR BR BT SA                                                                               ' '10' '     0      1' ' 0.0000' '    -1   1802']]
+
 
 
 
