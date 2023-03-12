@@ -4,6 +4,18 @@ blyth-88-ModelTrigger_Debug
 * :doc:`blyth-88-quadrant-matching`
 
 
+Speeddial
+-----------
+
+::
+
+   jcv junoPMTOpticalModel
+   jcv NNVTMCPPMTManager
+   jcv HamamatsuR12860PMTManager
+   jcv CustomG4OpBoundaryProcess
+
+
+
 WIP : Directing beam at NNVT PMT gives worse chi2  : Due to a zero dropout 
 -----------------------------------------------------------------------------
 
@@ -1520,6 +1532,269 @@ After add needed fake detection : chi2 sinks to almost zero : this is with very 
      [' 8' 'TO BT BR BT SD                                                                                  ' ' 8' '     1      0' ' 0.0000' '  5599     -1']
      [' 9' 'TO BT BR BT SA                                                                                  ' ' 9' '     1      0' ' 0.0000' '  4511     -1']
      ['10' 'TO BT BR BR BT SA                                                                               ' '10' '     0      1' ' 0.0000' '    -1   1802']]
+
+
+
+
+
+Now generalize to a line of photons raining down onto one_pmt
+-----------------------------------------------------------------
+
+Huge chi2 as lacking fake skips::
+
+    c2sum : 15468.5195 c2n :    28.0000 c2per:   552.4471 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SD                                                                                        ' ' 0' '     0   3543' '3543.0000' '    -1    476']
+     [' 1' 'TO BT BT SD                                                                                     ' ' 1' '  3473      0' '3473.0000' '   475     -1']
+     [' 2' 'TO BT BT SA                                                                                     ' ' 2' '  3036    402' '2018.0210' '   477   1411']
+     [' 3' 'TO BT SA                                                                                        ' ' 3' '     0   2953' '2953.0000' '    -1    479']
+     [' 4' 'TO SA                                                                                           ' ' 4' '   915    921' ' 0.0196' '     0      0']
+     [' 5' 'TO BT BT BT SR SA                                                                               ' ' 5' '   471      0' '471.0000' '  1534     -1']
+     [' 6' 'TO BT BT SR SA                                                                                  ' ' 6' '     0    431' '431.0000' '    -1   1494']
+     [' 7' 'TO BT BT SR BT BT SA                                                                            ' ' 7' '     0    410' '410.0000' '    -1   2347']
+     [' 8' 'TO BT BT BT SA                                                                                  ' ' 8' '   370      0' '370.0000' '  1358     -1']
+     [' 9' 'TO BT BR BT SA                                                                                  ' ' 9' '     0    336' '336.0000' '    -1    478']
+     ['10' 'TO BT BT BT SR BT BT SA                                                                         ' '10' '   318      0' '318.0000' '  2347     -1']
+     ['11' 'TO BT BT BR BT SA                                                                               ' '11' '   243      0' '243.0000' '   503     -1']
+     ['12' 'TO BT BT SR BR SR SA                                                                            ' '12' '     0    131' '131.0000' '    -1   2420']
+     ['13' 'TO BT BT BT SR BR SA                                                                            ' '13' '   125      0' '125.0000' '  2371     -1']
+     ['14' 'TO BT BT BT SR BR SR SA                                                                         ' '14' '   107      0' '107.0000' '  2498     -1']
+     ['15' 'TO BR SA                                                                                        ' '15' '   102    101' ' 0.0049' '   465    467']
+
+
+Try to find what needs to be skipped::
+
+    In [10]: aq[475],a_st[475,:4],a.record[475,:4,0] 
+    Out[10]: 
+    (array([b'TO BT BT SD                                                                                     '], dtype='|S96'),
+     array(['UNSET', 'Water/Pyrex:Water_lv_pv/nnvt_log_pv', 'Pyrex/Pyrex:nnvt_log_pv/nnvt_body_phys', 'Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys'], dtype='<U47'),
+     array([[253.4  ,   0.   , 190.   ,   0.   ],
+            [253.4  ,   0.   ,  12.65 ,   0.813],
+            [249.001,   0.   ,   0.101,   0.881],   ## OBVIOUSLY Pyrex/Pyrex:nnvt_log_pv/nnvt_body_phys
+            [249.   ,   0.   ,   0.098,   0.881]], dtype=float32))
+
+    POM=1 N=0 APID=475 AOPT=idx LOC=skip ./U4SimtraceTest.sh ana   # labelling the points helps to find the fake to skip
+
+    ## HMM: FEAR THAT WAHT NEED TO SKIP IN ONE CASE MIGHT NOT BE THE CORRECT THING TO SKIP IN ANOTHER CASE
+
+
+    In [9]: bq[476],b_st[476,:3],b.record[476,:3,0]
+    Out[9]: 
+    (array([b'TO BT SD                                                                                        '], dtype='|S96'),
+     array(['UNSET', 'Water/Pyrex:Water_lv_pv/nnvt_log_pv', 'Pyrex/Vacuum:nnvt_log_pv/nnvt_inner_phys'], dtype='<U43'),
+     array([[253.344,   0.   , 190.   ,   0.   ],
+            [253.344,   0.   ,  13.226,   0.811],
+            [248.998,   0.   ,   0.692,   0.878]], dtype=float32))
+
+    POM=1 N=1 BPID=476 LOC=skip ./U4SimtraceTest.sh ana
+
+    
+Automate above dumping::
+
+    epsilon:tests blyth$ POM=1 N=0 APID=475 BPID=476 ./U4SimulateTest.sh cf
+
+    APID:475
+    aq[APID]
+    array([b'TO BT SD                                                                                        '], dtype='|S96')
+    .
+    a_st[APID,:an[APID]]
+    array(['UNSET', 'Water/Pyrex:Water_lv_pv/nnvt_log_pv', 'Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys'], dtype='<U47')
+    .
+    a.record[APID,:an[APID],0]
+    array([[253.4  ,   0.   , 190.   ,   0.   ],
+           [253.4  ,   0.   ,  12.65 ,   0.813],
+           [249.   ,   0.   ,   0.098,   0.881]], dtype=float32)
+    .
+    BPID:476
+    bq[BPID]
+    array([b'TO BT SD                                                                                        '], dtype='|S96')
+    .
+    b_st[APID,:bn[BPID]]
+    array(['UNSET', 'Water/Pyrex:Water_lv_pv/nnvt_log_pv', 'Water/Rock:Water_lv_pv/Rock_lv_pv'], dtype='<U43')
+    .
+    b.record[BPID,:bn[BPID],0]
+    array([[253.344,   0.   , 190.   ,   0.   ],
+           [253.344,   0.   ,  13.226,   0.811],
+           [248.998,   0.   ,   0.692,   0.878]], dtype=float32)
+    .
+
+
+
+::
+
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30]  ## abexpr : A-B comparison of unique history counts 
+    [[' 0' 'TO BT SD                                                                                        ' ' 0' '  3473   3543' ' 0.6984' '   475    476']
+     [' 1' 'TO BT SA                                                                                        ' ' 1' '  3036   2953' ' 1.1503' '   477    479']
+     [' 2' 'TO SA                                                                                           ' ' 2' '   915    921' ' 0.0196' '     0      0']
+     [' 3' 'TO BT BT SR SA                                                                                  ' ' 3' '   471    431' ' 1.7738' '  1534   1494']
+
+     [' 4' 'TO BT BT SR BT BT SA                                                                            ' ' 4' '   318    410' '11.6264' '  2347   2347']
+
+     POM=1 N=0 APID=2347 AOPT=idx LOC=skip ./U4SimtraceTest.sh ana
+     POM=1 N=1 BPID=2347 BOPT=idx LOC=skip ./U4SimtraceTest.sh ana
+
+     HMM: LOOKING THE SAME : EASIER TO DEBUG ZEROS RATHER THAN LEVEL DIFFS LIKE THIS
+
+
+     [' 5' 'TO BT BT SA                                                                                     ' ' 5' '   370    402' ' 1.3264' '  1358   1411']
+
+     [' 6' 'TO BT BR BT SA                                                                                  ' ' 6' '   243    336' '14.9378' '   503    478']
+
+     [' 7' 'TO BT BT SR BR SR SA                                                                            ' ' 7' '   107    131' ' 2.4202' '  2498   2420']
+     [' 8' 'TO BT BT SR BR SA                                                                               ' ' 8' '   125    100' ' 2.7778' '  2371   2350']
+     [' 9' 'TO BR SA                                                                                        ' ' 9' '   102    101' ' 0.0049' '   465    467']
+     ['10' 'TO BT BT SR SR SA                                                                               ' '10' '    73     63' ' 0.7353' '  1522   1468']
+     ['11' 'TO BT BT SR BR SR BT BT SA                                                                      ' '11' '    43     58' ' 2.2277' '  2462   2447']
+     ['12' 'TO BT AB                                                                                        ' '12' '    41     35' ' 0.4737' '   506    482']
+
+     ['13' 'TO BT BT SR BT BT BT SA                                                                         ' '13' '    36      0' '36.0000' '  2374     -1']
+     ['15' 'TO BT BT SR BT SA                                                                               ' '15' '    35      0' '35.0000' '  2958     -1']
+     ['21' 'TO BT BR SA                                                                                     ' '21' '    24      0' ' 0.0000' '   495     -1']
+
+
+     POM=1 N=0 APID=2374 AOPT=idx LOC=skip ./U4SimtraceTest.sh ana
+     POINTS 5,6 ON TOP OF EACH OTHER
+
+
+
+     ['14' 'TO BT BT SR BR SR SR SA                                                                         ' '14' '    35     31' ' 0.2424' '  2761   2574']
+     ['16' 'TO BT BT SR BR SR BR SR BT BT SA                                                                ' '16' '    14     33' ' 7.6809' '  3079   3075']
+     ['17' 'TO BT BT SR SR BT BT SA                                                                         ' '17' '    22     32' ' 1.8519' '  2068   2075']
+     ['18' 'TO BT BT SR BR SR SR BT BT SA                                                                   ' '18' '    25     28' ' 0.1698' '  2713   2576']
+     ['19' 'TO BT BT SR SR SR BT BT SA                                                                      ' '19' '     7     25' '10.1250' '  1779   1635']
+     ['20' 'TO BT BT SR SR SR SA                                                                            ' '20' '    22     24' ' 0.0870' '  1465   1566']
+
+
+
+
+
+
+Hmm : need to better way to identify fakes : for very close volumes cannot rely on the volume that G4 says
+--------------------------------------------------------------------------------------------------------------
+
+1. traverse up or down geometry tree from step point volume 
+   to find the known fake "body_phys" volume
+
+2. calculate the distance to that when its below some cutoff declare the point to be fake
+   * note that cannot rely on the G4 volume 
+
+
+* WIP : U4Recorder::CheckFake
+
+
+::
+
+    N=0 PIDX=2374 ./U4SimulateTest.sh 
+
+    N=0 APID=2374 AOPT=idx ./U4SimtraceTest.sh ana
+
+    In [2]: aq[2374:2384]
+    Out[2]: 
+    array([[b'TO BT BT SR BT BT BT SA              Extra BT                                                   '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT BT SR BR BT BT SA                                                                         '],
+           [b'TO BT BT SR BR BR SR SR SA                                                                      '],
+           [b'TO BT BT SR SA                                                                                  '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT SA                                                                                        '],
+           [b'TO BT SD                                                                                        ']], dtype='|S96')
+
+    In [3]: bq[2374:2384]
+    Out[3]: 
+    array([[b'TO BT SD                            2374                                                        '],
+           [b'TO BT BT SR BR BR SA                2375                                                        '],
+           [b'TO BT SA                            2376                                                        '],
+           [b'TO BT SA                            2377                                                        '],
+           [b'TO BT BT SR BT BT SA                2378                                                        '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT SD                                                                                        '],
+           [b'TO BT BT SR BT BT SA                                                                            '],
+           [b'TO BT SA                                                                                        '],
+           [b'TO BT SA                                                                                        ']], dtype='|S96')
+
+    N=1 BPID=2378 BOPT=idx ./U4SimtraceTest.sh ana
+
+
+
+    epsilon:tests blyth$ N=0 PIDX=2374 ./U4SimulateTest.sh 
+
+
+     pos (   147.056      0.000    150.027) dir (    -0.045      0.000     -0.999) in kOutside t      5.454 ipos (   146.813      0.000    144.577)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm    39.9735 abbrev BT spec                Water/Pyrex:Water_lv_pv/nnvt_log_pv st   3 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (   146.813      0.000    144.577) dir (    -0.045      0.000     -0.999) in kSurface t    295.925 ipos (   133.604      0.000   -151.052)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     5.4545 abbrev BT spec             Pyrex/Pyrex:nnvt_log_pv/nnvt_body_phys st  -4 is_fake YES check_fake NO  FAKES_SKIP YES
+
+     pos (   146.812      0.000    144.576) dir (     0.197      0.000     -0.980) in kInside t    258.371 ipos (   197.823      0.000   -108.709)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     0.0011 abbrev BT spec          Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys st   9 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (   175.929      0.000      0.000) dir (     0.197      0.000     -0.980) in kInside t    110.892 ipos (   197.823      0.000   -108.709)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm   147.4792 abbrev BT spec    Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner2_phys st -11 is_fake YES check_fake NO  FAKES_SKIP YES
+
+     pos (   197.822      0.000   -108.708) dir (    -0.966      0.000      0.257) in kInside t    461.968 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm   110.8905 abbrev SR spec       Vacuum/Pyrex:nnvt_inner2_phys/nnvt_body_phys st   6 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (   197.822      0.000   -108.708) dir (    -0.966      0.000      0.257) in kInside t    461.968 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     0.0000 abbrev NA spec       Pyrex/Vacuum:nnvt_body_phys/nnvt_inner2_phys st   5 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (  -210.614      0.000      0.000) dir (    -0.966      0.000      0.257) in kInside t     39.312 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm   422.6555 abbrev BT spec    Vacuum/Vacuum:nnvt_inner2_phys/nnvt_inner1_phys st -14 is_fake YES check_fake NO  FAKES_SKIP YES
+
+     pos (  -248.602      0.000     10.111) dir (    -0.980      0.000      0.199) in kInside t      0.001 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm    39.3110 abbrev BT spec    Vacuum/Vacuum:nnvt_inner1_phys/nnvt_inner1_phys st  15 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (  -248.602      0.000     10.111) dir (    -0.987      0.000      0.160) in kInside t      0.001 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     0.0000 abbrev BT spec          Pyrex/Pyrex:nnvt_body_phys/nnvt_body_phys st   9 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+     pos (  -248.603      0.000     10.111) dir (    -0.987      0.000      0.160) in kSurface t      0.000 ipos (  -248.603      0.000     10.111)
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     0.0010 abbrev BT spec             Pyrex/Pyrex:nnvt_body_phys/nnvt_log_pv st  -7 is_fake YES check_fake YES FAKES_SKIP YES
+
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm     5.0150 abbrev BT spec                Pyrex/Water:nnvt_log_pv/Water_lv_pv st   8 is_fake NO  check_fake NO  FAKES_SKIP YES
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2374 step_mm   103.4618 abbrev SA spec                  Water/Rock:Water_lv_pv/Rock_lv_pv st   2 is_fake NO  check_fake NO  FAKES_SKIP YES
+
+    U4Recorder::PostUserTrackingAction_Optical@366:  l.id  2374 seq TO BT BT SR BT BT BT SA
+
+
+    In [3]: a.record[2374,:8,0]                                                                                                                                                    
+    Out[3]: 
+    array([[ 147.056,    0.   ,  190.   ,    0.   ],
+           [ 147.056,    0.   ,  150.027,    0.183],
+           [ 146.812,    0.   ,  144.576,    0.211],
+           [ 197.822,    0.   , -108.708,    1.528],
+           [-248.602,    0.   ,   10.111,    3.813],
+           [-248.602,    0.   ,   10.111,    3.813],
+           [-253.554,    0.   ,   10.913,    3.839],
+           [-355.556,    0.   ,   28.233,    4.313]], dtype=float32)
+
+
+    epsilon:tests blyth$ N=1 PIDX=2378 ./U4SimulateTest.sh 
+
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm    39.8584 abbrev BT spec                Water/Pyrex:Water_lv_pv/nnvt_log_pv st   3 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm     5.4536 abbrev BT spec           Pyrex/Vacuum:nnvt_log_pv/nnvt_inner_phys st   4 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm   258.7347 abbrev SR spec           Vacuum/Pyrex:nnvt_inner_phys/nnvt_log_pv st   5 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm     0.0000 abbrev NA spec           Pyrex/Vacuum:nnvt_log_pv/nnvt_inner_phys st   4 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm   461.9809 abbrev BT spec           Vacuum/Pyrex:nnvt_inner_phys/nnvt_log_pv st   5 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm     5.0329 abbrev BT spec                Pyrex/Water:nnvt_log_pv/Water_lv_pv st   6 is_fake NO  check_fake NO  FAKES_SKIP NO 
+    U4Recorder::UserSteppingAction_Optical@611:  l.id 2378 step_mm   104.5801 abbrev SA spec                  Water/Rock:Water_lv_pv/Rock_lv_pv st   2 is_fake NO  check_fake NO  FAKES_SKIP NO 
+
+    U4Recorder::PostUserTrackingAction_Optical@366:  l.id  2378 seq TO BT BT SR BT BT SA
+
+    In [7]: b.record[2378,:7,0]                                                                                                                                                    
+    Out[7]: 
+    array([[ 146.832,    0.   ,  190.   ,    0.   ],
+           [ 146.832,    0.   ,  150.142,    0.183],
+           [ 146.589,    0.   ,  144.693,    0.211],
+           [ 197.537,    0.   , -108.975,    1.074],
+           [-248.499,    0.   ,   11.349,    2.615],
+           [-253.426,    0.   ,   12.378,    2.64 ],
+           [-355.556,    0.   ,   34.883,    3.12 ]], dtype=float32)
+
+
+
 
 
 

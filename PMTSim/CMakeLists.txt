@@ -32,6 +32,7 @@ include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Detector/Geometry)
+include_directories($ENV{JUNOTOP}/junosw/Utilities/EGet)
 
 
 set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
