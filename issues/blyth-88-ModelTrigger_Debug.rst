@@ -2016,4 +2016,120 @@ mtd.pos[mtd_vacuum]
 
 
 
+Config to ModelTriggerBuggy and look for problems to show
+-------------------------------------------------------------
+
+::
+
+     epsilon:tests blyth$ APID=2181 AOPT=idx N=0 ./U4SimtraceTest.sh ana
+
+
+     80     mtd_trig = mtd.trig == 1
+     81     mtd_trig_pyrex  = np.logical_and(mtd.trig == 1, mtd.whereAmI_ == 1 )
+     82     mtd_trig_vacuum = np.logical_and(mtd.trig == 1, mtd.whereAmI_ == 2 )
+     83     mtd_outside = np.logical_and(mtd.trig == 1, mtd.EInside1 == 0 )
+     84 
+     85     mtd_upper = mtd.pos[:,2] > 1e-4
+     86     mtd_lower = mtd.pos[:,2] < -1e-4
+     87     mtd_trig_vacuum_upper = np.logical_and(mtd_trig_vacuum, mtd_upper )
+     88     mtd_trig_pyrex_lower = np.logical_and(mtd_trig_pyrex, mtd_lower )
+     89 
+     90     idxs = np.unique(mtd.index[mtd_trig_pyrex_lower])   # photon indices 
+     91 
+
+Select photon indices of ModelTriggerDummy triggers with whereAmI classified as "Pyrex" 
+that are in lower hemi due to reflections of dynode or MCP. That provides a rich vein of bugs::
+
+    In [4]: np.c_[idxs,q[idxs]]
+    Out[4]: 
+    array([[b'1628', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1635', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1639', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1646', b'TO BT BT SR SR SR SD                                                                            '],
+           [b'2181', b'TO BT BT SR SR BR SR SR SR BR SR SR BT BT SA              BR off the midline                    '],
+           [b'2563', b'TO BT BT SR BR SR SR SD                                   SD on the midline                     '],
+           [b'2572', b'TO BT BT SR BR SR SR SD                                                                         '],
+           [b'2575', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'2682', b'TO BT BT SR BR SR SD                                                                            '],
+           [b'2696', b'TO BT BT SR BR SR SA                                                                            '],
+           [b'2864', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'2912', b'TO BT BT SR BR SR SR BT BR SR SR SD                                                             '],
+           [b'2923', b'TO BT BT SR BR SR SR SD                                                                         '],
+           [b'2926', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'2942', b'TO BT BT SR BR SR SR BR SR BR SR BT BT SA        reflect off midline, cross geometry            '],
+           [b'2982', b'TO BT BT SR BR SR SR BT BT BT SA                 refract across midline                         '],
+           [b'2992', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'3017', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'3021', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'3027', b'TO BT BT SR BR SR SR BT SA                                                                      '],
+           [b'3187', b'TO BT BT SR BR SR BR SR BR SR BR SR BR SR BR SR BR SR SR SA                                     '],
+           [b'3270', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'3323', b'TO BT BT SR BR SR SR SD                                                                         '],
+           [b'3330', b'TO BT BT SR BR SR SR SD                                                                         '],
+
+
+::
+
+
+    APID=2181 AOPT=idx N=0 SUBTITLE="9:reflect at vac/vac (but obscured)" ./U4SimtraceTest.sh ana
+
+    APID=2563 AOPT=idx N=0 SUBTITLE="7:SD at vac/vac" ./U4SimtraceTest.sh ana
+
+    APID=2912 AOPT=idx N=0 SUBTITLE="7:vac/vac refract 11:SD detect in vac" ./U4SimtraceTest.sh ana
+
+    APID=2942 AOPT=idx N=0 SUBTITLE="6->7:cross-geometry 7:vac/vac-reflect" ./U4SimtraceTest.sh ana
+
+    APID=2982 AOPT=idx N=0 SUBTITLE="7:unphysical refract" ./U4SimtraceTest.sh ana
+
+    APID=5866 AOPT=idx N=0 SUBTITLE="7:reflect at vac/vac" ./U4SimtraceTest.sh ana
+
+    APID=7625 AOPT=idx N=0 SUBTITLE="13:detect mid vacuum" ./U4SimtraceTest.sh ana
+
+    APID=8499 AOPT=idx N=0 SUBTITLE="13:detect mid vacuum" ./U4SimtraceTest.sh ana 
+
+
+
+Select photons ending on the midline::
+
+    In [3]: np.c_[w_midline,q[w_midline]]
+    Out[3]: 
+    array([[b'1628', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1635', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1639', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'1646', b'TO BT BT SR SR SR SD                                                                            '],
+           [b'2563', b'TO BT BT SR BR SR SR SD                                                                         '],
+           [b'2572', b'TO BT BT SR BR SR SR SD                                                                         '],
+           [b'2575', b'TO BT BT SR BR SR SR SA                                                                         '],
+           [b'2682', b'TO BT BT SR BR SR SD                                                                            '],
+           ...
+           [b'7625', b'TO BT BT SR BR BR SR SR BR BR BR SR SR SD                                                       '],
+           [b'7637', b'TO BT BT SR BR BR SR SR SA                                                                      '],
+           [b'8348', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'8351', b'TO BT BT SR SR SR SD                                                                            '],
+           [b'8366', b'TO BT BT SR SR SR SA                                                                            '],
+           [b'8371', b'TO BT BT SR SR SR SD                                                                            '],
+           [b'8372', b'TO BT BT SR SR SR SD                                                                            '],
+           [b'8499', b'TO BT BT SR SR SR SR SR BR BR SR SR SR SD                                                       ']], dtype='|S96')
+
+Penultimate flag all "SR" for specular reflection off the dynode/MCP.
+
+::
+
+    In [25]: end2 = t.record[w_midline, tuple(nn-1), 0, :3]  
+
+    In [31]: penultimate =  t.record[w_midline, tuple(nn-2), 0, :3]
+
+    In [32]: penultimate                                          
+    Out[32]: 
+    array([[  42.9  ,    0.   , -133.607],
+           [  42.9  ,    0.   , -137.71 ],
+           [  42.9  ,    0.   , -139.974],
+           [  42.9  ,    0.   , -143.803],
+           [  20.588,    0.   , -116.   ],
+           [  32.33 ,    0.   , -116.   ],
+           [  35.979,    0.   , -116.   ],
+           [ -21.828,    0.   , -116.   ],
+           [ -27.978,    0.   , -116.   ],
+
+
 
