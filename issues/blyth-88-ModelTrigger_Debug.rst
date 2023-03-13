@@ -13,6 +13,7 @@ Speeddial
    jcv NNVTMCPPMTManager
    jcv HamamatsuR12860PMTManager
    jcv CustomG4OpBoundaryProcess
+   jcv DsPhysConsOptical
 
 
 
@@ -1795,6 +1796,223 @@ Hmm : need to better way to identify fakes : for very close volumes cannot rely 
 
 
 
+
+
+
+Are not skipping some "pile up" fakes
+------------------------------------------------
+
+::
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30][bzero]  ## A-B comparison of unique history counts 
+    [['14' 'TO BT BT SR BT SA                                                                               ' '14' '    35      0' '35.0000' '  2958     -1']
+     ['20' 'TO BT BR SA                                                                                     ' '20' '    24      0' ' 0.0000' '   495     -1']
+     ['25' 'TO BT BT SR BT BR SA                                                                            ' '25' '    13      0' ' 0.0000' '  2590     -1']
+     ['26' 'TO BT BT SR BT BR SR SA                                                                         ' '26' '    12      0' ' 0.0000' '  2556     -1']]
+ 
+    b'TO BT BT SR BT SA          ## BT and SA on top of each other                                                                              '
+    u4t ; N=0 APID=2958 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3003 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3239 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3250 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3332 AOPT=idx ./U4SimtraceTest.sh ana
+ 
+    b'TO BT BR SA                  ## BR and SA on top of each other                                                                                   '
+    u4t ; N=0 APID=495 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=859 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=1153 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=1343 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=1627 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=2567 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=2740 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3441 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3442 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4518 AOPT=idx ./U4SimtraceTest.sh ana
+
+    b'TO BT BT SR BT BR SA         ## BT and BR on top of each other                                                                         '
+    u4t ; N=0 APID=2590 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3029 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4202 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4435 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4597 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4724 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5423 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5465 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=6120 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=6183 AOPT=idx ./U4SimtraceTest.sh ana
+
+    b'TO BT BT SR BT BR SR SA      ## BT and BR on top of each other                                                                   '
+    u4t ; N=0 APID=2556 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=3528 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=4381 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5823 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5853 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5860 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=5973 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=6039 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=6232 AOPT=idx ./U4SimtraceTest.sh ana
+    u4t ; N=0 APID=6267 AOPT=idx ./U4SimtraceTest.sh ana
+
+
+
+::
+
+    ./mt.sh 
+
+    In [1]: q[495]
+    Out[1]: array([b'TO BT BR SA                                                                                     '], dtype='|S96')
+
+    In [3]: t.record[495,:4,0]
+    Out[3]: 
+    array([[252.28 ,   0.   , 190.   ,   0.   ],
+           [252.28 ,   0.   ,  21.383,   0.773],
+           [248.667,   0.   ,   9.258,   0.838],
+           [248.667,   0.   ,   9.258,   0.838]], dtype=float32)
+
+
+
+
+Improve ModelTriggerSimple to avoid double trigger very close to each other
+----------------------------------------------------------------------------
+
+Below improved impl requiring dist1 > EPSILON gets chi2 N=0/1 histories to match in one_pmt line tests.::
+
+    c2sum :    20.6285 c2n :    21.0000 c2per:     0.9823  C2CUT:   30 
+
+    np.c_[siq,quo,siq,sabo2,sc2,sabo1][:30][:30]  ## A-B comparison of unique history counts 
+    [[' 0' 'TO BT SD                                                                                        ' ' 0' '  3493   3543' ' 0.3553' '   489    476']
+     [' 1' 'TO BT SA                                                                                        ' ' 1' '  3023   2953' ' 0.8199' '   476    479']
+     [' 2' 'TO SA                                                                                           ' ' 2' '   917    921' ' 0.0087' '     0      0']
+     [' 3' 'TO BT BT SR SA                                                                                  ' ' 3' '   440    431' ' 0.0930' '  1482   1494']
+     [' 4' 'TO BT BT SR BT BT SA                                                                            ' ' 4' '   433    410' ' 0.6275' '  2355   2347']
+     [' 5' 'TO BT BT SA                                                                                     ' ' 5' '   405    402' ' 0.0112' '  1300   1411']
+     [' 6' 'TO BT BR BT SA                                                                                  ' ' 6' '   309    336' ' 1.1302' '   483    478']
+     [' 7' 'TO BT BT SR BR SR SA                                                                            ' ' 7' '    96    131' ' 5.3965' '  2515   2420']
+     [' 8' 'TO BR SA                                                                                        ' ' 8' '   107    101' ' 0.1731' '   466    467']
+     [' 9' 'TO BT BT SR BR SA                                                                               ' ' 9' '    94    100' ' 0.1856' '  2376   2350']
+     ['10' 'TO BT BT SR SR SA                                                                               ' '10' '    89     63' ' 4.4474' '  1468   1468']
+     ['11' 'TO BT BT SR BR SR BT BT SA                                                                      ' '11' '    50     58' ' 0.5926' '  2461   2447']
+     ['12' 'TO BT AB                                                                                        ' '12' '    28     35' ' 0.7778' '   821    482']
+     ['13' 'TO BT BT SR BR SR SR SA                                                                         ' '13' '    34     31' ' 0.1385' '  2564   2574']
+     ['14' 'TO BT BT SR BR SR BR SR BT BT SA                                                                ' '14' '    19     33' ' 3.7692' '  2548   3075']
+     ['15' 'TO BT BT SR SR BT BT SA                                                                         ' '15' '    32     32' ' 0.0000' '  2077   2075']
+     ['16' 'TO BT BT SR BR SR SR BT BT SA                                                                   ' '16' '    22     28' ' 0.7200' '  2700   2576']
+
+
+::
+
+    267 /**
+    268 junoPMTOpticalModel::ModelTriggerSimple_
+    269 ------------------------------------------
+    270 
+    271 This is a "pre-trigger" returning true when approaching 
+    272 the upper hemisphere of inner1 from inside or outside.
+    273 
+    274 The implementation is based on the distance *dist1*
+    275 in the current momentum direction of the photon to the inner1 solid. 
+    276 
+    277 *dist1* is required to be greater than EPSILON
+    278 where EPSILON is 2e-4 which is one fifth of the 
+    279 distance between body and inner1 1e-3.
+    280 
+    281 Also the local z of next_pos which is *dist1* ahead
+    282 is required to exceed EPSILON in order to exclude
+    283 situations where next position is on the Vacuum/Vacuum midline. 
+    284 
+    285 This the positions where this returns true 
+    286 are expected to be very close to the fake "body" volume 
+    287 when coming from outside or close to fake Vacumm/Vacuum 
+    288 border when approaching from inside. 
+    289 
+    290 Note that the implemetation avoids relying on the volume that 
+    291 Geant4 thinks are currently at because that is unreliable.
+    292 Also as the PMT has various volumes for dynodes and MCT 
+    293 within inner2 a current volume based implementation would 
+    294 be complicated.   
+    295 
+    296 ::
+    297 
+    298      +---Pyrex--pmt-------------------+
+    299      |                                |
+    300      |   +--Pyrex-body - - - - - +    |
+    301      |   : +~~Vacuum~~inner1~~~+ :    |
+    302      |   : !                   ! :    |
+    303      |   : !                   !1e-3  |
+    304      |   : !                   ! :    |
+    305      |   + +- - - - - - - - ---+ +    |
+    306      |   : |                   | :    |
+    307      |   : |                   | :    |
+    308      |   : |                   | :    |
+    309      |   : +--Vacuum--inner2---+ :    |
+    310      |   +- - - - - - - - - - - -+    |
+    311      |                                |
+    312      +--------------------------------+
+    313 
+    314 **/
+    315 
+    316 G4bool junoPMTOpticalModel::ModelTriggerSimple_(const G4FastTrack& )
+    317 {
+    318     bool trig = false ;
+    319     dist1 = Distance( _inner1_solid, pos, dir, in1 );
+    320     if( dist1 != kInfinity && dist1 > EPSILON )
+    321     {
+    322         next_pos = pos + dir*dist1 ;
+    323         trig = next_pos.z() > EPSILON ;  // disqualify flat face intersects 
+    324 
+    325         next_norm = _inner1_solid->SurfaceNormal(next_pos);
+    326         next_mct  = next_norm * dir ;
+    327         whereAmI  = next_mct < 0. ? kInGlass : kInVacuum ; // against normal is outside
+    328     }
+    329 
+    330 #ifdef PMTSIM_STANDALONE
+    331     bool PIDX_DUMP = m_label->id == PIDX && PIDX_ENABLED ;
+    332     LOG_IF(info, PIDX_DUMP) << " PIDX " << PIDX << " label.id " << m_label->id << " dist1 " << dist1 << " trig " << trig << " whereAmI " << whereAmI ;
+    333 #endif
+    334     return trig ;
+    335 }
+    336 
+    337 const G4double junoPMTOpticalModel::EPSILON = 2e-4 ;
+
+
+
+Check ModelTrigger positions : is there a whereAmI bug ? SEEMS NOT
+----------------------------------------------------------------------
+
+Better to check by comparing EInside vs sign of normal*dir 
+
+::
+
+    079     mtd_py = np.logical_and(mtd.trig == 1, mtd.whereAmI_ == 1 )
+     80     mtd_va = np.logical_and(mtd.trig == 1, mtd.whereAmI_ == 2 )
+    ...
+     97     ppos0 = mtd.pos[mtd_py]
+     98     ppos1 = mtd.pos[mtd_va]
+     99     label = "b:mtd.pos[mtd_py] r:mtd.pos[mtd_va]"
+    100     
+
+
+mtd.pos[mtd_pyrex] 
+   all around the upper hemi as expected.
+
+mtd.pos[mtd_vacuum] 
+   most along the Vac/Vac midline but there is significant number around the upper hemi. 
+
+   * is that a whereAmI bug ?
+   * NO, cannot easily check like this because you can be inside the vacuum and also close to the hemi. 
+     eg consider very "oblique" photon paths just inside the hemi
+
+
+::
+
+    58 enum EInside {kOutside,kSurface,kInside};
+
+::
+
+    In [5]: np.unique( mtd.EInside1, return_counts=True  )
+    Out[5]: (array([0, 1], dtype=uint64), array([15387,  8808]))
+
+    In [6]: np.unique( mtd.whereAmI_, return_counts=True  )
+    Out[6]: (array([0, 1, 2], dtype=uint64), array([   17, 14486,  9692]))
 
 
 
