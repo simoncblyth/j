@@ -12,6 +12,7 @@ Speeddial
    jcv junoPMTOpticalModel
    jcv NNVTMCPPMTManager
    jcv HamamatsuR12860PMTManager
+   jcv Hamamatsu_R12860_PMTSolid
    jcv CustomG4OpBoundaryProcess
    jcv DsPhysConsOptical
 
@@ -2130,6 +2131,153 @@ Penultimate flag all "SR" for specular reflection off the dynode/MCP.
            [  35.979,    0.   , -116.   ],
            [ -21.828,    0.   , -116.   ],
            [ -27.978,    0.   , -116.   ],
+
+
+
+
+
+Take a look at HAMA mt.sh : Seems no problem : Why ? 
+-------------------------------------------------------
+
+::
+
+
+    In [10]: w = np.where( a.n > 5 )[0]
+
+    In [11]: np.c_[w, a.q[w]]
+    Out[11]: 
+    array([[b'467', b'TO BT BT SR BT SA                                                                               '],
+           [b'468', b'TO BT BT SR BT SA                                                                               '],
+           [b'469', b'TO BT BT SR BT SA                                                                               '],
+           [b'480', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SA             '],
+           [b'484', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SA                                        '],
+           ...,
+           [b'9520', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BT SA       '],
+           [b'9527', b'TO BT BT SR BR BT SA                                                                            '],
+           [b'9532', b'TO BT BT SR BR BT SA                                                                            '],
+           [b'9534', b'TO BT BT SR BT SA                                                                               '],
+           [b'9535', b'TO BT BT SR BT SA                                                                               ']], dtype='|S96')
+
+
+::
+
+    APID=467 AOPT=idx LOC=skip ./U4SimtraceTest.sh ana   ## extra BT 
+
+    APID=480 AOPT=idx LOC=skip ./U4SimtraceTest.sh ana   ## pyrex waveguide down, with lots of extraneous BT  
+
+
+
+    In [1]: w_sr = np.where( a.qq == 10 )[0]
+
+    In [2]: np.c_[w_sr,a.q[w_sr]] 
+    Out[2]: 
+    array([[b'467', b'TO BT BT SR BT SA                                                                               '],
+           [b'468', b'TO BT BT SR BT SA                                                                               '],
+           [b'469', b'TO BT BT SR BT SA                                                                               '],
+           [b'480', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SA             '],
+           [b'480', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SA             '],
+           ...,
+           [b'9520', b'TO BT BT BR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BR BT SR BT SA       '],
+           [b'9527', b'TO BT BT SR BR BT SA                                                                            '],
+           [b'9532', b'TO BT BT SR BR BT SA                                                                            '],
+           [b'9534', b'TO BT BT SR BT SA                                                                               '],
+           [b'9535', b'TO BT BT SR BT SA                                                                               ']], dtype='|S96')
+
+
+Find positions of all the SR (SURFACE_SREFLECT)::
+
+    In [8]: a.f.record[tuple(w_sr[0]), tuple(w_sr[1]),0]
+    Out[8]: 
+    array([[ 248.999,    0.   ,   -5.614,    0.908],
+           [ 249.   ,    0.   ,   -4.607,    0.903],
+           [ 249.   ,    0.   ,   -3.71 ,    0.899],
+           [ 247.919,    0.   ,  -22.222,    1.008],
+           [ 242.228,    0.   ,  -47.851,    1.153],
+           ...,
+           [-139.502,    0.   , -158.539,    2.008],
+           [-249.   ,    0.   ,   -0.7  ,    0.885],
+           [-249.   ,    0.   ,   -4.606,    0.903],
+           [-248.988,    0.   ,   -6.823,    0.914],
+           [-248.956,    0.   ,   -8.463,    0.921]], dtype=float32)
+
+
+
+
+
+Target HAMA dynode
+---------------------
+
+
+::
+
+    132 elif [ "$LAYOUT" == "one_pmt" ]; then
+    133     
+    134     #radius=280   # approx PMT extents : xy -255:255, z -190:190
+    135     radius=120    # focus on HAMA dynode
+    136         
+    137     ttype=line
+    138     case $ttype in
+    139       disc) pos=0,0,0 ;;
+    140     # line) pos=0,0,190 ;;
+    141       line) pos=0,0,-20 ;; 
+    142      point) pos=0,0,100 ;;  # PMT upper mid-vacuum 
+    143     esac
+    144     mom=0,0,-1
+    145 fi  
+
+
+
+
+::
+
+    In [3]: w = np.where( mtd.index == 711 )[0] ; w
+    Out[3]: array([14404, 14405, 14406, 14407])
+
+
+
+PIDX=711 ./mt.sh::
+
+    np.c_[mtd.index, mtd.whereAmI, mtd.trig, mtd.etrig, mtd.pv, mtd.mlv][mtd.index == PIDX] ## ModelTrigger_Debug mlv and pv for PIDX 
+    array([['711', 'kInVacuum  ', '0', 'N_PV_I2 ', 'hama_inner2_phys', 'hama_body_log'],
+           ['711', 'kInGlass   ', '0', 'N_I1>I2 ', 'hama_outer_edge_phy', 'hama_inner2_log'],
+           ['711', 'kInGlass   ', '0', 'N_PV_I2 ', 'hama_inner2_phys', 'hama_body_log'],
+           ['711', 'kInVacuum  ', '1', 'Y_VACUUM', 'hama_inner1_phys', 'hama_body_log']], dtype='<U20')
+
+     np.c_[mtd.index, mtd.pos[:,2],mtd.time, mtd.gpos[:,:3], mtd.gdir[:,:3], mtd.dist1, mtd.dist2][mtd.index == PIDX]  ## ModelTrigger_Debug for PIDX 
+    array([[711.   , -20.   ,   0.   , 102.936,   0.   , -20.   ,   0.   ,   0.   ,  -1.   , 168.46 ,     inf],
+           [711.   , -50.   ,   0.1  , 102.936,   0.   , -50.   ,   0.   ,   0.   ,   1.   ,  50.   ,  45.   ],   ## 45. unexpected for dist2 ?
+           [711.   , -50.   ,   0.1  , 102.936,   0.   , -50.   ,   0.   ,   0.   ,   1.   ,  50.   ,     inf],
+           [711.   ,   0.   ,   0.267, 102.936,   0.   ,   0.   ,   0.   ,   0.   ,   1.   , 168.452,     inf]])
+
+
+HMM but incorrectly kInGlass so that is distanceToIn::
+
+    218 
+    219     if(_pv == _inner1_phys){    // VERY FLAWED BINARY ASSUMPTION
+    220         whereAmI = kInVacuum;
+    221     }else{
+    222         whereAmI = kInGlass;
+    223     }
+    224 
+    225     if(whereAmI == kInGlass)
+    226     {   
+    227         dist1 = _inner1_solid->DistanceToIn(pos, dir);
+    228         dist2 = _inner2_solid->DistanceToIn(pos, dir);
+    229         
+
+
+
+
+    q[PIDX] ## 
+    [b'TO SR SA                                                                                        ']
+
+    t.record[PIDX,:n[PIDX],0] ## 
+    [[102.936   0.    -20.      0.   ]
+     [102.936   0.    -50.      0.1  ]
+     [102.936   0.    168.452   0.829]]
+
+    mtd.pv[mtd.index==PIDX] ## 
+    ['hama_inner2_phys' 'hama_outer_edge_phy' 'hama_inner2_phys' 'hama_inner1_phys']
 
 
 
