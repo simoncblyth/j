@@ -118,8 +118,8 @@ list(APPEND HEADERS
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
 
-
-
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
 
 )
 
