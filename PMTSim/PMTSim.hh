@@ -28,7 +28,8 @@ struct PMTSIM_API PMTSim
     bool verbose ; 
 
 #ifdef POM_DEBUG
-    static NP* ModelTrigger_Debug_Array(); 
+    static NP*  ModelTrigger_Debug_Array(); 
+    static void ModelTrigger_Debug_Save(const char* savedir); 
 #endif
 
     static std::string OutputMessage(const char* msg, const std::string& out, const std::string& err, bool verbose ); 

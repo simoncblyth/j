@@ -492,20 +492,19 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    export U4Debug_SaveDir=$tmpdir
    echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT U4Debug_SaveDir ${U4Debug_SaveDir}
 
-
-   #DEBUG=1 
+   DEBUG=1 
    if [ -n "$DEBUG" ]; then 
        export U4Scintillation_Debug=INFO
        export U4Cerenkov_Debug=INFO
        export U4Hit_Debug=INFO
        export U4Debug=INFO
+       export U4Recorder=INFO
 
        export SOpticksResource=INFO
        export junoSD_PMT_v2_Opticks=INFO
        export junoSD_PMT_v2=INFO
        export DsG4Scintillation=INFO
        export G4Cerenkov_modified=INFO
-
        export SLOG=1
 
        echo $msg DEBUG enabled tmpdir $tmpdir
@@ -514,6 +513,7 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
        unset U4Cerenkov_Debug
        unset U4Hit_Debug
        unset U4Debug
+       unset U4Recorder
 
        unset SOpticksResource
        unset junoSD_PMT_v2_Opticks
@@ -565,8 +565,14 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
-   opts="$opts --old-optical-model"
-   #opts="$opts --disable-pmt-optical-model"
+
+   # --old-optical-model/--new-optical-model sets UseLSOpticalModel
+   # opts="$opts --old-optical-model"
+   # opts="$opts --new-optical-model"
+   #
+   # --pmt-optical-model --no-pmt-optical-model sets UsePMTOpticalModel
+   # opts="$opts --pmt-optical-model"
+   # opts="$opts --no-pmt-optical-model"
 
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "

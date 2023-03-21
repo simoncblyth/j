@@ -17,6 +17,7 @@
 
 #include "HamamatsuMaskManager.hh"
 #include "NNVTMaskManager.hh"
+#include "junoPMTOpticalModel.hh"
 
 #include "LowerChimney.hh"
 
@@ -52,8 +53,20 @@ UName                           ModelTrigger_Debug::MLV = {} ;
 
 NP* PMTSim::ModelTrigger_Debug_Array()   // static
 {
-    return ModelTrigger_Debug::Array() ; 
+    NP* mtda = ModelTrigger_Debug::Array() ; 
+    const char* IMPL = junoPMTOpticalModel::ModelTrigger_IMPL_Name() ; 
+    assert(IMPL); 
+    mtda->set_meta<std::string>("IMPL", IMPL); 
+    return mtda ; 
 }
+
+void PMTSim::ModelTrigger_Debug_Save(const char* savedir)
+{
+    NP* mtda = ModelTrigger_Debug_Array(); 
+    mtda->save(savedir, ModelTrigger_Debug::NAME) ; 
+}
+
+
 #endif
 
 

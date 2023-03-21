@@ -1,7 +1,17 @@
 blyth-88-ModelTrigger_Debug
 =============================
 
-* :doc:`blyth-88-quadrant-matching`
+* prior :doc:`blyth-88-quadrant-matching`
+* next :doc:`blyth-88-simulation-history-comparison-checks`
+
+
+Overview
+-----------
+
+All the issues discovered here appear be fixed following creation and subsequent improvements to the below 
+
+1. junoPMTOpticalMode::ModelTriggerSimple
+2. U4Recorder::ClassifyFake
 
 
 Speeddial
@@ -18,12 +28,16 @@ Speeddial
 
 
 
-WIP : Directing beam at NNVT PMT gives worse chi2  : Due to a zero dropout 
+FIXED : Directing beam at NNVT PMT gives worse chi2  : Due to a zero dropout 
 -----------------------------------------------------------------------------
+
+* this turned out to be due to geometry bugs in junoPMTOpticalModel::ModelTriggerBuggy (reason for the name change)
+  and replacement with junoPMTOpticalModel::ModelTriggerSimple
+ 
 
 ::
 
-    In [2]: np.c_[siq,quo,siq,sabo2,sc2,sabo1][:50]                                                                                                                             
+    In[2]: np.c_[siq,quo,siq,sabo2,sc2,sabo1][:50]
     Out[2]: 
     array([[' 0', 'TO BT SD                                                    ', ' 0', ' 35832  36034', ' 0.5678', '     2      0'],
            [' 1', 'TO BT SA                                                    ', ' 1', ' 30792  30754', ' 0.0235', '     0      1'],
@@ -78,13 +92,20 @@ WIP : Directing beam at NNVT PMT gives worse chi2  : Due to a zero dropout
            [-250.   ,    0.   ,  183.618,   20.122],
 
 
-Curious N=0 FastSim midline SA/SD only happens with NNVT (not with HAMA)
-----------------------------------------------------------------------------
+
+Curious N=0 FastSim midline SA/SD only happens with NNVT (not with HAMA) : FIXED WITH ModelTriggerSimple
+-------------------------------------------------------------------------------------------------------------
+
+Caution this problem was first observed in two_pmt layout, so dont be confused by the coordinates. 
+
 
 What should happen is fall-thru SameMaterial transmission, but 
 are getting SA/SD there ? 
 
 * suspect that means ModelTrigger is firing when it should not for NNVT 
+* YEP: CONFIRMED THIS
+* HAMA not afflicted due to "Undefined" behaviour of DistanceToIn when inside 
+  depending on CSG constituents (HAMA has 5mm equatorial waist that saved it "by chance") 
 
 
 Pick photons that end on the NNVT mid-line::
@@ -108,45 +129,6 @@ Pick photons that end on the NNVT mid-line::
            [b'12294', b'-250.0', b'0.0', b'209.36806', b'TO BT BT SR SR SR SD                                                                            '],
            [b'12295', b'-250.0', b'0.0', b'209.49432', b'TO BT BT SR SR SR SD                                                                            '],
            [b'12314', b'-250.0', b'0.0', b'211.89659', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12374', b'-250.0', b'0.0', b'219.55368', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12378', b'-250.0', b'0.0', b'220.0678', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12380', b'-250.0', b'0.0', b'220.32542', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12417', b'-250.0', b'0.0', b'225.10968', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12420', b'-250.0', b'0.0', b'225.4991', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12442', b'-250.0', b'0.0', b'228.3668', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12446', b'-250.0', b'0.0', b'228.89001', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12454', b'-250.0', b'0.0', b'229.93802', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12455', b'-250.0', b'0.0', b'230.06886', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12460', b'-250.0', b'0.0', b'230.72522', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12469', b'-250.0', b'0.0', b'231.90826', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12472', b'-250.0', b'0.0', b'232.30322', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12477', b'-250.0', b'0.0', b'232.962', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12487', b'-250.0', b'0.0', b'234.28253', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12492', b'-250.0', b'0.0', b'234.94427', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12499', b'-250.0', b'0.0', b'235.8715', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12501', b'-250.0', b'0.0', b'236.13708', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12514', b'-250.0', b'0.0', b'237.86508', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12521', b'-250.0', b'0.0', b'238.79764', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12525', b'-250.0', b'0.0', b'239.33118', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12532', b'-250.0', b'0.0', b'240.26724', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12547', b'-250.0', b'0.0', b'242.27736', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12548', b'-250.0', b'0.0', b'242.41223', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12555', b'-250.0', b'0.0', b'243.3532', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12559', b'-250.0', b'0.0', b'243.89198', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12564', b'-250.0', b'0.0', b'244.56636', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12573', b'-250.0', b'0.0', b'245.78165', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12583', b'-250.0', b'0.0', b'247.136', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12586', b'-250.0', b'0.0', b'247.5434', b'TO BT BT SR SR SR SD                                                                            '],
-           [b'12588', b'-250.0', b'0.0', b'247.81477', b'TO BT BT SR SR SR SA                                                                            '],
-           [b'12643', b'-250.0', b'0.0', b'-171.18556', b'TO BT BT SR SR SR SR BR BR SR SR SD                                                             '],
-           [b'13535', b'-250.10449', b'0.0', b'248.99995', b'TO BT BT SR SR SR SR SA                                                                         '],
-           [b'17573', b'-250.0', b'0.0', b'168.81075', b'TO BT BT SR SR BR BR SR SR SD                                                                   '],
-           [b'17603', b'-250.0', b'0.0', b'179.68512', b'TO BT BT SR SR BR BR SR SR SD                                                                   '],
-           [b'17608', b'-250.0', b'0.0', b'181.52397', b'TO BT BT SR SR BR BR SR SR SA                                                                   '],
-           [b'18285', b'-250.0', b'0.0', b'-156.15952', b'TO BT BT SR SR BR SR SR SA                                                                      '],
-           [b'18408', b'-250.0', b'0.0', b'220.31389', b'TO BT BT SR SR BR SR SR SR SA                                                                   '],
-           ...,
-
 
 ::
 
@@ -552,8 +534,8 @@ Viz::
 
 
 
-YET another class of FastSim bug : kink at the midline
-----------------------------------------------------------
+YET another class of FastSim bug : kink at the midline : ACTUALLY ITS THE SAME PROBLEM : CAUSED BY MODEL TRIGGERS IN WRONG PLACE
+-----------------------------------------------------------------------------------------------------------------------------------
 
 ::
 
@@ -1216,7 +1198,7 @@ N:1 168/1000 manage to escape to Rock
 
 
 
-Return to one_pmt shooting verically upwards from vacumm to debug in simpler situation
+Return to one_pmt shooting vertically upwards from vacumm to debug in simpler situation
 -----------------------------------------------------------------------------------------
 
 N=1::
@@ -1673,7 +1655,7 @@ Automate above dumping::
 
 
 
-Hmm : need to better way to identify fakes : for very close volumes cannot rely on the volume that G4 says
+DONE : better way to identify fakes : for very close volumes cannot rely on the volume that G4 says
 --------------------------------------------------------------------------------------------------------------
 
 1. traverse up or down geometry tree from step point volume 
@@ -1682,8 +1664,10 @@ Hmm : need to better way to identify fakes : for very close volumes cannot rely 
 2. calculate the distance to that when its below some cutoff declare the point to be fake
    * note that cannot rely on the G4 volume 
 
+   * ACTUALLY NOW USE INSIDE CALL AND DECLARING FAKE_SURFACE when that gives kSurface
 
-* WIP : U4Recorder::CheckFake
+
+* DONE : U4Recorder::ClassifyFake
 
 
 ::
@@ -2278,6 +2262,8 @@ HMM but incorrectly kInGlass so that is distanceToIn::
 
     mtd.pv[mtd.index==PIDX] ## 
     ['hama_inner2_phys' 'hama_outer_edge_phy' 'hama_inner2_phys' 'hama_inner1_phys']
+
+
 
 
 
