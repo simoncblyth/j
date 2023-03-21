@@ -474,15 +474,15 @@ EOU
 
 ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
 ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
-#ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation (that was original idea) 
-                                    #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
+ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
+
 ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 
    local args=$*     
    local msg="=== $FUNCNAME :"
-   local evtmax=${EVTMAX:-2}
+   local evtmax=${EVTMAX:-1}
    local mode=${OPTICKS_MODE:-3}
    local script=ntds$mode
    local base=/tmp/u4debug

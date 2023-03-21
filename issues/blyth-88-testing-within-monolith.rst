@@ -134,6 +134,17 @@ Looks like hookup only at python level::
 
 jxv:ntds3 
 
+    data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc: In member function 'virtual void U4RecorderAnaMgr::UserSteppingAction(const G4Step*)':
+    /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:35:104: error: no matching function for call to 'U4Recorder::UserSteppingAction(const G4Step*&)'
+     void U4RecorderAnaMgr::UserSteppingAction(const G4Step* step) {     m_recorder->UserSteppingAction(step);    }
+                                                                                                            ^
+    In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:5:
+    /data/blyth/junotop/ExternalLibs/opticks/head/include/U4/U4Recorder.hh:68:31: note: candidate: 'template<class T> void U4Recorder::UserSteppingAction(const G4Step*)'
+         template<typename T> void UserSteppingAction(const G4Step*);
+                                   ^~~~~~~~~~~~~~~~~~
+    /data/blyth/junotop/ExternalLibs/opticks/head/include/U4/U4Recorder.hh:68:31: note:   template argument deduction/substitution failed:
+    /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:35:104: note:   couldn't deduce template parameter 'T'
+     void U4RecorderAnaMgr::UserSteppingAction(const G4Step* step) {     m_recorder->UserSteppingAction(step);    }
 
 
 
