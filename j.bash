@@ -7,6 +7,9 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+
+
 * https://login.ihep.ac.cn
 
 * https://bitbucket.org/simoncblyth/opticks/commits/

@@ -34,6 +34,8 @@ include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Detector/Geometry)
 include_directories($ENV{JUNOTOP}/junosw/Utilities/EGet)
 
+# HMM: ABOVE IS PICKING UP FROM SOURCE DIRS NOT FROM INSTALL DIRS junosw/InstallArea/include
+
 
 set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
 

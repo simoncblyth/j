@@ -507,6 +507,7 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
        export G4Cerenkov_modified=INFO
        export SLOG=1
 
+       export DsPhysConsOptical_verboseLevel=1
        echo $msg DEBUG enabled tmpdir $tmpdir
    else
        unset U4Scintillation_Debug
@@ -521,6 +522,8 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
        unset G4Cerenkov_modified
 
        unset SLOG
+       unset DsPhysConsOptical_verboseLevel 
+
        echo $msg DEBUG NOT-enabled 
    fi 
 
