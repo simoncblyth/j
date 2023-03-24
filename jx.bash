@@ -572,10 +572,12 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    # --old-optical-model/--new-optical-model sets UseLSOpticalModel
    # opts="$opts --old-optical-model"
    # opts="$opts --new-optical-model"
-   #
-   # --pmt-optical-model --no-pmt-optical-model sets UsePMTOpticalModel
-   # opts="$opts --pmt-optical-model"
-   # opts="$opts --no-pmt-optical-model"
+
+   #opts="$opts --no-pmt-optical-model"     # sets UsePMTOpticalModel
+   opts="$opts --pmt-optical-model"
+
+   #opts="$opts --pmt-unnatural-geometry"   # sets UsePMTNaturalGeometry
+   opts="$opts --pmt-natural-geometry"
 
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "
