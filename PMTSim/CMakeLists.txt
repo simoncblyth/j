@@ -140,7 +140,15 @@ message(STATUS "CMAKE_BINARY_DIR         : ${CMAKE_BINARY_DIR}")
 
 add_library( ${name}  SHARED ${SOURCES} ${HEADERS} )
 
-target_compile_definitions( ${name} PRIVATE OPTICKS_PMTSIM PMTSIM_STANDALONE WITH_NP POM_DEBUG )
+target_compile_definitions( ${name} PRIVATE 
+       OPTICKS_PMTSIM 
+       PMTSIM_STANDALONE
+       WITH_NP
+       POM_DEBUG 
+       G4USE_STD11 
+)
+# G4USE_STD11 avoids missing symbol G4MTHepRandom::getTheEngine() 
+
 
 target_include_directories(${name}
      PUBLIC
