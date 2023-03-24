@@ -25,6 +25,8 @@ find_package(G4    REQUIRED MODULE)
 find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
 
+find_package(Custom4 REQUIRED)
+
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParamsSvc)  # for IMCParamsSvc.hh
@@ -81,9 +83,6 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Material.cc
 
-     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
-
-
 
      # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
 
@@ -97,6 +96,11 @@ list(APPEND SOURCES
 
      DetectorConstruction.cc
 )
+
+set(FORMER_SOURCES
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+)
+
 
 
 
@@ -115,15 +119,19 @@ list(APPEND HEADERS
      ../Layr/Layr.h 
      ../Layr/JPMT.h 
 
-     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
-     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART.h
-     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
-     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
-
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
 
 )
+
+set(FORMER_HEADERS
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART.h
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
+)
+
+
 
 message(STATUS "CMAKE_INSTALL_PREFIX     : ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "CMAKE_INSTALL_INCLUDEDIR : ${CMAKE_INSTALL_INCLUDEDIR}")
@@ -147,6 +155,7 @@ target_link_libraries(${name} PUBLIC
    Boost::system
    Boost::program_options
    Boost::filesystem
+   Custom4::Custom4
 )
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)

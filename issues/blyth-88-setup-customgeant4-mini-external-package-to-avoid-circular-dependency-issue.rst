@@ -2,6 +2,7 @@ blyth-88-setup-customgeant4-mini-external-package-to-avoid-circular-dependency-i
 =======================================================================================
 
 * prior :doc:`blyth-88-testing-within-monolith`
+* next :doc:`blyth-88-Custom4-shakedown`
 
 Simplest and most extensible Approach is : split off external mini-package CustomGeant4 used by both junosw and opticks
 -------------------------------------------------------------------------------------------------------------------------
@@ -1066,6 +1067,387 @@ After CFLAGS setup Running from PhysiSim build dir giving new error
 HUH : build/Simulation completes : I was expecting link error because I didnt add ${CUSTOM4_LIBRARIES} to the CMakeLists.txt
 -------------------------------------------------------------------------------------------------------------------------------
 
+* unresolved
+
+
+compile
+~~~~~~~~~~
+
+::
+
+   :s/ /^M/g     ## enter ^M with ctrl-v return 
+
+
+cd
+/data/blyth/junotop/junosw/build/Simulation/DetSimV2/PhysiSim
+&&
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bin/g++
+-DBOOST_ATOMIC_DYN_LINK
+-DBOOST_ATOMIC_NO_LIB
+-DBOOST_FILESYSTEM_DYN_LINK
+-DBOOST_FILESYSTEM_NO_LIB
+-DBOOST_PYTHON_DYN_LINK
+-DBOOST_PYTHON_NO_LIB
+-DBOOST_SYSTEM_DYN_LINK
+-DBOOST_SYSTEM_NO_LIB
+-DPhysiSim_EXPORTS
+-DSNIPER_VERSION_2
+-DWITH_CUSTOM4
+-DWITH_OEC
+-I/data/blyth/junotop/junosw/build/include
+-I/data/blyth/junotop/ExternalLibs/Boost/1.78.0
+-I/data/blyth/junotop/ExternalLibs/log4cpp/1.1.3/include
+-I/data/blyth/junotop/ExternalLibs/CLHEP/2.4.1.0/include
+-I/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/CLHEP/2.4.1.0/lib/CLHEP-2.4.1.0/../../include
+-I/data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/geant4
+-I/data/blyth/junotop/ExternalLibs/HepMC/2.06.09/include
+-I/data/blyth/junotop/ExternalLibs/genie/3.00.06/include/GENIE
+-I/data/blyth/junotop/ExternalLibs/frontier/2.9.1/include
+-I/data/blyth/junotop/ExternalLibs/mysql-connector-c/6.1.9/include
+-I/data/blyth/junotop/ExternalLibs/mysql-connector-cpp/1.1.12/include
+-I/data/blyth/junotop/ExternalLibs/libyaml/0.2.4/include
+-I/data/blyth/junotop/ExternalLibs/libonnxruntime/1.11.1/include/onnxruntime
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/include
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/include
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/include
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/MCParamsSvc
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/MCParamsSvc/include
+-I/data/blyth/junotop/junosw/Utilities/Rest
+-I/data/blyth/junotop/junosw/Utilities/Rest/include
+-I/data/blyth/junotop/junosw/Utilities/cJSON
+-I/data/blyth/junotop/junosw/Utilities/cJSON/include
+-I/data/blyth/junotop/junosw/Database/ParaDB
+-I/data/blyth/junotop/junosw/Database/ParaDB/include
+-I/data/blyth/junotop/junosw/Database/DBISvc
+-I/data/blyth/junotop/junosw/Database/DBISvc/include
+-I/data/blyth/junotop/junosw/Database/dbi
+-I/data/blyth/junotop/junosw/Database/dbi/include
+-I/data/blyth/junotop/junosw/Database/DatabaseSvc
+-I/data/blyth/junotop/junosw/Database/DatabaseSvc/include
+-I/data/blyth/junotop/junosw/build/DataModel/Context
+-I/data/blyth/junotop/junosw/DataModel/Context
+-I/data/blyth/junotop/junosw/DataModel/Context/include
+-I/data/blyth/junotop/junosw/build/DataModel/EDMUtil
+-I/data/blyth/junotop/junosw/DataModel/EDMUtil
+-I/data/blyth/junotop/junosw/DataModel/EDMUtil/include
+-I/data/blyth/junotop/junosw/build/DataModel/BaseEvent
+-I/data/blyth/junotop/junosw/DataModel/BaseEvent
+-I/data/blyth/junotop/junosw/DataModel/BaseEvent/include
+-I/data/blyth/junotop/junosw/Simulation/SimSvc/IPMTSimParamSvc
+-I/data/blyth/junotop/junosw/Simulation/SimSvc/IPMTSimParamSvc/include
+-I/data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc
+-I/data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/include
+-I/data/blyth/junotop/junosw/Database/FrontierSvc
+-I/data/blyth/junotop/junosw/Database/FrontierSvc/include
+-I/data/blyth/junotop/junosw/Detector/Geometry
+-I/data/blyth/junotop/junosw/Detector/Geometry/include
+-I/data/blyth/junotop/junosw/Detector/Identifier
+-I/data/blyth/junotop/junosw/Detector/Identifier/include
+-I/data/blyth/junotop/junosw/Detector/Parameter
+-I/data/blyth/junotop/junosw/Detector/Parameter/include
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/SimUtil
+-I/data/blyth/junotop/junosw/Simulation/DetSimV2/SimUtil/include
+-I/data/blyth/junotop/junosw/build/DataModel/SimEvent
+-I/data/blyth/junotop/junosw/DataModel/SimEvent
+-I/data/blyth/junotop/junosw/DataModel/SimEvent/include
+-I/data/blyth/junotop/junosw/Utilities/EGet
+-I/data/blyth/junotop/junosw/Utilities/EGet/include
+-isystem
+/data/blyth/junotop/ExternalLibs/Python/3.8.12/include/python3.8
+-isystem
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/include
+-isystem
+/data/blyth/junotop/sniper/InstallArea/include
+-isystem
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Boost/1.78.0/include
+-g
+-fPIC
+
+
+-DG4INTY_USE_XT
+-DG4VIS_USE_OPENGL
+-DG4UI_USE_TCSH
+-DG4VIS_USE_RAYTRACERX
+-DG4VIS_USE_OPENGLX
+-W
+-Wall
+-pedantic
+-Wno-non-virtual-dtor
+-Wno-long-long
+-Wwrite-strings
+-Wpointer-arith
+-Woverloaded-virtual
+-Wno-variadic-macros
+-Wshadow
+-pipe
+-DG4USE_STD11
+-pthread
+-ftls-model=global-dynamic
+
+-DG4MULTITHREADED
+-I/data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/bin/../include/Geant4
+-I/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/CLHEP/2.4.1.0/include
+-I/data/blyth/junotop/ExternalLibs/custom4/0.0.6/include/Custom4
+-std=c++17
+-MD
+-MT
+Simulation/DetSimV2/PhysiSim/CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o
+-MF
+CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o.d
+-o
+CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o
+-c
+/data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+
+
+linking
+~~~~~~~~
+
+cd /data/blyth/junotop/junosw/build/Simulation/DetSimV2/PhysiSim && /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Cmake/3.22.1/bin/cmake -E cmake_link_script CMakeFiles/PhysiSim.dir/link.txt --verbose=1
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bin/g++ 
+        -fPIC -g -shared -Wl,-soname,libPhysiSim.so 
+          -o ../../../lib/libPhysiSim.so 
+
+CMakeFiles/PhysiSim.dir/src/CustomG4OpBoundaryProcess.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4Scintillation.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsWrapPhysConsOptical.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsWrapPhysConsIon.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4HadronPhysicsQGSP_BERT_HP.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4NeutronPHPBuilder.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG410NNDCParticleHPCaptureFS.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG410GdParticleHPCaptureFS.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4ParticleHPCapture.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4GdCaptureGammas.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4EmLivermorePhysics.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4Positronium.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4PositroniumFormation.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4PositroniumDecayChannel2G.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4PositroniumDecayChannel3G.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4NNDCCaptureGammas.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4ScintSimple.cc.o 
+CMakeFiles/PhysiSim.dir/src/DsG4OpAbsReemit.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4Cerenkov_modified.cc.o 
+CMakeFiles/PhysiSim.dir/src/G4PhotonSource.cc.o
+CMakeFiles/PhysiSim.dir/src/G4PhotonConversion.cc.o
+CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o
+
+-L/data/blyth/junotop/ExternalLibs/Python/3.8.12/lib
+-L/data/blyth/junotop/ExternalLibs/Boost/1.78.0/lib
+-L/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib
+-L/data/blyth/junotop/ExternalLibs/CLHEP/2.4.1.0/lib
+-L/data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib
+-L/data/blyth/junotop/ExternalLibs/HepMC/2.06.09/lib
+-L/data/blyth/junotop/ExternalLibs/frontier/2.9.1/lib
+
+../../../lib/libPMTSimParamSvc.so
+../../../lib/libSimUtil.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libCore.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libImt.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libRIO.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libNet.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libHist.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGraf.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGraf3d.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGpad.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libROOTDataFrame.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libTree.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libTreePlayer.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libRint.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libPostscript.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMatrix.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libPhysics.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMathCore.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libThread.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMultiProc.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libROOTVecOps.so
+../../../lib/libFrontierSvc.so
+/data/blyth/junotop/ExternalLibs/frontier/2.9.1/lib/libfrontier_client.so
+../../../lib/libDetSimAlg.so
+../../../lib/libG4Svc.so
+../../../lib/libMCParamsSvc.so
+../../../lib/libParaDB.so
+../../../lib/libDBISvc.so
+../../../lib/libdbi.so
+/data/blyth/junotop/ExternalLibs/sqlite3/3.35.5/lib/libsqlite3.so
+-lfrontier_client
+../../../lib/libGeometry.so
+../../../lib/libIdentifier.so
+../../../lib/libParameter.so
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Boost/1.78.0/lib/libboost_filesystem.so.1.78.0
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Boost/1.78.0/lib/libboost_atomic.so.1.78.0
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Boost/1.78.0/lib/libboost_system.so.1.78.0
+../../../lib/libRest.so
+../../../lib/libcJSON.so
+/usr/lib64/libcurl.so
+../../../lib/libDatabaseSvc.so
+/data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+-ldl
+/data/blyth/junotop/ExternalLibs/mysql-connector-cpp/1.1.12/lib/libmysqlcppconn.so
+/data/blyth/junotop/ExternalLibs/mysql-connector-c/6.1.9/lib/libmysqlclient.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libCore.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libImt.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libRIO.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libNet.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libHist.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGraf.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGraf3d.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGpad.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libROOTDataFrame.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libTree.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libTreePlayer.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libRint.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libPostscript.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMatrix.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libPhysics.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMathCore.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libThread.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMultiProc.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libROOTVecOps.so
+../../../lib/libContext.so
+-L/data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/bin/../lib64
+-lG4OpenGL
+-lG4gl2ps
+-lG4Tree
+-lG4FR
+-lG4GMocren
+-lG4visHepRep
+-lG4RayTracer
+-lG4VRML
+-lG4vis_management
+-lG4modeling
+-lG4interfaces
+-lG4persistency
+-lG4analysis
+-lG4error_propagation
+-lG4readout
+-lG4physicslists
+-lG4run
+-lG4event
+-lG4tracking
+-lG4parmodels
+-lG4processes
+-lG4digits_hits
+-lG4track
+-lG4particles
+-lG4geometry
+-lG4materials
+-lG4graphics_reps
+-lG4intercoms
+-lG4global
+-L/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/CLHEP/2.4.1.0/lib
+-lCLHEP-2.4.1.0
+-lG4zlib
+/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/Boost/1.78.0/lib/libboost_python38.so.1.78.0
+/data/blyth/junotop/ExternalLibs/Python/3.8.12/lib/libpython3.8.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libGeom.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libHist.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMatrix.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMathCore.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libImt.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libMultiProc.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libNet.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libRIO.so
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libThread.so
+-lpthread
+/data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libCore.so
+../../../lib/libSimEvent.so
+../../../lib/libEDMUtil.so
+../../../lib/libBaseEvent.so
+
+make[2]: Leaving directory `/data/blyth/junotop/junosw/build'
+[100%] Built target PhysiSim
+
+
+
+
+PMTAccessor.h just uses protocol header : so does not need the libs
+-------------------------------------------------------------------------
+
+::
+
+	modified:   Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+	modified:   Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+	modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+	modified:   cmake/JUNODependencies.cmake
+
+
+
+
+POM/Natural Quadrant Control
+-------------------------------
+
+jcv JUNODetSimModule::
+
+    0474         # == use new pmt optical model or not ==
+     475         grp_pmt_op.add_argument("--pmt-optical-model", dest="pmt_optical_model", action="store_true", 
+                                      help=mh("Enable New PMT optical model (default is enabled)"))
+     476         grp_pmt_op.add_argument("--no-pmt-optical-model", dest="pmt_optical_model", action="store_false", 
+                                      help=mh("Disable New PMT optical model"))
+     477         grp_pmt_op.set_defaults(pmt_optical_model=True)
+
+
+    1681         if args.pmt_optical_model:
+    1682             detsimfactory.property("UsePMTOpticalModel").set("new")
+    1683         else:
+    1684             detsimfactory.property("UsePMTOpticalModel").set("old")
+
+HUH: sometimes a string sometimes boolean::
+
+    epsilon:junosw blyth$ grep UsePMTOpticalModel Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+                detsimfactory.property("UsePMTOpticalModel").set("new")
+                detsimfactory.property("UsePMTOpticalModel").set("old")
+                nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+                hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+                nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+                hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+                pmtsdmgr.property("UsePMTOpticalModel").set(args.pmt_optical_model)
+                op_process.property("UsePMTOpticalModel").set(True)
+
+jcv DsPhysConsOptical::
+
+    0066     declProp("UsePMTOpticalModel", m_doFastSim=false); // just the fast simulation
+    0067     // conflating PMTOpticalModel with m_doFastSim 
+     
+
+
+    268     if(m_doFastSim)  // using m_doFastSim to configure use of the old impl 
+    269     {
+    270         G4OpBoundaryProcess* boundproc = new G4OpBoundaryProcess();
+    271         boundproc->SetInvokeSD(false);
+    272         boundproc_ = boundproc ;  
+    273     
+    274         fast_sim_man = new G4FastSimulationManagerProcess("fast_sim_man");
+    275     }
+    276     else 
+    277     {
+    278 #ifdef WITH_CUSTOM4
+    279         C4OpBoundaryProcess* boundproc = CreateCustomG4OpBoundaryProcess();
+    280 #else
+    281         CustomG4OpBoundaryProcess* boundproc = CreateCustomG4OpBoundaryProcess();
+    282 #endif
+    283         boundproc->SetInvokeSD(false);
+    284         boundproc_ = boundproc ;
+    285     }
+    286     
+
+
+u4/tests/FewPMT.sh::
+
+     73 export hama_FastCoverMaterial=$fastcover
+     74 export hama_UsePMTOpticalModel=$pom     
+     75 export hama_UseNaturalGeometry=$version 
+     76 
+     77 export nnvt_FastCoverMaterial=$fastcover
+     78 export nnvt_UsePMTOpticalModel=$pom   
+     79 export nnvt_UseNaturalGeometry=$version 
+        
+
+standalone test directly declprops : need to do equivalent in monolith
 
 
 

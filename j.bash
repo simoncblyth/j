@@ -22,6 +22,32 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+
+Gallery
+--------
+
+Dear colleagues,
+
+The new location of the Official Materials is [1]. These are the officially
+approved plots to be used for the talks and papers. The migration process from
+the JUNO wiki to the docs.ihep.ac.cn is still in progress.
+
+In order to keep the Official Materials up to date I have a few requests to: -
+PWG conveners. Please, make sure that the up to date plots are available.  -
+Everyone: if you happen to request any plots from any collaborator directly or
+find that something is missing, please, CC the request to the SC so we could
+make sure that the figures are available in the gallery.
+
+
+[1] https://docs.ihep.ac.cn/link/ARA5C9602269214BDEB598D62B8973D687
+
+With kind regards,
+Maxim
+on behalf of the Speaker's committee
+-- 
+
+
+
 DocDB
 -------
 
