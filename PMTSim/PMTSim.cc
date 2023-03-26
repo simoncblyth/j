@@ -62,6 +62,11 @@ NP* PMTSim::ModelTrigger_Debug_Array()   // static
 
 void PMTSim::ModelTrigger_Debug_Save(const char* savedir)
 {
+    if(savedir == nullptr) 
+    {
+        std::cerr << "PMTSim::ModelTrigger_Debug_Save savedir null" << std::endl ; 
+        return ; 
+    } 
     NP* mtda = ModelTrigger_Debug_Array(); 
     mtda->save(savedir, ModelTrigger_Debug::NAME) ; 
 }

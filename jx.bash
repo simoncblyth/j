@@ -492,7 +492,7 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    export U4Debug_SaveDir=$tmpdir
    echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT U4Debug_SaveDir ${U4Debug_SaveDir}
 
-   DEBUG=1 
+   #DEBUG=1 
    if [ -n "$DEBUG" ]; then 
        export U4Scintillation_Debug=INFO
        export U4Cerenkov_Debug=INFO
@@ -564,6 +564,10 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    fi 
 
 
+   export OPTICKS_EVENT_MODE=StandardFullDebug
+   export OPTICKS_MAX_BOUNCE=31
+
+
    local opts="" 
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
@@ -595,7 +599,8 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
 
    #BASE=/tmp/$USER/opticks/$SCRIPT   
    #BASE=.opticks/$SCRIPT   
-   BASE=$base
+   #BASE=$base
+   BASE=/tmp/$USER/opticks/GEOM/$SCRIPT/ALL
 
    case $(uname) in 
       Linux) tds- $opts $trgs $args  ;;
