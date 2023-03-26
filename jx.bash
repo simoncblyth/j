@@ -123,6 +123,7 @@ jx-sub()
 {
    local msg="=== $BASH_SOURCE $FUNCNAME :"
    local rel=${1:-Simulation/DetSimV2/PhysiSim} 
+
    [ -z "$JX_RUNTIME_ENV" ] && echo $msg MUST RUN jre BEFORE jx-sub $rel && return 1 
 
    local sdir=$JUNOTOP/junosw/$rel
@@ -412,6 +413,7 @@ tds-(){
    type $FUNCNAME
    local msg="=== $FUNCNAME :"
 
+   [ -n "$DRY" ] && echo $msg DRY $DRY && return 0
    [ -z "$JX_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
  
    local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
@@ -563,25 +565,32 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
-
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
 
+   export POM=${POM:-1}
+   export VERSION=${N:-1}
+   export LAYOUT="POM $POM VERSION $VERSION"
 
    local opts="" 
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
 
-   # --old-optical-model/--new-optical-model sets UseLSOpticalModel
-   # opts="$opts --old-optical-model"
-   # opts="$opts --new-optical-model"
+   #case $LSM in   ## pass into UseLSOpticalModel : NOT YET EXPLORED
+   #   0) opts="$opts --old-optical-model"  ;;
+   #   1) opts="$opts --new-optical-model"  ;;
+   #esac 
 
-   #opts="$opts --no-pmt-optical-model"     # sets UsePMTOpticalModel
-   opts="$opts --pmt-optical-model"
+   case $POM in     ## pass into UsePMTOpticalModel
+      0) opts="$opts --no-pmt-optical-model"  ;;
+      1) opts="$opts --pmt-optical-model"     ;;
+   esac 
 
-   #opts="$opts --pmt-unnatural-geometry"   # sets UsePMTNaturalGeometry
-   opts="$opts --pmt-natural-geometry"
+   case $VERSION in  ## pass into UsePMTNaturalGeometry
+      0) opts="$opts --pmt-unnatural-geometry" ;; 
+      1) opts="$opts --pmt-natural-geometry"   ;;
+   esac
 
    opts="$opts --evtmax $evtmax"
    opts="$opts $(anamgr) "

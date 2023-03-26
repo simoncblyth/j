@@ -3,6 +3,10 @@ blyth-88-Custom4-shakedown
 
 * prior :doc:`blyth-88-setup-customgeant4-mini-external-package-to-avoid-circular-dependency-issue`
 
+* aside :doc:`blyth-88-cleanup-error`
+
+* next :doc:`blyth-88-insitu-ana`
+
 
 DONE : getting C4 to work with j/PMTSim and  U4SimulateTest
 ---------------------------------------------------------------
@@ -1128,127 +1132,28 @@ Seems to work::
     SEvt::clear_@669: 
 
 
-But now have cleanup error
------------------------------
-
 ::
 
-    #############################################################################
-    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
-    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::finalizeOpticks m_opticksMode 2 WITH_G4CXOPTICKS 
-    junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
-    junotoptask.finalize            INFO: events processed 1
-    *** Error in `/data/blyth/junotop/ExternalLibs/Python/3.8.12/bin/python': free(): invalid next size (normal): 0x0000000000b280f0 ***
-    ======= Backtrace: =========
-    /lib64/libc.so.6(+0x81299)[0x7ffff69b9299]
-    /data/blyth/junotop/junosw/InstallArea/lib64/libMCParamsSvc.so(_ZN14SniperPropertyIbED0Ev+0x29)[0x7fffe3c8e3cf]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN11PropertyMgrD1Ev+0x2e)[0x7fffed6bb2fe]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN9DLElementD1Ev+0x22)[0x7fffed6ab3c2]
-    /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimOptions.so(_ZN21WaterPoolConstructionD2Ev+0x41)[0x7fffcee8abeb]
-    /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimOptions.so(_ZN21WaterPoolConstructionD0Ev+0x18)[0x7fffcee8ac18]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN7AlgBaseD1Ev+0xf5)[0x7fffed6a8b85]
-    /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimAlg.so(_ZN9DetSimAlgD1Ev+0x84)[0x7fffccee2816]
-    /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimAlg.so(_ZN9DetSimAlgD0Ev+0x18)[0x7fffccee2832]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN13DleSupervisor5clearEv+0x192)[0x7fffed6b3d02]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN8ExecUnit5resetEv+0x2d)[0x7fffed6b46cd]
-    /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so(_ZN12TaskWatchDog9terminateEv+0x9a)[0x7fffed6
-
-
-    (gdb) bt
-    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
-    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
-    #2  0x00007ffff69b0ed7 in __libc_message () from /lib64/libc.so.6
-    #3  0x00007ffff69b9299 in _int_free () from /lib64/libc.so.6
-    #4  0x00007fffe3c8e3cf in SniperProperty<bool>::~SniperProperty (this=0xb280f0, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/sniper/InstallArea/include/SniperKernel/Property.h:51
-    #5  0x00007fffed6bb2fe in PropertyMgr::~PropertyMgr() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #6  0x00007fffed6ab3c2 in DLElement::~DLElement() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #7  0x00007fffcee8abeb in WaterPoolConstruction::~WaterPoolConstruction (this=0xb27ed0, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc:36
-    #8  0x00007fffcee8ac18 in WaterPoolConstruction::~WaterPoolConstruction (this=0xb27ed0, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc:38
-    #9  0x00007fffed6a8b85 in AlgBase::~AlgBase() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #10 0x00007fffccee2816 in DetSimAlg::~DetSimAlg (this=0xb26f30, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:28
-    #11 0x00007fffccee2832 in DetSimAlg::~DetSimAlg (this=0xb26f30, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:30
-    #12 0x00007fffed6b3d02 in DleSupervisor::clear() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #13 0x00007fffed6b46cd in ExecUnit::reset() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #14 0x00007fffed6ce0da in TaskWatchDog::terminate() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    #15 0x00007fffed6ca0a4 in Task::~Task() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-
-
-     28 DetSimAlg::~DetSimAlg()
-     29 {       
-     30 }       
-
-    (gdb) f 9
-    #9  0x00007fffed6a8b85 in AlgBase::~AlgBase() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    (gdb) f 8
-    #8  0x00007fffcee8ac18 in WaterPoolConstruction::~WaterPoolConstruction (this=0xb27ed0, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc:38
-    38	}
-    (gdb) 
-
-     36 WaterPoolConstruction::~WaterPoolConstruction() {
-     37     
-     38 }   
-
-    (gdb) f 6
-    #6  0x00007fffed6ab3c2 in DLElement::~DLElement() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    (gdb) 
-
-    (gdb) f 5
-    #5  0x00007fffed6bb2fe in PropertyMgr::~PropertyMgr() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
-    (gdb) 
-
-    (gdb) f 4
-    #4  0x00007fffe3c8e3cf in SniperProperty<bool>::~SniperProperty (this=0xb280f0, __in_chrg=<optimized out>)
-        at /data/blyth/junotop/sniper/InstallArea/include/SniperKernel/Property.h:51
-    51	class SniperProperty : public Property
-    (gdb) 
-
-
-HUH all the dtor seem empty
-
-/data/blyth/junotop/sniper/SniperKernel/src/Property.cc
-/data/blyth/junotop/sniper/InstallArea/include/SniperKernel/Property.h
-
-::
-
-     26 Property::~Property()
-     27 {
-     28 }
+    N[blyth@localhost opticks]$ l /tmp/blyth/opticks/GEOM/ntds2/ALL/000/
+    total 964
+      0 drwxr-xr-x. 2 blyth blyth    176 Mar 26 19:36 .
+      4 -rw-rw-r--. 1 blyth blyth   2704 Mar 26 19:36 gs.npy
+      4 -rw-rw-r--. 1 blyth blyth     21 Mar 26 19:36 sframe_meta.txt
+      4 -rw-rw-r--. 1 blyth blyth    384 Mar 26 19:36 sframe.npy
+    156 -rw-rw-r--. 1 blyth blyth 158944 Mar 26 19:36 pho0.npy
+    156 -rw-rw-r--. 1 blyth blyth 157088 Mar 26 19:36 pho.npy
+     16 -rw-rw-r--. 1 blyth blyth  15584 Mar 26 19:36 genstep.npy
+      4 -rw-rw-r--. 1 blyth blyth     44 Mar 26 19:36 photon_meta.txt
+    616 -rw-rw-r--. 1 blyth blyth 627968 Mar 26 19:36 photon.npy
+      4 -rw-rw-r--. 1 blyth blyth     23 Mar 26 19:36 NPFold_index.txt
+      0 drwxr-xr-x. 3 blyth blyth     17 Mar 26 19:36 ..
+    N[blyth@localhost opticks]$ 
 
 
 
-::
+But now have cleanup error : FIXED BY CLEAN BUILD
+----------------------------------------------------
 
-     24 class Property
-     25 {
-     26 public:
-     27     Property(const std::string &key);
-     28 
-     29     virtual ~Property();
-     30 
-     31     //return the property key name
-     32     const std::string &key() { return m_key; }
-     33 
-     34     //set property value as var
-     35     virtual bool set(const std::string &var) = 0;
-     36 
-     37     //append var to vector/map property
-     38     virtual bool append(const std::string &var);
-     39 
-     40     //the json value of the associated variable
-     41     virtual SniperJSON json() = 0;
-     42 
-     43     //show the value of the property
-     44     virtual void show();
-     45 
-     46 protected:
-     47     const std::string m_key;
-     48 };
-
+* see aside :doc:`blyth-88-cleanup-error`
 
 
