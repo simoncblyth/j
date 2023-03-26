@@ -47,9 +47,12 @@ EOU
 jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
 jx-vi(){ vi $BASH_SOURCE ; }
 jxf(){ source $BASH_SOURCE ; }
+jxn(){ cd ~/j/ntds ; }
 jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
 
 jxp(){  cd ~/j/PMTSimParamSvcTest ; pwd ; }
+
+jxscp(){ scp ~/j/jx.bash P:j/jx.bash ; }  ## as git ssh is often blocked 
 
 jxcustom(){
 
@@ -433,6 +436,8 @@ tds-(){
    mkdir -p $dir
    cd $dir
 
+
+
    local runline
    if [ -n "$PDB" ]; then 
        runline="ipython --pdb $script $*"
@@ -440,9 +445,15 @@ tds-(){
        runline="gdb $H $B $T --args python $script $*"
    fi 
 
-   echo $runline
+   export DIRECTORY="$PWD"
+   export COMMANDLINE="$runline"
+
+   vars="iwd dir DIRECTORY COMMANDLINE"
+   for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
+
+   echo $COMMANDLINE
    date
-   eval $runline 
+   eval $COMMANDLINE
    date
    cd $iwd
 
@@ -474,11 +485,12 @@ EOU
 
 
 
-ntds0(){ OPTICKS_MODE=0 ntds3 ; }  #0b00   Ordinary running without Opticks involved at all  
-ntds1(){ OPTICKS_MODE=1 ntds3 ; }  #0b01   Running with only Opticks doing the optical propagation 
-ntds2(){ OPTICKS_MODE=2 ntds3 ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
+ntds0(){ OPTICKS_MODE=0 ntds ; }  #0b00   Ordinary running without Opticks involved at all  
+ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01   Running with only Opticks doing the optical propagation 
+ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
+ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11   Both Geant4 and Opticks 
 
-ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
+ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 
@@ -582,12 +594,12 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    #   1) opts="$opts --new-optical-model"  ;;
    #esac 
 
-   case $POM in     ## pass into UsePMTOpticalModel
+   case $POM in     ## passed into UsePMTOpticalModel
       0) opts="$opts --no-pmt-optical-model"  ;;
       1) opts="$opts --pmt-optical-model"     ;;
    esac 
 
-   case $VERSION in  ## pass into UsePMTNaturalGeometry
+   case $VERSION in  ## passed into UsePMTNaturalGeometry
       0) opts="$opts --pmt-unnatural-geometry" ;; 
       1) opts="$opts --pmt-natural-geometry"   ;;
    esac
@@ -609,7 +621,7 @@ ntds3()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Optick
    #BASE=/tmp/$USER/opticks/$SCRIPT   
    #BASE=.opticks/$SCRIPT   
    #BASE=$base
-   BASE=/tmp/$USER/opticks/GEOM/$SCRIPT/ALL
+   BASE=/tmp/$USER/opticks/GEOM/$SCRIPT
 
    case $(uname) in 
       Linux) tds- $opts $trgs $args  ;;
