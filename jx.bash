@@ -412,6 +412,15 @@ jx-opticks()
 tds-dir(){ echo ${TDS_DIR:-/tmp/$USER/opticks/tds} ; }
 tds-cd(){  cd $(tds-dir) ; }
 
+tds-notes(){ cat << EON
+
+N[blyth@localhost ntds2]$ pwd
+/tmp/u4debug/ntds2
+
+EON
+}
+
+
 tds-(){ 
    type $FUNCNAME
    local msg="=== $FUNCNAME :"
@@ -501,10 +510,14 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    local script=ntds$mode
    local base=/tmp/u4debug
    local tmpdir=$base/$script
+
    export SCRIPT=$script       ## SCRIPT controls name of logfile 
-   export TDS_DIR=$tmpdir
+   export TDS_DIR=$tmpdir      ## controls running directory where logfile and outputs are written
+   export TDS_LOG=$TDS_DIR/$SCRIPT.log 
    export U4Debug_SaveDir=$tmpdir
-   echo $msg TDS_DIR $TDS_DIR SCRIPT $SCRIPT U4Debug_SaveDir ${U4Debug_SaveDir}
+
+   vars="FUNCNAME SCRIPT TDS_DIR TDS_LOG SCRIPT U4Debug_SaveDir" 
+   for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 
    #DEBUG=1 
    if [ -n "$DEBUG" ]; then 

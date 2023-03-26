@@ -1157,3 +1157,77 @@ But now have cleanup error : FIXED BY CLEAN BUILD
 * see aside :doc:`blyth-88-cleanup-error`
 
 
+
+Some SEvt SLOG logging does not appear because logging not yet setup
+-----------------------------------------------------------------------
+
+* Currently logging setup is tacked onto DetSim0Svc initialize/finalize.  
+* Can SLOG logging setup be moved earlier somehow ? 
+
+::
+
+    epsilon:tests blyth$ jgr OPTICKS_LOG 
+    ./Simulation/DetSimV2/DetSimMTUtil/src/DetFactorySvc.cc:#include "OPTICKS_LOG.hh"
+    ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:#include "OPTICKS_LOG.hh"
+    ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:#include "OPTICKS_LOG.hh"
+    epsilon:junosw blyth$ 
+
+
+::
+
+    102 bool
+    103 DetSim0Svc::initialize()
+    104 {
+    105     if(m_opticksMode > 0)
+    106     {
+    107         initializeOpticks();
+    108     }
+    ...
+
+    307 bool DetSim0Svc::initializeOpticks()
+    308 {
+    309     dumpOpticks("DetSim0Svc::initializeOpticks");
+    310     assert( m_opticksMode > 0);
+    311 
+    312 #ifdef WITH_G4CXOPTICKS
+    313     OPTICKS_ELOG("DetSim0Svc_CXOK");
+    314     OK_PMTSIM_LOG_(0) ;
+    315     OK_PHYSISIM_LOG_(0) ;
+    316 #elif WITH_G4OPTICKS
+    317     OPTICKS_ELOG("DetSim0Svc_OK");
+    318 #else
+    319     LogError << " FATAL : non-zero opticksMode **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS  " << std::endl ;
+    320     assert(0);
+    321 #endif
+    322     return true ;
+    323 }
+    324 
+
+    164 bool
+    165 DetSim0Svc::finalize()
+    166 {
+    167     if(m_opticksMode > 0 )
+    168     {
+    169         finalizeOpticks();
+    170     }
+    171 
+    172     return true;
+    173 }
+    ...
+    325 bool DetSim0Svc::finalizeOpticks()
+    326 {
+    327     dumpOpticks("DetSim0Svc::finalizeOpticks");
+    328     assert( m_opticksMode > 0);
+    329 
+    330 #ifdef WITH_G4CXOPTICKS
+    331     G4CXOpticks::Finalize();
+    332 #elif WITH_G4OPTICKS
+    333     G4Opticks::Finalize();
+    334 #else
+    335     LogError << " FATAL : non-zero opticksMode **NOT** WITH_G4CXOPTICKS or WITH_G4OPTICKS " << std::endl ;
+    336     assert(0);
+    337 #endif
+    338     return true;
+    339 }
+
+
