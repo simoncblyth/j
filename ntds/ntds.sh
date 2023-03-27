@@ -1,10 +1,10 @@
 #!/bin/bash -l 
 
-defarg="ana"
+#defarg="ana"
+defarg="cf"
 arg=${1:-$defarg}
 
 DIR=$(dirname $BASH_SOURCE)
-anascript=$DIR/ntds.py 
 
 export OPTICKS_MODE=${OPTICKS_MODE:-2}
 export SCRIPT=ntds$OPTICKS_MODE
@@ -20,7 +20,7 @@ export EVT=${EVT:-$evt}
 export AFOLD=$BASE/ALL0/$EVT
 export BFOLD=$BASE/ALL1/$EVT
 
-vars="BASH_SOURCE arg defarg DIR anascript OPTICKS_MODE SCRIPT BASE EVT AFOLD BFOLD N VERSION"
+vars="BASH_SOURCE arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AFOLD BFOLD N VERSION"
 for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done  
 
 case $VERSION in 
@@ -35,11 +35,21 @@ if [ "${arg/grab}" != "$arg" ]; then
    [ $? -ne 0 ] && echo $BASH_SOURCE grab error && exit 1 
 fi 
 
-export QLIM=0:20
+
 
 if [ "${arg/ana}" != "$arg" ]; then 
+    anascript=$DIR/ntds.py 
+elif [ "${arg/cf}" != "$arg" ]; then
+    anascript=$DIR/ntds_cf.py 
+fi
+
+export QLIM=0:10
+   
+if [ -f "$anascript" ]; then 
     ${IPYTHON:-ipython} --pdb -i $anascript
     [ $? -ne 0 ] && echo $BASH_SOURCE anascript $anascript error && exit 1
+else
+    echo $BASH_SOURCE no anascript for arg $arg 
 fi
 
 exit 0 
