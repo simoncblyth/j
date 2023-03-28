@@ -427,8 +427,135 @@ Factored off G4CXOpticks::setupFrame and now invoke from G4CXOpticks::setGeometr
 try to use the SEvt::GetInputPhoton with GtOpticksTool
 ----------------------------------------------------------
 
+::
+
+    N=0 GEOM=V0J008 ntds2
+    N=1 GEOM=V1J008 ntds2
 
 
 
+::
+
+    G4CXOpticks::setGeometry@249: 
+    G4CXOpticks::setGeometry_@289: [ fd 0x18afaff60
+    G4CXOpticks::setGeometry_@299:  Using pre-existing SEvt (happens when U4Recorder instanciated it first) 
+    G4CXOpticks::setGeometry_@311:  skip CSGOptiX::Create as NoGPU has been set 
+    G4CXOpticks::setGeometry_@318:  cx N qs N QSim::Get N
+    G4CXOpticks::setGeometry_@324: ] fd 0x18afaff60
+    G4CXOpticks::setupFrame@358: sframe::desc inst 0 frs Hama:0:1000
+     ekvid sframe_MOI_Hama_0_1000 ek MOI ev Hama:0:1000
+     ce  (-12026.132,9489.441,11827.850,366.053)  is_zero 0
+     m2w ( 0.480,-0.379, 0.792, 0.000) (-0.619,-0.785, 0.000, 0.000) ( 0.621,-0.490,-0.611, 0.000) (-12075.873,9528.691,11876.771, 1.000) 
+     w2m ( 0.480,-0.619, 0.621, 0.000) (-0.379,-0.785,-0.490, 0.000) ( 0.792, 0.000,-0.611, 0.000) (-0.006,-0.009,19434.000, 1.000) 
+     midx  104 mord    0 iidx 1000
+     inst    0
+     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
+     ins     0 gas     0 sensor_identifier        0 sensor_index      0
+     propagate_epsilon    0.05000 is_hostside_simtrace NO
+
+    G4CXOpticks::SaveGeometry@593:  save to dir /home/blyth/.opticks/GEOM/V0J008 configured via envvar G4CXOpticks__SaveGeometry_DIR
+    G4CXOpticks::saveGeometry@538: [ /home/blyth/.opticks/GEOM/V0J008
+
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    sphoton::Get not expected error  a Y a.shape (1000, 4, 4, ) a.ebyte 8 a.shape[0] 1000 idx 0
+    python: /data/blyth/junotop/ExternalLibs/opticks/head/include/SysRap/sphoton.h:422: static void sphoton::Get(sphoton&, const NP*, unsigned int): Assertion `expected' failed.
+
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd382a0cf in sphoton::Get (p=..., a=0xb50d90, idx=0) at /data/blyth/junotop/ExternalLibs/opticks/head/include/SysRap/sphoton.h:422
+    #5  0x00007fffd381c0ab in GtOpticksTool::add_optical_photon (this=0x943360, event=..., idx=0, override_wavelength_nm=0, dump=true)
+        at /data/blyth/junotop/junosw/Simulation/GenTools/src/GtOpticksTool.cc:131
+    #6  0x00007fffd381cb46 in GtOpticksTool::mutate (this=0x943360, event=...) at /data/blyth/junotop/junosw/Simulation/GenTools/src/GtOpticksTool.cc:221
+    #7  0x00007fffd37f7a95 in GenTools::execute (this=0x942ed0) at /data/blyth/junotop/junosw/Simulation/GenTools/src/GenTools.cc:120
+    #8  0x00007fffed5c984a in Task::execute() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+    (gdb) f 6
+    #6  0x00007fffd381cb46 in GtOpticksTool::mutate (this=0x943360, event=...) at /data/blyth/junotop/junosw/Simulation/GenTools/src/GtOpticksTool.cc:221
+    221	                add_optical_photon(event, idx, override_wavelength_nm, dump);
+    (gdb) f 5
+    #5  0x00007fffd381c0ab in GtOpticksTool::add_optical_photon (this=0x943360, event=..., idx=0, override_wavelength_nm=0, dump=true)
+        at /data/blyth/junotop/junosw/Simulation/GenTools/src/GtOpticksTool.cc:131
+    131	    sphoton::Get(p, m_input_photons, idx );  // hmm float precision, perhaps use sphotond for double 
+    (gdb) f 4
+    #4  0x00007fffd382a0cf in sphoton::Get (p=..., a=0xb50d90, idx=0) at /data/blyth/junotop/ExternalLibs/opticks/head/include/SysRap/sphoton.h:422
+    422	    assert( expected  ); 
+    (gdb) 
+
+
+
+Reworked GtOpticksTool to work with float or double photon arrays
+----------------------------------------------------------------------
+
+
+
+
+::
+
+
+    N=0 GEOM=V0J008 ntds2
+
+
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     9 seq TO BT BT DR BT BT SC BT BT AB
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     8 seq TO BT BT DR BT BT BT BT BT BT BT BT BT SD
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     7 seq TO BT BT DR BT BT BT BT BT SD
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     6 seq TO BT BT AB
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     5 seq TO SC BT BR BT BT BR BT BT BR BT SC BT BT BT BT BT BT BT BT SD
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     4 seq TO BT BT SA
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     3 seq TO SC BT BT BT BT BT BT BT SD
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     2 seq TO BT BT DR AB
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     1 seq TO AB
+    U4Recorder::PreUserTrackingAction_Optical@293:  modulo : label->id 0
+    U4Recorder::PostUserTrackingAction_Optical@466:  l.id     0 seq TO BT BT SA
+    U4Debug::Save eventID 0 dir /tmp/u4debug/ntds2/000 EKEY U4Debug_SaveDir
+    U4Cerenkov_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 0
+    U4Scintillation_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 0
+    U4Hit_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 341
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 341 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4Recorder::EndOfEventAction@162:  eventID 0 eventID_ 0 eidx 0 consistent_eventID  YES
+    SEvt::save@2100: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2190:  dir /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    SEvt::save@2191: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 reldir ALL0 with_index Y index 0 this 0xb500c0
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 0
+                 VERSION :                                                                                                    0
+                    GEOM :                                                                                               V0J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-unnatural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V0J008_GEOMList
+    SEvt::gatherHit@1890:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@749: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    U4Recorder::EndOfRunAction@147: 
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           7.02600        7.02600      0.00105      
+    DetSimAlg                1           30465.80273    30465.80273  0.00000      
+    Sum of junotoptask       1           30472.97461    30472.97461  0.00000      
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::finalizeOpticks m_opticksMode 2 WITH_G4CXOPTICKS 
+    G4CXOpticks::Finalize@72: placeholder mimic G4Opticks 
+    junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+    junotoptask.finalize            INFO: events processed 1
+    Delete G4SvcRunManager
+
+    **************************************************
+    Terminating @ localhost.localdomain on Tue Mar 28 23:02:34 2023
+    SNiPER::Context Running Mode = { BASIC }
+    SNiPER::Context Terminated Successfully
+
+
+
+::
+
+    N=1 GEOM=V1J008 ntds2
 
 

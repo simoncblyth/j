@@ -6,21 +6,22 @@ arg=${1:-$defarg}
 
 DIR=$(dirname $BASH_SOURCE)
 
+evt=000
+export EVT=${EVT:-$evt}
+n=-1  # 0,1,-1
+export VERSION="${N:-$n}"
 export OPTICKS_MODE=${OPTICKS_MODE:-2}
 export SCRIPT=ntds$OPTICKS_MODE
-export BASE=/tmp/$USER/opticks/GEOM/$SCRIPT
+export GEOMDIR=/tmp/$USER/opticks/GEOM
 
-evt=000
-#n=0  
-#n=1 
-n=-1
+export AGEOM=V0J008
+export BGEOM=V1J008
+export ABASE=$GEOMDIR/$AGEOM/$SCRIPT
+export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
+export AFOLD=$ABASE/ALL0/$EVT
+export BFOLD=$BBASE/ALL1/$EVT
 
-export VERSION="${N:-$n}"
-export EVT=${EVT:-$evt}
-export AFOLD=$BASE/ALL0/$EVT
-export BFOLD=$BASE/ALL1/$EVT
-
-vars="BASH_SOURCE arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AFOLD BFOLD N VERSION"
+vars="BASH_SOURCE arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AGEOM ABASE AFOLD BGEOM BBASE BFOLD N VERSION"
 for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done  
 
 case $VERSION in 
@@ -30,24 +31,24 @@ case $VERSION in
 esac
 
 
-if [ "$arg" == "grab" ]; then 
-   source $OPTICKS_HOME/bin/rsync.sh $BASE 
-   [ $? -ne 0 ] && echo $BASH_SOURCE grab error && exit 1 
-fi 
 
-if [ "$arg" == "grab2" ]; then 
+geoms="$AGEOM $BGEOM"
 
-   geoms="V0J008 V1J008"
+if [ "$arg" == "grab_evt" ]; then 
    for geom in $geoms ; do 
        base=/tmp/$USER/opticks/GEOM/$geom
        echo rsync geom $geom base $base
        source $OPTICKS_HOME/bin/rsync.sh $base
-       [ $? -ne 0 ] && echo $BASH_SOURCE grab2 error grabbing base $base && exit 2 
-   
+       [ $? -ne 0 ] && echo $BASH_SOURCE grab_evt error grabbing base $base && exit 2 
+   done
+fi
+
+if [ "$arg" == "grab_geom" ]; then 
+   for geom in $geoms ; do 
        base=.opticks/GEOM/$geom
        echo rsync geom $geom base $base
        source $OPTICKS_HOME/bin/rsync.sh $base
-       [ $? -ne 0 ] && echo $BASH_SOURCE grab2 error grabbing base $base && exit 2 
+       [ $? -ne 0 ] && echo $BASH_SOURCE grab_geom error grabbing base $base && exit 2 
    done  
 fi
 
