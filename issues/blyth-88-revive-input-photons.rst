@@ -559,3 +559,52 @@ Reworked GtOpticksTool to work with float or double photon arrays
     N=1 GEOM=V1J008 ntds2
 
 
+
+
+HMM GtOpticksTool::configure happens before sframe set into SEvt
+--------------------------------------------------------------------
+
+This explains why the input photons are not transformed into target frame. 
+
+::
+
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::initializeOpticks m_opticksMode 2 WITH_G4CXOPTICKS 
+    junotoptask:DetSim0Svc.initialize  INFO: Register AnaMgr U4RecorderAnaMgr
+    junotoptask:SniperProfiling.initialize  INFO: 
+    GtOpticksTool::configure WITH_G4CXOPTICKS path - SEvt::Brief  SEvt::Exists Y INSTANCE SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed N
+     m_input_photons (1000, 4, 4, )
+    GtOpticksTool::configure SEvt::Brief SEvt::Brief  SEvt::Exists Y INSTANCE SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed N
+
+    GtOpticksTool::configure ret 1
+    GtOpticksTool::configure ret 1
+
+
+Try deferring SEvt::GetInputPhoton until the mutate
+
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+    jxf ; N=1 GEOM=V1J008 ntds2
+
+
+plotting the U4Recorder points with frame targetted input photons : clear POM quadrant control issue
+-------------------------------------------------------------------------------------------------------
+
+::
+
+    jxn    # cd ~/j/ntds
+    ./ntds.sh grab_evt
+
+    MODE=2 ./ntds.sh ana
+    MODE=3 ./ntds.sh ana
+
+Its immediately apparent that the N=0 photons are ending at photocathode
+and not entering the PMT wheras the N=1 photons do often enter the PMT.
+
+They should both be entering PMT. Suggests POM quadrant control issue. 
+
+
+
+
+
