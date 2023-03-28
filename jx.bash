@@ -499,6 +499,15 @@ ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01   Running with only Opticks doing the op
 ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
 ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11   Both Geant4 and Opticks 
 
+ntds_examples(){ cat << EON
+Examples::
+
+   N=0 GEOM=V0J008 ntds2    ## save old 4-volume PMT geometry 
+   N=1 GEOM=V1J008 ntds2    ## save new 2-volume PMT geometry 
+
+EON
+}
+
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
@@ -590,6 +599,23 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
+
+   local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
+   IPHO=DownXZ1000_f8.npy
+   if [ -n "$IPHO" ]; then 
+       export OPTICKS_INPUT_PHOTON=$IPHO
+       export MOI=Hama:0:1000
+       echo $msg IPHO defined : configuring input photons 
+       trgs="$trgs opticks"
+   else
+       echo $msg IPHO not defined : not configuring input photons 
+       trgs="$trgs gun"
+   fi 
+
+   vars="OPTICKS_INPUT_PHOTON MOI trgs"
+   for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
+
+
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
 
@@ -624,8 +650,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        opts="$opts --debug-disable-sticks"
    fi 
 
-   local trgs=""
-   trgs="$trgs gun"
+
 
    echo $msg opts : $opts 
    echo $msg trgs : $trgs 

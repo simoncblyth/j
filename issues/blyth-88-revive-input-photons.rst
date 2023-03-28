@@ -232,6 +232,203 @@ Higher level approach is to use sframe.h
 
 
 
+    epsilon:CSG blyth$ grep sframe.h *.*
+    CSGFoundry.cc:#include "sframe.h"
+    CSGSimtrace.hh:#include "sframe.h"
+    CSGTarget.cc:#include "sframe.h"
+    epsilon:CSG blyth$ 
+
+
+jcv LSExpDetectorConstruction_Opticks::
+
+     25     LOG(info) << "[ WITH_G4CXOPTICKS opticksMode " << opticksMode << " sd " << sd  ;
+     26     if( opticksMode == 0 )
+     27     {
+     28         LOG(info) << " opticksMode 0 : no setup needed " ;
+     29     } 
+     30     else if( opticksMode == 1 || opticksMode == 3 || opticksMode == 2 )
+     31     {
+     32         if(opticksMode == 2) G4CXOpticks::SetNoGPU() ; 
+     33         G4CXOpticks::SetGeometry(world) ; 
+     34 
+     35         _PMTParamData    _ppd(*ppd) ; 
+     36         _PMTSimParamData _psd(*psd) ; 
+     37 
+     38         NPFold* j = new NPFold ; 
+     39         j->add_subfold( "PMTParamData",    _ppd.serialize() );
+     40         j->add_subfold( "PMTSimParamData", _psd.serialize() );
+     41         if(pmtscan) j->add_subfold( "PMTScan",  pmtscan );
+     42 
+     43         SSim::AddSubfold("juno", j );
+     44 
+     45         G4CXOpticks::SaveGeometry(); 
+     46     } 
+     47     else
+     48     {
+     49         LOG(fatal) << " unexpected opticksMode " << opticksMode ; 
+     50         assert(0);
+     51     }
+
+
+HMM: need the translated geometry with no GPU involvement for opticksMode:2 
+
+DONE : Changed opticksMode:2 to do G4CXOpticks::SetGeometry also but with a NoGPU switch to skip CSGOptiX.
+
+
+
+
+Save two GEOM and grab to laptop
+-----------------------------------
+
+workstation::
+
+    N=0 GEOM=V0J008 ntds2  ## save old 4-volume PMT geometry 
+    N=1 GEOM=V1J008 ntds2  ## save new 2-volume PMT geometry 
+
+laptop::
+
+    jxn
+    ./ntds.sh grab2
+    ./ntds.sh geom2
+
+
+N=0 GEOM=V0J008 ntds2::
+
+    ...
+    GInstancer::dumpRepeatCandidates@464:  num_repcan 9 dmax 20
+     pdig b3fc1b34f6c638171dcf673e68721077 ndig  25600 nprog      4 placements  25600 n PMT_3inch_log_phys
+     pdig c548c90809b63b1bb5d73822a56eb94f ndig  12615 nprog     10 placements  12615 n pLPMT_NNVT_MCPPMT
+     pdig 7372f25e8407ff948e91b2cd3bf3d4ad ndig   4997 nprog     13 placements   4997 n pLPMT_Hamamatsu_R12860
+     pdig 903a1448ff2cf7df67b245af126db74f ndig   2400 nprog      5 placements   2400 n mask_PMT_20inch_vetolMaskVirtual_phys
+     pdig ed3d2c21991e3bef5e069713af9fa6ca ndig    590 nprog      0 placements    590 n lSteel_phys
+     pdig ac627ab1ccbdb62ec96e702f07f6425b ndig    590 nprog      0 placements    590 n lFasteners_phys
+     pdig f899139df5e1059396431415e770c6dd ndig    590 nprog      0 placements    590 n lUpper_phys
+     pdig 38b3eff8baf56627478ec76a704e9b52 ndig    590 nprog      0 placements    590 n lAddition_phys
+     pdig 4c29bcd2a52a397de5036b415af92efe ndig    504 nprog    129 placements    504 n pPanel_0_f_
+    G4CXOpticks::setGeometry@250: 
+    G4CXOpticks::setGeometry@286: [ fd 0x18af90a10
+    G4CXOpticks::setGeometry@296:  Using pre-existing SEvt (happens when U4Recorder instanciated it first) 
+    G4CXOpticks::setGeometry@314:  skip CSGOptiX::Create as NoGPU has been set 
+    G4CXOpticks::setGeometry@321:  cx N qs N QSim::Get N
+    G4CXOpticks::setGeometry@327: ] fd 0x18af90a10
+    G4CXOpticks::SaveGeometry@580:  save to dir /home/blyth/.opticks/GEOM/V0J008 configured via envvar G4CXOpticks__SaveGeometry_DIR
+
+    ...
+
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 4606 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4Recorder::EndOfEventAction@162:  eventID 0 eventID_ 0 eidx 0 consistent_eventID  YES
+    SEvt::save@2019: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2109:  dir /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    SEvt::save@2110: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 reldir ALL0 with_index Y index 0 this 0xb4fc30
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 0
+                 VERSION :                                                                                                    0
+                    GEOM :                                                                                               V0J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-unnatural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer gun
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V0J008_GEOMList
+    SEvt::gatherHit@1823:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@682: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    U4Recorder::EndOfRunAction@147: 
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           5.25100        5.25100      0.00000      
+    DetSimAlg                1           194351.04688   194351.04688 0.00000      
+    Sum of junotoptask       1           194356.45312   194356.45312 0.00000      
+    #############################################################################
+
+
+
+N=1 GEOM=V1J008 ntds2::
+
+    GInstancer::dumpRepeatCandidates@464:  num_repcan 9 dmax 20
+     pdig 2e94fd9ad31943ff32b5c24d2ef6f9cb ndig  25600 nprog      4 placements  25600 n PMT_3inch_log_phys
+     pdig 399d95401b4b48dd6dd373c56b665cce ndig  12615 nprog      8 placements  12615 n pLPMT_NNVT_MCPPMT
+     pdig 5c4494e0a36bdef4044b064895239c1c ndig   4997 nprog     11 placements   4997 n pLPMT_Hamamatsu_R12860
+     pdig c4033813f7fc89ef25da44cce4caae49 ndig   2400 nprog      5 placements   2400 n mask_PMT_20inch_vetolMaskVirtual_phys
+     pdig ed3d2c21991e3bef5e069713af9fa6ca ndig    590 nprog      0 placements    590 n lSteel_phys
+     pdig ac627ab1ccbdb62ec96e702f07f6425b ndig    590 nprog      0 placements    590 n lFasteners_phys
+     pdig f899139df5e1059396431415e770c6dd ndig    590 nprog      0 placements    590 n lUpper_phys
+     pdig 38b3eff8baf56627478ec76a704e9b52 ndig    590 nprog      0 placements    590 n lAddition_phys
+     pdig 4c29bcd2a52a397de5036b415af92efe ndig    504 nprog    129 placements    504 n pPanel_0_f_
+    G4CXOpticks::setGeometry@250: 
+    G4CXOpticks::setGeometry@286: [ fd 0x16a31ee00
+    G4CXOpticks::setGeometry@296:  Using pre-existing SEvt (happens when U4Recorder instanciated it first) 
+    G4CXOpticks::setGeometry@314:  skip CSGOptiX::Create as NoGPU has been set 
+    G4CXOpticks::setGeometry@321:  cx N qs N QSim::Get N
+    G4CXOpticks::setGeometry@327: ] fd 0x16a31ee00
+    G4CXOpticks::SaveGeometry@580:  save to dir /home/blyth/.opticks/GEOM/V1J008 configured via envvar G4CXOpticks__SaveGeometry_DIR
+    G4CXOpticks::saveGeometry@525: [ /home/blyth/.opticks/GEOM/V1J008
+    G4CXOpticks::saveGeometry@526: [ /home/blyth/.opticks/GEOM/V1J008
+    G4CXOpticks::saveGeometry [ /home/blyth/.opticks/GEOM/V1J008
+    U4GDML::write@186:  ekey U4GDML_GDXML_FIX_DISABLE U4GDML_GDXML_FIX_DISABLE 0 U4GDML_GDXML_FIX 1
+    G4GDML: Writing '/home/blyth/.opticks/GEOM/V1J008/origin_raw.gdml'...
+    ...
+    SEvt::hostside_running_resize_@1027: resizing photon 9508 to evt.num_photon 9810
+    U4Debug::Save eventID 0 dir /tmp/u4debug/ntds2/000 EKEY U4Debug_SaveDir
+    U4Cerenkov_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 6
+    U4Scintillation_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 77
+    U4Hit_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 28
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 28 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4Recorder::EndOfEventAction@162:  eventID 0 eventID_ 0 eidx 0 consistent_eventID  YES
+    SEvt::save@2019: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2109:  dir /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000
+    SEvt::save@2110: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 reldir ALL1 with_index Y index 0 this 0xb4fc10
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 1
+                 VERSION :                                                                                                    1
+                    GEOM :                                                                                               V1J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-natural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer gun
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V1J008_GEOMList
+    SEvt::gatherHit@1823:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@682: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    U4Recorder::EndOfRunAction@147: 
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           5.62200        5.62200      0.00000      
+    DetSimAlg                1           215193.98438   215193.98438 0.00000      
+    Sum of junotoptask       1           215199.76562   215199.76562 39.33122     
+    #############################################################################
+
+
+
+Related machinery
+--------------------
+
+::
+
+    bin/OPTICKS_INPUT_PHOTON.sh
+    bin/OPTICKS_INPUT_PHOTON_.sh
+    CSG/tests/CSGFoundry_getFrame_Test.sh
+    CSG/tests/CSGFoundry_getFrame_Test.cc
+
+
+
+rejig setupFrame
+--------------------
+
+Factored off G4CXOpticks::setupFrame and now invoke from G4CXOpticks::setGeometry
+
+* this means that with appropriate envvars SEvt::GetInputPhoton() should be 
+  auto-transformed into the chosen frame 
+
+* so all "jcv GtOpticksTool" needs to do it grab the input photons from SEvt 
+
+* test transformed input photon and labelling in  g4cx/tests/G4CXOpticks_setGeometry_Test.sh
+
+
+try to use the SEvt::GetInputPhoton with GtOpticksTool
+----------------------------------------------------------
+
+
+
 
 
 

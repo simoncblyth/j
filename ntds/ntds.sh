@@ -30,10 +30,27 @@ case $VERSION in
 esac
 
 
-if [ "${arg/grab}" != "$arg" ]; then 
+if [ "$arg" == "grab" ]; then 
    source $OPTICKS_HOME/bin/rsync.sh $BASE 
    [ $? -ne 0 ] && echo $BASH_SOURCE grab error && exit 1 
 fi 
+
+if [ "$arg" == "grab2" ]; then 
+
+   geoms="V0J008 V1J008"
+   for geom in $geoms ; do 
+       base=/tmp/$USER/opticks/GEOM/$geom
+       echo rsync geom $geom base $base
+       source $OPTICKS_HOME/bin/rsync.sh $base
+       [ $? -ne 0 ] && echo $BASH_SOURCE grab2 error grabbing base $base && exit 2 
+   
+       base=.opticks/GEOM/$geom
+       echo rsync geom $geom base $base
+       source $OPTICKS_HOME/bin/rsync.sh $base
+       [ $? -ne 0 ] && echo $BASH_SOURCE grab2 error grabbing base $base && exit 2 
+   done  
+fi
+
 
 
 
