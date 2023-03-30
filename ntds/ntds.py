@@ -1,31 +1,28 @@
 #!/usr/bin/env python
 """
-ntds.py
-=========
+ntds.py : plotting two SEvt
+============================
 
 ::
 
     MODE=2 ./ntds.sh ana
     MODE=3 ./ntds.sh ana
 
-
 """
-
-
 import os, numpy as np
 from opticks.ana.fold import Fold
 from opticks.ana.p import * 
 
-from opticks.u4.tests.U4SimulateTest import U4SimulateTest
+from opticks.sysrap.sevt import SEvt
 ## HMM: when using to plot results of ntds the U4SimulateTest name seems inappropriate 
 ## Its really a higher level wrapper for an Opticks SEvt folder of arrays (CHECK THIS)
 ## MAYBE call it opticks.sysrap.SEvt ?
-
 
 MODE =  int(os.environ.get("MODE", "2"))
 N = int(os.environ.get("VERSION", "1"))
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1 
 SLIM = float(os.environ.get("SLIM","1.0"))
+CHECK = os.environ.get("CHECK", "all_point" )
 
 if MODE > 0:
     from opticks.ana.pvplt import * 
@@ -39,20 +36,20 @@ if __name__ == '__main__':
     lim *= SLIM
 
     if N == -1: 
-        a = U4SimulateTest.Load("$AFOLD",symbol="a")
-        b = U4SimulateTest.Load("$BFOLD",symbol="b")
+        a = SEvt.Load("$AFOLD",symbol="a")
+        b = SEvt.Load("$BFOLD",symbol="b")
         t = b
         syms = ['a','b']
         u4st = [ a, b ]
     elif N == 0:
-        a = U4SimulateTest.Load("$AFOLD",symbol="a")
+        a = SEvt.Load("$AFOLD",symbol="a")
         b = None
         syms = ['a']
         u4st = [ a,]
         t = a 
     elif N == 1:
         a = None
-        b = U4SimulateTest.Load("$BFOLD",symbol="b")
+        b = SEvt.Load("$BFOLD",symbol="b")
         syms = ['b']
         u4st = [ b,]
         t = b 
@@ -64,18 +61,20 @@ if __name__ == '__main__':
     if not b is None:print(repr(b))
 
     num = 4 
+    color = { 0:'r', 1:'g', 2:'b', 3:'c' } 
 
     ppos_ = {}
-    color = { 0:'r', 1:'g', 2:'b', 3:'c' } 
 
     for i in range(num): ppos_[i] = "None" ; 
 
-    ppos_[0] = "t.f.record[:,0,0,:3] # 0-position   "
-    ppos_[1] = "t.f.record[:,1,0,:3] # 1-position   "
-    ppos_[2] = "t.f.record[:,2,0,:3] # 2-position   "
-    ppos_[3] = "t.f.photon[:,0,:3]  # final photon position "
-
-    #pos = t.record[:,:,0,:3].reshape(-1,3)   # xyz : all photons, all steps
+    if CHECK == "all_point":
+        ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  # all points "
+    elif CHECK == "few_point":
+        ppos_[0] = "t.f.record[:,0,0,:3] # 0-position   "
+        ppos_[1] = "t.f.record[:,1,0,:3] # 1-position   "
+        ppos_[2] = "t.f.record[:,2,0,:3] # 2-position   "
+        ppos_[3] = "t.f.photon[:,0,:3]  # final photon position "
+    pass 
 
     elem = []
     for j in range(num): 
@@ -96,7 +95,7 @@ if __name__ == '__main__':
     for i in range(len(syms)):
         u4s = u4st[i]
         sym = syms[i]
-        label = "\n".join( ["sym:%s" % sym] + elem )
+        label = "\n".join( ["sym:%s CHECK:%s" % (sym, CHECK)] + elem )
 
         if MODE == 0:
             print("not plotting as MODE 0  in environ")

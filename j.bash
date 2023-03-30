@@ -2856,7 +2856,13 @@ jcv Hamamatsu_R12860_PMTSolid
 jcv LSExpDetectorConstruction
 
     
+jcv DsPhysConsOptical
 
+jcv tut_detsim
+
+jcv JUNOApplication
+
+jcv JUNODetSimModule
 
 
 

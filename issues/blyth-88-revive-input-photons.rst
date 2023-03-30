@@ -605,6 +605,926 @@ and not entering the PMT wheras the N=1 photons do often enter the PMT.
 They should both be entering PMT. Suggests POM quadrant control issue. 
 
 
+compare boundary status char
+-------------------------------
 
+Collected by::
+
+     744 #if defined(WITH_CUSTOM4)
+     745 template<>
+     746 void U4Recorder::CollectBoundaryAux<C4OpBoundaryProcess>(quad4* current_aux)
+     747 {
+     748     C4OpBoundaryProcess* bop = U4OpBoundaryProcess::Get<C4OpBoundaryProcess>() ;
+     749     assert(bop) ;
+     750     assert(current_aux);
+     751 
+     752     char customStatus = bop ? bop->m_custom_status : 'B' ;
+     753     C4CustomART* cart   = bop ? bop->m_custom_art : nullptr ;
+     754     const double* recoveredNormal =  bop ? (const double*)&(bop->theRecoveredNormal) : nullptr ;
+     755     C4CustomART_Debug* cdbg = cart ? &(cart->dbg) : nullptr ;
+     756 
+     757     LOG(LEVEL)
+     758         << " bop " << ( bop ? "Y" : "N" )
+     759         << " cart " << ( cart ? "Y" : "N" )
+     760         << " cdbg " << ( cdbg ? "Y" : "N" )
+     761         << " current_aux " << ( current_aux ? "Y" : "N" )
+     762         << " bop.m_custom_status " << customStatus
+     763         << " CustomStatus::Name " << CustomStatus::Name(customStatus)
+     764         ;
+     765 
+     766     if(cdbg && customStatus == 'Y') current_aux->load( cdbg->data(), C4CustomART_Debug::N ) ;
+     767     current_aux->set_v(3, recoveredNormal, 3);   // nullptr are just ignored
+     768     current_aux->q3.i.w = int(customStatus) ;    // moved from q1 to q3
+     769 }
+
+For customStatus Y the first three quads from cdbg get loaded into aux::
+
+     05 struct C4CustomART_Debug
+      6 {
+      7     static constexpr const int N = 12 ;
+      8 
+      9     double A ;
+     10     double R ;
+     11     double T ;
+     12     double _qe ;
+     13 
+     14     double An ;
+     15     double Rn ;
+     16     double Tn ;
+     17     double escape_fac ;
+     18 
+     19     double minus_cos_theta ;
+     20     double wavelength_nm ;
+     21     double pmtid ;
+     22     double spare ;
+     23 
+     24     void serialize( std::array<double, 16>& a );
+     25     const double* data() const ;
+     26 };
+
+m_custom_status starts as 'U'::
+
+     119 C4OpBoundaryProcess::C4OpBoundaryProcess(
+     120                                                const C4IPMTAccessor* accessor,
+     121                                                const G4String& processName,
+     122                                                G4ProcessType type)
+     123              :
+     124              G4VDiscreteProcess(processName, type),
+     125              m_custom_status('U'),
+     126              m_custom_art(new C4CustomART(
+     127                                         accessor,
+     128                                         theAbsorption,
+     129                                         theReflectivity,
+     130                                         theTransmittance,
+     131                                         theEfficiency,
+     132                                         theGlobalPoint,
+     133                                         OldMomentum,
+     134                                         OldPolarization,
+     135                                         theRecoveredNormal,
+     136                                         thePhotonMomentum
+     137                                        ))
+     138 {
+
+Actually starts every step as 'U'::
+
+     199 G4VParticleChange*
+     200 C4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+     201 {
+     202         m_track_label = C4TrackInfo<C4Pho>::GetRef(&aTrack);
+     203         assert( m_track_label );
+     204         m_track_dump = m_track_label->ix == PIDX && PIDX_ENABLED ;
+     205 
+     206         theStatus = Undefined;
+     207         m_custom_status = 'U' ;
+
+
+
+::
+
+     503             //[OpticalSurface.mpt.CustomPrefix
+     504             if( OpticalSurfaceName0 == '@' || OpticalSurfaceName0 == '#' )  // only customize specially named OpticalSurfaces 
+     505             {
+     506                 if( m_custom_art->local_z(aTrack) < 0. ) // lower hemi : No customization, standard boundary  
+     507                 {
+     508                     m_custom_status = 'Z' ;
+     509                 }
+     510                 else if( OpticalSurfaceName0 == '@') //  upper hemi with name starting @ : MultiFilm ART transmit thru into PMT
+     511                 {
+     512                     m_custom_status = 'Y' ;
+     513 
+     514                     m_custom_art->doIt(aTrack, aStep) ;
+     515 
+     516                     /**
+     517                     m_custom_art calculates 3-way probabilities (A,R,T) that sum to 1. 
+     518                     and looks up theEfficiency appropriate for the PMT 
+     519                     
+     520                     BUT: as DielectricDielectric is expecting a 2-way *theTransmittance* probability 
+     521                     m_custom_art leaves theAbsorption as A and rescales the others to create 2-way probs::
+     522 
+     523                          ( theAbsorption, theReflectivity, theTransmittance ) =  ( A, R/(1-A), T/(1-A) )
+     524 
+     525                     **/
+     526 
+     527 
+     528                     type = dielectric_dielectric ;
+     529                     theModel = glisur ;
+     530                     theFinish = polished ;  // to make Rindex2 get picked up below, plus use theGlobalNormal as theFacetNormal 
+     531 
+     532                     // ACTUALLY : ITS SIMPLER TO TREAT m_custom_status:Y as kinda another type 
+     533                     // in the big type switch below to avoid depending on the jungle
+     534 
+     535                 }
+     536                 else if( OpticalSurfaceName0 == '#' ) // upper hemi with name starting # : Traditional Detection at photocathode
+     537                 {
+     538                     m_custom_status = '-' ;
+     539 
+     540                     type = dielectric_metal ;
+     541                     theModel = glisur ;
+     542                     theReflectivity = 0. ;
+     543                     theTransmittance = 0. ;
+     544                     theEfficiency = 1. ;
+     545                 }   
+     546             }   
+     547             //]OpticalSurface.mpt.CustomPrefix
+     548             else
+     549             {
+     550                 m_custom_status = 'X' ;
+     551             }
+
+
+
+**C4CustomStatus.h**
+
+The custom status char is set by C4OpBoundaryProcess::PostStepDoIt
+
++------+-------------------------------------------------------------------------------+
+| char |                                                                               |
++======+===============================================================================+
+|  U   |  starting value set at initialization and at every step                       |
++------+-------------------------------------------------------------------------------+
+|  Z   |  @/# OpticalSurface BUT local_z < 0 : so ordinary surface                     |         
++------+-------------------------------------------------------------------------------+
+|  Y   |  @ OpticalSurface AND local_z > 0 : so C4CustomART::doIt runs                 |
++------+-------------------------------------------------------------------------------+
+|  -   |  # OpticalSurface AND local_z > 0 : so traditional detect at photocathode     |                
++------+-------------------------------------------------------------------------------+
+|  X   |  NOT @/# OpticalSurface : so ordinary surface                                 | 
++------+-------------------------------------------------------------------------------+
+|  \0  |  Uninitialized array content                                                  |
++------+-------------------------------------------------------------------------------+
+
+
+::
+
+   jxn
+   ./ntds.sh ana
+
+    In [13]: a_bop = a.f.aux.view(np.int32)[:,:,3,3]
+    In [14]: b_bop = b.f.aux.view(np.int32)[:,:,3,3]
+
+    In [15]: np.c_[np.unique( a_bop, return_counts=True )]
+    Out[15]: 
+    array([[    0, 26037],       ## uninit
+           [   85,  5003],       ## U 
+           [   88,   960]])      ## X
+
+    In [16]: np.c_[np.unique( b_bop, return_counts=True )]
+    Out[16]: 
+    array([[    0, 25784],      ## uninit
+           [   85,  4746],      ## U
+           [   88,   270],      ## X
+           [   89,  1073],      ## Y
+           [   90,   127]])     ## Z
+
+    In [18]: list(map(chr, [0, 85, 88, 89, 90]))
+    Out[18]: [        '\x00', 'U','X','Y','Z']
+
+
+
+Suspect FastSim not kicking in : organize TDS_LOG renaming, check log
+-----------------------------------------------------------------------
+
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+    jxf ; N=1 GEOM=V1J008 ntds2
+
+
+YEP its not set::
+
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_useScintSimple == 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  level                   : 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_UsePMTNaturalGeometry : 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_UsePMTOpticalModel    : 1
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_doFastSim             : 0
+    DsPhysConsOptical::CreateCustomG4OpBoundaryProcess
+
+jcv DsPhysConsOptical::
+
+    .    declProp("UsePMTOpticalModel", m_UsePMTOpticalModel=true);
+         declProp("UsePMTNaturalGeometry", m_UsePMTNaturalGeometry=true);
+    -    m_doFastSim = m_UsePMTOpticalModel == true && m_UsePMTNaturalGeometry == false ; 
+    -    // see Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h for notes on the PMT*POM quadrants 
+    +    m_doFastSim = false ;  // maybe changed later based on config of above two 
+    +
+     
+
+Fixed the bug : cannot derive from declProp config in the ctor
+
+* have to do it latter after declProp settings have been set from the python.
+* THATS ANOTHER REASON NOT TO LIKE declProp
+
+
+Succeed to switch it on::
+
+    junotoptask:DetSimAlg.DsPhysConsOptical.SetParameters  INFO: Alpha birksConstant2 = 0.000
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check: m_useCerenKov == 1
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check: m_useScintillation == 1
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_useScintSimple == 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  level                   : 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_UsePMTNaturalGeometry : 0
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_UsePMTOpticalModel    : 1
+    junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_doFastSim             : 1
+    DsPhysConsOptical::CreateCustomG4OpBoundaryProcess
+
+
+
+
+
+Now DEFER_FSTRACKINFO flag zero assert
+------------------------------------------
+
+::
+
+    U4Recorder::UserSteppingAction_Optical@647:  DEFER_FSTRACKINFO  FAILED TO GET THE FastSim status from trackinfo  fstrackinfo_stat 
+    U4Recorder::UserSteppingAction_Optical@660:  ERR flag zero : post U4StepPoint::Desc
+     proc 5 procName fast_sim_man procNameRaw fast_sim_man
+     status 1 statusName fGeomBoundary
+     bstat 12 bstatName SameMaterial
+     flag 2097152 flagName DEFER_FSTRACKINFO
+    python: /data/blyth/junotop/opticks/u4/U4Recorder.cc:661: void U4Recorder::UserSteppingAction_Optical(const G4Step*) [with T = C4OpBoundaryProcess]: Assertion `flag > 0' failed.
+
+    Program received signal SIGABRT, Aborted.
+    (gdb) 
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd28cb8e7 in U4Recorder::UserSteppingAction_Optical<C4OpBoundaryProcess> (this=0x933760, step=0xadee10)
+        at /data/blyth/junotop/opticks/u4/U4Recorder.cc:661
+    #5  0x00007fffd28c3fc4 in U4Recorder::UserSteppingAction (this=0x933760, step=0xadee10) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:185
+    #6  0x00007fffcea4fa32 in U4RecorderAnaMgr::UserSteppingAction (this=0x933660, step=0xadee10)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:35
+    #7  0x00007fffccdd8009 in MgrOfAnaElem::UserSteppingAction (this=0x7fffccfe6b00 <MgrOfAnaElem::instance()::s_mgr>, step=0xadee10)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:74
+    #8  0x00007fffced74065 in LSExpSteppingAction::UserSteppingAction (this=0x5989d90, fStep=0xadee10)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpSteppingAction.cc:56
+    #9  0x00007fffdb982e1d in G4SteppingManager::Stepping() () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #10 0x00007fffdb98e472 in G4TrackingManager::ProcessOneTrack(G4Track*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+
+
+    (gdb) f 6
+    #6  0x00007fffcea4fa32 in U4RecorderAnaMgr::UserSteppingAction (this=0x933660, step=0xadee10)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:35
+    35	void U4RecorderAnaMgr::UserSteppingAction(const G4Step* step) {     m_recorder->UserSteppingAction(step);    } 
+    (gdb) f 5
+    #5  0x00007fffd28c3fc4 in U4Recorder::UserSteppingAction (this=0x933760, step=0xadee10) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:185
+    185	     UserSteppingAction_Optical<C4OpBoundaryProcess>(step); 
+    (gdb) list
+    180	void U4Recorder::UserSteppingAction(const G4Step* step)
+    181	{ 
+    182	    if(!U4Track::IsOptical(step->GetTrack())) return ; 
+    183	
+    184	#if defined(WITH_CUSTOM4)
+    185	     UserSteppingAction_Optical<C4OpBoundaryProcess>(step); 
+    186	#elif defined(WITH_PMTSIM)
+    187	     UserSteppingAction_Optical<CustomG4OpBoundaryProcess>(step); 
+    188	#else
+    189	     UserSteppingAction_Optical<InstrumentedG4OpBoundaryProcess>(step);
+    (gdb) f 4
+    #4  0x00007fffd28cb8e7 in U4Recorder::UserSteppingAction_Optical<C4OpBoundaryProcess> (this=0x933760, step=0xadee10)
+        at /data/blyth/junotop/opticks/u4/U4Recorder.cc:661
+    661	    assert( flag > 0 ); 
+    (gdb) l
+    656	            << " flag " << OpticksPhoton::Flag(flag) 
+    657	            ; 
+    658	    }
+    659	
+    660	    LOG_IF(error, flag == 0) << " ERR flag zero : post " << U4StepPoint::Desc<T>(post) ; 
+    661	    assert( flag > 0 ); 
+    662	
+    663	    bool PIDX_DUMP = label->id == PIDX && PIDX_ENABLED ; 
+    664	
+    665	    LOG(LEVEL) << U4StepPoint::DescPositionTime(post) ;  
+    (gdb) 
+
+
+
+
+
+This could be the C4TrackInfo label versus S4TrackInfo ?.
+
+U4Recorder.cc::
+
+    0570 template <typename T>
+     571 void U4Recorder::UserSteppingAction_Optical(const G4Step* step)
+     572 {
+     573     const G4Track* track = step->GetTrack();
+     574     G4VPhysicalVolume* pv = track->GetVolume() ;
+     575     LOG(LEVEL) << "[ pv " << ( pv ? pv->GetName() : "-" ) ;
+     576 
+     577     spho* label = STrackInfo<spho>::GetRef(track);
+     578     assert( label->isDefined() );
+     579     if(!Enabled(*label)) return ;   // EIDX, GIDX skipping 
+     580 
+
+    (gdb) p label
+    $1 = (spho *) 0x244dd0330
+    (gdb) p *label
+    $2 = {gs = 0, ix = 999, id = 999, uc4 = {x = 0 '\000', y = 0 '\000', z = 0 '\000', w = 95 '_'}}
+    (gdb) 
+
+
+
+
+     632 
+     633     if(flag == DEFER_FSTRACKINFO)
+     634     {
+     635         char fstrackinfo_stat = label->uc4.w ;
+     636         label->uc4.w = '_' ;   // scrub after access 
+     637 
+     638         switch(fstrackinfo_stat)
+     639         {
+     640            case 'T': flag = BOUNDARY_TRANSMIT ; break ;
+     641            case 'R': flag = BOUNDARY_REFLECT  ; break ;
+     642            case 'A': flag = SURFACE_ABSORB    ; break ;
+     643            case 'D': flag = SURFACE_DETECT    ; break ;
+     644            case '_': flag = 0                 ; break ;
+     645            default:  flag = 0                 ; break ;
+     646         }
+     647         LOG_IF(error, flag == 0)
+     648             << " DEFER_FSTRACKINFO "
+     649             << " FAILED TO GET THE FastSim status from trackinfo "
+     650             << " fstrackinfo_stat " << fstrackinfo_stat
+     651             ;
+     652 
+     653         LOG(LEVEL)
+     654             << " DEFER_FSTRACKINFO "
+     655             << " fstrackinfo_stat " << fstrackinfo_stat
+     656             << " flag " << OpticksPhoton::Flag(flag)
+     657             ;
+     658     }
+
+
+
+U4Recorder was expecting spho, now added C4::
+
+     579 #ifdef WITH_CUSTOM4
+     580     C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track);
+     581 #else
+     582     spho* label = STrackInfo<spho>::GetRef(track);
+     583 #endif
+
+But need to swap over to C4 everywhere tracks are labelled (Scint+Cerenkov+FastSim)::
+
+    epsilon:u4 blyth$ opticks-f C4TrackInfo
+    ./u4/U4Recorder.cc:    C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+    epsilon:opticks blyth$ 
+
+
+::
+
+    N[blyth@localhost junosw]$ jgr C4TrackInfo
+    ./Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc:#include "C4TrackInfo.h"
+    ./Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc:    m_track_label = C4TrackInfo<C4Pho>::GetRef(_track);
+    N[blyth@localhost junosw]$ 
+
+
+Looks like label not there in non standalone running::
+
+    135 G4bool junoPMTOpticalModel::ModelTrigger(const G4FastTrack &fastTrack)
+    136 {
+    137     _track = fastTrack.GetPrimaryTrack();
+    138     _pv = _track->GetVolume() ;
+    139     _mlv = _pv->GetMotherLogical();
+    140 
+    141     envelope_solid = fastTrack.GetEnvelopeSolid();
+    142 
+    143     pos     = fastTrack.GetPrimaryTrackLocalPosition();
+    144     dir     = fastTrack.GetPrimaryTrackLocalDirection();
+    145     pol     = fastTrack.GetPrimaryTrackLocalPolarization();
+    146     time    = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    147     energy  = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
+    148 
+    149     dist2 = kInfinity ;
+    150 
+    151 #ifdef PMTSIM_STANDALONE
+    152     m_track_label = C4TrackInfo<C4Pho>::GetRef(_track);
+    153     assert( m_track_label && "all photon tracks must be labelled" );
+    154 
+    155     bool PIDX_DUMP = m_track_label->id == PIDX && PIDX_ENABLED ;
+    156     LOG_IF(info, PIDX_DUMP) << " PIDX " << PIDX << " label.id " << m_track_label->id ;
+    157 #endif
+
+
+
+Rebuild issue
+---------------
+
+::
+
+    Consolidate compiler generated dependencies of target GenTools
+    make[2]: *** No rule to make target `/data/blyth/junotop/ExternalLibs/custom4/0.0.7/lib64/libCustom4.so', needed by `lib/libGenTools.so'.  Stop.
+    make[1]: *** [Simulation/GenTools/CMakeFiles/GenTools.dir/all] Error 2
+    make: *** [all] Error 2
+    N[blyth@localhost build]$ 
+
+HUH clean build of GenTools still gives::
+
+    [100%] Building CXX object Simulation/GenTools/CMakeFiles/GenTools.dir/src/IGenTool.cc.o
+    [100%] Building CXX object Simulation/GenTools/CMakeFiles/GenTools.dir/src/PostGenTools.cc.o
+    [100%] Building CXX object Simulation/GenTools/CMakeFiles/GenTools.dir/src/binding.cc.o
+    make[2]: *** No rule to make target `/data/blyth/junotop/ExternalLibs/custom4/0.0.7/lib64/libCustom4.so', needed by `lib/libGenTools.so'.  Stop.
+    make[1]: *** [Simulation/GenTools/CMakeFiles/GenTools.dir/all] Error 2
+    make: *** [all] Error 2
+    N[blyth@localhost GenTools]$ jt
+
+N[blyth@localhost junosw]$ cd build/Simulation/GenTools
+N[blyth@localhost GenTools]$ export VERBOSE=1
+N[blyth@localhost GenTools]$ make
+
+
+/data/blyth/junotop/junosw/build/Simulation/GenTools/CMakeFiles/GenTools.dir/build.make::
+
+   lib/libGenTools.so: /data/blyth/junotop/ExternalLibs/custom4/0.0.7/lib64/libCustom4.so
+
+Even after clean build this path is stuck in the craw.::
+
+    build/CMakeCache.txt:Custom4_LIBRARY_PATH:FILEPATH=/data/blyth/junotop/ExternalLibs/custom4/0.0.7/lib64/libCustom4.so
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ find build -type f -exec grep -H custom4/0.0.7 {} \;
+
+
+
+Left field, looks like PMTSIM_STANDALONE macro is leaking (should be private)::
+
+    keFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o -MF CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o.d -o CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o -c /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
+    In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc:2:
+    /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/include/HamamatsuMaskManager.hh:9:10: fatal error: IGeomManager.h: No such file or directory
+     #include "IGeomManager.h"
+              ^~~~~~~~~~~~~~~~
+    In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc:2:
+    /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/include/NNVTMaskManager.hh:9:10: fatal error: IGeomManager.h: No such file or directory
+     #include "IGeomManager.h"
+              ^~~~~~~~~~~~~~~~
+    compilation terminated.
+    compilation terminated.
+
+    [ 88%] Building CXX object Simulation/DetSimV2/PhysiSim/CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o
+    cd
+    /data/blyth/junotop/junosw/build/Simulation/DetSimV2/PhysiSim
+    &&
+    /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/gcc/8.3.0/bin/g++
+    -DBOOST_ATOMIC_DYN_LINK
+    -DBOOST_ATOMIC_NO_LIB
+    -DBOOST_FILESYSTEM_DYN_LINK
+    -DBOOST_FILESYSTEM_NO_LIB
+    -DBOOST_PROGRAM_OPTIONS_DYN_LINK
+    -DBOOST_PROGRAM_OPTIONS_NO_LIB
+    -DBOOST_PYTHON_DYN_LINK
+    -DBOOST_PYTHON_NO_LIB
+    -DBOOST_REGEX_DYN_LINK
+    -DBOOST_REGEX_NO_LIB
+    -DBOOST_SYSTEM_DYN_LINK
+    -DBOOST_SYSTEM_NO_LIB
+    -DDEBUG_PIDX
+    -DDEBUG_TAG
+    -DG4INTY_USE_XT
+    -DG4MULTITHREADED
+    -DG4UI_USE
+    -DG4UI_USE_TCSH
+    -DG4USE_STD11
+    -DG4VERBOSE
+    -DG4VIS_USE
+    -DG4VIS_USE_OPENGL
+    -DG4VIS_USE_OPENGLX
+    -DG4VIS_USE_RAYTRACERX
+    -DG4_STORE_TRAJECTORY
+    -DOPTICKS_BRAP
+    -DOPTICKS_CSG
+    -DOPTICKS_CSGOPTIX
+    -DOPTICKS_CSG_GGEO
+    -DOPTICKS_G4CX
+    -DOPTICKS_GDXML
+    -DOPTICKS_GGEO
+    -DOPTICKS_NPY
+    -DOPTICKS_OKCONF
+    -DOPTICKS_OKCORE
+    -DOPTICKS_QUDARAP
+    -DOPTICKS_SYSRAP
+    -DOPTICKS_U4
+    -DOPTICKS_X4
+    -DPLOG_LOCAL
+    -DPMTSIM_STANDALONE
+    -DPhysiSim_EXPORTS
+    -DSNIPER_VERSION_2
+    -DSTANDALONE
+    -DWITH_BOOST_ASIO
+    -DWITH_CONTIGUOUS
+    -DWITH_CUSTOM4
+    -DWITH_G4CXOPTICKS
+    -DWITH_G4CXOPTICKS_DEBUG
+    -DWITH_NP
+    -DWITH_OEC
+    -DWITH_PMTSIM
+    -DWITH_SGLM
+    -DWITH_SLOG
+    -DWITH_STTF
+    -I/data/blyth/junotop/junosw/build/include
+    -I/data/blyth/junotop/ExternalLibs/Boost/1.78.0
+    -I/data/blyth/junotop/ExternalLibs/log4cpp/1.1.3/include
+    -I/data/blyth/junotop/ExternalLibs/CLHEP/2.4.1.0/include
+    -I/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs/CLHEP/2.4.1.0/lib/CLHEP-2.4.1.0/../../include
+    -I/data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/geant4
+    -I/data/blyth/junotop/ExternalLibs/HepMC/2.06.09/include
+    -I/data/blyth/junotop/ExternalLibs
+
+
+
+
+
+
+Rejigged to U4Recorder track labelling : including bumped Custom4 to 0.0.8 
+-----------------------------------------------------------------------------
+
+Still the same error, junoPMTOpticalModel needs attention : lots only done for PMTSIM_STANDALONE
+
+
+Track label status char "?DART" from junoPMTOpticalModel::DoIt only done for PMTSIM_STANDALONE
+-----------------------------------------------------------------------------------------------
+
+::
+
+    403 void junoPMTOpticalModel::DoIt(const G4FastTrack& fastTrack, G4FastStep &fastStep)
+    404 {
+    ...
+    592 #ifdef PMTSIM_STANDALONE
+    593     // HMM: does the update immediate get back to the track ?
+    594     LOG_IF(info, m_track_label->ix == PIDX && PIDX_ENABLED )
+    595          << " PIDX " << PIDX
+    596          << " track.GetMomentumDirection " << track->GetMomentumDirection()
+    597          ;
+    598 
+    599     G4double& u0 = rand_absorb ;
+    600     G4double& u1 = rand_escape ;
+    601     G4double& D  = escape_fac ;
+    602 
+    603     char status = '?' ;
+    604     if(      u0 < A)    status = u1 < D ? 'D' : 'A' ;
+    605     else if( u0 < A+R)  status = 'R' ;
+    606     else                status = 'T' ;
+    607 
+    608     m_track_label->uc4.w = status ;
+    609 
+    610     LOG(LEVEL)
+    611         << " pmtid " << pmtid
+    612         << " pmtcat " << pmtcat
+    613         << " A " << A
+    614         << " R " << R
+    615         << " A+R " << A+R
+    616         << " T " << ( 1. - (A+R) )
+    617         << " D " << D
+    618         << " u0 " << u0
+    619         << " status " << status
+    620         ;
+    621 
+    622 #endif
+    623 
+    624     return;
+    625 }
+
+
+
+try again with junoPMTOpticalModel enhancements
+--------------------------------------------------
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+
+
+
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 296 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    SEvt::save@2100: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2190:  dir /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    SEvt::save@2191: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 reldir ALL0 with_index Y index 0 this 0xb51020
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 0
+                 VERSION :                                                                                                    0
+                    GEOM :                                                                                               V0J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-unnatural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V0J008_GEOMList
+    SEvt::gatherHit@1890:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@749: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           6.93100        6.93100      0.00085      
+    DetSimAlg                1           19805.85742    19805.85742  3.43284      
+    Sum of junotoptask       1           19812.92188    19812.92188  0.00000      
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+    junotoptask:DetSim0Svc.dumpOpticks  INFO: DetSim0Svc::finalizeOpticks m_opticksMode 2 WITH_G4CXOPTICKS 
+    G4CXOpticks::Finalize@72: placeholder mimic G4Opticks 
+    junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+    junotoptask.finalize            INFO: events processed 1
+    Delete G4SvcRunManager
+
+
+
+
+::
+
+    jxf ; N=1 GEOM=V1J008 ntds2
+
+
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 2 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    SEvt::save@2100: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2190:  dir /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000
+    SEvt::save@2191: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 reldir ALL1 with_index Y index 0 this 0xb50e80
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 1
+                 VERSION :                                                                                                    1
+                    GEOM :                                                                                               V1J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-natural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V1J008_GEOMList
+    SEvt::gatherHit@1890:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@749: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           8.50400        8.50400      0.00000      
+    DetSimAlg                1           17481.63672    17481.63672  0.00000      
+    Sum of junotoptask       1           17490.28320    17490.28320  3.07806      
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+
+
+
+
+Compare Those
+----------------
+
+::
+
+    epsilon:issues blyth$ jxn
+    epsilon:ntds blyth$ ./ntds.sh grab_evt 
+
+
+    CHECK=all_point ./ntds.sh ana 
+    CHECK=few_point ./ntds.sh ana 
+
+Now the N=0 go inside PMT just like N=1
+
+::
+
+    epsilon:ntds blyth$ ./ntds.sh cf
+             BASH_SOURCE : ./ntds.sh 
+                   CHECK : all_point 
+                     arg : cf 
+                  defarg : cf 
+                     DIR : . 
+            OPTICKS_MODE : 2 
+                  SCRIPT : ntds2 
+                    BASE :  
+                     EVT : 000 
+                   AGEOM : V0J008 
+                   ABASE : /tmp/blyth/opticks/GEOM/V0J008/ntds2 
+                   AFOLD : /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 
+                   BGEOM : V1J008 
+                   BBASE : /tmp/blyth/opticks/GEOM/V1J008/ntds2 
+                   BFOLD : /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 
+                       N :  
+                 VERSION : -1 
+    ./ntds.sh VERSION:-1 load both AFOLD and BFOLD
+
+    QCF qcf 
+    c2sum :  1310.9436 c2n :     8.0000 c2per:   163.8680  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  1310.94/8:163.868 (30)
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT SA                   ' ' 0' '     0    387' '387.0000' '    -1      0']
+     [' 1' 'TO BT BT BT BT BT SA                ' ' 1' '   364    112' '133.4118' '     3     98']
+     [' 2' 'TO BT BT BT BT BT SD                ' ' 2' '   304      0' '304.0000' '     5     -1']
+     [' 3' 'TO BT BT BT BT SD                   ' ' 3' '     0    301' '301.0000' '    -1      1']
+     [' 4' 'TO BT BT BT BT BT BT BT SA          ' ' 4' '   109      0' '109.0000' '   133     -1']
+     [' 5' 'TO BT BT BT BT BT BT BT SR SA       ' ' 5' '    38      0' '38.0000' '   110     -1']
+     [' 6' 'TO BT BT BT BT BT SR SA             ' ' 6' '     0     38' '38.0000' '    -1    127']
+     [' 7' 'TO AB                               ' ' 7' '    26     21' ' 0.5319' '    17     22']
+     [' 8' 'TO BT BT BT BT BT BT BT SR SR SA    ' ' 8' '    18      0' ' 0.0000' '   142     -1']
+     [' 9' 'TO BT BT BT BT BT SR SR SA          ' ' 9' '     0     14' ' 0.0000' '    -1    114']
+     ['10' 'TO BT BT AB                         ' '10' '    10      9' ' 0.0000' '    39     25']
+
+
+B has an extra BT causing terrible chi2
+
+Check the positions::
+
+    In [1]: aq[:10]
+    Out[1]: 
+    array([[b'TO BT BT BR BT BT BT SA                               '],
+           [b'TO BT BT BT BT BT BR BT BT BT BT BT DR BT DR BT BT SA '],
+           [b'TO BT BT BT BR BT BT BT BT SA                         '],
+           [b'TO BT BT BT BT BT SA                                  '],
+           [b'TO BT BT BT BT BT SA                                  '],
+           [b'TO BT BT BT BT BT SD                                  '], #5
+           [b'TO BT BT BT BT BT SD                                  '],
+           [b'TO BT BT BT BT BT SD                                  '],
+           [b'TO BT BT BR BT BT BT SA                               '],
+           [b'TO BT BT BT BT BT SD                                  ']], dtype='|S96')
+
+    In [2]: bq[:10]
+    Out[2]: 
+    array([[b'TO BT BT BT BT SA                                     '],
+           [b'TO BT BT BT BT SD                                     '],
+           [b'TO BT BT BT BT SA                                     '],
+           [b'TO BT BT BR BT BT BT SA                               '],
+           [b'TO BT BT BT BT SD                                     '],
+           [b'TO BT BT BT BT SD                                     '], #5
+           [b'TO BT BT BT BT SD                                     '],
+           [b'TO BT BT BT BT SD                                     '],
+           [b'TO BT BR BT BT SA                                     '],
+           [b'TO BT BT BT BT SD                                     ']], dtype='|S96')
+
+
+
+HMM these global frame positions difficult to grok, but extra just before last 
+looks like a fake that is not being skipped::
+
+    In [3]: a.f.record[5,:10,0]
+    Out[3]: 
+    array([[-11573.234,   9132.074,  11069.737,      0.1  ],
+           [-12124.681,   9567.203,  11612.092,      4.191],
+           [-12151.363,   9588.258,  11638.334,      4.389],
+           [-12158.912,   9594.215,  11648.854,      4.463],
+           [-12162.97 ,   9597.416,  11652.498,      4.492],
+           [-12168.719,   9601.953,  11660.428,      4.547],  ## EXTRA JUST BEFORE LAST
+           [-12168.721,   9601.954,  11660.43 ,      4.547],
+           [     0.   ,      0.   ,      0.   ,      0.   ],
+           [     0.   ,      0.   ,      0.   ,      0.   ],
+           [     0.   ,      0.   ,      0.   ,      0.   ]], dtype=float32)
+
+    In [4]: b.f.record[5,:10,0]
+    Out[4]: 
+    array([[-11573.234,   9132.074,  11069.737,      0.1  ],
+           [-12124.681,   9567.203,  11612.092,      4.191],
+           [-12151.363,   9588.258,  11638.334,      4.389],
+           [-12158.912,   9594.215,  11648.854,      4.463],
+           [-12162.97 ,   9597.416,  11652.498,      4.492],
+           [-12168.721,   9601.954,  11660.43 ,      4.547],
+           [     0.   ,      0.   ,      0.   ,      0.   ],
+           [     0.   ,      0.   ,      0.   ,      0.   ],
+           [     0.   ,      0.   ,      0.   ,      0.   ],
+           [     0.   ,      0.   ,      0.   ,      0.   ]], dtype=float32)
+
+
+Check the aux point spec status::
+
+    In [3]: a.f.aux[5,:10,2,3].view(np.int32)
+    Out[3]: array([ 0,  1,  2,  3,  4, -5,  6,  0,  0,  0], dtype=int32)
+    ## HMM: -5: LOOKS LIKE FAKE SKIPPING IS NOT SWITCHED ON 
+
+    In [4]: b.f.aux[5,:10,2,3].view(np.int32)   ## these enumerations are not directly comparable
+    Out[4]: array([0, 1, 2, 3, 4, 5, 0, 0, 0, 0], dtype=int32)
+
+
+DONE : Rerun with SPECS metadata saved to see what the enum mean
+---------------------------------------------------------------------
+
+Moved U4Recorder::SaveMeta to U4Recorder::EndOfEventAction so can see what those enum mean.
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+    jxf ; N=1 GEOM=V1J008 ntds2
+
+
+    epsilon:ntds blyth$ wc -l /tmp/blyth/opticks/GEOM/V?J008/ntds2/ALL?/000/U4R_names.txt
+          66 /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000/U4R_names.txt
+          54 /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000/U4R_names.txt
+         120 total
+
+::
+
+
+    ## need np.abs as detected fakes that are not skipped are negated
+    In [10]: np.c_[a.spec[5,:a.n[5]],a.SPECS[np.abs(a.spec[5,:a.n[5]])]]
+    Out[10]: 
+    array([['0', 'UNSET'],
+           ['1', 'Water/Water:pInnerWater/pLPMT_Hamamatsu_R12860'],
+           ['2', 'Water/AcrylicMask:pLPMT_Hamamatsu_R12860/HamamatsuR12860pMask'],
+           ['3', 'AcrylicMask/Water:HamamatsuR12860pMask/pLPMT_Hamamatsu_R12860'],
+           ['4', 'Water/Pyrex:pLPMT_Hamamatsu_R12860/HamamatsuR12860_PMT_20inch_log_phys'],
+           ['-5', 'Pyrex/Pyrex:HamamatsuR12860_PMT_20inch_log_phys/HamamatsuR12860_PMT_20inch_body_phys'],
+           ['6', 'Pyrex/Pyrex:HamamatsuR12860_PMT_20inch_body_phys/HamamatsuR12860_PMT_20inch_body_phys']], dtype='<U94')
+
+    In [11]: np.c_[b.spec[5,:b.n[5]],b.SPECS[np.abs(b.spec[5,:b.n[5]])]]
+    Out[11]: 
+    array([['0', 'UNSET'],
+           ['1', 'Water/Water:pInnerWater/pLPMT_Hamamatsu_R12860'],
+           ['2', 'Water/AcrylicMask:pLPMT_Hamamatsu_R12860/HamamatsuR12860pMask'],
+           ['3', 'AcrylicMask/Water:HamamatsuR12860pMask/pLPMT_Hamamatsu_R12860'],
+           ['4', 'Water/Pyrex:pLPMT_Hamamatsu_R12860/HamamatsuR12860_PMT_20inch_log_phys'],
+           ['5', 'Pyrex/Vacuum:HamamatsuR12860_PMT_20inch_log_phys/HamamatsuR12860_PMT_20inch_inner_phys']], dtype='<U93')
+
+
+Encapsulate that into sevt.py::
+
+    In [1]: a.spec_(5)
+    Out[1]: 
+    array([['0', 'UNSET'],
+           ['1', 'Water/Water:pInnerWater/pLPMT_Hamamatsu_R12860'],
+           ['2', 'Water/AcrylicMask:pLPMT_Hamamatsu_R12860/HamamatsuR12860pMask'],
+           ['3', 'AcrylicMask/Water:HamamatsuR12860pMask/pLPMT_Hamamatsu_R12860'],
+           ['4', 'Water/Pyrex:pLPMT_Hamamatsu_R12860/HamamatsuR12860_PMT_20inch_log_phys'],
+           ['-5', 'Pyrex/Pyrex:HamamatsuR12860_PMT_20inch_log_phys/HamamatsuR12860_PMT_20inch_body_phys'],
+           ['6', 'Pyrex/Pyrex:HamamatsuR12860_PMT_20inch_body_phys/HamamatsuR12860_PMT_20inch_body_phys']], dtype='<U94')
+
+    In [2]: b.spec_(5)
+    Out[2]: 
+    array([['0', 'UNSET'],
+           ['1', 'Water/Water:pInnerWater/pLPMT_Hamamatsu_R12860'],
+           ['2', 'Water/AcrylicMask:pLPMT_Hamamatsu_R12860/HamamatsuR12860pMask'],
+           ['3', 'AcrylicMask/Water:HamamatsuR12860pMask/pLPMT_Hamamatsu_R12860'],
+           ['4', 'Water/Pyrex:pLPMT_Hamamatsu_R12860/HamamatsuR12860_PMT_20inch_log_phys'],
+           ['5', 'Pyrex/Vacuum:HamamatsuR12860_PMT_20inch_log_phys/HamamatsuR12860_PMT_20inch_inner_phys']], dtype='<U93')
+
+
+
+
+
+
+DONE : review U4Recorder::ClassifyFake skipping : is it going to work here, IT SHOULD
+---------------------------------------------------------------------------------------
+
++-----------------+---------------------------------------------------------------------------+
+| enum (0x1 << n) | U4Recorder::ClassifyFake heuristics, all contribute to fakemask           |  
++=================+===========================================================================+
+| FAKE_STEP_MM    | step length less than EPSILON thats not a reflection turnaround           |
++-----------------+---------------------------------------------------------------------------+
+| FAKE_FDIST      | distance to body_phys volume in direction of photon is less than EPSILON  |
++-----------------+---------------------------------------------------------------------------+
+| FAKE_SURFACE    | body_phys solid frame localPoint EInside is kSurface (powerful)           |
++-----------------+---------------------------------------------------------------------------+
+| FAKE_MANUAL     | manual selection via spec label (not recommended anymore)                 |
++-----------------+---------------------------------------------------------------------------+
+| FAKE_VV_INNER12 | U4Step::IsSameMaterialPVBorder Vacuum inner1_phys/inner2_phys             |
++-----------------+---------------------------------------------------------------------------+
+
+
+
+TODO : Enable fake skipping
+------------------------------
+
+u4/tests/U4SimulateTest.sh::
+
+    133 if [ "$VERSION" == "0" ]; then
+    134 
+    135     # jPOM config
+    136     ModelTriggerSimple=0  # default 
+    137     ModelTriggerBuggy=1
+    138     ModelTrigger_IMPL=$ModelTriggerSimple
+    139     #ModelTrigger_IMPL=$ModelTriggerBuggy
+    140 
+    141     export junoPMTOpticalModel__PIDX_ENABLED=1
+    142     export junoPMTOpticalModel__ModelTrigger_IMPL=$ModelTrigger_IMPL
+    143     export G4FastSimulationManagerProcess_ENABLE=1  
+    144 
+    145     export U4Recorder__FAKES_SKIP=1
+    146 
+
+No equivalent in ntds yet.
+
+Default IMPL is ModelTriggerSimple::
+
+    124 const int junoPMTOpticalModel::ModelTrigger_IMPL = EGet::Get<int>("junoPMTOpticalModel__ModelTrigger_IMPL", 0 ) ;
+    125 
+    126 const char* junoPMTOpticalModel::ModelTrigger_IMPL_Name()
+    127 {
+    128     const char* IMPL = nullptr ;
+    129     switch(ModelTrigger_IMPL)
+    130     {
+    131        case 0: IMPL = _ModelTriggerSimple ; break ;
+    132        case 1: IMPL = _ModelTriggerBuggy  ; break ;
+    133     }
+    134     return IMPL ;
+    135 }
 
 

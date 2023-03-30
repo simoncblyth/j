@@ -525,6 +525,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    export TDS_LOG=$TDS_DIR/$SCRIPT.log 
    export U4Debug_SaveDir=$tmpdir
 
+
    vars="FUNCNAME SCRIPT TDS_DIR TDS_LOG SCRIPT U4Debug_SaveDir" 
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 
@@ -623,6 +624,15 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    export POM=${POM:-1}
    export VERSION=${N:-1}
    export LAYOUT="POM $POM VERSION $VERSION"
+   export PREDICT_EVTDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
+
+   vars="POM N VERSION LAYOUT PREDICT_EVTDIR"
+   for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
+
+   if [ "$VERSION" == "0" ]; then 
+       export U4Recorder__FAKES_SKIP=1
+       echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+   fi 
 
    local opts="" 
    opts="$opts --opticks-mode $mode"   
@@ -651,21 +661,39 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        opts="$opts --debug-disable-sticks"
    fi 
 
-
-
    echo $msg opts : $opts 
    echo $msg trgs : $trgs 
-   echo $msg args : atrgs 
+   echo $msg args : $args 
 
-   #BASE=/tmp/$USER/opticks/$SCRIPT   
-   #BASE=.opticks/$SCRIPT   
-   #BASE=$base
-   BASE=/tmp/$USER/opticks/GEOM/$SCRIPT
 
-   case $(uname) in 
-      Linux) tds- $opts $trgs $args  ;;
-      Darwin) source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
-   esac
+   if [ "$(uname)" == "Linux" ]; then 
+
+       if [ -f "$TDS_LOG" ]; then 
+          echo $msg removing TDS_LOG : $TDS_LOG before run
+          rm "$TDS_LOG" 
+       fi 
+
+       tds- $opts $trgs $args 
+
+       if [ -f "$TDS_LOG" ]; then 
+          echo $msg copy TDS_LOG : $TDS_LOG into PREDICT_EVTDIR $PREDICT_EVTDIR
+          if [ -d "$PREDICT_EVTDIR" ]; then 
+              cp $TDS_LOG ${PREDICT_EVTDIR}/
+          else
+              echo $msg PREDICT_EVTDIR : $PREDICT_EVTDIR does not exist 
+          fi 
+       fi 
+
+   elif [ "$(uname)" == "Darwin" ]; then 
+       #BASE=/tmp/$USER/opticks/$SCRIPT   
+       #BASE=.opticks/$SCRIPT   
+       #BASE=$base
+       #BASE=/tmp/$USER/opticks/GEOM/$SCRIPT
+       #source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
+       echo $msg rsync now done by j/ntds/ntds.sh 
+   fi  
+
+
    env | grep =INFO
 }
 
