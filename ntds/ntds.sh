@@ -16,6 +16,9 @@ ntds.sh
     MODE=3 CHECK=few_point ./ntds.sh ana    
 
 
+    N=0 MODE=3 ./ntds.sh ana
+
+
 
 
 ntds.py

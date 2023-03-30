@@ -1518,6 +1518,248 @@ DONE : Grab and compare : chi2 looks OK : but need higher stats
 
 
 
+DONE : Higher stats run asserts from FastSim/SlowSim of reemission photon
+-------------------------------------------------------------------------------
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+    #jxf ; N=1 GEOM=V1J008 ntds2
+
+
+FastSim of reemission photon::
+
+    python: /data/blyth/junotop/opticks/u4/U4Recorder.cc:259: void U4Recorder::PreUserTrackingAction_Optical(const G4Track*): Assertion `resume_fSuspend == false' failed.
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffd29ac29e in U4Recorder::PreUserTrackingAction_Optical (this=0xb27110, track=0x24d94d520) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:259
+    #5  0x00007fffd29abaa6 in U4Recorder::PreUserTrackingAction (this=0xb27110, track=0x24d94d520) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:179
+    #6  0x00007fffcde089d6 in U4RecorderAnaMgr::PreUserTrackingAction (this=0xb4fe40, trk=0x24d94d520)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:33
+    #7  0x00007fffce81dd39 in MgrOfAnaElem::PreUserTrackingAction (this=0x7fffcea2cb00 <MgrOfAnaElem::instance()::s_mgr>, trk=0x24d94d520)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:60
+    #8  0x00007fffce12d163 in LSExpTrackingAction::PreUserTrackingAction (this=0x596b180, aTrack=0x24d94d520)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpTrackingAction.cc:37
+    #9  0x00007fffdba8e5f0 in G4TrackingManager::ProcessOneTrack(G4Track*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #10 0x00007fffdbcc5389 in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #11 0x00007fffce5e345d in G4SvcRunManager::SimulateEvent (this=0x923b50, i_event=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+
+
+
+    (gdb) f 5
+    #5  0x00007fffd29abaa6 in U4Recorder::PreUserTrackingAction (this=0xb27110, track=0x24d94d520) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:179
+    179	void U4Recorder::PreUserTrackingAction(const G4Track* track){  LOG(LEVEL) ; if(U4Track::IsOptical(track)) PreUserTrackingAction_Optical(track); }
+    (gdb) f 4
+    #4  0x00007fffd29ac29e in U4Recorder::PreUserTrackingAction_Optical (this=0xb27110, track=0x24d94d520) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:259
+    259	        assert( resume_fSuspend == false ); 
+
+    (gdb) list
+    254	        }
+    255	    }
+    256	    else if( ulabel.gen() > 0 )
+    257	    {
+    258	        // HMM: FastSim/SlowSim transitions for reemission photons will trip this assert 
+    259	        assert( resume_fSuspend == false ); 
+    260	        sev->rjoinPhoton(ulabel); 
+    261	    }
+    262	    LOG(LEVEL) << "]" ; 
+    263	}
+    (gdb) p ulabel
+    $1 = {static N = 4, gs = 0, ix = 90191, id = 90191, uc4 = {x = 2 '\002', y = 0 '\000', z = 0 '\000', w = 82 'R'}}
+    (gdb) 
+
+
+
+DONE : provide rjoin_resumePhoton method to handle this situation, that just does what resumePhoton 
+-----------------------------------------------------------------------------------------------------
+
+::
+
+     245     if(ulabel.gen() == 0)
+     246     {
+     247         if(resume_fSuspend == false)
+     248         {
+     249             sev->beginPhoton(ulabel);  // THIS ZEROS THE SLOT 
+     250         }
+     251         else  // resume_fSuspend:true happens following FastSim ModelTrigger:YES, DoIt
+     252         {
+     253             sev->resumePhoton(ulabel);
+     254         }
+     255     }
+     256     else if( ulabel.gen() > 0 )   // HMM: thats going to stick for reemission photons 
+     257     {
+     258         if(resume_fSuspend == false)
+     259         {
+     260             sev->rjoinPhoton(ulabel);
+     261         }
+     262         else   // resume_fSuspend:true happens following FastSim ModelTrigger:YES, DoIt
+     263         {
+     264             sev->rjoin_resumePhoton(ulabel);
+     265         }
+     266     }
+
+
+
+ONHOLD : Single photon rerun of the reemission photon undergoing FastSim/SlowSim transition
+----------------------------------------------------------------------------------------------
+
+* suspect will need to debug reemission rjoin in future, not important now 
+
+
+DONE : rerun with placeholder SEvt::rjoin_resumePhoton
+--------------------------------------------------------
+
+::
+
+    jxf ; N=0 GEOM=V0J008 ntds2
+    #jxf ; N=1 GEOM=V1J008 ntds2
+
+
+    U4Cerenkov_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 0
+    U4Scintillation_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 0
+    U4Hit_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 10000
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 29208 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    SEvt::save@2142: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2232:  dir /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    SEvt::save@2233: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 reldir ALL0 with_index Y index 0 this 0xb501e0
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 0
+                 VERSION :                                                                                                    0
+                    GEOM :                                                                                               V0J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-unnatural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V0J008_GEOMList
+    SEvt::gatherHit@1932:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@749: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           174.83400      174.83400    0.01751      
+    DetSimAlg                1           1842971.12500  1842971.12500304.99874    
+    Sum of junotoptask       1           1843146.12500  1843146.125000.00000      
+    #############################################################################
+
+
+::
+
+    #jxf ; N=0 GEOM=V0J008 ntds2
+    jxf ; N=1 GEOM=V1J008 ntds2
+
+
+
+    U4Hit_Debug::Save dir /tmp/u4debug/ntds2/000 num_record 189
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 189 hitCollection_muon 0 hitCollection_opticks 0
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    SEvt::save@2142: SGeo::DefaultDir $DefaultOutputDir
+    SEvt::save@2232:  dir /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000
+    SEvt::save@2233: SEvt::descOutputDir dir_ $DefaultOutputDir dir  /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 reldir ALL1 with_index Y index 0 this 0xb500c0
+
+                  SCRIPT :                                                                                                ntds2
+                  LAYOUT :                                                                                      POM 1 VERSION 1
+                 VERSION :                                                                                                    1
+                    GEOM :                                                                                               V1J008
+             COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 2 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-natural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks
+               DIRECTORY :                                                                                   /tmp/u4debug/ntds2
+        ${GEOM}_GEOMList :                                                                                      V1J008_GEOMList
+    SEvt::gatherHit@1932:  not yet implemented for hostside running : avoid this error by changing CompMask with SEventConfig 
+    SEvt::clear_@749: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           190.01700      190.01700    0.03603      
+    DetSimAlg                1           1779382.62500  1779382.625000.00000      
+    Sum of junotoptask       1           1779572.87500  1779572.875000.00000      
+    #############################################################################
+
+
+
+DONE : Compare high stats : chi2 matching when shooting Hama:0:1000
+----------------------------------------------------------------------
+
+::
+
+    N[blyth@localhost ~]$ du -h /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    583M	/tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000
+    N[blyth@localhost ~]$ du -h /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000
+    583M	/tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000
+
+::
+
+    CHECK=all_point ./ntds.sh ana  # all_point looks same  for N=0,1 : fake skipping working at 0th order
+
+
+    QCF qcf 
+    c2sum :    86.1359 c2n :   107.0000 c2per:     0.8050  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  86.14/107:0.805 (30)
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT SA                                                                              ' ' 0' ' 37047  36886' ' 0.3506' '     0      1']
+     [' 1' 'TO BT BT BT BT SD                                                                              ' ' 1' ' 29898  29846' ' 0.0453' '     6      3']
+     [' 2' 'TO BT BT BT BT BT SA                                                                           ' ' 2' ' 12157  12317' ' 1.0460' '  8819   9163']
+     [' 3' 'TO BT BT BT BT BT SR SA                                                                        ' ' 3' '  3641   3692' ' 0.3547' ' 10883  11145']
+     [' 4' 'TO BT BT BT BT BT SR SR SA                                                                     ' ' 4' '  2002   1910' ' 2.1636' ' 10886  10879']
+     [' 5' 'TO AB                                                                                          ' ' 5' '  1970   1959' ' 0.0308' '    46     23']
+     [' 6' 'TO BT BT AB                                                                                    ' ' 6' '   836    863' ' 0.4291' '   120     33']
+     [' 7' 'TO BT BT BT BT BT SR SR SR SA                                                                  ' ' 7' '   573    565' ' 0.0562' ' 14738  14725']
+     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT SA                                                            ' ' 8' '   454    406' ' 2.6791' '  1055   1052']
+     [' 9' 'TO BT BT BT BT BR BT BT BT BT BT BT AB                                                         ' ' 9' '   380    416' ' 1.6281' ' 12054   8203']
+     ['10' 'TO BT BT BT BT BR BT BT BT BT BT SD                                                            ' '10' '   350    327' ' 0.7814' '  5250   5255']
+     ['11' 'TO BT BT BT BT AB                                                                              ' '11' '   312    340' ' 1.2025' '   133    639']
+     ['12' 'TO BT BT BT BT BT SR BR SA                                                                     ' '12' '   320    318' ' 0.0063' ' 33580  33567']
+     ['13' 'TO BT BT BR BT BT BT SA                                                                        ' '13' '   307    306' ' 0.0016' '    10      0']
+     ['14' 'TO BT BT BT BT BR BT BT BT BT AB                                                               ' '14' '   306    271' ' 2.1231' '   510   4396']
+     ['15' 'TO BT BT BT BR BT BT BT BT SA                                                                  ' '15' '   280    269' ' 0.2204' '   209    197']
+
+
+
+TODO : investigate hitCollection counts difference
+------------------------------------------------------
+
+::
+
+    N=0 junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 29208 hitCollection_muon 0 hitCollection_opticks 0
+    N=1 junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 189 hitCollection_muon 0 hitCollection_opticks 0
+
+
+* Many input photons will be arriving at very close to the same time ? But thats true for both N=0 and N=1 ?
+* HMM: is there hit merging happening here ? 
+* Does hit merging work with opticksMode:2 ? 
+
+* DONE : incorporate those hit counts into opticks logging 
+* TODO : incorporate those hit counts into opticks metadata 
+* TODO : instrument junoSD_PMT_v2::ProcessHits to understand whats happening 
+
+
+::
+
+    optepsilon:ntds blyth$ jgr getMergerOpticks
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        PMTHitMerger*    getMergerOpticks() const ;  
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:1. sets m_pmthitmerger_opticks using  junoSD_PMT_v2::getMergerOpticks with result depending on m_opticksMode 
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:        m_pmthitmerger_opticks = m_jpmt->getMergerOpticks(); 
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:junoSD_PMT_v2::getMergerOpticks
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:PMTHitMerger* junoSD_PMT_v2::getMergerOpticks() const 
+    Binary file ./Simulation/DetSimV2/PMTSim/src/.junoSD_PMT_v2.cc.swp matches
+    epsilon:junosw blyth$ 
+
+
+
+
+TODO : add presentation plots and chi2 tables for these comparisons
+----------------------------------------------------------------------
+
+
+TODO : target NNVT and do comparisons 
+----------------------------------------
+
+* heavy 600M SEvt for 100k input photons, so complete Hama presentation plots before doing NNVT
+
+
+TODO : simtrace running insitu : how to do that ?
+-----------------------------------------------------
 
 
 
