@@ -1691,32 +1691,31 @@ DONE : Compare high stats : chi2 matching when shooting Hama:0:1000
 
     CHECK=all_point ./ntds.sh ana  # all_point looks same  for N=0,1 : fake skipping working at 0th order
 
-
     QCF qcf 
     c2sum :    86.1359 c2n :   107.0000 c2per:     0.8050  C2CUT:   30 
     c2sum/c2n:c2per(C2CUT)  86.14/107:0.805 (30)
 
     np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
-    [[' 0' 'TO BT BT BT BT SA                                                                              ' ' 0' ' 37047  36886' ' 0.3506' '     0      1']
-     [' 1' 'TO BT BT BT BT SD                                                                              ' ' 1' ' 29898  29846' ' 0.0453' '     6      3']
-     [' 2' 'TO BT BT BT BT BT SA                                                                           ' ' 2' ' 12157  12317' ' 1.0460' '  8819   9163']
-     [' 3' 'TO BT BT BT BT BT SR SA                                                                        ' ' 3' '  3641   3692' ' 0.3547' ' 10883  11145']
-     [' 4' 'TO BT BT BT BT BT SR SR SA                                                                     ' ' 4' '  2002   1910' ' 2.1636' ' 10886  10879']
-     [' 5' 'TO AB                                                                                          ' ' 5' '  1970   1959' ' 0.0308' '    46     23']
-     [' 6' 'TO BT BT AB                                                                                    ' ' 6' '   836    863' ' 0.4291' '   120     33']
-     [' 7' 'TO BT BT BT BT BT SR SR SR SA                                                                  ' ' 7' '   573    565' ' 0.0562' ' 14738  14725']
-     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT SA                                                            ' ' 8' '   454    406' ' 2.6791' '  1055   1052']
-     [' 9' 'TO BT BT BT BT BR BT BT BT BT BT BT AB                                                         ' ' 9' '   380    416' ' 1.6281' ' 12054   8203']
-     ['10' 'TO BT BT BT BT BR BT BT BT BT BT SD                                                            ' '10' '   350    327' ' 0.7814' '  5250   5255']
-     ['11' 'TO BT BT BT BT AB                                                                              ' '11' '   312    340' ' 1.2025' '   133    639']
-     ['12' 'TO BT BT BT BT BT SR BR SA                                                                     ' '12' '   320    318' ' 0.0063' ' 33580  33567']
-     ['13' 'TO BT BT BR BT BT BT SA                                                                        ' '13' '   307    306' ' 0.0016' '    10      0']
-     ['14' 'TO BT BT BT BT BR BT BT BT BT AB                                                               ' '14' '   306    271' ' 2.1231' '   510   4396']
-     ['15' 'TO BT BT BT BR BT BT BT BT SA                                                                  ' '15' '   280    269' ' 0.2204' '   209    197']
+    [[' 0' 'TO BT BT BT BT SA                          ' ' 0' ' 37047  36886' ' 0.3506' '     0      1']
+     [' 1' 'TO BT BT BT BT SD                          ' ' 1' ' 29898  29846' ' 0.0453' '     6      3']
+     [' 2' 'TO BT BT BT BT BT SA                       ' ' 2' ' 12157  12317' ' 1.0460' '  8819   9163']
+     [' 3' 'TO BT BT BT BT BT SR SA                    ' ' 3' '  3641   3692' ' 0.3547' ' 10883  11145']
+     [' 4' 'TO BT BT BT BT BT SR SR SA                 ' ' 4' '  2002   1910' ' 2.1636' ' 10886  10879']
+     [' 5' 'TO AB                                      ' ' 5' '  1970   1959' ' 0.0308' '    46     23']
+     [' 6' 'TO BT BT AB                                ' ' 6' '   836    863' ' 0.4291' '   120     33']
+     [' 7' 'TO BT BT BT BT BT SR SR SR SA              ' ' 7' '   573    565' ' 0.0562' ' 14738  14725']
+     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT SA        ' ' 8' '   454    406' ' 2.6791' '  1055   1052']
+     [' 9' 'TO BT BT BT BT BR BT BT BT BT BT BT AB     ' ' 9' '   380    416' ' 1.6281' ' 12054   8203']
+     ['10' 'TO BT BT BT BT BR BT BT BT BT BT SD        ' '10' '   350    327' ' 0.7814' '  5250   5255']
+     ['11' 'TO BT BT BT BT AB                          ' '11' '   312    340' ' 1.2025' '   133    639']
+     ['12' 'TO BT BT BT BT BT SR BR SA                 ' '12' '   320    318' ' 0.0063' ' 33580  33567']
+     ['13' 'TO BT BT BR BT BT BT SA                    ' '13' '   307    306' ' 0.0016' '    10      0']
+     ['14' 'TO BT BT BT BT BR BT BT BT BT AB           ' '14' '   306    271' ' 2.1231' '   510   4396']
+     ['15' 'TO BT BT BT BR BT BT BT BT SA              ' '15' '   280    269' ' 0.2204' '   209    197']
 
 
 
-TODO : investigate hitCollection counts difference
+WIP : investigate hitCollection counts difference
 ------------------------------------------------------
 
 ::
@@ -1730,9 +1729,7 @@ TODO : investigate hitCollection counts difference
 * Does hit merging work with opticksMode:2 ? 
 
 * DONE : incorporate those hit counts into opticks logging 
-* TODO : incorporate those hit counts into opticks metadata 
-* TODO : instrument junoSD_PMT_v2::ProcessHits to understand whats happening 
-
+* TODO : incorporate those hit counts into opticks metadata or SEvt
 
 ::
 
@@ -1742,8 +1739,270 @@ TODO : investigate hitCollection counts difference
     ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:        m_pmthitmerger_opticks = m_jpmt->getMergerOpticks(); 
     ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:junoSD_PMT_v2::getMergerOpticks
     ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:PMTHitMerger* junoSD_PMT_v2::getMergerOpticks() const 
-    Binary file ./Simulation/DetSimV2/PMTSim/src/.junoSD_PMT_v2.cc.swp matches
     epsilon:junosw blyth$ 
+
+
+
+DONE : basic instrumentation of junoSD_PMT_v2
+------------------------------------------------
+
+N=0::
+
+    junoSD_PMT_v2::EndOfEvent@1131:  m_opticksMode 2 gpu_simulation  NO  hitCollection 296 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1139: junoSD_PMT_v2_Debug::desc
+     ProcessHits_count     1486
+     ProcessHits_true       296    //  296/1486  ~0.2
+     ProcessHits_false     1190
+     SaveNormHit_count      296
+     SaveMuonHit_count        0
+
+N=1::
+
+    junoSD_PMT_v2::EndOfEvent@1131:  m_opticksMode 2 gpu_simulation  NO  hitCollection 2 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1139: junoSD_PMT_v2_Debug::desc
+     ProcessHits_count      523
+     ProcessHits_true         2     // 2/523  ~0.004 
+     ProcessHits_false      521
+     SaveNormHit_count        2
+     SaveMuonHit_count        0
+
+
+
+DONE : more detailed instrumentation and make pmt_log sensitive
+------------------------------------------------------------------
+
+Q: Why is ProcessHits_count 1486 for N=0 but only 523 for N=1 ? 
+A: Mostly it seems due to pmt_log not being sensitive. 
+   
+Q: Why is ProcessHits_true/ProcessHits_count fraction much lower for N=1 ? 
+A: After pmt_log sensitive are much closer. 
+
+N=0,1 edited together::
+
+    N=0 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 296 hitCollection_muon 0 hitCollection_opticks 0
+    N=1 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 2 hitCollection_muon 0 hitCollection_opticks 0
+     
+     ProcessHits_count      1486         ProcessHits_count       523
+     ProcessHits_true        296         ProcessHits_true          2
+     ProcessHits_false      1190         ProcessHits_false       521
+     SaveNormHit_count       296         SaveNormHit_count         2
+     SaveMuonHit_count         0         SaveMuonHit_count         0
+               EPH_UNSET       0                   EPH_UNSET       0
+                EPH_NDIS       0                    EPH_NDIS       0
+                EPH_NOPT       0                    EPH_NOPT       0
+               EPH_NEDEP    1153                   EPH_NEDEP     514
+              EPH_NBOUND       0                  EPH_NBOUND       0
+               EPH_NPROC       0                   EPH_NPROC       0
+             EPH_NDETECT       0                 EPH_NDETECT       0
+             EPH_NDECULL      37                 EPH_NDECULL       7
+              EPH_YMERGE       0                  EPH_YMERGE       0
+               EPH_YSAVE     296                   EPH_YSAVE       2
+
+N=0,1 edited together, now with HAMA pmt_log sensitive::
+
+    N=0 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 296 hitCollection_muon 0 hitCollection_opticks 0
+    N=1 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 266 hitCollection_muon 0 hitCollection_opticks 0
+
+    N=0                                 N=1
+     ProcessHits_count      1486         ProcessHits_count      1815
+     ProcessHits_true        296         ProcessHits_true        266
+     ProcessHits_false      1190         ProcessHits_false      1549
+     SaveNormHit_count       296         SaveNormHit_count       266
+     SaveMuonHit_count         0         SaveMuonHit_count         0
+               EPH_UNSET       0                   EPH_UNSET       0
+                EPH_NDIS       0                    EPH_NDIS       0
+                EPH_NOPT       0                    EPH_NOPT       0
+               EPH_NEDEP    1153                   EPH_NEDEP    1520   
+              EPH_NBOUND       0                  EPH_NBOUND       4
+               EPH_NPROC       0                   EPH_NPROC       0
+             EPH_NDETECT       0                 EPH_NDETECT       0
+             EPH_NDECULL      37                 EPH_NDECULL      25
+              EPH_YMERGE       0                  EPH_YMERGE       0
+               EPH_YSAVE     296                   EPH_YSAVE     266
+
+
+TODO : redo the above with higher stats    
+------------------------------------------
+
+* but first, stay with these stats and get the eph into the aux 
+
+
+TODO : Get ProcessHits info into SEvt
+-----------------------------------------
+
+Q: How to associate ProcessHits info like eph back into the opticks SEvt ? 
+A: HMM: could write eph into spho label char. YEH but better to have at step point level in aux ?    
+
+::
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 694  694[  0,  0,  0, 68]) eph EPH_YSAVE
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 693  693[  0,  0,  0, 65]) eph EPH_NEDEP
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 692  692[  0,  0,  0, 65]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 690  690[  0,  0,  0, 65]) eph EPH_NEDEP
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 689  689[  0,  0,  0, 65]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 687  687[  0,  0,  0, 68]) eph EPH_YSAVE
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 686  686[  0,  0,  0, 65]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
+
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 684  684[  0,  0,  0, 68]) eph EPH_YSAVE
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 683  683[  0,  0,  0, 68]) eph EPH_YSAVE
+    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 682  682[  0,  0,  0, 84]) eph EPH_NEDEP
+
+
+
+WIP : Maybe need pmt_log volume as sensitive with N=1, not just inner_log as now ?
+--------------------------------------------------------------------------------------
+
+jcv HamamatsuR12860PMTManager::
+
+     713 void
+     714 HamamatsuR12860PMTManager::helper_make_logical_volume()
+     715 {
+     716     if( m_UsePMTNaturalGeometry == false )
+     717     {
+     718         pmt_log = new G4LogicalVolume
+     719             ( pmt_solid,
+     720               GlassMat,
+     721               GetName()+"_log" );
+     722 
+     723         body_log= new G4LogicalVolume
+     724             ( body_solid,
+     725               GlassMat,
+     726               GetName()+"_body_log" );
+     727 
+     728         body_log->SetSensitiveDetector(m_detector);
+     729 
+     730         inner1_log= new G4LogicalVolume
+     731             ( inner1_solid,
+     732               PMT_Vacuum,
+     733               GetName()+"_inner1_log" );
+     734 
+     735         inner1_log->SetSensitiveDetector(m_detector);
+     736 
+     737         inner2_log= new G4LogicalVolume
+     738             ( inner2_solid,
+     739               PMT_Vacuum,
+     740               GetName()+"_inner2_log" );
+     741 
+     742         m_logical_pmt = pmt_log ;
+     743     }
+     744     else
+     745     {
+     746         pmt_log = new G4LogicalVolume
+     747             ( pmt_solid,
+     748               GlassMat,
+     749               GetName()+"_log" );
+     750 
+     751         inner_log= new G4LogicalVolume
+     752             ( inner_solid,
+     753               PMT_Vacuum,
+     754               GetName()+"_inner_log" );
+     755 
+     756         inner_log->SetSensitiveDetector(m_detector);
+     757         m_logical_pmt = pmt_log ;
+     758     }
+     759 
+     760 }
+
+
+Changed that to::
+
+     744     else
+     745     {
+     746         pmt_log = new G4LogicalVolume
+     747             ( pmt_solid,
+     748               GlassMat,
+     749               GetName()+"_log" );
+     750         pmt_log->SetSensitiveDetector(m_detector);
+     751         // G4SteppingManager::Stepping only calls Hit/ProcessHits 
+     752         // when the prestep point volume is sensitive so for 
+     753         // sensitive boundary need to set two volumes as sensitive 
+     754    
+     755         inner_log= new G4LogicalVolume
+     756             ( inner_solid,
+     757               PMT_Vacuum,
+     758               GetName()+"_inner_log" );
+     759    
+     760         inner_log->SetSensitiveDetector(m_detector);
+     761         m_logical_pmt = pmt_log ;
+     762     }
+
+
+
+  
+Review ProcessHits : prestep point volume needs to be sensitive for Hit/ProcessHits to run
+----------------------------------------------------------------------------------------------
+
+::
+
+   79 class junoSD_PMT_v2 : public G4VSensitiveDetector, public IToolForSD_PMT
+
+
+g4-cls G4VSensitiveDetector::
+
+    113   public: // with description
+    114       inline G4bool Hit(G4Step*aStep)
+    115       { 
+    116         G4TouchableHistory* ROhis = 0;
+    117         if(!isActive()) return false;
+    118         if(filter)
+    119         { if(!(filter->Accept(aStep))) return false; }
+    120         if(ROgeometry)
+    121         { if(!(ROgeometry->CheckROVolume(aStep,ROhis))) return false; }
+    122         return ProcessHits(aStep,ROhis);
+    123       }
+
+g4-cls G4SteppingManager::
+
+    116 G4StepStatus G4SteppingManager::Stepping()
+    ...
+    221 // Update 'TrackLength' and remeber the Step length of the current Step
+    222    fTrack->AddTrackLength(fStep->GetStepLength());
+    223    fPreviousStepSize = fStep->GetStepLength();
+    224    fStep->SetTrack(fTrack);
+    225 #ifdef G4VERBOSE
+    226                          // !!!!! Verbose
+    227 
+    228            if(verboseLevel>0) fVerbose->StepInfo();
+    229 #endif
+    230 // Send G4Step information to Hit/Dig if the volume is sensitive
+    231    fCurrentVolume = fStep->GetPreStepPoint()->GetPhysicalVolume();
+    232    StepControlFlag =  fStep->GetControlFlag();
+    233    if( fCurrentVolume != 0 && StepControlFlag != AvoidHitInvocation) {
+    234       fSensitive = fStep->GetPreStepPoint()->
+    235                                    GetSensitiveDetector();
+    236       if( fSensitive != 0 ) {
+    237         fSensitive->Hit(fStep);
+    238       }
+    239    }
+    240 
+    241 // User intervention process.
+    242    if( fUserSteppingAction != 0 ) {
+    243       fUserSteppingAction->UserSteppingAction(fStep);
+    244    }
+    245    G4UserSteppingAction* regionalAction
+    246     = fStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()
+    247       ->GetRegionalSteppingAction();
+    248    if( regionalAction ) regionalAction->UserSteppingAction(fStep);
+    249 
+    250 // Stepping process finish. Return the value of the StepStatus.
+    251    return fStepStatus;
+    252 
+    253 }
+
+
+
+
 
 
 
@@ -1761,5 +2020,6 @@ TODO : target NNVT and do comparisons
 TODO : simtrace running insitu : how to do that ?
 -----------------------------------------------------
 
+* moved simtrace_scan to U4Tree
 
 

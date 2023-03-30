@@ -499,6 +499,17 @@ ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01   Running with only Opticks doing the op
 ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
 ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11   Both Geant4 and Opticks 
 
+ntds2_cf()
+{
+   N=0 GEOM=V0J008 ntds2
+   [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
+
+   N=1 GEOM=V1J008 ntds2
+   [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
+
+   return 0
+}
+
 ntds_examples(){ cat << EON
 Examples::
 
@@ -602,16 +613,18 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
 
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
-   #IPHO=RainXZ1000_f8.npy
-   IPHO=RainXZ100k_f8.npy
+
+   IPHO=RainXZ1000_f8.npy
+   #IPHO=RainXZ100k_f8.npy
 
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO
        export MOI=Hama:0:1000
-       echo $msg IPHO defined : configuring input photons 
+       echo $msg IPHO defined : configuring OPTICKS_INPUT_PHOTON $OPTICKS_INPUT_PHOTON
        trgs="$trgs opticks"
    else
-       echo $msg IPHO not defined : not configuring input photons 
+       unset OPTICKS_INPUT_PHOTON
+       echo $msg IPHO not defined : not configuring OPTICKS_INPUT_PHOTON
        trgs="$trgs gun"
    fi 
 
