@@ -1504,17 +1504,17 @@ DONE : Grab and compare : chi2 looks OK : but need higher stats
     c2sum/c2n:c2per(C2CUT)   2.78/6:0.464 (30)
 
     np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
-    [[' 0' 'TO BT BT BT BT SA                                                                              ' ' 0' '   364    387' ' 0.7044' '     3      0']
-     [' 1' 'TO BT BT BT BT SD                                                                              ' ' 1' '   304    301' ' 0.0149' '     5      1']
-     [' 2' 'TO BT BT BT BT BT SA                                                                           ' ' 2' '   110    112' ' 0.0180' '   102     98']
-     [' 3' 'TO BT BT BT BT BT SR SA                                                                        ' ' 3' '    41     38' ' 0.1139' '   110    127']
-     [' 4' 'TO AB                                                                                          ' ' 4' '    26     21' ' 0.5319' '    17     22']
-     [' 5' 'TO BT BT BT BT BT SR SR SA                                                                     ' ' 5' '    21     14' ' 1.4000' '   142    114']
-     [' 6' 'TO BT BT AB                                                                                    ' ' 6' '    10      9' ' 0.0000' '    39     25']
-     [' 7' 'TO BT BT BT BT BT SR SR SR SA                                                                  ' ' 7' '     2      7' ' 0.0000' '   739    162']
-     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT BT AB                                                         ' ' 8' '     6      1' ' 0.0000' '   451    466']
-     [' 9' 'TO BT BT BT BT BT SR BR SA                                                                     ' ' 9' '     5      4' ' 0.0000' '   368    563']
-     ['10' 'TO BT BT BT BT AB                                                                              ' '10' '     5      4' ' 0.0000' '    41    244']
+    [[' 0' 'TO BT BT BT BT SA                         ' ' 0' '   364    387' ' 0.7044' '     3      0']
+     [' 1' 'TO BT BT BT BT SD                         ' ' 1' '   304    301' ' 0.0149' '     5      1']
+     [' 2' 'TO BT BT BT BT BT SA                      ' ' 2' '   110    112' ' 0.0180' '   102     98']
+     [' 3' 'TO BT BT BT BT BT SR SA                   ' ' 3' '    41     38' ' 0.1139' '   110    127']
+     [' 4' 'TO AB                                     ' ' 4' '    26     21' ' 0.5319' '    17     22']
+     [' 5' 'TO BT BT BT BT BT SR SR SA                ' ' 5' '    21     14' ' 1.4000' '   142    114']
+     [' 6' 'TO BT BT AB                               ' ' 6' '    10      9' ' 0.0000' '    39     25']
+     [' 7' 'TO BT BT BT BT BT SR SR SR SA             ' ' 7' '     2      7' ' 0.0000' '   739    162']
+     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT BT AB    ' ' 8' '     6      1' ' 0.0000' '   451    466']
+     [' 9' 'TO BT BT BT BT BT SR BR SA                ' ' 9' '     5      4' ' 0.0000' '   368    563']
+     ['10' 'TO BT BT BT BT AB                         ' '10' '     5      4' ' 0.0000' '    41    244']
 
 
 
@@ -1599,7 +1599,6 @@ DONE : provide rjoin_resumePhoton method to handle this situation, that just doe
      264             sev->rjoin_resumePhoton(ulabel);
      265         }
      266     }
-
 
 
 ONHOLD : Single photon rerun of the reemission photon undergoing FastSim/SlowSim transition
@@ -1729,7 +1728,7 @@ WIP : investigate hitCollection counts difference
 * Does hit merging work with opticksMode:2 ? 
 
 * DONE : incorporate those hit counts into opticks logging 
-* TODO : incorporate those hit counts into opticks metadata or SEvt
+* DONE : incorporate ProcessHits info into opticks SEvt
 
 ::
 
@@ -1740,7 +1739,6 @@ WIP : investigate hitCollection counts difference
     ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:junoSD_PMT_v2::getMergerOpticks
     ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:PMTHitMerger* junoSD_PMT_v2::getMergerOpticks() const 
     epsilon:junosw blyth$ 
-
 
 
 DONE : basic instrumentation of junoSD_PMT_v2
@@ -1767,7 +1765,6 @@ N=1::
      SaveMuonHit_count        0
 
 
-
 DONE : more detailed instrumentation and make pmt_log sensitive
 ------------------------------------------------------------------
 
@@ -1777,11 +1774,12 @@ A: Mostly it seems due to pmt_log not being sensitive.
 Q: Why is ProcessHits_true/ProcessHits_count fraction much lower for N=1 ? 
 A: After pmt_log sensitive are much closer. 
 
-N=0,1 edited together::
+N=0,1 edited together, first without HAMA pmt_log being sensitive in N=1::
 
     N=0 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 296 hitCollection_muon 0 hitCollection_opticks 0
     N=1 junoSD_PMT_v2::EndOfEvent@1186:  m_opticksMode 2 gpu_simulation  NO  hitCollection 2 hitCollection_muon 0 hitCollection_opticks 0
-     
+    
+    N=0                                 N=1 
      ProcessHits_count      1486         ProcessHits_count       523
      ProcessHits_true        296         ProcessHits_true          2
      ProcessHits_false      1190         ProcessHits_false       521
@@ -1809,58 +1807,75 @@ N=0,1 edited together, now with HAMA pmt_log sensitive::
      ProcessHits_false      1190         ProcessHits_false      1549
      SaveNormHit_count       296         SaveNormHit_count       266
      SaveMuonHit_count         0         SaveMuonHit_count         0
-               EPH_UNSET       0                   EPH_UNSET       0
-                EPH_NDIS       0                    EPH_NDIS       0
-                EPH_NOPT       0                    EPH_NOPT       0
-               EPH_NEDEP    1153                   EPH_NEDEP    1520   
-              EPH_NBOUND       0                  EPH_NBOUND       4
-               EPH_NPROC       0                   EPH_NPROC       0
-             EPH_NDETECT       0                 EPH_NDETECT       0
-             EPH_NDECULL      37                 EPH_NDECULL      25
-              EPH_YMERGE       0                  EPH_YMERGE       0
-               EPH_YSAVE     296                   EPH_YSAVE     266
+               EPH_UNSET       0    #0             EPH_UNSET       0
+                EPH_NDIS       0    #1              EPH_NDIS       0
+                EPH_NOPT       0    #2              EPH_NOPT       0
+               EPH_NEDEP    1153    #3             EPH_NEDEP    1520   
+              EPH_NBOUND       0    #4            EPH_NBOUND       4
+               EPH_NPROC       0    #5             EPH_NPROC       0
+             EPH_NDETECT       0    #6           EPH_NDETECT       0
+             EPH_NDECULL      37    #7           EPH_NDECULL      25
+              EPH_YMERGE       0    #8            EPH_YMERGE       0
+               EPH_YSAVE     296    #9             EPH_YSAVE     266
 
+
+DONE : include eph enum into current_aux, getting ProcessHits info into SEvt
+------------------------------------------------------------------------------
+
+Q: How to associate ProcessHits info like eph back into the opticks SEvt ? 
+A: Write eph into C4Pho G4Track info label, and from U4Recorder::UserSteppingAction  
+   copy that into current_aux for each step point ?    
+
+So can viz the photons with the different EPH enum values::
+
+    In [41]: a_eph = a.f.aux[:,:,2,2].copy().view(np.uint8).reshape(-1,32,4)
+    In [42]: b_eph = b.f.aux[:,:,2,2].copy().view(np.uint8).reshape(-1,32,4)
+
+    In [43]: np.c_[np.unique( a_eph[:,:,1], return_counts=True )]
+    Out[43]: 
+    array([[    0, 29826],
+           [    3,  1841],  # EPH_NEDEP
+           [    7,    37],  # EPH_NDECULL
+           [    9,   296]]) # EPH_YSAVE
+
+    In [44]: np.c_[np.unique( b_eph[:,:,1], return_counts=True )]
+    Out[44]: 
+    array([[    0, 29651],
+           [    3,  2054],  # EPH_NEDEP
+           [    4,     4],  # EPH_NBOUND 
+           [    7,    25],  # EPH_NDECULL
+           [    9,   266]]) # EPH_YSAVE
+
+
+TODO : make sense of a_eph b_eph values wrt photon histories, positions, spec etc..
+---------------------------------------------------------------------------------------
 
 TODO : redo the above with higher stats    
 ------------------------------------------
 
-* but first, stay with these stats and get the eph into the aux 
-
-
-TODO : Get ProcessHits info into SEvt
------------------------------------------
-
-Q: How to associate ProcessHits info like eph back into the opticks SEvt ? 
-A: HMM: could write eph into spho label char. YEH but better to have at step point level in aux ?    
+* but first, need to get logging controlled
 
 ::
 
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 694  694[  0,  0,  0, 68]) eph EPH_YSAVE
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 693  693[  0,  0,  0, 65]) eph EPH_NEDEP
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 692  692[  0,  0,  0, 65]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 690  690[  0,  0,  0, 65]) eph EPH_NEDEP
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 689  689[  0,  0,  0, 65]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 687  687[  0,  0,  0, 68]) eph EPH_YSAVE
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 686  686[  0,  0,  0, 65]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
-
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 684  684[  0,  0,  0, 68]) eph EPH_YSAVE
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 683  683[  0,  0,  0, 68]) eph EPH_YSAVE
     junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 682  682[  0,  0,  0, 84]) eph EPH_NEDEP
 
 
-
-WIP : Maybe need pmt_log volume as sensitive with N=1, not just inner_log as now ?
+DONE : Maybe need pmt_log volume as sensitive with N=1, not just inner_log as now ?
 --------------------------------------------------------------------------------------
 
 jcv HamamatsuR12860PMTManager::
@@ -1939,9 +1954,13 @@ Changed that to::
 
 
 
+TODO : Same fix for NNVT 
+---------------------------
+
   
-Review ProcessHits : prestep point volume needs to be sensitive for Hit/ProcessHits to run
-----------------------------------------------------------------------------------------------
+
+DONE : Review ProcessHits : prestep point volume needs to be sensitive for Hit/ProcessHits to run
+----------------------------------------------------------------------------------------------------
 
 ::
 
@@ -2002,14 +2021,8 @@ g4-cls G4SteppingManager::
 
 
 
-
-
-
-
-
 TODO : add presentation plots and chi2 tables for these comparisons
 ----------------------------------------------------------------------
-
 
 TODO : target NNVT and do comparisons 
 ----------------------------------------
