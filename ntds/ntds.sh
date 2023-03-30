@@ -80,7 +80,7 @@ elif [ "$arg" == "grab_geom" ]; then
    done  
 elif [ "$arg" == "ana" ]; then 
     pyscript=$DIR/ntds.py 
-elif [ "$arg"=!= "cf" ]; then
+elif [ "$arg" == "cf" ]; then
     pyscript=$DIR/ntds_cf.py 
 fi
 

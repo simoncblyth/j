@@ -602,7 +602,8 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
 
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
-   IPHO=RainXZ1000_f8.npy
+   #IPHO=RainXZ1000_f8.npy
+   IPHO=RainXZ100k_f8.npy
 
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO

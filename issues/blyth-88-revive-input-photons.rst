@@ -801,9 +801,8 @@ The custom status char is set by C4OpBoundaryProcess::PostStepDoIt
 
 
 
-Suspect FastSim not kicking in : organize TDS_LOG renaming, check log
------------------------------------------------------------------------
-
+FIXED : FastSim was not kicking in due to declProp usage bug : organize TDS_LOG renaming, check log
+---------------------------------------------------------------------------------------------------------
 
 ::
 
@@ -848,12 +847,8 @@ Succeed to switch it on::
     junotoptask:DetSimAlg.DsPhysConsOptical.ConstructProcess  INFO: check:  m_doFastSim             : 1
     DsPhysConsOptical::CreateCustomG4OpBoundaryProcess
 
-
-
-
-
-Now DEFER_FSTRACKINFO flag zero assert
-------------------------------------------
+FIXED : Now DEFER_FSTRACKINFO flag zero assert : Fixed by rejig of labelling 
+----------------------------------------------------------------------------------
 
 ::
 
@@ -1027,9 +1022,8 @@ Looks like label not there in non standalone running::
     157 #endif
 
 
-
-Rebuild issue
----------------
+FIXED : Rebuild issue, fixed by getting nuclear
+--------------------------------------------------
 
 ::
 
@@ -1049,10 +1043,9 @@ HUH clean build of GenTools still gives::
     make: *** [all] Error 2
     N[blyth@localhost GenTools]$ jt
 
-N[blyth@localhost junosw]$ cd build/Simulation/GenTools
-N[blyth@localhost GenTools]$ export VERBOSE=1
-N[blyth@localhost GenTools]$ make
-
+    N[blyth@localhost junosw]$ cd build/Simulation/GenTools
+    N[blyth@localhost GenTools]$ export VERBOSE=1
+    N[blyth@localhost GenTools]$ make
 
 /data/blyth/junotop/junosw/build/Simulation/GenTools/CMakeFiles/GenTools.dir/build.make::
 
@@ -1066,8 +1059,10 @@ Even after clean build this path is stuck in the craw.::
     N[blyth@localhost junosw]$ find build -type f -exec grep -H custom4/0.0.7 {} \;
 
 
+FIXED : build issue : lots of opticks macro leaking, they need to be private
+--------------------------------------------------------------------------------
 
-Left field, looks like PMTSIM_STANDALONE macro is leaking (should be private)::
+Left field, looks like PMTSIM_STANDALONE macro is leaking::
 
     keFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o -MF CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o.d -o CMakeFiles/PhysiSim.dir/src/OK_PHYSISIM_LOG.cc.o -c /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
     In file included from /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc:2:
@@ -1153,16 +1148,14 @@ Left field, looks like PMTSIM_STANDALONE macro is leaking (should be private)::
 
 
 
-
-
-Rejigged to U4Recorder track labelling : including bumped Custom4 to 0.0.8 
------------------------------------------------------------------------------
+DONE : Rejigged to U4Recorder track labelling : including bumped Custom4 to 0.0.8 
+-------------------------------------------------------------------------------------
 
 Still the same error, junoPMTOpticalModel needs attention : lots only done for PMTSIM_STANDALONE
 
 
-Track label status char "?DART" from junoPMTOpticalModel::DoIt only done for PMTSIM_STANDALONE
------------------------------------------------------------------------------------------------
+DONE : Track label status char "?DART" from junoPMTOpticalModel::DoIt only done for PMTSIM_STANDALONE
+--------------------------------------------------------------------------------------------------------
 
 ::
 
@@ -1206,8 +1199,8 @@ Track label status char "?DART" from junoPMTOpticalModel::DoIt only done for PMT
 
 
 
-try again with junoPMTOpticalModel enhancements
---------------------------------------------------
+DONE : try again with junoPMTOpticalModel enhancements
+----------------------------------------------------------
 
 ::
 
@@ -1278,9 +1271,8 @@ try again with junoPMTOpticalModel enhancements
 
 
 
-
-Compare Those
-----------------
+DONE : Compare Those
+----------------------
 
 ::
 
@@ -1468,9 +1460,6 @@ Encapsulate that into sevt.py::
 
 
 
-
-
-
 DONE : review U4Recorder::ClassifyFake skipping : is it going to work here, IT SHOULD
 ---------------------------------------------------------------------------------------
 
@@ -1489,42 +1478,46 @@ DONE : review U4Recorder::ClassifyFake skipping : is it going to work here, IT S
 +-----------------+---------------------------------------------------------------------------+
 
 
+DONE : Rerun with fake skipping enabled
+----------------------------------------
 
-TODO : Enable fake skipping
-------------------------------
+::
 
-u4/tests/U4SimulateTest.sh::
+    jxf ; N=0 GEOM=V0J008 ntds2
+    #jxf ; N=1 GEOM=V1J008 ntds2
 
-    133 if [ "$VERSION" == "0" ]; then
-    134 
-    135     # jPOM config
-    136     ModelTriggerSimple=0  # default 
-    137     ModelTriggerBuggy=1
-    138     ModelTrigger_IMPL=$ModelTriggerSimple
-    139     #ModelTrigger_IMPL=$ModelTriggerBuggy
-    140 
-    141     export junoPMTOpticalModel__PIDX_ENABLED=1
-    142     export junoPMTOpticalModel__ModelTrigger_IMPL=$ModelTrigger_IMPL
-    143     export G4FastSimulationManagerProcess_ENABLE=1  
-    144 
-    145     export U4Recorder__FAKES_SKIP=1
-    146 
 
-No equivalent in ntds yet.
 
-Default IMPL is ModelTriggerSimple::
+DONE : Grab and compare : chi2 looks OK : but need higher stats 
+------------------------------------------------------------------
 
-    124 const int junoPMTOpticalModel::ModelTrigger_IMPL = EGet::Get<int>("junoPMTOpticalModel__ModelTrigger_IMPL", 0 ) ;
-    125 
-    126 const char* junoPMTOpticalModel::ModelTrigger_IMPL_Name()
-    127 {
-    128     const char* IMPL = nullptr ;
-    129     switch(ModelTrigger_IMPL)
-    130     {
-    131        case 0: IMPL = _ModelTriggerSimple ; break ;
-    132        case 1: IMPL = _ModelTriggerBuggy  ; break ;
-    133     }
-    134     return IMPL ;
-    135 }
+::
+
+   jxn ; 
+   ./ntds.sh grab_evt 
+   ./ntds.sh ana
+
+::
+
+    QCF qcf 
+    c2sum :     2.7831 c2n :     6.0000 c2per:     0.4639  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)   2.78/6:0.464 (30)
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT SA                                                                              ' ' 0' '   364    387' ' 0.7044' '     3      0']
+     [' 1' 'TO BT BT BT BT SD                                                                              ' ' 1' '   304    301' ' 0.0149' '     5      1']
+     [' 2' 'TO BT BT BT BT BT SA                                                                           ' ' 2' '   110    112' ' 0.0180' '   102     98']
+     [' 3' 'TO BT BT BT BT BT SR SA                                                                        ' ' 3' '    41     38' ' 0.1139' '   110    127']
+     [' 4' 'TO AB                                                                                          ' ' 4' '    26     21' ' 0.5319' '    17     22']
+     [' 5' 'TO BT BT BT BT BT SR SR SA                                                                     ' ' 5' '    21     14' ' 1.4000' '   142    114']
+     [' 6' 'TO BT BT AB                                                                                    ' ' 6' '    10      9' ' 0.0000' '    39     25']
+     [' 7' 'TO BT BT BT BT BT SR SR SR SA                                                                  ' ' 7' '     2      7' ' 0.0000' '   739    162']
+     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT BT AB                                                         ' ' 8' '     6      1' ' 0.0000' '   451    466']
+     [' 9' 'TO BT BT BT BT BT SR BR SA                                                                     ' ' 9' '     5      4' ' 0.0000' '   368    563']
+     ['10' 'TO BT BT BT BT AB                                                                              ' '10' '     5      4' ' 0.0000' '    41    244']
+
+
+
+
 
 
