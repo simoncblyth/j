@@ -290,7 +290,7 @@ Mostly nowhere near the targetted PMT::
 
 Suspicious, all over the place in X. Close to origin in YZ::
 
-    In [3]: w_gpos
+    In [3]: w_gpos  ## MUST BE NUMPY BUG MIXING POS/DIR/POL ? 
     Out[3]: 
     array([[ -7339.035,     -0.286,     -0.839,      1.   ],
            [-13954.789,     -0.453,     -0.719,      1.   ],
@@ -301,6 +301,76 @@ Suspicious, all over the place in X. Close to origin in YZ::
            [  9436.662,      0.895,     -0.177,      1.   ],
            [ -4366.585,     -0.744,     -0.035,      1.   ],
            [ 16944.299,      0.218,     -0.188,      1.   ]])
+
+
+::
+
+    In [5]: np.c_[a.f.junoSD_PMT_v2_meta.lines, b.f.junoSD_PMT_v2_meta.lines]
+    Out[5]: 
+    array([['ProcessHits_count:15311', 'ProcessHits_count:18131'],
+           ['ProcessHits_true:2938', 'ProcessHits_true:2929'],
+           ['ProcessHits_false:12373', 'ProcessHits_false:15202'],
+           ['SaveNormHit_count:2938', 'SaveNormHit_count:2929'],
+           ['SaveMuonHit_count:0', 'SaveMuonHit_count:0'],
+           ['UNSET:0', 'UNSET:0'],
+           ['NDIS:0', 'NDIS:0'],
+           ['NOPT:0', 'NOPT:0'],
+           ['NEDEP:12080', 'NEDEP:14858'],     ## lots of edep 0. as have to make multiple vols sensitive
+           ['NBOUND:0', 'NBOUND:42'],          ## explained : bulk absorb in Pyrex 
+           ['NPROC:0', 'NPROC:0'],
+           ['NDETECT:0', 'NDETECT:0'],
+           ['NDECULL:293', 'NDECULL:302'],     ## similar values : but why so small ?
+           ['YMERGE:0', 'YMERGE:0'],           ## why no merging ?
+           ['YSAVE:2938', 'YSAVE:2929'],
+           ['opticksMode:2', 'opticksMode:2']], dtype='<U23')
+
+
+    In [10]: np.c_[np.unique(a.eph,return_counts=True)]
+    Out[10]: 
+    array([[     0, 297456],
+           [     3,  19327],   # EPH_NEDEP
+           [     7,    288],   # EPH_NDECULL
+           [     9,   2929]])  # EPH_YSAVE  : why not 2938 ?
+
+    In [11]: np.c_[np.unique(b.eph,return_counts=True)]
+    Out[11]: 
+    array([[     0, 296824],
+           [     3,  19909],   # WHY SO MANY ProcessHits calls with zero edep ? Because have to make multiple vol sensitive
+           [     4,     41],   # explained by AB:BULK_ABSORB in Pyrex happening for N=1 but not N=0
+           [     7,    302],   # slightly more EPH_NDECULL : not significant ? TODO: stats*10
+           [     9,   2924]])  # EPH_YSAVE : why not 2929 ? 
+ 
+
+    In [4]: np.c_[np.unique(b.qq[np.where(b.eph == 9)], return_counts=True)]
+    Out[4]: array([[   7, 2924]])   ## EPH_YSAVE all SD
+
+    In [5]: np.c_[np.unique(b.qq[np.where(b.eph == 7)], return_counts=True)]
+    Out[5]: array([[  7, 302]])     ## EPH_NDECULL all SD 
+
+    In [6]: np.c_[np.unique(b.qq[np.where(b.eph == 4)], return_counts=True)]
+    Out[6]: array([[ 4, 41]])       
+
+
+EPH_NBOUND all AB : makes sense, but why ProcessHits called ? And why none with N=0 ?
+that is from bulk absorption in the Pyrex, as shown by::
+
+::
+
+   CHECK=EPH_NBOUND_PYREX_AB ./ntds.sh ana
+    
+Doesnt happen with N=0 because simpler N=1 geometry means 
+pmt_log needs to be sensitive. 
+
+
+
+
+::
+
+    In [7]: fln[7]
+    Out[7]: 'SURFACE_DETECT'
+
+    In [8]: fln[4]
+    Out[8]: 'BULK_ABSORB'
 
 
 

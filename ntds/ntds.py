@@ -9,7 +9,7 @@ ntds.py : plotting two SEvt
     MODE=3 ./ntds.sh ana
 
 """
-import os, numpy as np
+import os, textwrap, numpy as np
 from opticks.ana.fold import Fold
 from opticks.ana.p import * 
 
@@ -46,47 +46,65 @@ if __name__ == '__main__':
         b = SEvt.Load("$BFOLD",symbol="b")
         t = b
         syms = ['a','b']
-        u4st = [ a, b ]
+        evts = [ a, b ]
     elif N == 0:
         a = SEvt.Load("$AFOLD",symbol="a")
         b = None
         syms = ['a']
-        u4st = [ a,]
+        evts = [ a,]
         t = a 
     elif N == 1:
         a = None
         b = SEvt.Load("$BFOLD",symbol="b")
         syms = ['b']
-        u4st = [ b,]
+        evts = [ b,]
         t = b 
     else:
         assert(0)
     pass
+    assert len(syms) == len(evts)
 
     if not a is None:print(repr(a))
     if not b is None:print(repr(b))
 
 
-    # B: SD that are EPH_NEDEP and hence not included into hit collection
-    w =  np.where(np.logical_and( b.eph == 3, b.qq == 7 ))
+    w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
 
-    w_gpos = np.ones( [len(w[0]), 4])  
-    w_gpos[:,:3] = b.f.record[w][:,:,0][:,:3] 
-    w_lpos = np.dot( w_gpos, b.f.sframe.w2m ) 
+    EXPL = "?"
 
-    
+    if CHECK == "EPH_NBOUND_PYREX_AB":
+        w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
+        EXPL = "N=1 needs pmt_log sensitive -> more ProcessHits:false Pyrex AB" 
+    elif CHECK == "EPH_NEDEP":
+        w_ = "np.where(t.eph == 3)"
+        EXPL = "Lots of edep 0. N=0,1 as multiple volumes have to be sensitive"
+    pass
+
+    exprs = r"""
+    np.c_[np.unique(t.eph,return_counts=True)]
+
+    np.c_[np.unique(t.qq[np.where(t.eph == 9)], return_counts=True)] # EPH_YSAVE all SD
+    np.c_[np.unique(t.qq[np.where(t.eph == 7)], return_counts=True)] # EPH_NDECULL all SD
+    np.c_[np.unique(t.qq[np.where(t.eph == 4)], return_counts=True)] # EPH_NBOUND a:none b:all AB
+    np.c_[np.unique(t.qq[np.where(t.eph == 3)], return_counts=True)] # EPH_NEDEP ?
+
+    """
+    exprs_ = list(filter(None,textwrap.dedent(exprs).split("\n")))
+
+    if 0:
+        w_gpos = np.ones( [len(w[0]), 4])  
+        w_gpos[:,:3] = b.f.record[w][:,0,:3]   ## selecting with w 2-tuple collapses one dimension 
+        w_lpos = np.dot( w_gpos, b.f.sframe.w2m ) 
+    pass
+
     z_gpos = np.ones( [b.n[0], 4])  
     z_gpos[:,:3] = b.f.record[0,:b.n[0],0][:,:3] 
     z_lpos = np.dot( z_gpos, b.f.sframe.w2m ) 
-
-
-
 
     num = 4 
     color = { 0:'r', 1:'g', 2:'b', 3:'c' } 
 
     ppos_ = {}
-
     for i in range(num): ppos_[i] = "None" ; 
 
     if CHECK == "all_point":
@@ -96,6 +114,14 @@ if __name__ == '__main__':
         ppos_[1] = "t.f.record[:,1,0,:3] # 1-position   "
         ppos_[2] = "t.f.record[:,2,0,:3] # 2-position   "
         ppos_[3] = "t.f.photon[:,0,:3]  # final photon position "
+    elif CHECK == "sd_point":
+        ppos_[0] = "t.f.record[np.where(t.qq == pcf.SD)][:,0,:3]  # SD position "    
+    elif CHECK == "EPH_NBOUND_PYREX_AB":
+        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
+    elif CHECK == "EPH_NEDEP":
+        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
+    elif CHECK == "w_point":
+        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
     pass 
 
     elem = []
@@ -104,20 +130,25 @@ if __name__ == '__main__':
     pass
 
     ppos = {'a':{}, 'b':{} }
+
     for i in range(len(syms)):
-        u4s = u4st[i]
+        evt = evts[i]
         sym = syms[i]
-        t = u4s 
+        t = evt
+
+        w = eval(w_)
         for j in range(num): 
             ppos[sym][j] = eval(ppos_[j])
         pass
+        for expr in exprs_: 
+            print("\n%s\n\n%r\n"%(expr, eval(expr)))
+        pass
     pass
 
-    assert len(syms) == len(u4st)
     for i in range(len(syms)):
-        u4s = u4st[i]
+        evt = evts[i]
         sym = syms[i]
-        label = "\n".join( ["sym:%s CHECK:%s" % (sym, CHECK)] + elem )
+        label = "\n".join( ["(%s) CHECK:%s : %s " % (sym, CHECK, EXPL)] + elem )
 
         if MODE == 0:
             print("not plotting as MODE 0  in environ")
@@ -148,7 +179,7 @@ if __name__ == '__main__':
                 if ppos[sym][i] is None: continue
                 gpos = np.ones( [len(ppos[sym][i]), 4 ])
                 gpos[:,:3] = ppos[sym][i] 
-                lpos = np.dot( gpos, u4s.f.sframe.w2m ) 
+                lpos = np.dot( gpos, evt.f.sframe.w2m ) 
                 upos = gpos if GLOBAL else lpos
 
                 if MODE == 2:

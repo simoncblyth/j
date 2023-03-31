@@ -33,12 +33,13 @@ EOU
 
 DIR=$(dirname $BASH_SOURCE)
 
-#defarg="ana"
-defarg="cf"
+defarg="ana"
+#defarg="cf"
 arg=${1:-$defarg}
 
-check=all_point
+#check=all_point
 #check=few_point
+check=sd_point
 
 evt=000
 export EVT=${EVT:-$evt}
