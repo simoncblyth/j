@@ -13,6 +13,12 @@ import os, numpy as np
 from opticks.ana.fold import Fold
 from opticks.ana.p import * 
 
+from opticks.ana.base import PhotonCodeFlags
+pcf = PhotonCodeFlags() 
+fln = pcf.fln
+fla = pcf.fla
+
+
 from opticks.sysrap.sevt import SEvt
 ## HMM: when using to plot results of ntds the U4SimulateTest name seems inappropriate 
 ## Its really a higher level wrapper for an Opticks SEvt folder of arrays (CHECK THIS)
@@ -59,6 +65,22 @@ if __name__ == '__main__':
 
     if not a is None:print(repr(a))
     if not b is None:print(repr(b))
+
+
+    # B: SD that are EPH_NEDEP and hence not included into hit collection
+    w =  np.where(np.logical_and( b.eph == 3, b.qq == 7 ))
+
+    w_gpos = np.ones( [len(w[0]), 4])  
+    w_gpos[:,:3] = b.f.record[w][:,:,0][:,:3] 
+    w_lpos = np.dot( w_gpos, b.f.sframe.w2m ) 
+
+    
+    z_gpos = np.ones( [b.n[0], 4])  
+    z_gpos[:,:3] = b.f.record[0,:b.n[0],0][:,:3] 
+    z_lpos = np.dot( z_gpos, b.f.sframe.w2m ) 
+
+
+
 
     num = 4 
     color = { 0:'r', 1:'g', 2:'b', 3:'c' } 
