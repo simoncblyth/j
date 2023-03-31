@@ -12,6 +12,7 @@ from opticks.ana.fold import Fold
 from opticks.ana.p import * 
 from opticks.ana.qcf import QU,QCF,QCFZero
 from opticks.sysrap.sevt import SEvt
+from opticks.ana.npmeta import NPMeta                                                                                                                
 
 if __name__ == '__main__':
     a = SEvt.Load("$AFOLD",symbol="a")
@@ -35,7 +36,8 @@ if __name__ == '__main__':
     #qcf0 = QCFZero(qcf)
     #print(qcf0)
 
-
+    out = NPMeta.Compare( a.f.junoSD_PMT_v2_meta , b.f.junoSD_PMT_v2_meta )   
+    print(out)
 
 
 

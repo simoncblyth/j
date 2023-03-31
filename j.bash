@@ -2565,14 +2565,6 @@ Opticks Integration Classes
 
 jgr _Opticks
 
-jcv junoSD_PMT_v2_Opticks
-    Invokes Opticks GPU optical photon simulation at the EndOfEvent
-    Hit handling, conversion 
-
-jcv LSExpDetectorConstruction_Opticks 
-    Setup function, geometry translation, collect efficiencies
- 
-
 
 JUNO Classes Particularly Pertinent to Opticks 
 --------------------------------------------------
@@ -2580,24 +2572,7 @@ JUNO Classes Particularly Pertinent to Opticks
 jcv tut_detsim
 jcv JUNODetSimModule
 
-
 jcv LSExpDetectorConstruction
-
-   top level that skips : setupCD_Sticks(cd_det);
-
-    +#ifdef WITH_G4OPTICKS
-    +#include "PLOG.hh"
-    +#endif
-
-
-    +#ifdef WITH_G4OPTICKS
-    +  LOG(fatal) << " OPTICKS DEBUGGING : SKIP LSExpDetectorConstruction::setupCD_Sticks " ; 
-    +#else
-       setupCD_Sticks(cd_det);
-    +#endif
-
-
-
 
 jcv StrutAcrylicConstruction
 
@@ -2623,231 +2598,14 @@ jcv AdditionAcrylicConstruction
 
    ~/opticks_refs/computing_csg_tree_boundaries_as_algebraic_expressions.pdf
     
-
-   1. solidAddition_down polycone z: 5.7,0,-140  rmax:450,450,200  : the outer 
-   2. uni_acrylic1 : subtract the acrylic sphere 
-   3. uni_acrylic2 : subtract ring tubs z:[ -4.8, -35.2] r:[120,208]
-   4. uni_acrylic3 : subtract 8 rods 
-
-
-   0110         double RmaxNodes3[3];
-    111         ZNodes3[0] = 5.7*mm; RminNodes3[0] = 0*mm; RmaxNodes3[0] = 450.*mm;
-    112         ZNodes3[1] = 0.0*mm; RminNodes3[1] = 0*mm; RmaxNodes3[1] = 450.*mm;
-    113         ZNodes3[2] = -140.0*mm; RminNodes3[2] = 0*mm; RmaxNodes3[2] = 200.*mm;
-    114 
-    115         solidAddition_down = new G4Polycone("solidAddition_down",0.0*deg,360.0*deg,3,ZNodes3,RminNodes3,RmaxNodes3);
-
-                       np.array( [ 5.7, 0.0, -140.0 ] )    # polycone z-levels 
-
-
-    116 
-    117     }
-    118 
-    119 
-    120 //    solidAddition_down = new G4Tubs("solidAddition_down",0,199.67*mm,140*mm,0.0*deg,360.0*deg);
-    121 //    solidAddition_down = new G4Cons("solidAddition_down",0.*mm,450.*mm,0.*mm,200*mm,70.*mm,0.*deg,360.*deg);
-    122     solidAddition_up = new G4Sphere("solidAddition_up",0*mm,17820*mm,0.0*deg,360.0*deg,0.0*deg,180.*deg);
-    123 
-    124     uni_acrylic1 = new G4SubtractionSolid("uni_acrylic1",solidAddition_down,solidAddition_up,0,G4ThreeVector(0*mm,0*mm,+17820.0*mm));
-              "polycone-sagitta"
-
-    125 
-    126     solidAddition_up1 = new G4Tubs("solidAddition_up1",120*mm,208*mm,15.2*mm,0.0*deg,360.0*deg);
-                                                              rmin   rmax    hz
-
-                         15.2*0.01 = 0.152 
-
-                          np.array([15.2, -15.2])-20.  = array([ -4.8, -35.2])    ring tubs z-range
-
-                          zz = np.array([15.2, -15.2])*1.01 - 20.0     = array([ -4.648, -35.352])
-
-
-
-                    cx ; ISEL=0,1,2,3 ZZ=5.7,0.0,-140.0,-4.8,-35.2,-4.648,-35.352 ./cxs.sh py 
-
-                    cx ; ISEL=0,1,2,3 ZZ=-4.648,-4.8,-35.2,-35.352 SZ=5.0 LOOK=-140.,0.,-20 ZOOM=5 ./cxs.sh py 
-
-
-
-
-             recall that a cylinder with non-zero rmin is implemented as a CSG subtraction
-
-                   fullcyl - smallcyl  = fullcyl intersect !smallcyl
-
-             subtracting that may give spurious coincidence edge 
-
-
-             BUT : X4Solid::convertTubs_cylinder  does expand the hz for subtracted by 0.01 
-
-
-             opticks has excess of :  SI BT BT BT BT AB
-
-
-
-
-    127     uni_acrylic2 = new G4SubtractionSolid("uni_acrylic2",uni_acrylic1,solidAddition_up1,0,G4ThreeVector(0.*mm,0.*mm,-20*mm));
-
-                    
-
-    128     solidAddition_up2 = new G4Tubs("solidAddition_up2",0,14*mm,52.5*mm,0.0*deg,360.0*deg);
-               
-                rod that keeps getting subtracted              rmin/rmax/zheight?
-
-                          np.array([52.5, -52.5]) - 87.5 = array([ -35., -140.])    rods z-range 
- 
-                   
-
-    129 
-    130     for(int i=0;i<8;i++)
-    131     {
-    132     uni_acrylic3 = new G4SubtractionSolid("uni_acrylic3",uni_acrylic2,solidAddition_up2,0,G4ThreeVector(164.*cos(i*pi/4)*mm,164.*sin(i*pi/4)*mm,-87.5));
-    133     uni_acrylic2 = uni_acrylic3;
-    134 
-    135     }
-
-
-
-    epsilon:offline blyth$ jgl uni1
-    ./Simulation/DetSimV2/CentralDetector/include/XJfixtureConstruction.hh
-    ./Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
-    ./Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
-
 jcv FastenerAcrylicConstruction
 
-    179     // Update new acrylic nodes
-    180     // YuMiao
-    181     //
-    182 
-    183 
-    184     G4Tubs *IonRing = new G4Tubs("IonRing",123*mm,206.2*mm,7*mm,0.0*deg,360.0*deg);
-
-                   // np.array( [123.0, 206.2 ] )
-                   // np.array([7, -7]) 
-                   //     np.array([7, -7])  - 20  = np.array([-13, -27])
-
-
-    185     G4Tubs* screw = new G4Tubs("screw",0,13*mm,50.*mm,0.0*deg,360.0*deg);
-
-                   // np.array(  [0, 13.] )
-                   // np.array(  [50, -50] )
-
-    186     uni_Addition = IonRing;
-    187     for(int i=0;i<8;i++)
-    188     {
-    189         G4UnionSolid* uni1 = new G4UnionSolid("uni1",uni_Addition, screw, 0, G4ThreeVector(164.*cos(i*pi/4)*mm, 164.*sin(i*pi/4)*mm,-65.0*mm));
-    190         uni_Addition = uni1;
-
-                 //  np.array(  [50, -50] ) - 65  = np.array([ -15, -115])
-
-                 // observe  np.array( [ -35., -135. ] )    =    np.array([ -15, -115]) - 20.   
-
-
-                 // LOOK=-164,0,-85 ZOOM=4 ISEL=0,1,2 ./cxs.sh 
-
-
-    191     }
-    192 
-    193 
-    194       logicFasteners = new G4LogicalVolume(
-    195       uni_Addition,//solidFasteners, 
-    196       Steel,
-    197       "lFasteners",
-    198       0,
-    199       0,
-    200       0);
-    201 
-
-
-
-
-
 jcv NNVTMCPPMTManager
-
-    243 void
-    244 NNVTMCPPMTManager::helper_make_solid()
-    245 {   
-    246     pmt_solid = m_pmtsolid_maker->GetSolid(GetName() + "_pmt_solid", 1E-3*mm);
-    247     
-    248     double inner_delta = -5*mm ;
-    249     if(!m_enable_optical_model)
-    250     {
-    251         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid");
-    252     }
-    253     else
-    254     {
-    255         // For the new PMT optical model. In fact, no impact on PMT geometry, just for safety
-    256         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
-    257     }
-    258     inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
-    259     
-
-    297 void
-    298 NNVTMCPPMTManager::helper_make_logical_volume()
-    299 {
-    /// thickness: 0.
-    300     body_log= new G4LogicalVolume
-    301         ( body_solid,
-    302           GlassMat,
-    303           GetName()+"_body_log" );
-    304 
-    /// thickness: 1E-3*mm
-    305     m_logical_pmt = new G4LogicalVolume
-    306         ( pmt_solid,
-    307           GlassMat,
-    308           GetName()+"_log" );
-    309 
-    310     body_log->SetSensitiveDetector(m_detector);
-    311 
-    312     inner1_log= new G4LogicalVolume
-    313         ( inner1_solid,
-    314           PMT_Vacuum,
-    315           GetName()+"_inner1_log" );
-    316     inner1_log->SetSensitiveDetector(m_detector);
-    317 
-    318     inner2_log= new G4LogicalVolume
-    319         ( inner2_solid,
-    320           PMT_Vacuum,
-    321           GetName()+"_inner2_log" );
-    322 
-
-
-
-    thickness  
-
-    * pmt_solid  : 1E-3*mm      // < this is asking for trouble 
-    * body_solid : 0. 
-
 
 jcv NNVT_MCPPMT_PMTSolid
     my ascii-art diagram explaining the CSG modelling of the NNVT PMT Solid
 
-    G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
-    NG4VSolid* NVT_MCPPMT_PMTSolid::GetSolid(G4String solidname, double thickness, char mode) 
-
-
 jcv HamamatsuR12860PMTManager
-
-    239 void
-    240 HamamatsuR12860PMTManager::helper_make_solid()
-    241 {
-    242     pmt_solid = m_pmtsolid_maker->GetSolid(GetName() + "_pmt_solid", 1E-3*mm);
-    243     double inner_delta =  -5*mm ;
-    244     if(!m_enable_optical_model)
-    245     {
-    246         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid");
-    247     }
-    248     else
-    249     {
-    250         // For the new PMT optical model. In fact, no impact on PMT geometry, just for safety
-    251         body_solid = m_pmtsolid_maker->GetSolid(GetName() + "_body_solid", inner_delta+1E-3*mm);
-    252     }
-    253 
-    254     inner_solid= m_pmtsolid_maker->GetSolid(GetName()+"_inner_solid", inner_delta );
-    255 
-
-    * again thickness delta of 1E-3*mm 
-
-
 
 jcv Hamamatsu_R12860_PMTSolid
    
@@ -2865,6 +2623,16 @@ jcv JUNOApplication
 jcv JUNODetSimModule
 
 
+jcv junoSD_PMT_v2_Opticks
+    Invokes Opticks GPU optical photon simulation at the EndOfEvent
+    Hit handling, conversion 
+
+jcv LSExpDetectorConstruction_Opticks 
+    Setup function, geometry translation, collect efficiencies
+ 
+jcv junoSD_PMT_v2
+
+jcv junoSD_PMT_v2_Debug 
 
 
 EOC

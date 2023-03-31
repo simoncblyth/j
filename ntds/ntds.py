@@ -67,8 +67,8 @@ if __name__ == '__main__':
     if not a is None:print(repr(a))
     if not b is None:print(repr(b))
 
-
     w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
+
 
     EXPL = "?"
 
@@ -78,10 +78,19 @@ if __name__ == '__main__':
     elif CHECK == "EPH_NEDEP":
         w_ = "np.where(t.eph == 3)"
         EXPL = "Lots of edep 0. N=0,1 as multiple volumes have to be sensitive"
+    elif CHECK == "NOSC":
+        w_ = "np.where(t.nosc)[0]" 
+        EXPL = "Photons without scatter SC, should stay in plane "
     pass
 
     exprs = r"""
-    np.c_[np.unique(t.eph,return_counts=True)]
+    np.c_[np.unique(t.eph,return_counts=True)]   # point level ProcessHits EPH enum 
+    np.c_[np.unique(t.ep,return_counts=True)]    # photon level ProcessHits EPH enum 
+    np.unique(t.ep,return_counts=True)[1].sum()  # t.ep count total 
+
+
+    len(t.ep[t.ep >= 7])               # 7:EPH_NDECULL, 8:EPH_YMERGE, 9:EPH_YSAVE
+    len(np.where(t.qq == pcf.SD)[0])   # photons with SD in history 
 
     np.c_[np.unique(t.qq[np.where(t.eph == 9)], return_counts=True)] # EPH_YSAVE all SD
     np.c_[np.unique(t.qq[np.where(t.eph == 7)], return_counts=True)] # EPH_NDECULL all SD
@@ -116,86 +125,115 @@ if __name__ == '__main__':
         ppos_[3] = "t.f.photon[:,0,:3]  # final photon position "
     elif CHECK == "sd_point":
         ppos_[0] = "t.f.record[np.where(t.qq == pcf.SD)][:,0,:3]  # SD position "    
-    elif CHECK == "EPH_NBOUND_PYREX_AB":
+    elif CHECK in ["EPH_NBOUND_PYREX_AB", "EPH_NEDEP", "w_point"]:
         ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
-    elif CHECK == "EPH_NEDEP":
-        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
-    elif CHECK == "w_point":
-        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
+    elif CHECK in ["NOSC"]:
+        ppos_[0] = "t.f.record[np.where(t.nosc)][:,:,0,:3].reshape(-1,3) "
+    elif CHECK in ["NOSCAB"]:
+        ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3) "
     pass 
 
-    elem = []
-    for j in range(num): 
-        if not ppos_[j] == "None": elem.append("%s:%s" % (color[j],ppos_[j]))
-    pass
 
     ppos = {'a':{}, 'b':{} }
+    uppos = {'a':{}, 'b':{} }
 
     for i in range(len(syms)):
-        evt = evts[i]
         sym = syms[i]
-        t = evt
-
         w = eval(w_)
         for j in range(num): 
-            ppos[sym][j] = eval(ppos_[j])
-        pass
-        for expr in exprs_: 
-            print("\n%s\n\n%r\n"%(expr, eval(expr)))
+            expr = ppos_[j]
+            if expr == "None": continue
+            uexpr = expr.replace("t.","%s." % sym)
+            vexpr = eval(uexpr)
+
+            ppos[sym][j] = vexpr
+            uppos[sym][j] = uexpr
         pass
     pass
 
+    dump_expr = True
+    if dump_expr:
+        for expr in exprs_: 
+            for i in range(len(syms)):
+                sym = syms[i]
+                uexpr = expr.replace("t.","%s." % sym)
+                vexpr = eval(uexpr)
+                isint = np.issubdtype(type(vexpr), np.integer)  
+                fmt = "%(vexpr)9d : %(uexpr)s " if isint else "\n%(uexpr)s\n\n%(vexpr)r\n"
+                print(fmt % locals() )
+            pass
+        pass
+    pass
+
+    print("[i syms loop syms:%s " % str(syms) )
     for i in range(len(syms)):
-        evt = evts[i]
         sym = syms[i]
+        evt = evts[i]
+
+        elem = []
+        for j in range(num): 
+            expr = ppos_[j]
+            if expr == "None": continue
+            elem.append("%s:%s" % (color[j],uppos[sym][j]))
+        pass
+
         label = "\n".join( ["(%s) CHECK:%s : %s " % (sym, CHECK, EXPL)] + elem )
 
-        if MODE == 0:
-            print("not plotting as MODE 0  in environ")
-        elif MODE in [2,3]:
+        if MODE in [0,1]:
+            print("not plotting as MODE %d in environ" % MODE )
+        elif MODE == 2:            
+            pl = mpplt_plotter(label=label)
+            fig, axs = pl
+            assert len(axs) == 1
+            ax = axs[0]
+        elif MODE == 3:
+            pl = pvplt_plotter(label)
+            os.environ["EYE"] = "0,100,165"
+            os.environ["LOOK"] = "0,0,165"
+            pvplt_viewpoint(pl)
+        pass
 
-            if MODE == 2:            
-                pl = mpplt_plotter(label=label)
-                fig, axs = pl
-                assert len(axs) == 1
-                ax = axs[0]
-            elif MODE == 3:
-                pl = pvplt_plotter(label)
-                os.environ["EYE"] = "0,100,165"
-                os.environ["LOOK"] = "0,0,165"
-                pvplt_viewpoint(pl)
-            pass
-
-            if not GLOBAL:
-                if MODE == 2:
-                    ax.set_xlim(*lim[H]) 
-                    ax.set_ylim(*lim[V])
-                elif MODE == 3:
-                    pass
-                pass
-            pass
-
-            for i in range(num): 
-                if ppos[sym][i] is None: continue
-                gpos = np.ones( [len(ppos[sym][i]), 4 ])
-                gpos[:,:3] = ppos[sym][i] 
-                lpos = np.dot( gpos, evt.f.sframe.w2m ) 
-                upos = gpos if GLOBAL else lpos
-
-                if MODE == 2:
-                    ax.scatter( upos[:,H], upos[:,V], s=1, c=color[i] )
-                elif MODE == 3:
-                    pl.add_points(upos[:,:3], color=color[i] )
-                pass
-            pass
-
+        if not GLOBAL:
             if MODE == 2:
-                fig.show()
+                ax.set_xlim(*lim[H]) 
+                ax.set_ylim(*lim[V])
             elif MODE == 3:
-                pl.show()
+                pass
             pass
         pass
+
+        print("[j qwn loop num:%d " % num )
+        for j in range(num): 
+            expr = ppos_[j]
+            if expr == "None": continue
+
+            vexpr = ppos[sym][j]
+            gpos = np.ones( [len(vexpr), 4 ] )
+            gpos[:,:3] = vexpr
+            lpos = np.dot( gpos, evt.f.sframe.w2m ) 
+            upos = gpos if GLOBAL else lpos
+
+            if MODE in [0,1]:
+                print("expr  : %s " % expr )
+                print("vexpr :\n%s " % vexpr )
+                print("gpos  :\n%s " % gpos )
+                print("lpos  :\n%s " % lpos )
+                print("upos  :\n%s " % upos )
+            elif MODE == 2:
+                ax.scatter( upos[:,H], upos[:,V], s=1, c=color[j] )
+            elif MODE == 3:
+                pl.add_points(upos[:,:3], color=color[i] )
+            pass
+        pass
+        print("]j qwn num loop num:%d " % num )
+
+        if MODE == 2:
+            fig.show()
+        elif MODE == 3:
+            pl.show()
+        pass
     pass
+    print("]i syms loop syms:%s " % str(syms) )
 pass
 
 

@@ -325,6 +325,9 @@ Suspicious, all over the place in X. Close to origin in YZ::
            ['opticksMode:2', 'opticksMode:2']], dtype='<U23')
 
 
+
+::
+
     In [10]: np.c_[np.unique(a.eph,return_counts=True)]
     Out[10]: 
     array([[     0, 297456],
@@ -358,11 +361,7 @@ that is from bulk absorption in the Pyrex, as shown by::
 
    CHECK=EPH_NBOUND_PYREX_AB ./ntds.sh ana
     
-Doesnt happen with N=0 because simpler N=1 geometry means 
-pmt_log needs to be sensitive. 
-
-
-
+Doesnt happen with N=0 because simpler N=1 geometry means pmt_log needs to be sensitive. 
 
 ::
 
@@ -374,33 +373,217 @@ pmt_log needs to be sensitive.
 
 
 
+DONE : Expect total SD should be NDECULL+YSAVE : but it is not quite so ? It is when use np.max(eph, axis=1)
+--------------------------------------------------------------------------------------------------------------
 
-TODO : make sense of a_eph b_eph values wrt photon histories, positions, spec etc..
----------------------------------------------------------------------------------------
+Probably because ProcessHits will run more than once for some photons 
+but there is always only 0 or 1 SD for a photon. 
 
-TODO : redo the above with higher stats    
-------------------------------------------
+Check this with totaling in label->uc4.z::
 
-* but first, need to get logging controlled
+    #ifdef WITH_G4CXOPTICKS
+    G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
+    {
+        G4bool processHits = ProcessHits_(step, nullptr) ; 
+        dbg.add( eph, processHits ); 
+
+        C4Pho* label = C4TrackInfo<C4Pho>::GetRef(step->GetTrack());
+        assert(label); 
+
+        label->uc4.y = eph ; 
+        label->uc4.z += 1  ; 
+        //label->set_eph(eph) ;  // switch to this when bump Custom4 to 0.0.9
+
+        // ProcessHits may run 0,1,>1 times per photon, 
+        // so its non-trivial to match eph counts with per photon SD flag counts.
+        //
+        // When ProcessHits runs more than once for a photon it looks like the 
+        // above will stomp, but that is not the full story as the label values 
+        // will get copied into the aux for the step by U4Recorder before stomping happens. 
+        //
+
+        //LOG_IF(info, (label->id % 100) == 0) << " label " << ( label ? label->desc() : "-" ) << " eph " << EPH::Name(eph) ; 
+        return processHits ; 
+    }
+    #endif
+
 
 ::
 
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 694  694[  0,  0,  0, 68]) eph EPH_YSAVE
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 693  693[  0,  0,  0, 65]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 692  692[  0,  0,  0, 65]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 691  691[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 690  690[  0,  0,  0, 65]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 689  689[  0,  0,  0, 65]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 688  688[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 687  687[  0,  0,  0, 68]) eph EPH_YSAVE
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 686  686[  0,  0,  0, 65]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 685  685[  0,  0,  0, 84]) eph EPH_NEDEP
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 684  684[  0,  0,  0, 68]) eph EPH_YSAVE
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 683  683[  0,  0,  0, 68]) eph EPH_YSAVE
-    junoSD_PMT_v2::ProcessHits@364:  label C4Pho (gs:ix:id:gn   0 682  682[  0,  0,  0, 84]) eph EPH_NEDEP
+    In [3]: np.count_nonzero(a.eph)    ## average 2.24 ProcessHits calls per photon
+    Out[3]: 22544
+
+    In [4]: np.count_nonzero(b.eph)    ## average 2.31 ProcessHists calls per photon
+    Out[4]: 23176
+
+    In [6]: a.f.record.shape
+    Out[6]: (10000, 32, 4, 4)
+
+    In [7]: a.eph.shape
+    Out[7]: (10000, 32)
+
+    In [10]: np.max(a.eph, axis=1).shape
+    Out[10]: (10000,)
+
+    In [12]: a_ep = np.max(a.eph, axis=1)
+
+    In [13]: np.count_nonzero(a_ep)   ## ProcessHits being called for almost all 
+    Out[13]: 9590
+
+
+    In [21]: a.q[a_ep==0]  ## photons without ProcessHits calls cannot enter PMT ? TODO: plot these
+    Out[21]: 
+    array([[b'TO BT BT BT BR BT BT BT DR BT DR BT SA     '],
+           [b'TO BT BT BT BR BT BT BT DR BT DR BT BT SA  '],
+           [b'TO BT BT BT BR BT BT BT SA                 '],
+           [b'TO BT BT BT BR BT BT BT SA                 '],
+           [b'TO BT BR BT BT SA                          '],
+           [b'TO BT BT BT BR BT BT BT BT SA              '],
+           [b'TO BT BT BR BT BT BT SA                    '],
+           [b'TO BT BT BT BR BT BT BT BT SA              '],
+           [b'TO BT BR BT BT SA                          '],
+           [b'TO BT BT BT BR BT BT BT BT SA              '],
+           [b'TO AB                                      '],
+           [b'TO BT BT BR BT BT BT SA                    '],
+           [b'TO BT BT BT BR BT BT BT BT SA              '],
+           [b'TO BT BR BT BT SA                          '],
+
+
+
+
+    In [14]: b_ep = np.max(b.eph, axis=1)
+
+    In [15]: np.count_nonzero(b_ep)
+    Out[15]: 9686
+
+
+    In [16]: np.c_[np.unique(a_ep, return_counts=True)]
+    Out[16]: 
+    array([[   0,  410],
+           [   3, 6373],
+           [   7,  288],
+           [   9, 2929]])
+
+    In [19]: 2929+288
+    Out[19]: 3217
+
+    In [17]: np.c_[np.unique(b_ep, return_counts=True)]
+    Out[17]: 
+    array([[   0,  314],
+           [   3, 6419],
+           [   4,   41],
+           [   7,  302],
+           [   9, 2924]])  
+
+    In [18]: 2924 + 302
+    Out[18]: 3226
+
+
+::
+
+    In [10]: np.where(a.qq == 7)[0].shape
+    Out[10]: (3217,)
+
+    In [11]: 2938 + 293
+    Out[11]: 3231       ## 14 fewer SD when look at straight eph 
+
+    ## matches when look at np.max(a.eph, axis=1)
+
+
+    In [3]: np.where(b.qq == 7)[0].shape 
+    Out[3]: (3226,)
+
+    ## matches when look at np.max(b.eph, axis=1)
+
+
+    In [9]: 2929+302
+    Out[9]: 3231        ## 5 fewer SD   (3231 matches above by chance ?)
+
+
+
+
+DONE : Photon level a.ep counts match SD counts
+-------------------------------------------------
+
+::
+
+   jxn
+   ./ntds.sh ana
+
+    np.c_[np.unique(a.ep,return_counts=True)]    # photon level ProcessHits EPH enum 
+
+    array(
+      [[    0,  4150],
+       [    3, 63634],
+       [    4,     1],
+       [    7,  3104],
+       [    9, 29111]])
+
+    np.c_[np.unique(b.ep,return_counts=True)]    # photon level ProcessHits EPH enum 
+
+    array(
+      [[    0,  3456],
+       [    3, 63585],
+       [    4,   414],
+       [    7,  3122],
+       [    9, 29423]])
+
+    100000 : np.unique(a.ep,return_counts=True)[1].sum()  # a.ep count total  
+    100000 : np.unique(b.ep,return_counts=True)[1].sum()  # b.ep count total  
+
+     32215 : len(a.ep[a.ep >= 7])                         # 7:EPH_NDECULL, 8:EPH_YMERGE, 9:EPH_YSAVE 
+     32215 : len(np.where(a.qq == pcf.SD)[0])             # photons with SD in history  
+
+     32545 : len(b.ep[b.ep >= 7])                         # 7:EPH_NDECULL, 8:EPH_YMERGE, 9:EPH_YSAVE 
+     32545 : len(np.where(b.qq == pcf.SD)[0])             # photons with SD in history  
+
+
+
+
+DONE : High stats (100k) chi2 onto Hama:0:1000 : MATCHING 
+------------------------------------------------------------
+
+::
+
+    QCF qcf 
+    c2sum :   108.5824 c2n :   110.0000 c2per:     0.9871  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  108.58/110:0.987 (30)
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT SA                                        ' ' 0' ' 37047  36670' ' 1.9280' '     0      4']
+     [' 1' 'TO BT BT BT BT SD                                        ' ' 1' ' 29898  30192' ' 1.4384' '     6      1']
+     [' 2' 'TO BT BT BT BT BT SA                                     ' ' 2' ' 12157  12109' ' 0.0949' '  8819   9048']
+     [' 3' 'TO BT BT BT BT BT SR SA                                  ' ' 3' '  3641   3730' ' 1.0746' ' 10883  10964']
+     [' 4' 'TO BT BT BT BT BT SR SR SA                               ' ' 4' '  2002   1952' ' 0.6323' ' 10886  10892']
+     [' 5' 'TO AB                                                    ' ' 5' '  1970   1947' ' 0.1351' '    46    145']
+     [' 6' 'TO BT BT AB                                              ' ' 6' '   836    860' ' 0.3396' '   120    150']
+     [' 7' 'TO BT BT BT BT BT SR SR SR SA                            ' ' 7' '   573    581' ' 0.0555' ' 14738  14772']
+     [' 8' 'TO BT BT BT BT BR BT BT BT BT BT SA                      ' ' 8' '   454    415' ' 1.7503' '  1055   1033']
+     [' 9' 'TO BT BT BT BT BR BT BT BT BT BT BT AB                   ' ' 9' '   380    402' ' 0.6189' ' 12054  10783']
+     ['10' 'TO BT BT BT BT AB                                        ' '10' '   312    352' ' 2.4096' '   133     28']
+     ['11' 'TO BT BT BT BT BR BT BT BT BT BT SD                      ' '11' '   350    327' ' 0.7814' '  5250   5259']
+     ['12' 'TO BT BT BT BT BT SR BR SA                               ' '12' '   320    302' ' 0.5209' ' 33580  33624']
+     ['13' 'TO BT BT BR BT BT BT SA                                  ' '13' '   307    267' ' 2.7875' '    10      7']
+     ['14' 'TO BT BT BT BT BR BT BT BT BT AB                         ' '14' '   306    293' ' 0.2821' '   510   8996']
+     ['15' 'TO BT BT BT BR BT BT BT BT SA                            ' '15' '   280    281' ' 0.0018' '   209    207']
+     ['16' 'TO BT BT BT BT BR BT BT BT BT BT BT BT BT SD             ' '16' '   256    251' ' 0.0493' '  9345   9353']
+     ['17' 'TO BT BT BT BT BR BT BT BT BT BT BT BT BT SA             ' '17' '   233    250' ' 0.5983' '  9360   9380']
+     ['18' 'TO BT BT BT BT BT SR SR SR BR SA                         ' '18' '   249    233' ' 0.5311' ' 14948  14975']
+     ['19' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT SA             ' '19' '   225    226' ' 0.0022' ' 26574  26559']
+     ['20' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT SA       ' '20' '   206    204' ' 0.0098' ' 15409  15448']
+     ['21' 'TO BT BT BT BT BT BR SR SA                               ' '21' '   166    183' ' 0.8281' '  9262   9760']
+     ['22' 'TO BT BT BT BT BR BT BT BT BT BT BT BT BT BT BT BT BT SD ' '22' '   174    174' ' 0.0000' ' 17444  11855']
+     ['23' 'TO BT BT BT BT BT SR SR SR BR BR SR SA                   ' '23' '   159    146' ' 0.5541' ' 15472  15493']
+     ['24' 'TO BT BT BT BT BR BT BT BT BT BT BT BT BT BT BT BT BT SA ' '24' '   159    145' ' 0.6447' '  7330   7320']]
+
+
+
+TODO : High stats (100k) chi2 onto NNVT:0:1000 : ?
+------------------------------------------------------------
+
+
+
+
 
 
 DONE : Maybe need pmt_log volume as sensitive with N=1, not just inner_log as now ?
@@ -413,31 +596,7 @@ jcv HamamatsuR12860PMTManager::
      715 {
      716     if( m_UsePMTNaturalGeometry == false )
      717     {
-     718         pmt_log = new G4LogicalVolume
-     719             ( pmt_solid,
-     720               GlassMat,
-     721               GetName()+"_log" );
-     722 
-     723         body_log= new G4LogicalVolume
-     724             ( body_solid,
-     725               GlassMat,
-     726               GetName()+"_body_log" );
-     727 
-     728         body_log->SetSensitiveDetector(m_detector);
-     729 
-     730         inner1_log= new G4LogicalVolume
-     731             ( inner1_solid,
-     732               PMT_Vacuum,
-     733               GetName()+"_inner1_log" );
-     734 
-     735         inner1_log->SetSensitiveDetector(m_detector);
-     736 
-     737         inner2_log= new G4LogicalVolume
-     738             ( inner2_solid,
-     739               PMT_Vacuum,
-     740               GetName()+"_inner2_log" );
-     741 
-     742         m_logical_pmt = pmt_log ;
+     ...
      743     }
      744     else
      745     {
@@ -492,8 +651,6 @@ HMM: Does this mean all PMT innards must be Sensitive to avoid missed ProcessHit
 
 DONE : Review ProcessHits : prestep point volume needs to be sensitive for Hit/ProcessHits to run
 ----------------------------------------------------------------------------------------------------
-
-
 
 ::
 
