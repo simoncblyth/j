@@ -4,7 +4,7 @@ blyth-88-ProcessHits-comparison
 * from :doc:`blyth-88-revive-input-photons`
 
 
-WIP : investigate hitCollection counts difference
+INITIAL ISSUE : hitCollection counts difference
 ------------------------------------------------------
 
 ::
@@ -12,23 +12,39 @@ WIP : investigate hitCollection counts difference
     N=0 junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 29208 hitCollection_muon 0 hitCollection_opticks 0
     N=1 junoSD_PMT_v2::EndOfEvent m_opticksMode 2 gpu_simulation  NO  hitCollection 189 hitCollection_muon 0 hitCollection_opticks 0
 
-
 * Many input photons will be arriving at very close to the same time ? But thats true for both N=0 and N=1 ?
-* HMM: is there hit merging happening here ? 
-* Does hit merging work with opticksMode:2 ? 
+* HMM: is there hit merging happening here ? Seems not  
+* Does hit merging work with opticksMode:2 ? Seems its not doing anything. 
 
 * DONE : incorporate those hit counts into opticks logging 
 * DONE : incorporate ProcessHits info into opticks SEvt
 
+NOW : After the fixes described below the hit counts are close
+------------------------------------------------------------------
+
 ::
 
-    optepsilon:ntds blyth$ jgr getMergerOpticks
-    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        PMTHitMerger*    getMergerOpticks() const ;  
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:1. sets m_pmthitmerger_opticks using  junoSD_PMT_v2::getMergerOpticks with result depending on m_opticksMode 
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:        m_pmthitmerger_opticks = m_jpmt->getMergerOpticks(); 
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:junoSD_PMT_v2::getMergerOpticks
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:PMTHitMerger* junoSD_PMT_v2::getMergerOpticks() const 
-    epsilon:junosw blyth$ 
+    jxn
+    ./ntds.sh cf
+
+    key                            :       a :       b :     a/b :     b/a 
+    ProcessHits_count              :  154085 :  179593 :   0.858 :   1.166 
+    ProcessHits_true               :   29208 :   29534 :   0.989 :   1.011 
+    ProcessHits_false              :  124877 :  150059 :   0.832 :   1.202 
+    SaveNormHit_count              :   29208 :   29534 :   0.989 :   1.011 
+    SaveMuonHit_count              :       0 :       0 :   0.000 :   0.000 
+    UNSET                          :       0 :       0 :   0.000 :   0.000 
+    NDIS                           :       0 :       0 :   0.000 :   0.000 
+    NOPT                           :       0 :       0 :   0.000 :   0.000 
+    NEDEP                          :  121763 :  146511 :   0.831 :   1.203 
+    NBOUND                         :       1 :     418 :   0.002 : 418.000 
+    NPROC                          :       0 :       0 :   0.000 :   0.000 
+    NDETECT                        :       0 :       0 :   0.000 :   0.000 
+    NDECULL                        :    3113 :    3130 :   0.995 :   1.005 
+    YMERGE                         :       0 :       0 :   0.000 :   0.000 
+    YSAVE                          :   29208 :   29534 :   0.989 :   1.011 
+    opticksMode                    :       2 :       2 :   1.000 :   1.000 
+
 
 
 DONE : basic instrumentation of junoSD_PMT_v2
@@ -163,8 +179,32 @@ Include uc4, eph into sysrap/sevt.py:SEvt::
            [    9,   266]])
 
 
+DONE : Repeat that with higher stats 100k and with HAMA and NNVT pmt_log sensitive
+--------------------------------------------------------------------------------------
 
-WIP : make connection between EPH ProcessHits enum and opticks flags especially SD, SA 
+::
+
+    In [3]: np.c_[np.unique( a.eph, return_counts=True )]
+    Out[3]: 
+    array([[      0, 2977056],
+           [      3,  190728],
+           [      4,       1],
+           [      7,    3104],
+           [      9,   29111]])
+
+    In [4]: np.c_[np.unique( b.eph, return_counts=True )]
+    Out[4]: 
+    array([[      0, 2969944],
+           [      3,  197097],
+           [      4,     414],     ## ALL BULK_ABSORB IN PYREX BECAUSE MORE PYREX "SENSITIVE" ON N=1 GEOM
+           [      7,    3122],
+           [      9,   29423]])
+
+
+
+
+
+DONE : make connection between EPH ProcessHits enum and opticks flags especially SD, SA 
 --------------------------------------------------------------------------------------------
 
 ::
@@ -231,6 +271,22 @@ But SD have a variety of EPH::
            [  7,  25],   # EPH_NDECULL 
            [  9, 266]])  # EPH_YSAVE
 
+Repeat that with higher stats and also fixing HAMA and NNVT to have pmt_log sensitive::
+
+    In [1]: np.c_[np.unique(a.eph[np.where( a.qq == 7 )],return_counts=True)]
+    Out[1]: 
+    array([[    7,  3104],
+           [    9, 29111]])
+
+    In [2]: np.c_[np.unique(b.eph[np.where( b.qq == 7 )],return_counts=True)]
+    Out[2]: 
+    array([[    7,  3122],
+           [    9, 29423]])
+
+
+
+
+Old low stats::
 
     In [82]: w =  np.where(np.logical_and( b.eph == 0, b.qq == 7 )) ; w
     Out[82]: (array([963]), array([20]))
@@ -259,7 +315,7 @@ Those 9 which are SD but EPH_NEDEP all have complex histories, probably some dis
            [b'TO BT BT BT BT BT SR SR SR BT BT BT BT BT BT BT SC BT BT BT BT BT BT SD                         ']], dtype='|S96')
 
 
-HMM: those 9 are all over the place. So maybe due to NNVT lack of sensitive::
+YEP: those 9 are all over the place. So maybe due to NNVT lack of sensitive::
 
     In [81]: b.f.record[w][:,0,:3]
     Out[81]: 
@@ -287,20 +343,6 @@ Mostly nowhere near the targetted PMT::
            [-12225.451,   9646.719,  11645.658,      4.863],
            [-12225.454,   9646.721,  11645.658,      4.863]], dtype=float32)
 
-
-Suspicious, all over the place in X. Close to origin in YZ::
-
-    In [3]: w_gpos  ## MUST BE NUMPY BUG MIXING POS/DIR/POL ? 
-    Out[3]: 
-    array([[ -7339.035,     -0.286,     -0.839,      1.   ],
-           [-13954.789,     -0.453,     -0.719,      1.   ],
-           [  9970.17 ,      0.317,     -0.444,      1.   ],
-           [ 12772.203,      0.558,     -0.182,      1.   ],
-           [ -4750.779,     -0.144,      0.225,      1.   ],
-           [ -4379.288,      0.14 ,     -0.909,      1.   ],
-           [  9436.662,      0.895,     -0.177,      1.   ],
-           [ -4366.585,     -0.744,     -0.035,      1.   ],
-           [ 16944.299,      0.218,     -0.188,      1.   ]])
 
 
 ::
@@ -342,7 +384,6 @@ Suspicious, all over the place in X. Close to origin in YZ::
            [     4,     41],   # explained by AB:BULK_ABSORB in Pyrex happening for N=1 but not N=0
            [     7,    302],   # slightly more EPH_NDECULL : not significant ? TODO: stats*10
            [     9,   2924]])  # EPH_YSAVE : why not 2929 ? 
- 
 
     In [4]: np.c_[np.unique(b.qq[np.where(b.eph == 9)], return_counts=True)]
     Out[4]: array([[   7, 2924]])   ## EPH_YSAVE all SD
@@ -355,15 +396,12 @@ Suspicious, all over the place in X. Close to origin in YZ::
 
 
 EPH_NBOUND all AB : makes sense, but why ProcessHits called ? And why none with N=0 ?
-that is from bulk absorption in the Pyrex, as shown by::
-
-::
-
-   CHECK=EPH_NBOUND_PYREX_AB ./ntds.sh ana
-    
+that is from bulk absorption in the Pyrex, as shown by
 Doesnt happen with N=0 because simpler N=1 geometry means pmt_log needs to be sensitive. 
 
 ::
+
+    CHECK=EPH_NBOUND_PYREX_AB ./ntds.sh ana
 
     In [7]: fln[7]
     Out[7]: 'SURFACE_DETECT'

@@ -38,8 +38,8 @@ defarg="ana"
 arg=${1:-$defarg}
 
 #check=all_point
-#check=few_point
-check=sd_point
+check=few_point
+#check=sd_point
 
 evt=000
 export EVT=${EVT:-$evt}
