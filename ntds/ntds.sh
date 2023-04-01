@@ -37,8 +37,8 @@ defarg="ana"
 #defarg="cf"
 arg=${1:-$defarg}
 
-#check=all_point
-check=few_point
+check=all_point
+#check=few_point
 #check=sd_point
 
 evt=000
@@ -58,7 +58,21 @@ export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
 export AFOLD=$ABASE/ALL0/$EVT
 export BFOLD=$BBASE/ALL1/$EVT
 
-vars="BASH_SOURCE CHECK arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AGEOM ABASE AFOLD BGEOM BBASE BFOLD N VERSION"
+
+if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then
+    case $VERSION in 
+      0) UTID="${CHECK}_A_${AGEOM}_${EVT}" ;;
+      1) UTID="${CHECK}_B_${BGEOM}_${EVT}" ;;
+    esac   
+    export UTID
+    case $VERSION in 
+      0) UBASE=$AFOLD ;;
+      1) UBASE=$BFOLD ;;
+    esac   
+    export UBASE
+fi 
+
+vars="BASH_SOURCE CHECK arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AGEOM ABASE AFOLD BGEOM BBASE BFOLD N VERSION UTID UBASE"
 for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done  
 
 case $VERSION in 
@@ -97,6 +111,22 @@ if [ -n "$pyscript"  -a -f "$pyscript" ]; then
     [ $? -ne 0 ] && echo $BASH_SOURCE pyscript $pyscript error && exit 1
 else
     echo $BASH_SOURCE no pyscript for arg $arg 
+fi
+
+
+if [ "$arg" == "pvcap" -o "$arg" == "pvpub" -o "$arg" == "mpcap" -o "$arg" == "mppub" ]; then
+    export CAP_STEM=$UTID
+    export CAP_BASE=$UBASE/figs
+    export CAP_REL=$SCRIPT
+    case $arg in  
+       pvcap) source pvcap.sh cap  ;;  
+       mpcap) source mpcap.sh cap  ;;  
+       pvpub) source pvcap.sh env  ;;  
+       mppub) source mpcap.sh env  ;;  
+    esac
+    if [ "$arg" == "pvpub" -o "$arg" == "mppub" ]; then
+        source epub.sh
+    fi
 fi
 
 exit 0 

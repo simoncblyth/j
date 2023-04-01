@@ -761,8 +761,17 @@ TODO : target NNVT and do comparisons
 TODO : simtrace running insitu : how to do that ?
 -----------------------------------------------------
 
-* moved simtrace_scan to U4Tree
+* DONE : moved simtrace_scan to U4Tree
 
+
+SSimtrace.h is very local centric it populates a default sframe with ce from the G4VSolid 
+and does that for all distinct solids in the geometry
+
+
+
+
+
+ 
 
 
 

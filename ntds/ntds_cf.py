@@ -39,5 +39,7 @@ if __name__ == '__main__':
     out = NPMeta.Compare( a.f.junoSD_PMT_v2_meta , b.f.junoSD_PMT_v2_meta )   
     print(out)
 
-
+    gpos = np.ones( b.f.record.shape[:-1] )  ## eg (10000, 32, 4)
+    gpos[:,:,:3] = b.f.record[:,:,0,:3]      ## point positions of all photons   
+    lpos = np.dot( gpos, b.f.sframe.w2m )    ## transform all points from global to local frame 
 

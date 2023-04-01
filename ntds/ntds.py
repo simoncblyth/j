@@ -9,31 +9,30 @@ ntds.py : plotting two SEvt
     MODE=3 ./ntds.sh ana
 
 """
-import os, textwrap, numpy as np
+import os, textwrap, numpy as np, re
 from opticks.ana.fold import Fold
 from opticks.ana.p import * 
-
+from opticks.sysrap.sevt import SEvt
 from opticks.ana.base import PhotonCodeFlags
+
 pcf = PhotonCodeFlags() 
 fln = pcf.fln
 fla = pcf.fla
 
-
-from opticks.sysrap.sevt import SEvt
-## HMM: when using to plot results of ntds the U4SimulateTest name seems inappropriate 
-## Its really a higher level wrapper for an Opticks SEvt folder of arrays (CHECK THIS)
-## MAYBE call it opticks.sysrap.SEvt ?
-
+color_ptn = re.compile("#(\S*)\s")  # single char color codes in ppos string  "#c "  
+ENVOUT = os.environ.get("ENVOUT", None)
 MODE =  int(os.environ.get("MODE", "2"))
 N = int(os.environ.get("VERSION", "1"))
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1 
 SLIM = float(os.environ.get("SLIM","1.0"))
 CHECK = os.environ.get("CHECK", "all_point" )
+UTID = os.environ.get("UTID", CHECK )
 
-if MODE > 0:
+
+
+if MODE in [2,3]:
     from opticks.ana.pvplt import * 
 pass
-
 
 if __name__ == '__main__':
     axes = 0,2  # X,Z
@@ -69,8 +68,7 @@ if __name__ == '__main__':
 
     w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
 
-
-    EXPL = "?"
+    EXPL = ""
 
     if CHECK == "EPH_NBOUND_PYREX_AB":
         w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
@@ -100,54 +98,52 @@ if __name__ == '__main__':
     """
     exprs_ = list(filter(None,textwrap.dedent(exprs).split("\n")))
 
-    if 0:
-        w_gpos = np.ones( [len(w[0]), 4])  
-        w_gpos[:,:3] = b.f.record[w][:,0,:3]   ## selecting with w 2-tuple collapses one dimension 
-        w_lpos = np.dot( w_gpos, b.f.sframe.w2m ) 
-    pass
-
-    z_gpos = np.ones( [b.n[0], 4])  
-    z_gpos[:,:3] = b.f.record[0,:b.n[0],0][:,:3] 
-    z_lpos = np.dot( z_gpos, b.f.sframe.w2m ) 
-
     num = 4 
-    color = { 0:'r', 1:'g', 2:'b', 3:'c' } 
-
     ppos_ = {}
     for i in range(num): ppos_[i] = "None" ; 
 
-    if CHECK == "all_point":
-        ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  # all points "
+    if CHECK == "all_point0":
+        ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #r all points "
+    elif CHECK == "all_point":
+        ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #c : all points "
+        ppos_[1] = "t.f.record[:,0,0,:3].reshape(-1,3)  #g : first "
+        ppos_[2] = "t.f.photon[:,0,:3]                  #r : last "
     elif CHECK == "few_point":
-        ppos_[0] = "t.f.record[:,0,0,:3] # 0-position   "
-        ppos_[1] = "t.f.record[:,1,0,:3] # 1-position   "
-        ppos_[2] = "t.f.record[:,2,0,:3] # 2-position   "
-        ppos_[3] = "t.f.photon[:,0,:3]  # final photon position "
+        ppos_[0] = "t.f.record[:,0,0,:3] #r 0-position   "
+        ppos_[1] = "t.f.record[:,1,0,:3] #g 1-position   "
+        ppos_[2] = "t.f.record[:,2,0,:3] #b 2-position   "
+        ppos_[3] = "t.f.photon[:,0,:3]  #c final photon position "
     elif CHECK == "sd_point":
-        ppos_[0] = "t.f.record[np.where(t.qq == pcf.SD)][:,0,:3]  # SD position "    
+        ppos_[0] = "t.f.record[np.where(t.qq == pcf.SD)][:,0,:3]  #g SD position "    
     elif CHECK in ["EPH_NBOUND_PYREX_AB", "EPH_NEDEP", "w_point"]:
-        ppos_[0] = "t.f.record[w][:,0,:3] # w : %s " % w_
+        ppos_[0] = "t.f.record[w][:,0,:3] #y %s " % w_
     elif CHECK in ["NOSC"]:
         ppos_[0] = "t.f.record[np.where(t.nosc)][:,:,0,:3].reshape(-1,3) "
     elif CHECK in ["NOSCAB"]:
         ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3) "
     pass 
 
-
     ppos = {'a':{}, 'b':{} }
     uppos = {'a':{}, 'b':{} }
+    color = {'a':{}, 'b':{} }
+    version = {'a':0, 'b':1 }
 
     for i in range(len(syms)):
         sym = syms[i]
         w = eval(w_)
+
         for j in range(num): 
             expr = ppos_[j]
             if expr == "None": continue
             uexpr = expr.replace("t.","%s." % sym)
             vexpr = eval(uexpr)
 
+            m = color_ptn.search(expr)
+            col = m.groups()[0] if not m is None else "black"
+
             ppos[sym][j] = vexpr
             uppos[sym][j] = uexpr
+            color[sym][j] = col
         pass
     pass
 
@@ -165,19 +161,21 @@ if __name__ == '__main__':
         pass
     pass
 
+    tid = {'a':None, 'b':None }
     print("[i syms loop syms:%s " % str(syms) )
     for i in range(len(syms)):
         sym = syms[i]
         evt = evts[i]
+        tid[sym] = evt.ID 
 
         elem = []
         for j in range(num): 
             expr = ppos_[j]
             if expr == "None": continue
-            elem.append("%s:%s" % (color[j],uppos[sym][j]))
+            elem.append("%s:%s" % (color[sym][j],uppos[sym][j]))
         pass
 
-        label = "\n".join( ["(%s) CHECK:%s : %s " % (sym, CHECK, EXPL)] + elem )
+        label = "\n".join( ["(%s) %s : %s " % (sym, UTID, EXPL)] + elem )
 
         if MODE in [0,1]:
             print("not plotting as MODE %d in environ" % MODE )
@@ -208,6 +206,8 @@ if __name__ == '__main__':
             if expr == "None": continue
 
             vexpr = ppos[sym][j]
+            col = color[sym][j]
+
             gpos = np.ones( [len(vexpr), 4 ] )
             gpos[:,:3] = vexpr
             lpos = np.dot( gpos, evt.f.sframe.w2m ) 
@@ -220,9 +220,9 @@ if __name__ == '__main__':
                 print("lpos  :\n%s " % lpos )
                 print("upos  :\n%s " % upos )
             elif MODE == 2:
-                ax.scatter( upos[:,H], upos[:,V], s=1, c=color[j] )
+                ax.scatter( upos[:,H], upos[:,V], s=1, c=col )
             elif MODE == 3:
-                pl.add_points(upos[:,:3], color=color[i] )
+                pl.add_points(upos[:,:3], color=col )
             pass
         pass
         print("]j qwn num loop num:%d " % num )
@@ -231,6 +231,19 @@ if __name__ == '__main__':
             fig.show()
         elif MODE == 3:
             pl.show()
+        pass
+
+        if MODE == 2 and not ENVOUT is None:
+            ## associate metadata with a plot, used for figure naming back in bash 
+            envout = "\n".join([
+                           "export ENVOUT_PATH=%s" % ENVOUT,
+                           "export ENVOUT_SYM=%s" % sym,
+                           "export ENVOUT_CAP_STEM=%s" % tid[sym],
+                           "export ENVOUT_VERSION=%s" % version[sym],
+                           ""  
+                           ])  
+            open(ENVOUT, "w").write(envout)
+            print(envout)
         pass
     pass
     print("]i syms loop syms:%s " % str(syms) )
