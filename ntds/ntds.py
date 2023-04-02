@@ -166,7 +166,7 @@ if __name__ == '__main__':
     for i in range(len(syms)):
         sym = syms[i]
         evt = evts[i]
-        tid[sym] = evt.ID 
+        tid[sym] = evt.ID
 
         elem = []
         for j in range(num): 

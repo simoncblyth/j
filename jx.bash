@@ -618,9 +618,11 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
 
+   layout=""
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO
        export MOI=Hama:0:1000
+       layout="ip_MOI_$MOI"
        echo $msg IPHO defined : configuring OPTICKS_INPUT_PHOTON $OPTICKS_INPUT_PHOTON
        trgs="$trgs opticks"
    else
@@ -638,7 +640,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
    export POM=${POM:-1}
    export VERSION=${N:-1}
-   export LAYOUT="POM $POM VERSION $VERSION"
+   export LAYOUT=$layout
    export PREDICT_EVTDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
 
    vars="POM N VERSION LAYOUT PREDICT_EVTDIR"
