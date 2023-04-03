@@ -58,13 +58,13 @@ export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
 export AFOLD=$ABASE/ALL0/$EVT
 export BFOLD=$BBASE/ALL1/$EVT
 
+## ENVOUT is used to communicate from some python scripts back into this bash script 
+## this only makes sense when a single invokation corresponds to a single plot
+export ENVOUT=/tmp/$USER/opticks/$SCRIPT/envout.sh
+mkdir -p $(dirname $ENVOUT)
+
 
 if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then
-    case $VERSION in 
-      0) UTID="${CHECK}_A_${AGEOM}_${EVT}" ;;
-      1) UTID="${CHECK}_B_${BGEOM}_${EVT}" ;;
-    esac   
-    export UTID
     case $VERSION in 
       0) UBASE=$AFOLD ;;
       1) UBASE=$BFOLD ;;
@@ -72,7 +72,8 @@ if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then
     export UBASE
 fi 
 
-vars="BASH_SOURCE CHECK arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AGEOM ABASE AFOLD BGEOM BBASE BFOLD N VERSION UTID UBASE"
+
+vars="BASH_SOURCE CHECK arg defarg DIR OPTICKS_MODE SCRIPT BASE EVT AGEOM ABASE AFOLD BGEOM BBASE BFOLD N VERSION UBASE"
 for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done  
 
 case $VERSION in 
@@ -113,20 +114,32 @@ else
     echo $BASH_SOURCE no pyscript for arg $arg 
 fi
 
-
 if [ "$arg" == "pvcap" -o "$arg" == "pvpub" -o "$arg" == "mpcap" -o "$arg" == "mppub" ]; then
-    export CAP_STEM=$UTID
-    export CAP_BASE=$UBASE/figs
-    export CAP_REL=$SCRIPT
-    case $arg in  
-       pvcap) source pvcap.sh cap  ;;  
-       mpcap) source mpcap.sh cap  ;;  
-       pvpub) source pvcap.sh env  ;;  
-       mppub) source mpcap.sh env  ;;  
-    esac
-    if [ "$arg" == "pvpub" -o "$arg" == "mppub" ]; then
-        source epub.sh
-    fi
+
+    if [ -f "$ENVOUT" ]; then 
+        echo $BASH_SOURCE : detected that another instance of this script python wrote ENVOUT $ENVOUT : sourcing this
+        cat $ENVOUT
+        source $ENVOUT
+        env | grep ENVOUT 
+    fi 
+
+    if [ -n "$ENVOUT_CAP_STEM" -a -n "$ENVOUT_CAP_BASE" ]; then
+        echo $BASH_SOURCE picking up ENVOUT_CAP_STEM $ENVOUT_CAP_STEM ENVOUT_CAP_BASE $ENVOUT_CAP_BASE 
+        export CAP_STEM=$ENVOUT_CAP_STEM
+        export CAP_BASE=$ENVOUT_CAP_BASE/figs
+        export CAP_REL=${ENVOUT_CAP_REL:-$SCRIPT}
+        case $arg in  
+           pvcap) source pvcap.sh cap  ;;  
+           mpcap) source mpcap.sh cap  ;;  
+           pvpub) source pvcap.sh env  ;;  
+           mppub) source mpcap.sh env  ;;  
+        esac
+        if [ "$arg" == "pvpub" -o "$arg" == "mppub" ]; then
+            source epub.sh
+        fi
+    else
+        echo $BASH_SOURCE : pvcap/pvpub/mpcap/mppub ENVOUT non-existing or incomplete
+    fi 
 fi
 
 exit 0 

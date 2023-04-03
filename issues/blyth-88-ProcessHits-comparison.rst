@@ -758,20 +758,25 @@ TODO : target NNVT and do comparisons
 * heavy 600M SEvt for 100k input photons, so complete Hama presentation plots before doing NNVT
 
 
-TODO : simtrace running insitu : how to do that ?
------------------------------------------------------
+DONE : review solid-centric simtrace running : can that work insitu ? NO, not with any generality
+---------------------------------------------------------------------------------------------------
 
 * DONE : moved simtrace_scan to U4Tree
 
+SSimtrace.h is very local and solid centric it populates a default sframe with ce from the G4VSolid 
+and does that for all distinct solids in the geometry.
 
-SSimtrace.h is very local centric it populates a default sframe with ce from the G4VSolid 
-and does that for all distinct solids in the geometry
+This solid-centric approach does not fly for anything other than 
+small regions of geometry, such as single PMTs, where all the consitutent 
+volumes have similar transforms that are aligned with each other.
 
 
+TODO : explore use of G4Navigator for general Geant4 simtracing
+------------------------------------------------------------------
 
+Started experimenting with G4Navigator within U4Navigator, this 
+may provide a fully general way to collect simtrace intersects onto geometry.  
 
-
- 
 
 
 

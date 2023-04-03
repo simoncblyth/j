@@ -161,12 +161,14 @@ if __name__ == '__main__':
         pass
     pass
 
-    tid = {'a':None, 'b':None }
+    tid = {}
+    base = {}
     print("[i syms loop syms:%s " % str(syms) )
     for i in range(len(syms)):
         sym = syms[i]
         evt = evts[i]
         tid[sym] = evt.ID
+        base[sym] = evt.f.base
 
         elem = []
         for j in range(num): 
@@ -175,7 +177,7 @@ if __name__ == '__main__':
             elem.append("%s:%s" % (color[sym][j],uppos[sym][j]))
         pass
 
-        label = "\n".join( ["(%s) %s : %s " % (sym, UTID, EXPL)] + elem )
+        label = "\n".join( ["(%s) %s : %s " % (sym, tid[sym], EXPL)] + elem )
 
         if MODE in [0,1]:
             print("not plotting as MODE %d in environ" % MODE )
@@ -239,6 +241,7 @@ if __name__ == '__main__':
                            "export ENVOUT_PATH=%s" % ENVOUT,
                            "export ENVOUT_SYM=%s" % sym,
                            "export ENVOUT_CAP_STEM=%s" % tid[sym],
+                           "export ENVOUT_CAP_BASE=%s" % base[sym],
                            "export ENVOUT_VERSION=%s" % version[sym],
                            ""  
                            ])  

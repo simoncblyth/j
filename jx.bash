@@ -611,6 +611,9 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
+   export U4Recorder__EndOfRunAction_Simtrace=1
+
+
 
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
@@ -647,8 +650,14 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
 
    if [ "$VERSION" == "0" ]; then 
-       export U4Recorder__FAKES_SKIP=1
-       echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+
+       if [ -n "$NOFAKESKIP" ]; then 
+           unset U4Recorder__FAKES_SKIP
+           echo $BASH_SOURCE : NOFAKESKIP SWITCH : NOT ENABLING U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+       else
+           export U4Recorder__FAKES_SKIP=1
+           echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+       fi 
    fi 
 
    local opts="" 
