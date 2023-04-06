@@ -191,6 +191,7 @@ if __name__ == '__main__':
             os.environ["EYE"] = "0,100,165"
             os.environ["LOOK"] = "0,0,165"
             pvplt_viewpoint(pl)
+            pvplt_frame(pl, evt.f.sframe )
         pass
 
         if not GLOBAL:
@@ -214,6 +215,14 @@ if __name__ == '__main__':
             gpos[:,:3] = vexpr
             lpos = np.dot( gpos, evt.f.sframe.w2m ) 
             upos = gpos if GLOBAL else lpos
+
+            if "ALT" in os.environ:
+                gpos_alt = evt.f.record[:,:,0].copy()          # (NUM,32,4) : all point "post" (position, time)
+                gpos_alt[...,3] = 1                          # 1. for position transform
+                lpos_alt = np.dot( gpos_alt, evt.f.sframe.w2m ) 
+                upos_ = gpos_alt if GLOBAL else lpos_alt 
+                upos = upos_.reshape(-1,4)
+            pass
 
             if MODE in [0,1]:
                 print("expr  : %s " % expr )

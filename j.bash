@@ -406,6 +406,94 @@ having to deal with merge issues.
 
 
 
+
+Bring branch uptodate with master
+-----------------------------------
+
+::
+
+    N[blyth@localhost junosw]$ git remote
+    origin
+
+    N[blyth@localhost junosw]$ git remote -v
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw (fetch)
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw (push)
+
+    N[blyth@localhost junosw]$ git fetch origin
+    remote: Enumerating objects: 284, done.
+    remote: Counting objects: 100% (248/248), done.
+    remote: Compressing objects: 100% (221/221), done.
+    remote: Total 284 (delta 164), reused 25 (delta 24), pack-reused 36
+    Receiving objects: 100% (284/284), 159.56 KiB | 3.89 MiB/s, done.
+    Resolving deltas: 100% (177/177), completed with 9 local objects.
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * [new branch]      RawDataAnalysis                    -> origin/RawDataAnalysis
+     * [new branch]      lintao-fix-issue-102               -> origin/lintao-fix-issue-102
+     * [new branch]      liuzhen-elecsim_waveform_saving    -> origin/liuzhen-elecsim_waveform_saving
+       4fc2ce8..4672fb0  quzhenning-gengenie-deexoption     -> origin/quzhenning-gengenie-deexoption
+       772450f..bfc5137  quzhenning-oum_modify_for_gengenie -> origin/quzhenning-oum_modify_for_gengenie
+    N[blyth@localhost junosw]$ 
+
+
+    N[blyth@localhost junosw]$ git branch
+    * blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+      main
+
+
+
+
+    git fetch origin
+    git checkout main
+    git merge --ff-only origin/main
+    git checkout dmgr2
+    git merge --no-ff origin/main
+
+
+
+https://www.atlassian.com/git/tutorials/syncing/git-fetch
+
+::
+
+    N[blyth@localhost junosw]$ git log --oneline main..origin/main
+
+    d11f4f8 (origin/main, origin/HEAD) Merge branch 'zhanghaosen-optimize-FPGA-tq-data-size-branch' into 'main'
+    8587db3 Reduce the data size of FPGA tq and elecsim waveform
+    7e0876d Merge branch 'zhanghaosen-set-different-thresholds-and-windows-for-VFLTrigger' into 'main'
+    578f225 Support different trigger thresholds and  trigger windows for different volumes in VFL trigger
+    b115750 Merge branch 'quzhenning-optimized-preselect-gentool' into 'main'
+    f41c325 modify the dedx value
+    e9408b1 Merge branch 'lintao-avoid-hardcode-of-copynumber' into 'main'
+    1e84f1b WIP: start to improve the copy number related code.
+    e95411c Merge branch 'huyuxiang-atmNuGen-selectLi8Channel-branch' into 'main'
+    834edc5 Deex class is a common class which used by AtmNuGen and ProtonDecay, so we...
+    2cff95d Merge branch 'quzhenning-bugfix-gengenie1dflux' into 'main'
+    d9db71d Quzhenning bugfix gengenie 1d hist flux
+    67c1506 Merge branch 'xinhai-OecAtmClassification-branch' into 'main'
+    d7d2301 OEC Atm nu selection algorithm update
+    d283e5d Merge branch 'liuzhen-Performance_Check' into 'main'
+    915c8a1 Updates for variables used to record time and memory consumptions for some algorithms
+    5680660 Merge branch 'lintao-add-radiodecay-tracks' into 'main'
+    ea8dd70 WIP: optimize simulation framework to better support radioactivity decay.
+    abdf390 (origin/wuchx-IDtest, origin/98-slow-performance-and-warnings-in-running-tut_elec2rec-py-script-with-the-latest-gitlab-software) Merge branch 'issue-93-oec-initialization-bug' into 'main'
+    d32c2ce Issue 93 oec initialization bug
+    60269a7 Merge branch 'dingxf-nusol-bugfix-issue-85' into 'main'
+    43ddf9b bug fix for solar neutrino generator #85
+    45a145e Merge branch 'huyuxiang-update-dccomputing-oum-branch' into 'main'
+    562c88f update the script of detsim in dccomputing suggested by Xuefeng.
+    N[blyth@localhost junosw]$ 
+
+
+https://www.atlassian.com/git/tutorials/using-branches/git-merge
+
+::
+
+    git log --pretty=format:"%h%x09%an%x09%ad%x09%s" main..blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+
+
+
+
+
+
 JUNOSW Workflow for getting local changes into main 
 -----------------------------------------------------
 

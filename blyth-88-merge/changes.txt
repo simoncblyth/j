@@ -1,0 +1,515 @@
+
+
+epsilon:junosw blyth$ branch=blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+epsilon:junosw blyth$ git diff --name-status main..$branch 
+M       Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+A       Simulation/DetSimV2/AnalysisCode/include/U4RecorderAnaMgr.hh
+A       Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc
+M       Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+M       Simulation/DetSimV2/PMTSim/CMakeLists.txt
+A       Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h
+A       Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h
+M       Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+A       Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M       Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+M       Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+M       Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M       Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M       Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+M       Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+M       Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+M       Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+A       Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h
+M       Simulation/GenTools/GenTools/GtOpticksTool.h
+M       Simulation/GenTools/src/GtOpticksTool.cc
+M       Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+A       Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/_TComplex.h
+M       Simulation/SimSvc/MultiFilmSimSvc/src/Material.h
+M       Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.h
+M       Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+M       Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc
+A       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/IPMTAccessor.h
+A       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_LPMT.h
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+M       Utilities/EGet/EGet/EGet.h
+M       cmake/JUNODependencies.cmake
+epsilon:junosw blyth$ 
+
+
+
+epsilon:junosw blyth$ git checkout main
+Switched to branch 'main'
+Your branch is behind 'origin/main' by 24 commits, and can be fast-forwarded.
+  (use "git pull" to update your local branch)
+epsilon:junosw blyth$ 
+epsilon:junosw blyth$ git pull    ## edited the list, to have just the overlap or things of interest 
+Updating b4e0089..d11f4f8
+Fast-forward
+
+ Detector/Geometry/Geometry/PMT.h                                            |  26 ++-
+ Detector/Geometry/Geometry/PMTParamSvc.h                                    |   3 +-
+ Detector/Geometry/Geometry/_PMTParamData.h                                  |   2 +-
+ Detector/Geometry/src/PMTParamSvc.cc                                        |  27 ++--
+
+
+I think the above will be OK, but the below three need some manual work.
+
+
+ Examples/Tutorial/python/Tutorial/JUNODetSimModule.py                       |  24 ++-
+ Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc                             | 138 ++++++++--------
+ Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h           |  11 +-
+
+
+
+
+
+
+
+git diff main..$branch -- Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc 
+
+   Lost of PMT:: diffs 
+
+
+
+git diff main..$branch -- Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+
+ inline int PMTSimParamData::get_pmtContiguousIndex(int pmtid) const
+ {
++    assert( pmtid > -1 ); 
+     int idx = -1 ;  
+-    if(PMT::IsCD(pmtid) and PMT::Is20inch(pmtid)) {
+-        idx = pmtid ;    // LPMT 
+-    } else if(PMT::IsWP(pmtid)) {
+-        idx = pmtid - kOFFSET_WP_PMT  + m_PmtTotal ;  // WPMT 
+-    } else if (PMT::IsCD(pmtid) and PMT::Is3inch(pmtid)){
+-        idx = pmtid - kOFFSET_CD_SPMT + m_PmtTotal + m_PmtTotal_WP ;  // SPMT  
+-    }
+-
++    if(      pmtid < 0 )              idx = -1 ;     // invalid pmtid
++    else if( pmtid < kOFFSET_WP_PMT ) idx = pmtid ;    // LPMT 
++    else if( pmtid < kOFFSET_CD_SPMT) idx = pmtid - kOFFSET_WP_PMT  + m_PmtTotal ;  // WPMT 
++    else                              idx = pmtid - kOFFSET_CD_SPMT + m_PmtTotal + m_PmtTotal_WP ;  // SPMT  
+     return idx ;     
+ }
+
+
+
+
+
+
+
+
+
+git --no-pager log --name-status main..$branch > ~/j/blyth-88-merge/changes.txt
+
+
+
+commit a18eb582bdd0d66c2b5dd76592a831d53194d951
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 31 21:04:37 2023 +0100
+
+    junoSD_PMT_v2::ProcessHits debug using EPH enumeration of ProcessHits returns
+
+A	Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+
+commit 4d7c11222b3a1dea90bffb8ec90d6de6f221d65a
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Mar 29 20:22:25 2023 +0100
+
+    get junoPMTOpticalModel instrumentation to work within monolith running, in addition to standalone
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 8a54543a4273e78ab58abd7852e93499e368585a
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Mar 29 20:21:02 2023 +0100
+
+    fix m_doFastSim bug, cannot set things depending on declProp within ctor as values not configured yet
+
+M	Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+
+commit 9d7071fe2784c01b9ce7f599ea9a300b3e919b56
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Mar 28 20:51:01 2023 +0100
+
+    revive GtOpticksTool input photons, now using Opticks SEvt::GetInputPhoton for envvar controlled frame targetting
+
+M	Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+M	Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
+M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+M	Simulation/GenTools/GenTools/GtOpticksTool.h
+M	Simulation/GenTools/src/GtOpticksTool.cc
+
+commit ea42e1d5483d4d5ba0d36cbb802b16a946f2198d
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Mon Mar 27 17:37:34 2023 +0100
+
+    LSExpDetectorConstruction_Opticks::Setup rejig opticksMode:2 to do geometry translation but with G4CXOpticks::SetNoGPU flipped
+
+M	Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+
+commit da6a6533f61453b03c6a57c38f09498226df7f86
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Sun Mar 26 17:23:19 2023 +0100
+
+    avoid second SEvt instanciation in LSExpDetectorConstruction_Opticks when U4Recorder already instanciated it
+
+M	Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+
+commit 46241218dcf51fe4bb57ec07475617d2e9be419f
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 24 19:23:21 2023 +0000
+
+    more migration to Custom4
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
+M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+
+commit d31d0d77c19f4dfb4d5af25c665f8643fecaa768
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 24 16:59:55 2023 +0000
+
+    remove the Custom code as now getting from Custom4 mini-external which will break the build for now, rationalize PMT/POM quadrant control
+
+M	Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+M	Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h
+M	Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+M	Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+D	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+D	Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
+D	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+D	Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
+D	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+
+commit 1d5b42dd476db899a8ed8dec527b52e6fb55d040
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 24 14:17:25 2023 +0000
+
+    split PMTAccessor::LoadData for debug, be more explicit regarding invalid negative pmtid
+
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+
+commit 72be7540439d90ef242fb03f5adb9c2902ac3b5f
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Thu Mar 23 20:15:47 2023 +0000
+
+    test Custom4 external mini package as way of providing consistent Geant4 customizations to both junosw and Opticks, avoiding dependency issue
+
+M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+M	Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+M	cmake/JUNODependencies.cmake
+
+commit b2d6fd25acfc7e609fa15c516e6b069580f426ef
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Mar 21 16:55:06 2023 +0000
+
+    revive opticksMode:2 for Geant4 running but with some Opticks instrumentation
+
+M	Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+
+commit 6a0a53d1693ecb36651c43a271bc30bc1c5acd90
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Mar 21 12:42:01 2023 +0000
+
+    add U4RecorderAnaMgr aiming to bring U4Recorder functionality into the monolith for in-situ full optical recording
+
+M	Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+A	Simulation/DetSimV2/AnalysisCode/include/U4RecorderAnaMgr.hh
+A	Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc
+
+commit dded5946544b2ea92f6744caa941d553b2bf5123
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Mar 21 12:08:17 2023 +0000
+
+    encapsulate handling of ModelTrigger metadata into junoPMTOpticalModel
+
+M	Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 9bfedbca24ba703033d59f2fbc7a72b1db084cca
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Mar 15 16:59:38 2023 +0000
+
+    notes on where/how junoPMTOpticalModel::ModelTriggerBuggy_ goes awry, PMTSIM_API for access to IMPL setting
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit eb549f9131087938031d4b760360dd25df6a6153
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Mon Mar 13 17:35:26 2023 +0000
+
+    using EPSILON 2e-4 on junoPMTOpticalModel::ModelTriggerSimple_ dist1 cut avoids issue of doubled up triggers, standalone onepmt chi2 looking good in line tests
+
+M	Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 8bfd78fab17fcff911969526fde39d8523ff60a8
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Mon Mar 13 08:13:06 2023 +0800
+
+    add EGet dependency to PMTSim, avoid compilation warning
+
+M	Simulation/DetSimV2/PMTSim/CMakeLists.txt
+M	Utilities/EGet/EGet/EGet.h
+
+commit a913d46b98f19e973ca9eeb2daa10203a3a30bc0
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Sun Mar 12 23:58:55 2023 +0000
+
+    add envvar implementation switch junoPMTOpticalModel__ModelTrigger_IMPL to change between ModelTriggerSimple and ModelTriggerBuggy
+
+M	Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit e2a7e826ab3fd140b4dfd638946e2a342ce38d01
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Sun Mar 12 04:41:49 2023 +0800
+
+    avoid compilation warnings
+
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit a9c5f3bc984da6d70fda5356f1546b2c91d8f810
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Sat Mar 11 20:25:11 2023 +0000
+
+    remove duplication between ModelTriggerBuggy_ and ModelTriggerSimple_ and simplify ModelTriggerSimple_ to just use dist1
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 8808dee2279f5353c476da59f11fa9e5d857a1d1
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Sat Mar 11 17:33:35 2023 +0800
+
+    avoid enum clash and compilation warnings
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 74232fbb32ed7dfe04bc505ab79bfb3817fa8027
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 10 20:52:47 2023 +0000
+
+    try a simpler to debug junoPMTOpticalModel::ModelTriggerSimple_
+
+M	Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+
+commit 19b6a876ff8a18bd47085205e70dbef9eda0ed16
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Thu Mar 9 22:55:55 2023 +0000
+
+    ModelTrigger_Debug integrated into junoPMTOpticalModel with POM_DEBUG, investigating another FastSim bug, photons SA/SD on NNVT midline but not HAMA
+
+A	Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+
+commit 7193d983ea93e63af706b2f198df778a3219720e
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Mar 8 22:07:03 2023 +0000
+
+    notes on _qe/An being escape_fac, add detailed debug in order to get that info into opticks U4Recorder
+
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+A	Simulation/DetSimV2/PhysiSim/include/CustomART_Debug.h
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+
+commit cc1b83e8ec91189e7cd264485f8f4a3c517c880f
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Mon Mar 6 20:48:26 2023 +0000
+
+    use PMTAccessor::Load to access full PMTSimParamData in standalone tests
+
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/IPMTAccessor.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+
+commit cdd37e23b82f3bce233a4ca17452d20ee879f1b0
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 3 22:46:19 2023 +0000
+
+    notes on CustomG4OpBoundaryProcess::DielectricMetal
+
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+commit 5bc49e2c24e01fe9ab1cccc3c3e20a7e719f48c7
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Mar 3 11:33:22 2023 +0000
+
+    add PIDX_ENABLED controls configured by envvars for each class/struct
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+commit 3831422cfe61f68c57ace4c8c4630f6c1ef9cef3
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Mar 1 19:29:38 2023 +0000
+
+    rescale 3-way probabilities A,R,T from CustomART into 2-way theTransmission theReflectivity to work with CustomG4OpBoundaryProcess::DielectricDielectric : motivated by A-B statistical matching the POM quadrants see j/issues/blyth-88-quadrant-matching.rst
+
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+commit b22b4b1df5d3fd0ffbca3cdf6b9a31b3bdfe9948
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Feb 28 21:26:02 2023 +0000
+
+    debug machinery within PMTSIM_STANDALONE, adopt m_custom_status:Y like boundary type to give Absorb/Detect/FresnelReflect/FresnelRefract
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+commit 77969d16a2ae6d993d97e2823b0f5e7bc2bb3620
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Tue Feb 28 11:53:14 2023 +0000
+
+    add PMTSIM_STANDALONE FastSim STrackInfo/spho labelling to junoPMTOpticalModel::DoIt for FastSim status recording
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+
+commit ecd9aaccff9c5d379dc9b4a6b3a4135aefceee6b
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Mon Feb 27 16:26:19 2023 +0000
+
+    add PMTSIM_STANDALONE version of the FastSim based POM
+
+M	Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M	Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
+M	Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+A	Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/_TComplex.h
+M	Simulation/SimSvc/MultiFilmSimSvc/src/Material.h
+M	Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.h
+M	Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+M	Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc
+
+commit a9788453f596330ebe655b7b6c063717a1268911
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Feb 24 19:56:55 2023 +0000
+
+    add natural geometry handling to NNVTMCPPMTManager
+
+M	Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+M	Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+
+commit 03739feded0760eb2307b8c161f7d98064a2ac04
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Fri Feb 24 17:27:56 2023 +0000
+
+    add natural geometry handling to HamamatsuR12860PMTManager, placing things common between HAMA and NNVT into CommonPMTManager.h
+
+A	Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h
+M	Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+M	Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+
+commit 318ad8a3bd5b4b0e8593e51943a9fd13ffe88664
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Thu Feb 23 20:09:32 2023 +0000
+
+    incorporate CustomART.h MultiLayrStack.h customization into CustomG4OpBoundaryProcess
+
+M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+A	Simulation/DetSimV2/PhysiSim/include/CustomART.h
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+A	Simulation/DetSimV2/PhysiSim/include/MultiLayrStack.h
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+A	Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h
+
+commit 2ab30fac7786f0a56b73af2c599a121b8161c4e5
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Thu Feb 23 10:14:51 2023 +0000
+
+    fix without Opticks build fail with preprocessor macros in PMTAccessor::LoadPMTSimParamData, quell some compilation warnings
+
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_LPMT.h
+M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h
+
+commit fce28c08bdb857e20f3735cae0eecc3a754db684
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Feb 22 20:39:13 2023 +0000
+
+    start integration of CustomG4OpBoundaryProcess using IPMTAccessor/PMTAccessor connector created from PMTSimParamData struct obtained from the PMTSimParamSvc
+
+M	Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+M	Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+A	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/IPMTAccessor.h
+A	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+
+commit e843201a22ba1f29500cf46cca5fa17430466063
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Feb 22 17:01:43 2023 +0000
+
+    change classname to CustomG4OpBoundaryProcess for clarity
+
+M	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+M	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+
+commit 636e78a25b8ce07ee8e16cbafc97bcb41954d996
+Author: Simon C Blyth <simoncblyth@gmail.com>
+Date:   Wed Feb 22 16:58:04 2023 +0000
+
+    bring in original Geant4 1042 G4OpBoundaryProcess under different name, ready for customization
+
+A	Simulation/DetSimV2/PhysiSim/include/CustomG4OpBoundaryProcess.hh
+A	Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc

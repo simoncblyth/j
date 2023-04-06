@@ -412,14 +412,6 @@ jx-opticks()
 tds-dir(){ echo ${TDS_DIR:-/tmp/$USER/opticks/tds} ; }
 tds-cd(){  cd $(tds-dir) ; }
 
-tds-notes(){ cat << EON
-
-N[blyth@localhost ntds2]$ pwd
-/tmp/u4debug/ntds2
-
-EON
-}
-
 
 tds-(){ 
    type $FUNCNAME
@@ -446,10 +438,11 @@ tds-(){
    cd $dir
 
 
-
    local runline
    if [ -n "$PDB" ]; then 
        runline="ipython --pdb $script $*"
+   elif [ -n "$NODBG" ]; then 
+       runline="python $script $*"
    else
        runline="gdb $H $B $T --args python $script $*"
    fi 
@@ -501,10 +494,10 @@ ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11   Both Geant4 and Opticks
 
 ntds2_cf()
 {
-   N=0 GEOM=V0J008 ntds2
+   NODBG=1 N=0 GEOM=V0J008 ntds2
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   N=1 GEOM=V1J008 ntds2
+   NODBG=1 N=1 GEOM=V1J008 ntds2
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
@@ -575,6 +568,8 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg DEBUG NOT-enabled 
    fi 
 
+   export G4CXOpticks=INFO   ## dump frame 
+
    if [ -n "$DISABLE" ]; then 
        export U4__CollectGenstep_DsG4Scintillation_r4695_DISABLE=1
        export U4__CollectGenstep_G4Cerenkov_modified_DISABLE=1
@@ -618,11 +613,11 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
    #IPHO=RainXZ_Z230_1000_f8.npy
-   IPHO=RainXZ_Z230_10k_f8.npy
-   #IPHO=RainXZ_Z230_100k_f8.npy
+   #IPHO=RainXZ_Z230_10k_f8.npy
+   IPHO=RainXZ_Z230_100k_f8.npy
 
-   #moi=Hama:0:1000 
-   moi=NNVT:0:1000 
+   moi=Hama:0:1000 
+   #moi=NNVT:0:1000 
    layout=""
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO

@@ -19,6 +19,9 @@ ntds.sh
     N=0 MODE=3 ./ntds.sh ana
 
 
+    N=1 GLOBAL=1 MODE=3 ./ntds.sh ana
+
+
 
 
 ntds.py
