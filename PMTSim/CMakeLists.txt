@@ -25,7 +25,21 @@ find_package(G4    REQUIRED MODULE)
 find_package(CLHEP REQUIRED CONFIG) #   Geant4 should have found it already  : but get HepRotation link errors without 
 find_package(SysRap REQUIRED)
 
-find_package(Custom4 REQUIRED)
+if(Custom4_FOUND)
+   message(STATUS "Custom4 already found" )
+else()
+  set(Custom4_VERBOSE YES)
+  find_package(Custom4 0.1.3 EXACT REQUIRED)
+  if(Custom4_FOUND)
+  message(STATUS "Custom4_VERSION        : ${Custom4_VERSION} ")
+  message(STATUS "Custom4_VERSION_MAJOR  : ${Custom4_VERSION_MAJOR} ")
+  message(STATUS "Custom4_VERSION_MINOR  : ${Custom4_VERSION_MINOR} ")
+  message(STATUS "Custom4_VERSION_PATCH  : ${Custom4_VERSION_PATCH} ")
+  message(STATUS "Custom4_VERSION_TWEAK  : ${Custom4_VERSION_TWEAK} ")
+  message(STATUS "Custom4_VERSION_COUNT  : ${Custom4_VERSION_COUNT} ")
+  endif()
+endif()
+
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
