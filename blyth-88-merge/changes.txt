@@ -1,46 +1,115 @@
-
-
 epsilon:junosw blyth$ branch=blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+epsilon:junosw blyth$ git diff  main..$branch -- Simulation/DetSimV2/PMTSim/CMakeLists.txt  ## for indiv diffs 
+
+
 epsilon:junosw blyth$ git diff --name-status main..$branch 
-M       Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+
+M       Examples/Tutorial/python/Tutorial/JUNODetSimModule.py      ## pmt-natural-geometry input photons update
+
 A       Simulation/DetSimV2/AnalysisCode/include/U4RecorderAnaMgr.hh
-A       Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc
-M       Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
-M       Simulation/DetSimV2/PMTSim/CMakeLists.txt
-A       Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h
-A       Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h
+A       Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc   ## pass-thru to U4Recorder 
+
+M       Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc  
+                                                                   ## opticksMode:2 NoGPU
+
+M       Simulation/DetSimV2/PMTSim/CMakeLists.txt                  ## EGet dep  
+A       Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h    ## ModelTrigger_Debug struct
+A       Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h      ## Quadrant docs, OpticalSurfaceName prefix provider
+
 M       Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
-A       Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h
-M       Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
-M       Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
-M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
-M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
 M       Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
-M       Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
-M       Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
-M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
-M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
-M       Simulation/DetSimV2/PhysiSim/CMakeLists.txt
+M       Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+M       Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc        ## PMT geometry controlled by m_UsePMTNaturalGeometry bool 
+
+M       Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+M       Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc      ## ModelTrigger IMPL switch between old Buggy one and new Simple one 
+
+A       Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h    
+M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh      
+M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc            ## TODO: manual merge many PMT:: statics NEEDED
+                                                                   ## ProcessHits debug enumeration for WITH_G4CXOPTICKS
+                                                                   ## Adapt for custom boundary process 
+
+M       Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh  
+M       Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc    ## remove old WITH_G4OPTICKS 
+
+M       Simulation/DetSimV2/PhysiSim/CMakeLists.txt          
 M       Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
 M       Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
-A       Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h
+                                                                   ## Dependency additions for Custom4, provisioning the PMTAccessor.
+                                                                   ## Quadrant control. Creation of custom boundary process.
+
+A       Simulation/DetSimV2/SimUtil/SimUtil/S4Touchable.h          ## Accessing copyNo from volumes inside PMT. 
+
 M       Simulation/GenTools/GenTools/GtOpticksTool.h
-M       Simulation/GenTools/src/GtOpticksTool.cc
+M       Simulation/GenTools/src/GtOpticksTool.cc                   ## complete rework for Opticks input photon with transform
+  
+
 M       Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
 A       Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/_TComplex.h
 M       Simulation/SimSvc/MultiFilmSimSvc/src/Material.h
 M       Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.h
 M       Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
 M       Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc
+                                                                  ## Changes to remove dependency on ROOT within PMTSIM_STANDALONE preprocessor macro, 
+                                                                  ## mostly by shifting to use std::complex and related functions.
+                                                                  ## No difference when not using PMTSIM_STANDALONE switch. 
+
 A       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/IPMTAccessor.h
-A       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
-M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+A       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h      
+                                                                  ## low dep. PMT data access 
+
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h   
+                                                                  ## TODO: looks like can scrub my minor addition to prevent conflict
+
 M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_LPMT.h
-M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h
-M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
-M       Utilities/EGet/EGet/EGet.h
-M       cmake/JUNODependencies.cmake
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h   ## pad() method to avoid compilation warning  
+M       Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h  ## Load static and load checks   
+
+M       Utilities/EGet/EGet/EGet.h                                 ## Avoid compilation warning 
+M       cmake/JUNODependencies.cmake                               ## Custom4 dependency hookup 
+
 epsilon:junosw blyth$ 
+
+
+
+
+
+
+
+epsilon:junosw blyth$ git diff main..$branch -- Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+diff --git a/Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h b/Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+index 7dbc756..f0fd3cb 100644
+--- a/Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
++++ b/Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+@@ -1,7 +1,11 @@
+ #ifndef MultiFilmModel_h
+ #define MultiFilmModel_h 1
+ 
++#ifdef PMTSIM_STANDALONE
++#include "MultiFilmSimSvc/_TComplex.h"
++#else
+ #include "TComplex.h"
++#endif
+ 
+ class Matrix;
+ class OpticalSystem;
+epsilon:junosw blyth$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

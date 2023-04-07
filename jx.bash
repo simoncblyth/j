@@ -155,7 +155,7 @@ jx-sub()
 
 
 jt(){ cd $JUNOTOP ; pwd ; } 
-je(){ cd $JUNOTOP/junoenv && pwd ; } 
+je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
 jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
 
 
@@ -613,8 +613,8 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
    #IPHO=RainXZ_Z230_1000_f8.npy
-   #IPHO=RainXZ_Z230_10k_f8.npy
-   IPHO=RainXZ_Z230_100k_f8.npy
+   IPHO=RainXZ_Z230_10k_f8.npy
+   #IPHO=RainXZ_Z230_100k_f8.npy
 
    moi=Hama:0:1000 
    #moi=NNVT:0:1000 
