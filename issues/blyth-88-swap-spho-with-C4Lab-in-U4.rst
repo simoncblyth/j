@@ -189,14 +189,3 @@ for Opticks too.
 
 
 
-TODO : gun running as test of C+S (rather than T:TORCH running which input photons exercise)
------------------------------------------------------------------------------------------------
-
-
-TODO : not WITH_G4CXOPTICKS check build and run
-----------------------------------------------------
-
-
-
-
-

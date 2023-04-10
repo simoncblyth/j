@@ -68,6 +68,10 @@ if __name__ == '__main__':
 
     w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
 
+
+    defhist = "SI BT BT BT SD"  
+    hist = os.environ.get("HIST", defhist).encode("utf-8")
+
     EXPL = ""
 
     if CHECK == "EPH_NBOUND_PYREX_AB":
@@ -79,6 +83,9 @@ if __name__ == '__main__':
     elif CHECK == "NOSC":
         w_ = "np.where(t.nosc)[0]" 
         EXPL = "Photons without scatter SC, should stay in plane "
+    elif CHECK == "hist":
+        w_ = "np.where(np.char.startswith(t.q,hist))"
+        EXPL = "Photons with histories starting with HIST [%s] " % hist.decode("utf-8")   
     pass
 
     exprs = r"""
@@ -115,12 +122,16 @@ if __name__ == '__main__':
         ppos_[3] = "t.f.photon[:,0,:3]  #c final photon position "
     elif CHECK == "sd_point":
         ppos_[0] = "t.f.record[np.where(t.qq == pcf.SD)][:,0,:3]  #g SD position "    
+    elif CHECK == "sa_point":
+        ppos_[0] = "t.f.record[np.where(t.qq == pcf.SA)][:,0,:3]  #g SA position "    
     elif CHECK in ["EPH_NBOUND_PYREX_AB", "EPH_NEDEP", "w_point"]:
         ppos_[0] = "t.f.record[w][:,0,:3] #y %s " % w_
     elif CHECK in ["NOSC"]:
         ppos_[0] = "t.f.record[np.where(t.nosc)][:,:,0,:3].reshape(-1,3) "
     elif CHECK in ["NOSCAB"]:
         ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3) "
+    elif CHECK == "hist":
+        ppos_[0] = "t.f.record[w][:,0,:3]  #y %s " % w_ 
     pass 
 
     ppos = {'a':{}, 'b':{} }
@@ -216,7 +227,7 @@ if __name__ == '__main__':
             lpos = np.dot( gpos, evt.f.sframe.w2m ) 
             upos = gpos if GLOBAL else lpos
 
-            if "ALT" in os.environ:
+            if "ALT" in os.environ:  ## checking alternative way to do the global to local transform
                 gpos_alt = evt.f.record[:,:,0].copy()          # (NUM,32,4) : all point "post" (position, time)
                 gpos_alt[...,3] = 1                          # 1. for position transform
                 lpos_alt = np.dot( gpos_alt, evt.f.sframe.w2m ) 

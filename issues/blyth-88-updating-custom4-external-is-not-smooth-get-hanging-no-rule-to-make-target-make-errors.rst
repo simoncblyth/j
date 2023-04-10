@@ -25,7 +25,7 @@ blyth-88-updating-custom4-external-is-not-smooth-get-hanging-no-rule-to-make-tar
 
 
 "cd build ; make clean" doesnt do enough.
-To avoid the "No rule to make target" need to do nuclear re-build::
+To avoid the GenTools "No rule to make target" need to do nuclear re-build::
 
     N[blyth@localhost build]$ cd ..
     N[blyth@localhost junosw]$ rm -rf build

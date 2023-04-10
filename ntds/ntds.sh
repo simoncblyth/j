@@ -10,17 +10,22 @@ ntds.sh
     ./ntds.sh ana          # plotting SEvt 
     ./ntds.sh cf           # chi2 comparison of SEvt histories
 
+    NEVT=10 c2desc=1 ./ntds.sh cfm     # list chi2 comparisons for 10 evt pairs 
 
     CHECK=all_point ./ntds.sh ana    
     CHECK=few_point ./ntds.sh ana    
     MODE=3 CHECK=few_point ./ntds.sh ana    
 
 
+    GLOBAL=1 CHECK=sd_point ./ntds.sh ana
+    GLOBAL=1 CHECK=sa_point ./ntds.sh ana
+
+
+Without specifying N, both N=0 and N=1 are plotted into separate windows.
+To pick one or other (as needed when doing screen captures) specify the N::
+
     N=0 MODE=3 ./ntds.sh ana
-
-
     N=1 GLOBAL=1 MODE=3 ./ntds.sh ana
-
 
 
 
@@ -29,6 +34,11 @@ ntds.py
 
 ntds_cf.py
     chi2 comparison
+
+ntds_cfm.py
+    comparisons across NEVT pairs of evt 
+
+
 
 
 EOU
@@ -45,6 +55,7 @@ check=all_point
 #check=sd_point
 
 evt=000
+
 export EVT=${EVT:-$evt}
 n=-1  # 0,1,-1
 export VERSION="${N:-$n}"
@@ -58,6 +69,12 @@ export AGEOM=V0J008
 export BGEOM=V1J008
 export ABASE=$GEOMDIR/$AGEOM/$SCRIPT
 export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
+
+
+if [ "$arg" == "cfm" ]; then 
+    EVT="%0.3d"
+fi 
+
 export AFOLD=$ABASE/ALL0/$EVT
 export BFOLD=$BBASE/ALL1/$EVT
 
@@ -104,6 +121,8 @@ elif [ "$arg" == "ana" ]; then
     pyscript=$DIR/ntds.py 
 elif [ "$arg" == "cf" ]; then
     pyscript=$DIR/ntds_cf.py 
+elif [ "$arg" == "cfm" ]; then
+    pyscript=$DIR/ntds_cfm.py 
 fi
 
 export QLIM=0:10

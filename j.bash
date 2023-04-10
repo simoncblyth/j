@@ -99,15 +99,17 @@ juno-simulation-paper
 
 * https://www.overleaf.com/project/617f56272cf66b58edaeff10
 
+
 How to test compilation without Opticks ? 
 ------------------------------------------
 
-1. vi $JUNOTOP/bashrc.sh           ## comment the opticks source line 
+1. vi $JUNOTOP/bashrc.sh   ## comment opticks source-ing on last line 
 2. close terminal session and start a new one
 3. get into env : jre  (the "o" command should not be found, showing opticks not hooked up)
-4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS/WITH_G4OPTICKS
+4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS
 5. ntds3 should fail at DetSim0Svc::initializeOpticks 
 6. ntds0 should complete 
+
 
 JUNO Groups
 ---------------
@@ -525,6 +527,129 @@ Getting laptop to follow an upstream branch
      2 files changed, 94 insertions(+), 14 deletions(-)
      create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
     epsilon:junosw blyth$ 
+
+
+junoenv add external via merge request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. add branch using web interface 
+2. pull the repo, the new branch should be listed::
+
+    epsilon:junoenv blyth$ git pull 
+    From code.ihep.ac.cn:JUNO/offline/junoenv
+     * [new branch]      blyth-88-add-new-Custom4-external-with-Geant4-customizations -> origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    Already up-to-date.
+
+3. HMM, the new remote is not yet present locally, need "-a" to list it::
+
+    epsilon:junoenv blyth$ git branch 
+    * main
+    epsilon:junoenv blyth$ git branch -a
+    * main
+      remotes/origin/HEAD -> origin/main
+      remotes/origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
+      remotes/origin/main
+    epsilon:junoenv blyth$ 
+
+4. checkout the remote branch (which has no changes from main) locally::
+
+    epsilon:junoenv blyth$ git --version
+    git version 2.14.3 (Apple Git-98)
+    epsilon:junoenv blyth$ branch=blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    epsilon:junoenv blyth$ git checkout -b $branch origin/$branch 
+    M	junoenv-external-libs.sh
+    Branch blyth-88-add-new-Custom4-external-with-Geant4-customizations set up to track remote branch blyth-88-add-new-Custom4-external-with-Geant4-customizations from origin.
+    Switched to a new branch 'blyth-88-add-new-Custom4-external-with-Geant4-customizations'
+    epsilon:junoenv blyth$ 
+
+    epsilon:junoenv blyth$ git branch 
+    * blyth-88-add-new-Custom4-external-with-Geant4-customizations
+      main
+    epsilon:junoenv blyth$ 
+
+
+5. Now the local changes appear again the newly created branch::
+
+    epsilon:junoenv blyth$ git status
+    On branch blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    Your branch is up-to-date with 'origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   junoenv-external-libs.sh
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+
+        packages/custom4.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    epsilon:junoenv blyth$ 
+
+
+::
+
+    epsilon:junoenv blyth$ git commit -m "add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot" 
+    [blyth-88-add-new-Custom4-external-with-Geant4-customizations 29d8752] add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot
+     2 files changed, 201 insertions(+)
+     create mode 100644 packages/custom4.sh
+    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$ git push 
+    Counting objects: 5, done.
+    Delta compression using up to 8 threads.
+    Compressing objects: 100% (5/5), done.
+    Writing objects: 100% (5/5), 1.75 KiB | 1.75 MiB/s, done.
+    Total 5 (delta 3), reused 0 (delta 0)
+    remote: 
+    remote: To create a merge request for blyth-88-add-new-Custom4-external-with-Geant4-customizations, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junoenv.git
+       36f5e36..29d8752  blyth-88-add-new-Custom4-external-with-Geant4-customizations -> blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    epsilon:junoenv blyth$ 
+
+
+* https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/27
+
+
+All above locally on laptop. Now get workstation to use that branch::
+
+    N[blyth@localhost junoenv]$ git branch -a
+    * main
+      remotes/origin/HEAD -> origin/main
+      remotes/origin/blyth-update-junoenv-opticks-for-CMake
+      remotes/origin/main
+    N[blyth@localhost junoenv]$ git fetch 
+    remote: Enumerating objects: 177, done.
+    remote: Counting objects: 100% (31/31), done.
+    remote: Compressing objects: 100% (5/5), done.
+    remote: Total 177 (delta 26), reused 26 (delta 26), pack-reused 146
+    Receiving objects: 100% (177/177), 85.68 KiB | 0 bytes/s, done.
+    Resolving deltas: 100% (104/104), completed with 12 local objects.
+    From code.ihep.ac.cn:JUNO/offline/junoenv
+       877fc01..36f5e36  main       -> origin/main
+     * [new branch]      blyth-88-add-new-Custom4-external-with-Geant4-customizations -> origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ git branch -a
+    * main
+      remotes/origin/HEAD -> origin/main
+      remotes/origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
+      remotes/origin/blyth-update-junoenv-opticks-for-CMake
+      remotes/origin/main
+    N[blyth@localhost junoenv]$ 
+
+
+    N[blyth@localhost junoenv]$ branch=blyth-88-add-new-Custom4-external-with-Geant4-customizations
+    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$ git checkout -b $branch origin/$branch
+    Branch blyth-88-add-new-Custom4-external-with-Geant4-customizations set up to track remote branch blyth-88-add-new-Custom4-external-with-Geant4-customizations from origin.
+    Switched to a new branch 'blyth-88-add-new-Custom4-external-with-Geant4-customizations'
+    N[blyth@localhost junoenv]$ 
+
+
+
 
 
 
