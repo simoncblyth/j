@@ -48,6 +48,7 @@ jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
 jx-vi(){ vi $BASH_SOURCE ; }
 jxf(){ source $BASH_SOURCE ; }
 jxn(){ cd ~/j/ntds ; }
+jxm(){ cd ~/j/mtds ; }
 jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
 
 jxp(){  cd ~/j/PMTSimParamSvcTest ; pwd ; }
@@ -413,12 +414,17 @@ tds-dir(){ echo ${TDS_DIR:-/tmp/$USER/opticks/tds} ; }
 tds-cd(){  cd $(tds-dir) ; }
 
 
+  
+
+
 tds-(){ 
    type $FUNCNAME
    local msg="=== $FUNCNAME :"
 
    [ -n "$DRY" ] && echo $msg DRY $DRY && return 0
    [ -z "$JX_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
+   [ -z "$SCRIPT" ] && echo $msg SCRIPT envvar is required to set logfile name  && return 3
+
  
    local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
    if [ -z "$BP" ]; then
@@ -437,6 +443,13 @@ tds-(){
    mkdir -p $dir
    cd $dir
 
+   TDS_LOG=$SCRIPT.log 
+
+   ## SCRIPT envvar overrides the opticks executable name based logname  
+   if [ -n "$SCRIPT" -a -f "$TDS_LOG" ]; then 
+      echo $msg removing TDS_LOG : $TDS_LOG before run
+      rm "$TDS_LOG" 
+   fi 
 
    local runline
    if [ -n "$PDB" ]; then 
@@ -450,15 +463,32 @@ tds-(){
    export DIRECTORY="$PWD"
    export COMMANDLINE="$runline"
 
-   vars="iwd dir DIRECTORY COMMANDLINE"
+   local vars="iwd dir DIRECTORY COMMANDLINE SCRIPT TDS_LOG TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
+   for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" >> $TDS_LOG ; done 
 
-   echo $COMMANDLINE
    date
+   date >> $TDS_LOG
+
    eval $COMMANDLINE
-   date
-   cd $iwd
 
+   date
+   date >> $TDS_LOG
+
+
+   if [ -f "$TDS_LOG" ]; then 
+      if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
+          echo $msg copy TDS_LOG : $TDS_LOG into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR
+          echo $msg copy TDS_LOG : $TDS_LOG into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR >> $TDS_LOG
+
+          cp $TDS_LOG ${TDS_LOG_COPYDIR}/
+      else
+          echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
+          echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist >> $TDS_LOG
+      fi 
+   fi 
+
+   cd $iwd
 
 }
 
@@ -511,6 +541,8 @@ Examples::
 
 EON
 }
+
+
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
@@ -643,7 +675,11 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    export POM=${POM:-1}
    export VERSION=${N:-1}
    export LAYOUT=$layout
-   export PREDICT_EVTDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
+
+   export TDS_LOG_COPYDIR==/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
+
+   
+
 
    vars="POM N VERSION LAYOUT PREDICT_EVTDIR"
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
@@ -690,37 +726,99 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    echo $msg trgs : $trgs 
    echo $msg args : $args 
 
-
    if [ "$(uname)" == "Linux" ]; then 
-
-       if [ -f "$TDS_LOG" ]; then 
-          echo $msg removing TDS_LOG : $TDS_LOG before run
-          rm "$TDS_LOG" 
-       fi 
-
        tds- $opts $trgs $args 
-
-       if [ -f "$TDS_LOG" ]; then 
-          echo $msg copy TDS_LOG : $TDS_LOG into PREDICT_EVTDIR $PREDICT_EVTDIR
-          if [ -d "$PREDICT_EVTDIR" ]; then 
-              cp $TDS_LOG ${PREDICT_EVTDIR}/
-          else
-              echo $msg PREDICT_EVTDIR : $PREDICT_EVTDIR does not exist 
-          fi 
-       fi 
-
-   elif [ "$(uname)" == "Darwin" ]; then 
-       #BASE=/tmp/$USER/opticks/$SCRIPT   
-       #BASE=.opticks/$SCRIPT   
-       #BASE=$base
-       #BASE=/tmp/$USER/opticks/GEOM/$SCRIPT
-       #source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
-       echo $msg rsync now done by j/ntds/ntds.sh 
+   else
+       echo tds- $opts $trgs $args 
    fi  
-
 
    env | grep =INFO
 }
+
+
+mtds_0v2_grab()
+{
+   source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/mtds0
+   source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/mtds2
+}
+
+
+mtds_0v2(){  
+
+  local logdir=/tmp/$FUNCNAME
+  mkdir -p $logdir
+ 
+  export TDS_LOG_COPYDIR=$logdir
+  export EVTMAX=10
+
+  mtds0
+
+  mtds2
+}
+
+
+mtds_bp(){
+   BP=CLHEP::MixMaxRng::flat mtds0 
+   BP=CLHEP::MixMaxRng::flat mtds2
+}
+
+
+
+mtds0(){ OPTICKS_MODE=0 mtds ; }
+mtds2(){ OPTICKS_MODE=2 mtds ; }
+
+mtds()
+{
+   : minimal launch to look into unexpected opticksMode:0 vs opticksMode:2 difference
+   local args=$*     
+   local msg="=== $FUNCNAME :"
+   local evtmax=${EVTMAX:-1}
+   local mode=${OPTICKS_MODE:-3}
+   local script=mtds$mode
+   local base=/tmp/u4debug
+   local tmpdir=$base/$script
+
+   export SCRIPT=$script       ## SCRIPT controls name of logfile 
+   export TDS_DIR=$tmpdir      ## controls running directory where logfile and outputs are written
+
+   export POM=${POM:-1}
+   export VERSION=${N:-1}
+
+   local vars="POM N VERSION"
+   local var 
+   for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
+
+   local opts=""     
+   local trgs=""     ## arguments after opts : eg "gun" or "opticks" 
+   local args=$*     ## arguments after trgs usually none
+
+   trgs="$trgs gun"
+
+   opts="$opts --opticks-mode $mode"   
+   opts="$opts --no-guide_tube"
+   opts="$opts --additionacrylic-simplify-csg"
+
+   case $POM in     ## passed into UsePMTOpticalModel
+      0) opts="$opts --no-pmt-optical-model"  ;;
+      1) opts="$opts --pmt-optical-model"     ;;
+   esac 
+
+   case $VERSION in  ## passed into UsePMTNaturalGeometry
+      0) opts="$opts --pmt-unnatural-geometry" ;; 
+      1) opts="$opts --pmt-natural-geometry"   ;;
+   esac
+
+   opts="$opts --evtmax $evtmax"
+   opts="$opts $(anamgr) "
+
+   tds- $opts $trgs $args 
+
+}
+
+
+
+
+
 
 ninfo(){ env | grep =INFO ; }
 

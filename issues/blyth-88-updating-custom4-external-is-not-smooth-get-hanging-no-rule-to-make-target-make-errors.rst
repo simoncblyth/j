@@ -33,5 +33,29 @@ To avoid the GenTools "No rule to make target" need to do nuclear re-build::
 
 
 
+Same problem with Opticks::
+
+    -- Generating done
+    -- Build files have been written to: /data/blyth/junotop/ExternalLibs/opticks/head/build/u4
+    Consolidate compiler generated dependencies of target U4
+    make[2]: *** No rule to make target `/data/blyth/junotop/ExternalLibs/custom4/0.0.8/lib64/libCustom4.so', needed by `libU4.so'.  Stop.
+    make[2]: *** Waiting for unfinished jobs....
+    [  5%] Building CXX object CMakeFiles/U4.dir/U4Material.cc.o
+    [  5%] Building CXX object CMakeFiles/U4.dir/U4SolidMaker.cc.o
+    [  5%] Building CXX object CMakeFiles/U4.dir/U4_LOG.cc.o
+
+Need::
+
+     u4
+     om-cleaninstall
+     gx
+     om-cleaninstall
+     oo
+
+
+
+
+
+
 
 
