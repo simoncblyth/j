@@ -738,6 +738,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
 mtds_0v2_grab()
 {
+   : grabbing now done by ~/j/mtds/mtds.sh grab_evt 
    source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/mtds0
    source $OPTICKS_HOME/bin/rsync.sh /tmp/$USER/opticks/GEOM/mtds2
 }

@@ -42,6 +42,13 @@ if __name__ == '__main__':
     print("A:%s " % str(A.shape))
     print("B:%s " % str(B.shape))
 
+    BB = B[:len(A)] 
+    assert np.all( BB == A ), "expect all common randoms to be the same "
+
+
+
+
+
 
 
 

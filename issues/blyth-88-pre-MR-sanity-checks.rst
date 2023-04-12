@@ -274,8 +274,6 @@ Oops. Cannot assert on m_track_label in C4. Bump to 0.1.4
 
 
 
-
-
 DONE : not WITH_G4CXOPTICKS opticksMode:0 
 ----------------------------------------------------
 
@@ -358,7 +356,29 @@ N=1::
 
 
 
-TODO : investigate why opticksMode:2 is not matching opticksMode:0 
+After adding below U4Recorder envvar control and not setting it opticksMode 2 now giving same hit counts as opticksMode 0::
+
+    #export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1
+
+::
+
+    N[blyth@localhost mtds2]$ grep eventID mtds2.log
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 0 m_opticksMode 2 gpu_simulation  NO  hitCollection 1722 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 1 m_opticksMode 2 gpu_simulation  NO  hitCollection 1654 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 2 m_opticksMode 2 gpu_simulation  NO  hitCollection 1702 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 3 m_opticksMode 2 gpu_simulation  NO  hitCollection 1757 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 4 m_opticksMode 2 gpu_simulation  NO  hitCollection 1791 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 5 m_opticksMode 2 gpu_simulation  NO  hitCollection 1761 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 6 m_opticksMode 2 gpu_simulation  NO  hitCollection 1690 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 7 m_opticksMode 2 gpu_simulation  NO  hitCollection 1769 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 8 m_opticksMode 2 gpu_simulation  NO  hitCollection 1763 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 9 m_opticksMode 2 gpu_simulation  NO  hitCollection 1820 hitCollection_muon 0 hitCollection_opticks 0
+    N[blyth@localhost mtds2]$ 
+
+
+
+
+DONE : investigate why opticksMode:2 is not matching opticksMode:0 
 -----------------------------------------------------------------------
 
 ::
@@ -383,7 +403,7 @@ TODO : investigate why opticksMode:2 is not matching opticksMode:0
 
 
 
-TODO : review opticksMode:2 vs opticksMode:0 code difference, and vary that
+DONE : review opticksMode:2 vs opticksMode:0 code difference, and vary that
 --------------------------------------------------------------------------------------
 
 The biggest difference is geometry translation. Thats lots of Geant4 code::
@@ -404,67 +424,6 @@ The biggest difference is geometry translation. Thats lots of Geant4 code::
     X4Solid::Polycone_MakeInner@1839:  EXPERIMENTAL num_R_inner > 1 handling base_steel num_R_inner 2
     X4Solid::Polycone_MakeInner@1845:  inner_prims.size 2
 
-
-
-TODO : tidy up debug instrumentation
-----------------------------------------------
-
-Also tidy up these, should not be there in opticksMode:0::
-
-    U4Debug::Save eventID 0 dir /tmp/000 EKEY U4Debug_SaveDir
-    U4Cerenkov_Debug::Save dir /tmp/000 num_record 6
-    U4Scintillation_Debug::Save dir /tmp/000 num_record 54
-    U4Hit_Debug::Save dir /tmp/000 num_record 0
-    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks -1
-    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
-
-
-::
-
-    epsilon:ntds blyth$ jgr U4Debug
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#include "U4Debug.hh"
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:    U4Debug::Save(eventID);   
-    epsilon:junosw blyth$ 
-
-    epsilon:tmp blyth$ jgr U4Cerenkov_Debug
-    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#include "U4Cerenkov_Debug.hh"
-    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:  U4Cerenkov_Debug dbg ;  
-    epsilon:junosw blyth$ 
-
-    epsilon:junosw blyth$ jgr U4Scintillation_Debug
-    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#include "U4Scintillation_Debug.hh"
-    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:    U4Scintillation_Debug dbg ; 
-    ./Doc/oum/source/releasenotes/J22.2.0.md:    * collect more debug fields into U4Scintillation_Debug hidden behind WITH_G4CXOPTICKS_DEBUG, plus avoid compilation warnings (see MR !24 and !27)
-    epsilon:junosw blyth$ 
-
-
-::
-
-    1114 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
-    1115 {
-    1116 #ifdef WITH_G4CXOPTICKS_DEBUG
-    1117     // relocated here rather than within _Opticks as want to check 
-    1118     // for differences between opticksMode
-    1119     // Needs to be prior to m_jpmt_opticks->EndOfEvent(HCE) for saving genstep labels
-    1120     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
-    1121     G4int eventID = event->GetEventID() ;
-    1122     U4Debug::Save(eventID);
-    1123 #endif
-    1124 
-
-
-
-     342 #ifdef WITH_G4CXOPTICKS
-     343   bool is_opticks_genstep = fNumPhotons > 0 ;
-     344   G4VUserTrackInformation* a_ui = aTrack.GetUserInformation() ;
-     345   assert( a_ui == nullptr );  // should always be null, as process C is not applicable to RE-photons
-     346 
-     347   if(is_opticks_genstep && (m_opticksMode & 1 ))
-     348   {
-     349       U4::CollectGenstep_G4Cerenkov_modified(
-     350           &aTrack,
-     351           &aStep,
-     352           fNumPhotons,
 
 
 
@@ -639,8 +598,6 @@ Requiring SD fails to find any replica. So back out of that::
     U4Touchable::ReplicaDepth d 0 dlv_name NNVTMCPPMTlMaskVirtual found 1
 
 
-
-
 ::
 
     Target 0: (U4SimulateTest) stopped.
@@ -670,7 +627,11 @@ Not very useful for debugging due to very long voxelizing time.
 
 
 
-TODO : get opticksMode:2 to run without geometry translation
+TODO : put back opticksMode:2 geometry translation optionally, needed for input photon frame targetting
+---------------------------------------------------------------------------------------------------------
+
+
+DONE : get opticksMode:2 to run without geometry translation
 ---------------------------------------------------------------
 
 The geometry for opticksMode 2 only actually needed for input photon targetting.
@@ -867,7 +828,7 @@ BP=CLHEP::MixMaxRng::flat mtds0::
 
 
 
-WIP : Debug Random consumption mis-alignement between opticksMode:0 and 2
+DONE : Debug Random consumption mis-alignement between opticksMode:0 and 2
 --------------------------------------------------------------------------------
 
 so the gun generation in opticksMode 0, 2 start the same. 
@@ -951,9 +912,6 @@ jcv junoSD_PMT_v2::
     1159     }
 
 
-
-
-
 ::
 
     #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
@@ -973,8 +931,8 @@ jcv junoSD_PMT_v2::
 
 
 
-HMM:: where is the SEvt::save invoked ?
---------------------------------------------
+HMM:: where is the SEvt::save invoked ? U4Recorder handles that for opticksMode > 0
+----------------------------------------------------------------------------------------
 
 U4Recorder::EndOfEventAction does the SEvt::Save and SEvt::Clear::
 
@@ -1236,12 +1194,115 @@ All the randoms in common are the same::
     Out[7]: True
 
 
-TODO : find where opticksMode:0 and opticksMode:2 put the randoms to different use
+DONE : find where opticksMode:0 and opticksMode:2 put the randoms to different use
 --------------------------------------------------------------------------------------
 
 Hmm S4RandomArray can return consumption indices that can associate with junctures in the code. 
 
+::
 
+    108     /**
+    109     export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1 
+    110 
+    111     This setting is not appropriate for gun running. It is only appropriate with 
+    112     input photon running when doing optical only random aligned comparisons.
+    113 
+    114     This setting makes it easier to random align Opticks and Geant4 based optical simulations
+    115     because it makes the Geant4 pattern of random consumption more regular. 
+    116     However this has side effects:
+    117 
+    118     1. increases the randoms consumed by 20-30% (can check this with S4RandomArray.h) 
+    119     2. changes the events simulated, as the randoms consumed are changed   
+    120 
+    121     **/
+    122     static constexpr const char* UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft_ = "U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft" ;
+    123     static const bool UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft ;
+    124 
+
+
+    0895     if(UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft)
+     896     {
+     897         U4Process::ClearNumberOfInteractionLengthLeft(*track, *step);
+     898     }
+     899 
+     900     LOG(LEVEL) << "]" ;
+     901 }
+     902 
+     903 
+     904 const bool U4Recorder::UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft = ssys::getenvbool(UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft_) ;
+     905 
+     906 
+
+
+
+
+TODO: Confirm the above with some ntds runs and chi2 comparisons
+------------------------------------------------------------------
+
+
+TODO : tidy up the extra debugging added, eg S4RandomArray collection
+----------------------------------------------------------------------
+
+
+TODO : tidy up debug instrumentation
+----------------------------------------------
+
+Also tidy up these, should not be there in opticksMode:0::
+
+    U4Debug::Save eventID 0 dir /tmp/000 EKEY U4Debug_SaveDir
+    U4Cerenkov_Debug::Save dir /tmp/000 num_record 6
+    U4Scintillation_Debug::Save dir /tmp/000 num_record 54
+    U4Hit_Debug::Save dir /tmp/000 num_record 0
+    junoSD_PMT_v2::EndOfEvent m_opticksMode 0 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks -1
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+
+
+::
+
+    epsilon:ntds blyth$ jgr U4Debug
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#include "U4Debug.hh"
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:    U4Debug::Save(eventID);   
+    epsilon:junosw blyth$ 
+
+    epsilon:tmp blyth$ jgr U4Cerenkov_Debug
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#include "U4Cerenkov_Debug.hh"
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:  U4Cerenkov_Debug dbg ;  
+    epsilon:junosw blyth$ 
+
+    epsilon:junosw blyth$ jgr U4Scintillation_Debug
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#include "U4Scintillation_Debug.hh"
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:    U4Scintillation_Debug dbg ; 
+    ./Doc/oum/source/releasenotes/J22.2.0.md:    * collect more debug fields into U4Scintillation_Debug hidden behind WITH_G4CXOPTICKS_DEBUG, plus avoid compilation warnings (see MR !24 and !27)
+    epsilon:junosw blyth$ 
+
+
+::
+
+    1114 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
+    1115 {
+    1116 #ifdef WITH_G4CXOPTICKS_DEBUG
+    1117     // relocated here rather than within _Opticks as want to check 
+    1118     // for differences between opticksMode
+    1119     // Needs to be prior to m_jpmt_opticks->EndOfEvent(HCE) for saving genstep labels
+    1120     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
+    1121     G4int eventID = event->GetEventID() ;
+    1122     U4Debug::Save(eventID);
+    1123 #endif
+    1124 
+
+
+
+     342 #ifdef WITH_G4CXOPTICKS
+     343   bool is_opticks_genstep = fNumPhotons > 0 ;
+     344   G4VUserTrackInformation* a_ui = aTrack.GetUserInformation() ;
+     345   assert( a_ui == nullptr );  // should always be null, as process C is not applicable to RE-photons
+     346 
+     347   if(is_opticks_genstep && (m_opticksMode & 1 ))
+     348   {
+     349       U4::CollectGenstep_G4Cerenkov_modified(
+     350           &aTrack,
+     351           &aStep,
+     352           fNumPhotons,
 
 
 
