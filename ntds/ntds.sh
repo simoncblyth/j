@@ -10,7 +10,7 @@ ntds.sh
     ./ntds.sh ana          # plotting SEvt 
     ./ntds.sh cf           # chi2 comparison of SEvt histories
 
-    NEVT=10 c2desc=1 ./ntds.sh cfm     # list chi2 comparisons for 10 evt pairs 
+    NEVT=10 c2desc=1 ./ntds.sh cfmeta     # list chi2 comparisons for 10 evt pairs 
 
     CHECK=all_point ./ntds.sh ana    
     CHECK=few_point ./ntds.sh ana    
@@ -35,10 +35,8 @@ ntds.py
 ntds_cf.py
     chi2 comparison
 
-ntds_cfm.py
+ntds_cfmeta.py
     comparisons across NEVT pairs of evt 
-
-
 
 
 EOU
@@ -71,7 +69,7 @@ export ABASE=$GEOMDIR/$AGEOM/$SCRIPT
 export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
 
 
-if [ "$arg" == "cfm" ]; then 
+if [ "$arg" == "cfmeta" ]; then 
     EVT="%0.3d"
 fi 
 
@@ -121,8 +119,10 @@ elif [ "$arg" == "ana" ]; then
     pyscript=$DIR/ntds.py 
 elif [ "$arg" == "cf" ]; then
     pyscript=$DIR/ntds_cf.py 
-elif [ "$arg" == "cfm" ]; then
-    pyscript=$DIR/ntds_cfm.py 
+elif [ "$arg" == "cfmeta" ]; then
+    pyscript=$DIR/ntds_cfmeta.py 
+elif [ "$arg" == "help" ]; then
+    usage
 fi
 
 export QLIM=0:10

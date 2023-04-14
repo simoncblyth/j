@@ -5,7 +5,15 @@ mtds.sh : minimal for checking opticksMode 0 vs 2 differnce
 
 ::
 
-    ./mtds.sh grab_evt     # rsync SEvt folders from remote
+    ./mtds.sh grab_evt       # rsync SEvt folders including S4RandomArray.npy 
+                             # for opticksMode:0 there is only S4RandomArray.npy 
+
+    ./mtds.sh grab_0v2_log   # grab logs from mtds_0v2
+
+    ./mtds.sh cfr            # compare the randoms across multiple event pairs
+
+    ./mtds.sh cfmeta         # compare the metadata across multiple event pairs
+
 
 EOU
 }
@@ -20,7 +28,7 @@ evt=000
 
 export EVT=${EVT:-$evt}
 
-if [ "$arg" == "cfm" ]; then 
+if [ "$arg" == "cfr" -o "$arg" == "cfmeta" ]; then 
     EVT="%0.3d"
 fi 
 
@@ -47,10 +55,16 @@ if [ "$arg" == "grab_evt" ]; then
        source $OPTICKS_HOME/bin/rsync.sh $base
        [ $? -ne 0 ] && echo $BASH_SOURCE grab_evt error grabbing base $base && exit 2 
    done
+elif [ "$arg" == "grab_0v2_log" ]; then
+   source $OPTICKS_HOME/bin/rsync.sh /tmp/mtds_0v2
 elif [ "$arg" == "ana" ]; then 
     pyscript=$DIR/mtds.py 
-elif [ "$arg" == "cfm" ]; then 
-    pyscript=$DIR/mtds_cfm.py 
+elif [ "$arg" == "cfr" ]; then 
+    pyscript=$DIR/mtds_cfr.py 
+elif [ "$arg" == "cfmeta" ]; then 
+    pyscript=$DIR/mtds_cfmeta.py 
+elif [ "$arg" == "help" ]; then 
+    usage
 fi
 
   

@@ -182,6 +182,8 @@ epsilon:ntds blyth$ c2desc=1 ./ntds.sh cfm::
 DONE : find clear way to present counts from 10 evt 
 -----------------------------------------------------
 
+Below is comparing the N=0 and N=1 geometries. 
+
 epsilon:ntds blyth$ c2desc=1 ./ntds.sh cfm::
 
     In [1]: ytab.shape 
@@ -237,6 +239,15 @@ epsilon:ntds blyth$ c2desc=1 ./ntds.sh cfm::
             
            [[    2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.],       opticksMode 
             [    2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.]]])        
+
+
+
+
+
+
+
+
+
 
 
 
@@ -363,18 +374,48 @@ After adding below U4Recorder envvar control and not setting it opticksMode 2 no
 ::
 
     N[blyth@localhost mtds2]$ grep eventID mtds2.log
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 0 m_opticksMode 2 gpu_simulation  NO  hitCollection 1722 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 1 m_opticksMode 2 gpu_simulation  NO  hitCollection 1654 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 2 m_opticksMode 2 gpu_simulation  NO  hitCollection 1702 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 3 m_opticksMode 2 gpu_simulation  NO  hitCollection 1757 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 4 m_opticksMode 2 gpu_simulation  NO  hitCollection 1791 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 5 m_opticksMode 2 gpu_simulation  NO  hitCollection 1761 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 6 m_opticksMode 2 gpu_simulation  NO  hitCollection 1690 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 7 m_opticksMode 2 gpu_simulation  NO  hitCollection 1769 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 8 m_opticksMode 2 gpu_simulation  NO  hitCollection 1763 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1137:  eventID 9 m_opticksMode 2 gpu_simulation  NO  hitCollection 1820 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 0 m_opticksMode 2  hitCollection 1722 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 1 m_opticksMode 2  hitCollection 1654 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 2 m_opticksMode 2  hitCollection 1702 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 3 m_opticksMode 2  hitCollection 1757 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 4 m_opticksMode 2  hitCollection 1791 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 5 m_opticksMode 2  hitCollection 1761 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 6 m_opticksMode 2  hitCollection 1690 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 7 m_opticksMode 2  hitCollection 1769 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 8 m_opticksMode 2  hitCollection 1763 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1137:  eventID 9 m_opticksMode 2  hitCollection 1820 hitCollection_muon 0 hitCollection_opticks 0
     N[blyth@localhost mtds2]$ 
 
+
+DONE : After rejig and tidy up : still matching
+---------------------------------------------------
+
+::
+
+    epsilon:mtds_0v2 blyth$ grep "EndOfEvent eventID" mtds0.tlog
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1654 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1702 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1757 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1791 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1761 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1690 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1769 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1820 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+
+    epsilon:mtds_0v2 blyth$ grep "EndOfEvent eventID" mtds2.tlog
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 2 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 2 hitCollection 1654 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 2 hitCollection 1702 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 2 hitCollection 1757 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 2 hitCollection 1791 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 2 hitCollection 1761 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 2 hitCollection 1690 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 2 hitCollection 1769 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 2 hitCollection 1763 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 2 hitCollection 1820 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    epsilon:mtds_0v2 blyth$ 
 
 
 
@@ -627,10 +668,6 @@ Not very useful for debugging due to very long voxelizing time.
 
 
 
-TODO : put back opticksMode:2 geometry translation optionally, needed for input photon frame targetting
----------------------------------------------------------------------------------------------------------
-
-
 DONE : get opticksMode:2 to run without geometry translation
 ---------------------------------------------------------------
 
@@ -680,16 +717,16 @@ Motivation is to see if that brings opticksMode:2 hit counts into line with opti
 
 
     N[blyth@localhost junosw]$ grep eventID /tmp/u4debug/mtds2/mtds2.log
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 0 m_opticksMode 2 gpu_simulation  NO  hitCollection 1872 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 1 m_opticksMode 2 gpu_simulation  NO  hitCollection 1793 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 2 m_opticksMode 2 gpu_simulation  NO  hitCollection 1765 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 3 m_opticksMode 2 gpu_simulation  NO  hitCollection 1716 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 4 m_opticksMode 2 gpu_simulation  NO  hitCollection 1760 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 5 m_opticksMode 2 gpu_simulation  NO  hitCollection 1713 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 6 m_opticksMode 2 gpu_simulation  NO  hitCollection 1671 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 7 m_opticksMode 2 gpu_simulation  NO  hitCollection 1833 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 8 m_opticksMode 2 gpu_simulation  NO  hitCollection 1749 hitCollection_muon 0 hitCollection_opticks 0
-    junoSD_PMT_v2::EndOfEvent@1134:  eventID 9 m_opticksMode 2 gpu_simulation  NO  hitCollection 1719 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 0 m_opticksMode 2   hitCollection 1872 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 1 m_opticksMode 2   hitCollection 1793 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 2 m_opticksMode 2   hitCollection 1765 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 3 m_opticksMode 2   hitCollection 1716 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 4 m_opticksMode 2   hitCollection 1760 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 5 m_opticksMode 2   hitCollection 1713 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 6 m_opticksMode 2   hitCollection 1671 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 7 m_opticksMode 2   hitCollection 1833 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 8 m_opticksMode 2   hitCollection 1749 hitCollection_muon 0 hitCollection_opticks 0
+    junoSD_PMT_v2::EndOfEvent@1134:  eventID 9 m_opticksMode 2   hitCollection 1719 hitCollection_muon 0 hitCollection_opticks 0
     N[blyth@localhost junosw]$ 
 
 Not doing the translation makes no difference. 
@@ -1194,6 +1231,60 @@ All the randoms in common are the same::
     Out[7]: True
 
 
+FIXED : optickMode 0,2 Consumption difference
+-------------------------------------------------
+
+After preventing U4Recorder from clearing interaction lengths get same consumption::
+
+     895     if(UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft)
+     896     {
+     897         U4Process::ClearNumberOfInteractionLengthLeft(*track, *step);
+     898     }
+     899 
+     900     LOG(LEVEL) << "]" ;
+     901 }
+
+
+::
+
+    epsilon:mtds blyth$ ./mtds.sh cfm 
+             BASH_SOURCE : ./mtds.sh 
+                     arg : cfm 
+                  defarg : ana 
+                     DIR : . 
+            OPTICKS_MODE : 2 
+                     EVT : %0.3d 
+                   AGEOM : mtds0 
+                   ABASE : /tmp/blyth/opticks/GEOM/mtds0 
+                   AFOLD : /tmp/blyth/opticks/GEOM/mtds0/ALL1/%0.3d 
+                   BGEOM : mtds2 
+                   BBASE : /tmp/blyth/opticks/GEOM/mtds2 
+                   BFOLD : /tmp/blyth/opticks/GEOM/mtds2/ALL1/%0.3d 
+                       N :  
+                 VERSION :  
+                   UBASE :  
+    ./mtds.sh : anascript :
+    [[502313. 502313.]
+     [490172. 490172.]
+     [496152. 496152.]
+     [495653. 495653.]
+     [517912. 517912.]
+     [511181. 511181.]
+     [495720. 495720.]
+     [498853. 498853.]
+     [508416. 508416.]
+     [503247. 503247.]]
+    A:(5019619,) 
+    B:(5019619,) 
+
+    In [1]: np.all( A == B )                                                                                                        
+    Out[1]: True
+
+
+
+
+
+
 DONE : find where opticksMode:0 and opticksMode:2 put the randoms to different use
 --------------------------------------------------------------------------------------
 
@@ -1236,16 +1327,28 @@ Hmm S4RandomArray can return consumption indices that can associate with junctur
 
 
 
-TODO: Confirm the above with some ntds runs and chi2 comparisons
-------------------------------------------------------------------
-
-
-TODO : tidy up the extra debugging added, eg S4RandomArray collection
+DONE : tidy up the extra debugging added, eg S4RandomArray collection
 ----------------------------------------------------------------------
 
+::
 
-TODO : tidy up debug instrumentation
-----------------------------------------------
+    epsilon:opticks blyth$ jgr S4RandomArray 
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#include "S4RandomArray.h"
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:        S4RandomArray* s4ra = SEvt::GetRandomArray() ; 
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:             SEvt::SaveExtra(S4RandomArray::NAME, ra) ; 
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:#include "S4RandomArray.h"
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:        evt->random_array = new S4RandomArray ;      // DEBUGGING RANDOM CONSUMPTION : DONT LEAVE LIKE THIS  
+    epsilon:junosw blyth$ 
+
+
+DONE : tidy up debug in junoSD_PMT_v2 relocating most to junoSD_PMT_v2_Opticks
+--------------------------------------------------------------------------------------
+
+
+
+
+DONE : tidy up debug instrumentation, by disabling WITH_G4CXOPTICKS_DEBUG
+-----------------------------------------------------------------------------
 
 Also tidy up these, should not be there in opticksMode:0::
 
@@ -1278,17 +1381,20 @@ Also tidy up these, should not be there in opticksMode:0::
 
 ::
 
-    1114 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
-    1115 {
-    1116 #ifdef WITH_G4CXOPTICKS_DEBUG
-    1117     // relocated here rather than within _Opticks as want to check 
-    1118     // for differences between opticksMode
-    1119     // Needs to be prior to m_jpmt_opticks->EndOfEvent(HCE) for saving genstep labels
-    1120     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
-    1121     G4int eventID = event->GetEventID() ;
-    1122     U4Debug::Save(eventID);
-    1123 #endif
-    1124 
+    1116 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
+    1117 {
+    1118     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
+    1119     G4int eventID = event->GetEventID() ;
+    1120 
+    1121 #ifdef WITH_G4CXOPTICKS_DEBUG
+    1122     /**
+    1123     Switch this off this block by changing ~/opticks/cmake/Modules/FindOpticks.cmake 
+    1124     Done here rather than within _Opticks in order to check for differences between opticksMode.
+    1125     Needs to be prior to m_jpmt_opticks->EndOfEvent(HCE) for saving genstep labels
+    1126     **/
+    1127     U4Debug::Save(eventID);
+    1128 #endif
+    1129 
 
 
 
@@ -1303,6 +1409,535 @@ Also tidy up these, should not be there in opticksMode:0::
      350           &aTrack,
      351           &aStep,
      352           fNumPhotons,
+
+
+
+
+DONE : reviewed WITH_G4CXOPTICKS_DEBUG and disabled it 
+---------------------------------------------------------
+
+::
+
+    epsilon:j blyth$ jgr WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Doc/oum/source/releasenotes/J22.2.0.md:    * collect more debug fields into U4Scintillation_Debug hidden behind WITH_G4CXOPTICKS_DEBUG, plus avoid compilation warnings (see MR !24 and !27)
+    epsilon:junosw blyth$ 
+
+
+
+
+FIXED : cleanup junoSD_PMT_v2
+-------------------------------
+
+Instanciation order mixup::
+
+    (gdb) f 3
+    #3  0x00007fffd243ae6a in junoSD_PMT_v2_Opticks::EndOfEvent_Debug (this=0x5bc97a0, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:179
+    179	        NP* jsdpmt = m_jpmt_dbg->get_meta_array(m_opticksMode, eventID ) ; 
+    (gdb) p m_jpmt_dbg
+    $1 = (junoSD_PMT_v2_Debug *) 0x409c3133bbdae631
+    (gdb) p m_jpmt
+    $2 = (junoSD_PMT_v2 *) 0x5bc8f90
+    (gdb) f 2
+    #2  0x00007fffd243dc83 in junoSD_PMT_v2_Debug::get_meta_array (this=0x409c3133bbdae631, opticksMode=0, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h:202
+    202	    get_kvs(kvs); 
+    (gdb) f 1
+    #1  0x00007fffd243d647 in junoSD_PMT_v2_Debug::get_kvs (this=0x409c3133bbdae631, kvs=...)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h:177
+    177	    kvs.push_back(KV("ProcessHits_count", ProcessHits_count)); 
+    (gdb) 
+
+
+
+
+DONE : Confirm the above matching and tidy ups with some mtds runs
+-----------------------------------------------------------------------------------------
+
+The below shows that adding the instrumentation does not change the events 
+anymore, ie opticksMode:0 and opticksMode:2 are doing the same thing. 
+BUT,  with opticksMode:2 have lots of info on every step point of every photon. 
+
+::
+
+    N[blyth@localhost junosw]$ t mtds_0v2
+    mtds_0v2 () 
+    { 
+        local logdir=/tmp/$FUNCNAME;
+        mkdir -p $logdir;
+        export TDS_LOG_COPYDIR=$logdir;
+        export EVTMAX=10;
+        mtds0;
+        mtds2;
+        : initial thought was to keep the logs together with event;
+        : BUT is rather convenient to keep them separate as grabbing log usually much faster than the full event
+    }
+    N[blyth@localhost junosw]$ 
+
+
+    epsilon:mtds_0v2 blyth$ grep "junoSD_PMT_v2::EndOfEvent eventID" mtds0.tlog
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1654 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1702 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1757 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1791 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1761 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1690 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1769 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1820 hitCollection_muon 0 hitCollection_opticks -1 GPU NO
+    epsilon:mtds_0v2 blyth$ 
+    epsilon:mtds_0v2 blyth$ 
+    epsilon:mtds_0v2 blyth$ grep "junoSD_PMT_v2::EndOfEvent eventID" mtds2.tlog
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 2 hitCollection 1722 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 2 hitCollection 1654 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 2 hitCollection 1702 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 2 hitCollection 1757 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 2 hitCollection 1791 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 2 hitCollection 1761 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 2 hitCollection 1690 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 2 hitCollection 1769 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 2 hitCollection 1763 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 2 hitCollection 1820 hitCollection_muon 0 hitCollection_opticks 0 GPU NO
+    epsilon:mtds_0v2 blyth$ 
+
+
+DONE : ntds2 gun running, chi2 check : revealed need to speedup fake skipping
+---------------------------------------------------------------------------------
+
+::
+
+    N[blyth@localhost ntds2]$ t ntds2_cf
+    ntds2_cf () 
+    { 
+        : ntds2 is Geant4 running with Opticks U4Recorder instrumentation;
+        : this function runs simulation with N:0 and N:1 geometries allowing comparison of histories;
+        : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds;
+        export EVTMAX=10;
+        N=0 GEOM=V0J008 ntds2;
+        [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1;
+        N=1 GEOM=V1J008 ntds2;
+        [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2;
+        return 0
+    }
+
+
+* HMM: N=0 requires the slow Fake skipping 
+
+
+DONE : speed up U4Recorder::ClassifyFake while keeping it workin
+--------------------------------------------------------------------
+
+* added maxdepth restriction on U4Volume::FindPV
+* added start PV name must contain PMT before doing the expensive search 
+* adder timing to U4Recorder::ClassifyFake
+
+::
+
+    (gdb) bt
+    #0  0x00007fffd29a5a84 in U4Volume::FindPV_r (pv=0x6188bd0, qname=0x7fffd29f8100 "body_phys", mode=2, pvs=..., depth=3)
+        at /data/blyth/junotop/opticks/u4/U4Volume.h:63
+    #1  0x00007fffd29a5aed in U4Volume::FindPV_r (pv=0x6198480, qname=0x7fffd29f8100 "body_phys", mode=2, pvs=..., depth=2)
+        at /data/blyth/junotop/opticks/u4/U4Volume.h:65
+    #2  0x00007fffd29a5aed in U4Volume::FindPV_r (pv=0x6322920, qname=0x7fffd29f8100 "body_phys", mode=2, pvs=..., depth=1)
+        at /data/blyth/junotop/opticks/u4/U4Volume.h:65
+    #3  0x00007fffd29a5aed in U4Volume::FindPV_r (pv=0x5a64ef0, qname=0x7fffd29f8100 "body_phys", mode=2, pvs=..., depth=0)
+        at /data/blyth/junotop/opticks/u4/U4Volume.h:65
+    #4  0x00007fffd29a59c1 in U4Volume::FindPV (start_pv=0x5a64ef0, qname=0x7fffd29f8100 "body_phys", mode=2)
+        at /data/blyth/junotop/opticks/u4/U4Volume.h:56
+    #5  0x00007fffd29ae1b1 in U4Recorder::ClassifyFake (this=0xb29870, step=0xae0fa0, flag=256, 
+        spec=0x244e7b470 "Water/Tyvek:pInnerWater/pCentralDetector", dump=false) at /data/blyth/junotop/optic
+
+
+Attempt to speedup fake skipping has stopped it working::
+
+    jxn
+    ./ntds.sh grab_evt
+    ./ntds.sh cf
+
+    QCF qcf : a, b not same shape _aq (9791, 1) _bq (9980, 1) WILL LIMIT TO mn 9791  
+    a.q 9791 b.q 9980 lim slice(0, 9791, None) 
+    c2sum :  4298.1445 c2n :    69.0000 c2per:    62.2919  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  4298.14/69:62.292 (30)
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][:25]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'SI AB                          ' ' 0' '  1558   1582' ' 0.1834' '     3     11']
+     [' 1' 'SI BT BT BT BT BT BT BT SD     ' ' 1' '   548     33' '456.4974' '     0     92']
+     [' 2' 'SI BT BT BT BT BT BT BT SA     ' ' 2' '   511     73' '328.5000' '    20    242']
+     [' 3' 'SI BT BT BT BT BT BT SA        ' ' 3' '     0    473' '473.0000' '    -1      0']
+     [' 4' 'SI BT BT BT BT BT BT SD        ' ' 4' '     0    464' '464.0000' '    -1     15']
+     [' 5' 'SI RE AB                       ' ' 5' '   449    460' ' 0.1331' '     2     34']
+     [' 6' 'SI SC AB                       ' ' 6' '   303    332' ' 1.3244' '     9     13']
+     [' 7' 'SI SC BT BT BT BT BT BT BT SD  ' ' 7' '   232     17' '185.6426' '     4   1173']
+     [' 8' 'SI SC BT BT BT BT BT BT SA     ' ' 8' '     6    230' '212.6102' '  3190     28']
+     [' 9' 'SI SC BT BT BT BT BT BT BT SA  ' ' 9' '   218     35' '132.3676' '    27    309']
+     ['10' 'SI SC BT BT BT BT BT BT SD     ' '10' '     1    189' '186.0211' '  4229      4']
+     ['11' 'SI RE BT BT BT BT BT BT BT SD  ' '11' '   171      7' '151.1011' '    74   1480']
+
+
+
+DONE : ntds_cfm : chi2 ok, timings need debug
+--------------------------------------------------
+
+::
+
+    array([[[    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.],        
+            [    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.]],        
+            
+           [[11274., 11012., 10851., 11422., 11372., 11151., 11535., 11250., 11123., 11001.],       ProcessHits_count 
+            [13990., 13709., 13649., 13709., 14365., 14609., 13600., 13869., 14686., 14014.]],        
+            
+           [[ 1820.,  1724.,  1696.,  1740.,  1806.,  1721.,  1748.,  1745.,  1763.,  1713.],       ProcessHits_true 
+            [ 1722.,  1654.,  1702.,  1757.,  1791.,  1761.,  1690.,  1769.,  1763.,  1820.]],        
+            
+           [[ 9454.,  9288.,  9155.,  9682.,  9566.,  9430.,  9787.,  9505.,  9360.,  9288.],       ProcessHits_false 
+            [12268., 12055., 11947., 11952., 12574., 12848., 11910., 12100., 12923., 12194.]],        
+            
+           [[ 1820.,  1724.,  1696.,  1740.,  1806.,  1721.,  1748.,  1745.,  1763.,  1713.],       SaveNormHit_count 
+            [ 1722.,  1654.,  1702.,  1757.,  1791.,  1761.,  1690.,  1769.,  1763.,  1820.]],        
+
+           ...
+           
+           [[ 9214.,  9051.,  8905.,  9427.,  9326.,  9206.,  9531.,  9242.,  9131.,  9055.],       NEDEP 
+            [11990., 11762., 11674., 11658., 12290., 12558., 11621., 11829., 12641., 11923.]],        
+            
+           [[    2.,     1.,     1.,     0.,     1.,     2.,     3.,     1.,     1.,     0.],       NBOUND 
+            [   21.,    31.,    29.,    28.,    33.,    36.,    26.,    34.,    32.,    32.]],        
+            
+           [[    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.],       NPROC 
+            [    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.]],        
+            
+           [[    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.],       NDETECT 
+            [    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.]],        
+            
+           [[  238.,   236.,   249.,   255.,   239.,   222.,   253.,   262.,   228.,   233.],       NDECULL 
+            [  257.,   262.,   244.,   266.,   251.,   254.,   263.,   237.,   250.,   239.]],        
+            
+           [[    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.],       YMERGE 
+            [    0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.,     0.]],        
+            
+           [[ 1820.,  1724.,  1696.,  1740.,  1806.,  1721.,  1748.,  1745.,  1763.,  1713.],       YSAVE 
+            [ 1722.,  1654.,  1702.,  1757.,  1791.,  1761.,  1690.,  1769.,  1763.,  1820.]],        
+            
+           [[    2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.],       opticksMode 
+            [    2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.,     2.]],        
+            
+           [[    0.,     1.,     2.,     3.,     4.,     5.,     6.,     7.,     8.,     9.],       eventID 
+            [    0.,     1.,     2.,     3.,     4.,     5.,     6.,     7.,     8.,     9.]],        
+            
+           [[   -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.],       SEvt__TimerDuration 
+            [   -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.,    -1.]]])        
+
+    c2tab
+    array([[67.968, 54.336, 57.879, 50.578, 68.72 , 64.923, 60.431, 79.85 , 68.574, 60.395],
+           [63.   , 62.   , 63.   , 69.   , 60.   , 63.   , 62.   , 66.   , 64.   , 64.   ],
+           [ 1.079,  0.876,  0.919,  0.733,  1.145,  1.031,  0.975,  1.21 ,  1.071,  0.944]])
+
+    c2per_tot:  0.9963  
+
+
+DONE : event timers which work and persist in all opticksMode
+--------------------------------------------------------------
+
+* added SEvt::TIMER for this
+* invoke and persist the duration in::
+
+    junoSD_PMT_v2_Opticks::Initialize
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug
+
+OOPS epoch counts not travelling, fixed stimer.h with system_clock and microseconds standardization
+
+
+DONE : Getting VERSION into Metadata 
+---------------------------------------
+
+Its too opticks specific to grab the version envvar, better to grab the result of that.
+But how to detect that from within the monolith ?::
+
+    738    case $VERSION in  ## passed into UsePMTNaturalGeometry
+    739       0) opts="$opts --pmt-unnatural-geometry" ;;
+    740       1) opts="$opts --pmt-natural-geometry"   ;;
+    741    esac
+
+But this is just metadata, so simply grab the VERSION envvar : because there
+is no simple place to grab the UsePMTNaturalGeometry from inside monolith. 
+
+::
+
+    epsilon:junosw blyth$ jgl UsePMTNaturalGeometry
+    ./Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+    ./Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc
+    ./Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+    ./Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h
+    ./Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    ./Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py
+    epsilon:junosw blyth$ 
+
+
+DONE : without opticks build and run check using mtds0
+---------------------------------------------------------
+
+::
+
+    epsilon:junosw blyth$ jgr junoSD_PMT_v2_Debug.h
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#include "PMTSim/junoSD_PMT_v2_Debug.h"
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:#include "PMTSim/junoSD_PMT_v2_Debug.h"
+    epsilon:junosw blyth$ 
+
+    EVTMAX=10 mtds0 
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1722 
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1654 
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1702 
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1757 
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1791 
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1761 
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1690 
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1769 
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1820 
+
+
+
+DONE : put back opticksMode:2 geometry translation
+----------------------------------------------------------
+
+This is needed for input photon frame targetting
+
+
+DONE : ntds2_cf gun running results looking good 
+---------------------------------------------------
+
+::
+
+    jxn
+    ./ntds.sh cfm 
+
+    c_itab
+    array([[[11274, 11012, 10851, 11422, 11372, 11151, 11535, 11250, 11123, 11001],       ProcessHits_count 
+            [13990, 13709, 13649, 13709, 14365, 14609, 13600, 13869, 14686, 14014]],        
+            
+           [[ 1820,  1724,  1696,  1740,  1806,  1721,  1748,  1745,  1763,  1713],       ProcessHits_true 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+            
+           [[ 9454,  9288,  9155,  9682,  9566,  9430,  9787,  9505,  9360,  9288],       ProcessHits_false 
+            [12268, 12055, 11947, 11952, 12574, 12848, 11910, 12100, 12923, 12194]],        
+            
+           [[ 1820,  1724,  1696,  1740,  1806,  1721,  1748,  1745,  1763,  1713],       SaveNormHit_count 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+            
+           ...
+           
+           [[ 9214,  9051,  8905,  9427,  9326,  9206,  9531,  9242,  9131,  9055],       NEDEP 
+            [11990, 11762, 11674, 11658, 12290, 12558, 11621, 11829, 12641, 11923]],        
+            
+           [[    2,     1,     1,     0,     1,     2,     3,     1,     1,     0],       NBOUND 
+            [   21,    31,    29,    28,    33,    36,    26,    34,    32,    32]],        
+           
+           ... 
+           
+           [[  238,   236,   249,   255,   239,   222,   253,   262,   228,   233],       NDECULL 
+            [  257,   262,   244,   266,   251,   254,   263,   237,   250,   239]],        
+            
+           [[ 1820,  1724,  1696,  1740,  1806,  1721,  1748,  1745,  1763,  1713],       YSAVE 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+            
+           [[    2,     2,     2,     2,     2,     2,     2,     2,     2,     2],       opticksMode 
+            [    2,     2,     2,     2,     2,     2,     2,     2,     2,     2]],        
+            
+           [[    0,     1,     2,     3,     4,     5,     6,     7,     8,     9],       eventID 
+            [    0,     1,     2,     3,     4,     5,     6,     7,     8,     9]],        
+            
+           [[    0,     0,     0,     0,     0,     0,     0,     0,     0,     0],       VERSION 
+            [    1,     1,     1,     1,     1,     1,     1,     1,     1,     1]]], dtype=uint64)        
+
+    c_ftab
+    array([[[2.517, 2.35 , 2.895, 2.816, 2.952, 2.344, 2.46 , 2.468, 2.845, 2.322],       SEvt__TimerDone 
+            [2.654, 2.395, 2.562, 2.537, 2.427, 2.534, 2.5  , 2.531, 2.449, 2.605]]])        
+
+    np.diff(c_ttab)/1e6   # seconds between event starts 
+
+    [[[2.76  2.586 3.106 3.033 3.231 2.62  2.772 2.69  3.112]
+      [3.026 2.71  2.858 2.842 3.094 2.874 2.836 2.841 2.708]]]
+
+    np.c_[c_ttab[0,0].view('datetime64[us]'),c_ttab[0,1].view('datetime64[us]')] # event start times (UTC)  
+
+    [['2023-04-14T13:16:14.802047' '2023-04-14T13:24:48.696600']
+     ['2023-04-14T13:16:17.561901' '2023-04-14T13:24:51.722786']
+     ['2023-04-14T13:16:20.147964' '2023-04-14T13:24:54.432912']
+     ['2023-04-14T13:16:23.254430' '2023-04-14T13:24:57.290957']
+     ['2023-04-14T13:16:26.286959' '2023-04-14T13:25:00.132612']
+     ['2023-04-14T13:16:29.517541' '2023-04-14T13:25:03.226325']
+     ['2023-04-14T13:16:32.137683' '2023-04-14T13:25:06.100191']
+     ['2023-04-14T13:16:34.909899' '2023-04-14T13:25:08.935885']
+     ['2023-04-14T13:16:37.599566' '2023-04-14T13:25:11.776996']
+     ['2023-04-14T13:16:40.711695' '2023-04-14T13:25:14.485233']]
+
+    c2tab  # c2sum, c2n, c2per for each event 
+
+    array([[67.968, 54.336, 57.879, 50.578, 68.72 , 64.923, 60.431, 79.85 , 68.574, 60.395],
+           [63.   , 62.   , 63.   , 69.   , 60.   , 63.   , 62.   , 66.   , 64.   , 64.   ],
+           [ 1.079,  0.876,  0.919,  0.733,  1.145,  1.031,  0.975,  1.21 ,  1.071,  0.944]])
+
+    c2per_tot:  0.9963  
+
+
+
+DONE : check mtds_0v2 to see if opticksMode:0 metadata works
+--------------------------------------------------------------
+
+::
+
+    N[blyth@localhost junosw]$ t mtds_0v2
+    mtds_0v2 () 
+    { 
+        local logdir=/tmp/$FUNCNAME;
+        mkdir -p $logdir;
+        export TDS_LOG_COPYDIR=$logdir;
+        export EVTMAX=10;
+        mtds0;
+        mtds2;
+        : initial thought was to keep the logs together with event;
+        : BUT is rather convenient to keep them separate as grabbing logs;
+        : only is typically much faster than the full event when using U4Recorder
+    }
+
+
+HMM stimer stopped before started::
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    Begin of Event --> 0
+    python: /data/blyth/junotop/opticks/sysrap/stimer.h:198: void stimer::stop(): Assertion `is_started()' failed.
+
+    Program received signal SIGABRT, Aborted.
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf25d614 in stimer::stop (this=0x93b390) at /data/blyth/junotop/opticks/sysrap/stimer.h:198
+    #5  0x00007fffcf25d4a8 in stimer::done (this=0x93b390) at /data/blyth/junotop/opticks/sysrap/stimer.h:174
+    #6  0x00007fffcf247f5a in SEvt::TimerDone () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:38
+    #7  0x00007fffd2436dc7 in junoSD_PMT_v2_Opticks::EndOfEvent_Debug (this=0x5b9a9a0, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:202
+    #8  0x00007fffd2436bcd in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5b9a9a0, eventID=0)
+
+::
+
+    epsilon:junosw blyth$ jgl SEvt::Timer 
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+
+    121 #ifdef WITH_G4CXOPTICKS
+    122 void junoSD_PMT_v2_Opticks::Initialize(G4HCofThisEvent* /*HCE*/, G4int eventID)
+    123 {
+    124     const GtOpticksTool* tool = GtOpticksTool::Get();
+    125     NP* input_photon = tool ? tool->getInputPhoton() : nullptr ;
+    126     // if(input_photon) SEvt::SetInputPhoton(input_photon); // NO LONGER NEEDED AS BORN INTO SEvt ALREADY
+    127 
+    128     SEvt::TimerStart() ;
+    129 
+
+
+Cause is that Initialize was only called for opticksMode > 0. 
+
+
+
+DONE : check the mtds_0v2 metadata
+---------------------------------------
+
+::
+
+    mtds_0v2             # workstation  
+
+    jxm                  # laptop 
+    ./mtds.sh grab_evt 
+    ./mtds.sh cfmeta
+    ...
+
+    msab.c_itab
+
+    array([[[13990, 13709, 13649, 13709, 14365, 14609, 13600, 13869, 14686, 14014],       ProcessHits_count 
+            [13990, 13709, 13649, 13709, 14365, 14609, 13600, 13869, 14686, 14014]],        
+            
+           [[ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820],       ProcessHits_true 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+            
+           [[12268, 12055, 11947, 11952, 12574, 12848, 11910, 12100, 12923, 12194],       ProcessHits_false 
+            [12268, 12055, 11947, 11952, 12574, 12848, 11910, 12100, 12923, 12194]],        
+            
+           [[ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820],       SaveNormHit_count 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+
+           ...            
+           
+           [[11990, 11762, 11674, 11658, 12290, 12558, 11621, 11829, 12641, 11923],       NEDEP 
+            [11990, 11762, 11674, 11658, 12290, 12558, 11621, 11829, 12641, 11923]],        
+            
+           [[   21,    31,    29,    28,    33,    36,    26,    34,    32,    32],       NBOUND 
+            [   21,    31,    29,    28,    33,    36,    26,    34,    32,    32]],        
+
+           ...
+           
+           [[  257,   262,   244,   266,   251,   254,   263,   237,   250,   239],       NDECULL 
+            [  257,   262,   244,   266,   251,   254,   263,   237,   250,   239]],        
+            
+           [[    0,     0,     0,     0,     0,     0,     0,     0,     0,     0],       YMERGE 
+            [    0,     0,     0,     0,     0,     0,     0,     0,     0,     0]],        
+            
+           [[ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820],       YSAVE 
+            [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+            
+           [[    0,     0,     0,     0,     0,     0,     0,     0,     0,     0],       opticksMode 
+            [    2,     2,     2,     2,     2,     2,     2,     2,     2,     2]],        
+            
+           [[    0,     1,     2,     3,     4,     5,     6,     7,     8,     9],       eventID 
+            [    0,     1,     2,     3,     4,     5,     6,     7,     8,     9]],        
+            
+           [[    1,     1,     1,     1,     1,     1,     1,     1,     1,     1],       VERSION 
+            [    1,     1,     1,     1,     1,     1,     1,     1,     1,     1]]], dtype=uint64)        
+
+    msab.c_ftab
+
+    array([[[1.508, 1.378, 1.406, 1.417, 1.448, 1.446, 1.404, 1.455, 1.453, 1.425],       SEvt__TimerDone 
+            [2.609, 2.423, 2.311, 2.38 , 2.504, 2.452, 2.285, 2.49 , 2.472, 2.391]]])        
+
+    np.diff(msab.c_ttab)/1e6   # seconds between event starts
+
+    array([[[1.517, 1.384, 1.412, 1.437, 1.454, 1.452, 1.41 , 1.461, 1.459],
+            [2.93 , 2.787, 2.615, 2.626, 2.795, 2.739, 2.538, 2.782, 2.753]]])
+
+    np.c_[msab.c_ttab[0,0].view('datetime64[us]'),msab.c_ttab[0,1].view('datetime64[us]')] # event start times (UTC)
+
+    array([['2023-04-14T14:29:57.887804', '2023-04-14T14:35:02.443557'],
+           ['2023-04-14T14:29:59.404948', '2023-04-14T14:35:05.373744'],
+           ['2023-04-14T14:30:00.788716', '2023-04-14T14:35:08.160317'],
+           ['2023-04-14T14:30:02.200884', '2023-04-14T14:35:10.775255'],
+           ['2023-04-14T14:30:03.637759', '2023-04-14T14:35:13.401414'],
+           ['2023-04-14T14:30:05.091874', '2023-04-14T14:35:16.196078'],
+           ['2023-04-14T14:30:06.543738', '2023-04-14T14:35:18.935097'],
+           ['2023-04-14T14:30:07.953988', '2023-04-14T14:35:21.472602'],
+           ['2023-04-14T14:30:09.415081', '2023-04-14T14:35:24.254354'],
+           ['2023-04-14T14:30:10.873962', '2023-04-14T14:35:27.006993']], dtype='datetime64[us]')
+
+    In [1]:                                    
+
+
+TODO : check again input photon running, chi2 check 
+-----------------------------------------------------
 
 
 

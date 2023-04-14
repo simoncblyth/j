@@ -443,15 +443,23 @@ tds-(){
    mkdir -p $dir
    cd $dir
 
-   TDS_LOG=$SCRIPT.log 
-
    ## SCRIPT envvar overrides the opticks executable name based logname  
-   if [ -n "$SCRIPT" -a -f "$TDS_LOG" ]; then 
-      echo $msg removing TDS_LOG : $TDS_LOG before run
-      rm "$TDS_LOG" 
-   fi 
+   TDS_LOG=$SCRIPT.log 
+   TDS_TLOG=$SCRIPT.tlog 
 
-   local runline
+   local klogs="TDS_LOG TDS_TLOG"
+   local vlog 
+
+   for klog in $klogs  ; do 
+       vlog=${!klog}
+       if [ -f "$vlog" ]; then 
+           echo $msg removing $klog : $vlog before run
+           rm "$vlog"
+       fi 
+   done  
+
+
+   local runline=""
    if [ -n "$PDB" ]; then 
        runline="ipython --pdb $script $*"
    elif [ -n "$NODBG" ]; then 
@@ -460,33 +468,46 @@ tds-(){
        runline="gdb $H $B $T --args python $script $*"
    fi 
 
+   runline="$runline 2>&1 | tee $TDS_TLOG "
+
+
    export DIRECTORY="$PWD"
    export COMMANDLINE="$runline"
 
-   local vars="iwd dir DIRECTORY COMMANDLINE SCRIPT TDS_LOG TDS_LOG_COPYDIR"
+   local vars="iwd dir DIRECTORY COMMANDLINE SCRIPT TDS_LOG TDS_TLOG TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
-   for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" >> $TDS_LOG ; done 
+
+   for klog in $klogs  ; do 
+       vlog=${!klog}
+       if [ -f "$vlog" ]; then 
+           date >> $vlog 
+           for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" >> $vlog ; done 
+       fi 
+   done
 
    date
-   date >> $TDS_LOG
-
    eval $COMMANDLINE
-
    date
-   date >> $TDS_LOG
 
 
-   if [ -f "$TDS_LOG" ]; then 
-      if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
-          echo $msg copy TDS_LOG : $TDS_LOG into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR
-          echo $msg copy TDS_LOG : $TDS_LOG into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR >> $TDS_LOG
+   for klog in $klogs  ; do 
+       vlog=${!klog}
+       if [ -f "$vlog" ]; then 
+          date >> $vlog 
+       fi 
+   done
 
-          cp $TDS_LOG ${TDS_LOG_COPYDIR}/
-      else
-          echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
-          echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist >> $TDS_LOG
-      fi 
-   fi 
+   for klog in $klogs  ; do 
+       vlog=${!klog}
+       if [ -f "$vlog" ]; then 
+          if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
+              echo $msg copy $klog : $vlog into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR
+              cp $vlog ${TDS_LOG_COPYDIR}/
+          else
+              echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
+          fi 
+       fi
+   done
 
    cd $iwd
 
@@ -517,31 +538,29 @@ EOU
 
 
 
-ntds0(){ OPTICKS_MODE=0 ntds ; }  #0b00   Ordinary running without Opticks involved at all  
-ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01   Running with only Opticks doing the optical propagation 
-ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10   Geant4 only with Opticks instrumentation : revive for getting U4Recorder to run inside monolith
-ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11   Both Geant4 and Opticks 
+ntds0(){ OPTICKS_MODE=0 ntds ; }  #0b00 Geant4 running with only minimal Opticks instrumentation 
+ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10 Geant4 only with Opticks U4Recorder instrumentation 
+
+ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation 
+ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
 
 ntds2_cf()
 {
-   NODBG=1 N=0 GEOM=V0J008 ntds2
+   : ntds2 is Geant4 running with Opticks U4Recorder instrumentation 
+   : this function runs simulation with N:0 and N:1 geometries allowing comparison of histories
+   : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
+
+   export EVTMAX=10
+   #export NODBG=1 
+
+   N=0 GEOM=V0J008 ntds2
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   NODBG=1 N=1 GEOM=V1J008 ntds2
+   N=1 GEOM=V1J008 ntds2
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
 }
-
-ntds_examples(){ cat << EON
-Examples::
-
-   N=0 GEOM=V0J008 ntds2    ## save old 4-volume PMT geometry 
-   N=1 GEOM=V1J008 ntds2    ## save new 2-volume PMT geometry 
-
-EON
-}
-
 
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
@@ -638,9 +657,14 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
-   export U4Recorder__EndOfRunAction_Simtrace=1
+   #export U4Recorder__EndOfRunAction_Simtrace=1
+   ## experimental simtrace, that could be very expensive : maybe only when frame set ?
 
+   #export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1  
+   ## above setting makes possible to random align, but changes events and consumes 20-30% more randoms
 
+   export U4Recorder__ClassifyFake_FindPV_r=1 
+   : seems like the above is needed to make fake skipping work 
 
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
@@ -650,17 +674,21 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    #IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
 
-   moi=Hama:0:1000 
-   #moi=NNVT:0:1000 
    layout=""
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO
+
+       moi=Hama:0:1000 
+       #moi=NNVT:0:1000 
+
        export MOI=${MOI:-$moi}
        layout="ip_MOI_$MOI"
        echo $msg IPHO defined : configuring OPTICKS_INPUT_PHOTON $OPTICKS_INPUT_PHOTON
        trgs="$trgs opticks"
    else
        unset OPTICKS_INPUT_PHOTON
+       unset MOI 
+
        echo $msg IPHO not defined : not configuring OPTICKS_INPUT_PHOTON
        trgs="$trgs gun"
    fi 
@@ -675,13 +703,10 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    export POM=${POM:-1}
    export VERSION=${N:-1}
    export LAYOUT=$layout
-
-   export TDS_LOG_COPYDIR==/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
+   export TDS_LOG_COPYDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
 
    
-
-
-   vars="POM N VERSION LAYOUT PREDICT_EVTDIR"
+   vars="POM N VERSION LAYOUT TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
 
    if [ "$VERSION" == "0" ]; then 
@@ -753,8 +778,11 @@ mtds_0v2(){
   export EVTMAX=10
 
   mtds0
-
   mtds2
+
+  : initial thought was to keep the logs together with event 
+  : BUT is rather convenient to keep them separate as grabbing logs 
+  : only is typically much faster than the full event when using U4Recorder 
 }
 
 
