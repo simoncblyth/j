@@ -3,8 +3,7 @@
 ntds_cfmeta.py : Comparing Metadata such as history frequencies across multiple SEvt pairs
 ============================================================================================
 
-Comparisons are more powerful (within reasonable statistics)
-when using common input photons. 
+Comparisons are less clouded by fluctuations when using common input photons. 
 
 """
 import os, numpy as np

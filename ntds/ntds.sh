@@ -3,40 +3,68 @@ usage(){ cat << EOU
 ntds.sh
 =========
 
+Remote Running
+----------------
+
 ::
 
-    ./ntds.sh grab_evt     # rsync SEvt folders from remote
+     jxscp # from laptop, this updates functions .bash on worstation
+     jxf   # update the functions in session    
+     ntds2_cf 
+
+
+Grabbing from remote
+-----------------------
+
+::
+
+    jxn # cd ~/j/ntds 
+
+    ./ntds.sh grab_evt     # rsync SEvt folders from remote ntds2_cf (default OPTICKS_MODE:2)
+    OPTICKS_MODE=0 ./ntds.sh grab_evt   # grab metadata from ntds0_cf
+
     ./ntds.sh grab_geom    # rsync CSGFoundry geometry folders from remote
-    ./ntds.sh ana          # plotting SEvt 
-    ./ntds.sh cf           # chi2 comparison of SEvt histories
 
-    NEVT=10 c2desc=1 ./ntds.sh cfmeta     # list chi2 comparisons for 10 evt pairs 
 
+Plotting photon histories
+----------------------------
+
+ntds.py
+    general analysis comparison of SEvt and plotting  
+
+N defaults to -1 meaning both N=0 and N=1 are plotted into separate windows.
+To pick one or other (as needed when doing screen captures) specify the N::
+
+    jxn # cd ~/j/ntds 
+
+    ./ntds.sh ana          # plotting SEvt for one event pair
     CHECK=all_point ./ntds.sh ana    
     CHECK=few_point ./ntds.sh ana    
     MODE=3 CHECK=few_point ./ntds.sh ana    
 
+    N=0 MODE=3 ./ntds.sh ana
+    N=1 GLOBAL=1 MODE=3 ./ntds.sh ana
 
+    GLOBAL=1 MODE=3 ./ntds.sh ana   # 3D plotting 
     GLOBAL=1 CHECK=sd_point ./ntds.sh ana
     GLOBAL=1 CHECK=sa_point ./ntds.sh ana
 
 
-Without specifying N, both N=0 and N=1 are plotted into separate windows.
-To pick one or other (as needed when doing screen captures) specify the N::
-
-    N=0 MODE=3 ./ntds.sh ana
-    N=1 GLOBAL=1 MODE=3 ./ntds.sh ana
-
-
-
-ntds.py
-    general analysis comparison of SEvt and plotting  
+History and metadata comparisons
+-----------------------------------
 
 ntds_cf.py
     chi2 comparison
 
 ntds_cfmeta.py
     comparisons across NEVT pairs of evt 
+
+::
+
+    jxn # cd ~/j/ntds 
+    ./ntds.sh cf           # chi2 compare SEvt for one event pair
+    ./ntds.sh cfmeta       # chi2 compare SEvt for NEVT (eg 10) event pairs (default OPTICKS_MODE:2)
+    OPTICKS_MODE=0 ./ntds.sh cfmeta     # compate metadata from ntds0_cf
 
 
 EOU

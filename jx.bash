@@ -562,6 +562,26 @@ ntds2_cf()
    return 0
 }
 
+ntds0_cf()
+{
+   : ntds0 is Geant4 running with minimal Opticks instrumentation : just event timing  
+   : this function runs simulation with N:0 and N:1 geometries allowing comparisons
+   : of event timings without the U4Recorder overheads
+   : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
+
+   export EVTMAX=10
+   #export NODBG=1 
+
+   N=0 GEOM=V0J008 ntds0
+   [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
+
+   N=1 GEOM=V1J008 ntds0
+   [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
+
+   return 0
+}
+
+
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
@@ -671,7 +691,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
    # comment IPHO for ordinary non-input photon default gun running 
    #IPHO=RainXZ_Z230_1000_f8.npy
-   #IPHO=RainXZ_Z230_10k_f8.npy
+   IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
 
    layout=""
