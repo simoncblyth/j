@@ -1938,7 +1938,7 @@ DONE : check the mtds_0v2 metadata
 
 
 
-WIP : ntds0_cf checking timings and ProcessHits metadata between N=0 and N=1
+DONE : ntds0_cf checking timings and ProcessHits metadata between N=0 and N=1
 -------------------------------------------------------------------------------
 
 ::
@@ -2023,6 +2023,393 @@ WIP : ntds0_cf checking timings and ProcessHits metadata between N=0 and N=1
 
     In [1]:                            
 
+
+
+
+DONE : POM=0 ntds2_cf with GridXY input photons
+-------------------------------------------------
+
+Added page to presentation, no surprises. 
+
+
+DONE : no-Opticks build test
+---------------------------------------
+
+1. ``jt ; vi bashrc.sh``
+2. reconnect session for the env change 
+3. ``jo ; ./build_Debug.sh``  
+
+Nuclear check (make sure no use of stale Opticks headers)::
+
+    rm -rf build
+    ./build_Debug.sh
+
+
+DONE  : no-Opticks run test
+---------------------------------------
+
+HMM: input photons will not work like this.::
+
+    N=0 ntds0 
+
+
+SKIP : Arrange error message when trying to use GtOpticksTool opticks input photons without WITH_G4CXOPTICKS
+----------------------------------------------------------------------------------------------------------------
+
+* instead just detect attempted use of GtOpticksTool at python level 
+
+
+How will using "opticks" rather than "gun" fail ? Very non-informatively::
+
+    **************************************************
+    Terminating @ localhost.localdomain on Mon Apr 17 20:09:42 2023
+    SNiPER::Context Running Mode = { BASIC }
+    SNiPER::Context  ** junotoptask **  Terminated with Error
+
+    (gdb) bt
+    No stack.
+
+::
+
+    N[blyth@localhost sniper]$ find . -name '*.cc' -exec grep -H "Terminated" {} \;
+    ./SniperKernel/src/SniperContext.cc:        return "SNiPER::Context Terminated Successfully";
+    ./SniperKernel/src/TaskWatchDog.cc:        msg += " **  Terminated with Error";
+    N[blyth@localhost sniper]$ pwd
+    /data/blyth/junotop/sniper
+    N[blyth@localhost sniper]$ 
+
+
+SniperKernel/src/TaskWatchDog.cc::
+
+    061 TaskWatchDog::~TaskWatchDog()
+     62 {
+     63     if (isErr())
+     64     {
+     65         std::string msg = " ** ";
+     66         msg += m_task.scope();
+     67         msg += m_task.objName();
+     68         msg += " **  Terminated with Error";
+     69         sniper_context->reg_msg(msg);
+     70     }
+     71 }
+
+    250 void TaskWatchDog::setErr()
+    251 {
+    252     typedef Sniper::RunStateInt S_Int;
+    253     m_stat = (RunState)((S_Int)(RunState::Error) | (S_Int)(m_stat));
+    254 }
+    255 
+    256 bool TaskWatchDog::isErr()
+    257 {
+    258     typedef Sniper::RunStateInt S_Int;
+    259     return ((S_Int)(m_stat) & (S_Int)(RunState::Error));
+    260 }
+
+    BP=TaskWatchDog::setErr 
+
+
+    junotoptask:DetSim0Svc.initialize  WARN: No Analysis Element is found.
+    junotoptask:SniperProfiling.initialize  INFO: 
+    GtOpticksTool::configure NOT WITH_G4CXOPTICKS ret 0
+    junotoptask:GenTools.initialize  INFO: configure tool "ok" failed
+    junotoptaskalgorithms.initialize ERROR: junotoptask:GenTools initialize failed
+
+    Breakpoint 1, 0x00007fffed6cc820 in TaskWatchDog::setErr() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    (gdb) bt
+    #0  0x00007fffed6cc820 in TaskWatchDog::setErr() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #1  0x00007fffed6c960b in Task::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #2  0x00007fffed6d2187 in TopTask::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #3  0x00007fffed6cda2b in TaskWatchDog::initialize() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #4  0x00007fffed6c9568 in Task::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
+::
+
+    COMMANDLINE : gdb   -ex r --args python /data/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py --opticks-mode 0 --no-guide_tube --additionacrylic-simplify-csg --pmt-optical-model --pmt-unnatural-geometry --evtmax 1 --opticks-anamgr --no-anamgr-normal --no-anamgr-genevt --no-anamgr-edm-v2 --no-anamgr-grdm --no-anamgr-deposit --no-anamgr-deposit-tt --no-anamgr-interesting-process --no-anamgr-optical-parameter --no-anamgr-timer opticks 2>&1 | tee ntds0.tlog  
+
+    [2023-04-17 20:09:37,245] p438398 {/data/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1331} INFO - setup_generator_opticks : objName:[ok]
+
+
+
+Hmm looks like the "--opticks-anamgr" just does nothing in opticksMode:0 WITH_G4CXOPTICKS or without.::
+   
+    ntds0_cf
+
+
+
+DONE : Python level detection of trying to use GtOpticksTool without Opticks
+------------------------------------------------------------------------------
+
+::
+
+    1306     def setup_generator_opticks(self, task, args):
+    1307         """
+    1308         Former declProp controls have been removed. 
+    1309         Are now using Opticks input photon machinery in order to 
+    1310         profit from its automated frame transformation of input photons.
+    1311 
+    1312         OPTICKS_INPUT_PHOTON
+    1313            selects path to .npy array of shape (n,4,4) 
+    1314            with the input photons, see ana/input_photons.sh 
+    1315 
+    1316         MOI/INST/OPTICKS_INPUT_PHOTON_FRAME
+    1317            controls target frame, see CSGFoundry::getFrameE 
+    1318 
+    1319         To follow how the hookup and transformation works see::
+    1320 
+    1321             SEvt::GetInputPhoton 
+    1322             G4CXOpticks::setupFrame
+    1323             CSGFoundry::getFrameE
+    1324 
+    1325         """
+    1326         noop = os.environ.get("OPTICKS_PREFIX", None) is None
+    1327         if noop:
+    1328             log.fatal("setup_generator_opticks : Opticks Input Photons cannot be used when not compiled WITH_G4CXOPTICKS")
+    1329             log.fatal("lack of WITH_G4CXOPTICKS is inferred by lack of OPTICKS_PREFIX envvar") 
+    1330             sys.exit(1)
+    1331         pass
+    1332         import GenTools
+    1333         gt = task.createAlg("GenTools")
+    1334         ok = gt.createTool("GtOpticksTool/ok")
+    1335         objName = ok.objName()
+    1336         gt.property("GenToolNames").set([objName])
+    1337         log.info("setup_generator_opticks : objName:[%s]" % (objName) )
+
+
+
+DONE : detect no-Opticks from OPTICKS_PREFIX in ntds functions 
+--------------------------------------------------------------------
+
+Best to follow junosw and check OPTICKS_PREFIX::
+
+    [ -z "$OPTICKS_PREFIX" ] && echo no-opticks
+
+See junosw/cmake/JUNODependencies::
+
+    167 ## Opticks
+    168 if(DEFINED ENV{OPTICKS_PREFIX})
+    169    set(Opticks_VERBOSE YES)
+    170    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{JUNOTOP}/opticks/cmake/Modules")
+    171    find_package(Opticks MODULE)
+    172    message(STATUS "${CMAKE_CURRENT_LIST_FILE} : Opticks_FOUND:${Opticks_FOUND}" )
+    173 endif()
+
+Although CMTEXTRATAGS not containing opticks is still possible for now::
+
+    N[blyth@localhost junotop]$ cat /data/blyth/junotop/ExternalLibs/opticks/head/bashrc
+
+
+
+DONE : ntds0_cf N=0,N=1 not-WITH_G4CXOPTICKS
+------------------------------------------------
+
+N=0 edited::
+
+    Begin of Event --> 0
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1820 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1724 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1696 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1740 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1806 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1721 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1748 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1745 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1713 hcMuon 0 hcOpticks -1 GPU NO
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 10          8.81300        0.88130      2.12749      
+    DetSimAlg                10          14009.81702    1400.98170   43.09796     
+    Sum of junotoptask       10          14018.94995    1401.89500   45.05009     
+    #############################################################################
+
+
+N=1 edited::
+
+    ### Run : 0
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1722 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1654 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1702 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1757 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1791 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1761 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1690 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1769 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1820 hcMuon 0 hcOpticks -1 GPU NO
+
+Compare with the WITH_G4CXOPTICKS instrumented counts, matches::
+
+    OPTICKS_MODE=0 ./ntds.sh grab_evt   ## just metadata, not full SEvt
+    OPTICKS_MODE=0 ./ntds.sh cfmeta
+       
+       [[ 1820,  1724,  1696,  1740,  1806,  1721,  1748,  1745,  1763,  1713],       14:YSAVE 
+        [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+ 
+
+DONE : Rebuild WITH_G4CXOPTICKS and repeat ntds0_cf : should get the same counts as above
+-----------------------------------------------------------------------------------------------
+
+NB have to comment IPHO for this, so use gun running 
+
+
+N=0 edited::
+
+    Begin of Event --> 0
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1820 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1724 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1696 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1740 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1806 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1721 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1748 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1745 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1713 hcMuon 0 hcOpticks -1 GPU NO
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 10          8.36400        0.83640      2.01664      
+    DetSimAlg                10          14370.85583    1437.08558   47.09499     
+    Sum of junotoptask       10          14379.52612    1437.95261   48.97203     
+    #############################################################################
+
+
+N=1 edited::
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 1722 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 0 hitCollection 1654 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 0 hitCollection 1702 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 0 hitCollection 1757 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 0 hitCollection 1791 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 0 hitCollection 1761 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 0 hitCollection 1690 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 0 hitCollection 1769 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 0 hitCollection 1763 hcMuon 0 hcOpticks -1 GPU NO
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 0 hitCollection 1820 hcMuon 0 hcOpticks -1 GPU NO
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 10          10.15400       1.01540      2.51906      
+    DetSimAlg                10          13458.78601    1345.87860   66.33544     
+    Sum of junotoptask       10          13469.27026    1346.92703   68.10973     
+    #############################################################################
+
+
+
+::
+
+    OPTICKS_MODE=0 ./ntds.sh grab_evt
+    OPTICKS_MODE=0 ./ntds.sh cfmeta
+       
+       [[ 1820,  1724,  1696,  1740,  1806,  1721,  1748,  1745,  1763,  1713],       14:YSAVE 
+        [ 1722,  1654,  1702,  1757,  1791,  1761,  1690,  1769,  1763,  1820]],        
+        
+    array([[[1.559, 1.398, 1.394, 1.433, 1.443, 1.41 , 1.446, 1.439, 1.417, 1.399],        0:SEvt__TimerDone 
+            [1.471, 1.346, 1.355, 1.373, 1.433, 1.311, 1.256, 1.269, 1.311, 1.294]]])        
+
+
+
+
+
+DONE : Review changed files
+------------------------------
+
+::
+
+    epsilon:junosw blyth$ git --no-pager diff 636e^  --name-status
+
+    A   Simulation/DetSimV2/AnalysisCode/include/U4RecorderAnaMgr.hh
+    A   Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc       # pass to opticks/u4/U4Recorder
+
+    M   Examples/Tutorial/python/Tutorial/JUNODetSimModule.py          # --pmt-natural-geometry simplified input photon generator
+
+    M   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction_Opticks.hh
+    M   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc       # reworked opticksMode:0
+
+    A   Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h
+    A   Simulation/DetSimV2/PMTSim/include/ModelTrigger_Debug.h         # Debug structs 
+
+    M   Simulation/DetSimV2/PMTSim/CMakeLists.txt                       # add EGet dep 
+
+    A   Simulation/DetSimV2/PMTSim/include/CommonPMTManager.h           # docs, OpSurface prefix @# rovider 
+    M   Simulation/DetSimV2/PMTSim/include/HamamatsuR12860PMTManager.hh
+    M   Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc
+    M   Simulation/DetSimV2/PMTSim/include/NNVTMCPPMTManager.hh
+    M   Simulation/DetSimV2/PMTSim/src/NNVTMCPPMTManager.cc             # m_UsePMTNaturalGeometry impl
+
+    M   Simulation/DetSimV2/PMTSim/include/junoPMTOpticalModel.hh
+    M   Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc           # PMTSIM_STANDALONE, add fixed ModelTriggerSimple  
+
+    M   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
+    M   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc                 # C4OpBoundaryProcess adapt, ProcessHits instrumented
+
+    M   Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+    M   Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh     # remove old blocks, add debug 
+
+    M   Simulation/DetSimV2/PhysiSim/CMakeLists.txt                     # Added deps : IPMTSimParamSvc, PMTSimParamSvc, CUSTOM4_LIBRARIES 
+
+    M   Simulation/DetSimV2/DetSimMTUtil/src/DetFactorySvc.cc
+    M   Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc
+    M   Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc                         
+    M   Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h
+    M   Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc           # Remove old WITH_G4OPTICKS macro blocks 
+
+    M   Simulation/DetSimV2/PhysiSim/include/DsPhysConsOptical.h
+    M   Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc           # declProp UsePMTOpticalModel UsePMTNaturalGeometry, hookup C4OpBoundaryProcess
+
+    M   Simulation/GenTools/GenTools/GtOpticksTool.h
+    M   Simulation/GenTools/src/GtOpticksTool.cc                        # Re-implemented to use Opticks input photons, with frame targetting 
+
+    A   Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/_TComplex.h   # TComplex typedef 
+    M   Simulation/SimSvc/MultiFilmSimSvc/MultiFilmSimSvc/MultiFilmModel.h
+    M   Simulation/SimSvc/MultiFilmSimSvc/src/Material.h
+    M   Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.h
+    M   Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
+    M   Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc          # changed in PMTSIM_STANDALONE to remove ROOT dep 
+
+    A   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h         # provide PMT data to custom boundary process 
+    M   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h     # invalid pmtid check
+    M   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_LPMT.h     # quell pad compilation warning
+    M   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h     # quell pad compilation warning
+    M   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h    # convenient static, incomplete check
+    M   Utilities/EGet/EGet/EGet.h                                            # Avoid compilation warning 
+
+    M   cmake/JUNODependencies.cmake                                          # Add Custom4 external 
+
+
+
+::
+
+    git diff 636e^  Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h 
+
+
+
+
+DONE : Make the Merge Request, Update issue 88
+---------------------------------------------------
+
+* include links to the presentation 
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/issues/88
+
+::
+
+    epsilon:junosw blyth$ git push 
+    Counting objects: 14, done.
+    Delta compression using up to 8 threads.
+    Compressing objects: 100% (13/13), done.
+    Writing objects: 100% (14/14), 1.29 KiB | 1.29 MiB/s, done.
+    Total 14 (delta 10), reused 0 (delta 0)
+    remote: 
+    remote: To create a merge request for blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw.git
+       52f5353..d00617f  blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess -> blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
+    epsilon:junosw blyth$ 
+
+
+DONE : Complete the presentation, adding concluding page, push to 3 sites
+----------------------------------------------------------------------------
+
+* DONE : include links to issue, branch, MR 
 
 
 

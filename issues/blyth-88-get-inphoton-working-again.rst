@@ -654,8 +654,18 @@ DONE : Rerun succeeds
 
 
 
-HMM : ntds.sh ana shows the input photon frame targetting is not working : photons starting mid-CD
+FIXED : ntds.sh ana shows the input photon frame targetting is not working : photons starting mid-CD
 ----------------------------------------------------------------------------------------------------
+
+
+Hmm, the inphoton is transformed. Just not in time. ::
+
+    epsilon:opticks blyth$ git commit -m "split SEvt::transformInputPhoton from SEvt::addFrameGenstep and do that from SEvt::setFrame as the transformed input photons are needed earlier than SEvt::BeginOfEvent "
+    [master 5fb3671c8] split SEvt::transformInputPhoton from SEvt::addFrameGenstep and do that from SEvt::setFrame as the transformed input photons are needed earlier than SEvt::BeginOfEvent
+     9 files changed, 127 insertions(+), 58 deletions(-)
+
+
+
 
 
 

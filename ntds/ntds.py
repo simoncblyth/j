@@ -21,15 +21,13 @@ fla = pcf.fla
 
 color_ptn = re.compile("#(\S*)\s")  # single char color codes in ppos string  "#c "  
 ENVOUT = os.environ.get("ENVOUT", None)
-MODE =  int(os.environ.get("MODE", "2"))
 N = int(os.environ.get("VERSION", "1"))
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1 
 SLIM = float(os.environ.get("SLIM","1.0"))
 CHECK = os.environ.get("CHECK", "all_point" )
 UTID = os.environ.get("UTID", CHECK )
 
-
-
+MODE =  int(os.environ.get("MODE", "2"))
 if MODE in [2,3]:
     from opticks.ana.pvplt import * 
 pass
@@ -74,6 +72,7 @@ if __name__ == '__main__':
 
     EXPL = ""
 
+    ## w_ string is evaluated to where expression w which is used as a selection by some of the CHECK 
     if CHECK == "EPH_NBOUND_PYREX_AB":
         w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
         EXPL = "N=1 needs pmt_log sensitive -> more ProcessHits:false Pyrex AB" 
@@ -84,8 +83,10 @@ if __name__ == '__main__':
         w_ = "np.where(t.nosc)[0]" 
         EXPL = "Photons without scatter SC, should stay in plane "
     elif CHECK == "hist":
-        w_ = "np.where(np.char.startswith(t.q,hist))"
+        w_ = "np.where(np.char.startswith(t.q,hist))[0]"
         EXPL = "Photons with histories starting with HIST [%s] " % hist.decode("utf-8")   
+    elif CHECK == "select":
+        w_ = "np.where(t.n > 16)"
     pass
 
     exprs = r"""
@@ -109,12 +110,18 @@ if __name__ == '__main__':
     ppos_ = {}
     for i in range(num): ppos_[i] = "None" ; 
 
+
+    ## ppos_ strings choose the point coordinates to scatter plot  
+
     if CHECK == "all_point0":
         ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #r all points "
     elif CHECK == "all_point":
         ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #c : all points "
         ppos_[1] = "t.f.record[:,0,0,:3].reshape(-1,3)  #g : first "
         ppos_[2] = "t.f.photon[:,0,:3]                  #r : last "
+    elif CHECK == "not_first":
+        ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
+        ppos_[1] = "t.f.photon[:,0,:3]                  #r : last "
     elif CHECK == "few_point":
         ppos_[0] = "t.f.record[:,0,0,:3] #r 0-position   "
         ppos_[1] = "t.f.record[:,1,0,:3] #g 1-position   "
@@ -129,9 +136,9 @@ if __name__ == '__main__':
     elif CHECK in ["NOSC"]:
         ppos_[0] = "t.f.record[np.where(t.nosc)][:,:,0,:3].reshape(-1,3) "
     elif CHECK in ["NOSCAB"]:
-        ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3) "
-    elif CHECK == "hist":
-        ppos_[0] = "t.f.record[w][:,0,:3]  #y %s " % w_ 
+        ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3)  #w "
+    elif CHECK in ["hist", "select"]:
+        ppos_[0] = "t.f.record[w][:,:,0,:3].reshape(-1,3)  #c %s " % w_ 
     pass 
 
     ppos = {'a':{}, 'b':{} }
@@ -199,10 +206,8 @@ if __name__ == '__main__':
             ax = axs[0]
         elif MODE == 3:
             pl = pvplt_plotter(label)
-            os.environ["EYE"] = "0,100,165"
-            os.environ["LOOK"] = "0,0,165"
-            pvplt_viewpoint(pl)
-            pvplt_frame(pl, evt.f.sframe )
+            pvplt_viewpoint(pl)   # sensitive to EYE, LOOK, UP envvars
+            pvplt_frame(pl, evt.f.sframe, local=not GLOBAL )
         pass
 
         if not GLOBAL:
@@ -245,6 +250,7 @@ if __name__ == '__main__':
                 ax.scatter( upos[:,H], upos[:,V], s=1, c=col )
             elif MODE == 3:
                 pl.add_points(upos[:,:3], color=col )
+                if "EDL" in os.environ: pl.enable_eye_dome_lighting()
             pass
         pass
         print("]j qwn num loop num:%d " % num )

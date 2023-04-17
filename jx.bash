@@ -544,19 +544,20 @@ ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10 Geant4 only with Opticks U4Recorder inst
 ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation 
 ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
 
+
+
 ntds2_cf()
 {
-   : ntds2 is Geant4 running with Opticks U4Recorder instrumentation 
    : this function runs simulation with N:0 and N:1 geometries allowing comparison of histories
    : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
 
-   export EVTMAX=10
+   export EVTMAX=3
    #export NODBG=1 
 
-   N=0 GEOM=V0J008 ntds2
+   N=0 GEOM=V0J008 ntds
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   N=1 GEOM=V1J008 ntds2
+   N=1 GEOM=V1J008 ntds
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
@@ -564,10 +565,17 @@ ntds2_cf()
 
 ntds0_cf()
 {
-   : ntds0 is Geant4 running with minimal Opticks instrumentation : just event timing  
-   : this function runs simulation with N:0 and N:1 geometries allowing comparisons
+   : ntds0:not-WITH_G4CXOPTICKS 
+   :    Geant4 running bare 
+   :
+   : ntds0:WITH_G4CXOPTICKS 
+   :    minimal Opticks instrumentation : just event timing  
+   :
+   : this function runs simulations with N:0 and N:1 geometries allowing comparisons
    : of event timings without the U4Recorder overheads
    : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
+   :
+   : HMM: input photons will not work in this mode
 
    export EVTMAX=10
    #export NODBG=1 
@@ -585,12 +593,22 @@ ntds0_cf()
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
-   env | grep =INFO
-
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-1}
    local mode=${OPTICKS_MODE:-3}
+
+   local ACTIVE_MODES="123" 
+   if [ "${ACTIVE_MODES/$mode}" != "$ACTIVE_MODES" ]; then
+        if [ -n "$OPTICKS_PREFIX" -a -d "$OPTICKS_PREFIX" ]; then 
+            echo $msg OPTICKS_MODE $OPTICKS_MODE is active and OPTICKS_PREFIX $OPTICKS_PREFIX is detected  
+        else
+            echo $msg OPTICKS_MODE $OPTICKS_MODE REQUIRES OPTICKS_PREFIX $OPTICKS_PREFIX : ABORT 
+            return 1 
+        fi 
+   fi 
+   env | grep =INFO
+
    local script=ntds$mode
    local base=/tmp/u4debug
    local tmpdir=$base/$script
@@ -691,31 +709,49 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
    # comment IPHO for ordinary non-input photon default gun running 
    #IPHO=RainXZ_Z230_1000_f8.npy
-   IPHO=RainXZ_Z230_10k_f8.npy
+   #IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
+
+   #IPHO=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
+
+   #IPHO=GridXY_X700_Z230_10k_f8.npy 
+   #IPHO=GridXY_X1000_Z1000_40k_f8.npy
+
 
    layout=""
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO
 
-       moi=Hama:0:1000 
+       #moi=Hama:0:1000 
        #moi=NNVT:0:1000 
+       #export MOI=${MOI:-$moi}
 
-       export MOI=${MOI:-$moi}
-       layout="ip_MOI_$MOI"
-       echo $msg IPHO defined : configuring OPTICKS_INPUT_PHOTON $OPTICKS_INPUT_PHOTON
-       trgs="$trgs opticks"
+       #oipf=Hama:0:1000
+       oipf=NNVT:0:1000 
+       export OPTICKS_INPUT_PHOTON_FRAME=${OPTICKS_INPUT_PHOTON_FRAME:-$oipf}
+
+       layout="OIPF_$OPTICKS_INPUT_PHOTON_FRAME"
+
+       if [ -n "$OPTICKS_PREFIX" -a -d "$OPTICKS_PREFIX" ]; then
+           echo $msg : proceed with GtOpticksTool input photons : using Opticks functionality 
+           trgs="$trgs opticks"
+       else
+           echo $msg : Opticks not-configured : CANNOT PROCEED with GtOpticksTool input photons : fallback to gun running  
+           trgs="$trgs gun"
+           #trgs="$trgs opticks"   ## PROCEED ANYHOW TEMPORARILY 
+           export BP=TaskWatchDog::setErr
+       fi
    else
        unset OPTICKS_INPUT_PHOTON
        unset MOI 
+       unset OPTICKS_INPUT_PHOTON_FRAME
 
        echo $msg IPHO not defined : not configuring OPTICKS_INPUT_PHOTON
        trgs="$trgs gun"
    fi 
 
-   vars="OPTICKS_INPUT_PHOTON MOI trgs"
-   for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
-
+   vars="BASH_SOURCE FUNCNAME OPTICKS_PREFIX IPHO OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME MOI trgs"
+   for var in $vars ; do printf " %30s : %s \n" "$var" "${!var}" ; done 
 
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31

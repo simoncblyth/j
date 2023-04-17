@@ -50,6 +50,15 @@ To pick one or other (as needed when doing screen captures) specify the N::
     GLOBAL=1 CHECK=sa_point ./ntds.sh ana
 
 
+    MODE=3 EDL=1 N=0 EYE=500,0,2300  CHECK=not_first ./ntds.sh ana
+
+    MODE=3 EDL=1 N=0 EYE=500,0,2300 CHECK=hist HIST="TO BT BT BT BT BR BT BT BT BT BT BT BT BT SD"  ./ntds.sh ana
+    MODE=3 EDL=1 N=0 EYE=500,0,2300 CHECK=hist HIST="TO BT SA"  ./ntds.sh ana
+    MODE=3 EDL=1 N=0 EYE=500,0,2300 CHECK=select  ./ntds.sh ana
+
+
+
+
 History and metadata comparisons
 -----------------------------------
 
@@ -147,6 +156,8 @@ elif [ "$arg" == "ana" ]; then
     pyscript=$DIR/ntds.py 
 elif [ "$arg" == "cf" ]; then
     pyscript=$DIR/ntds_cf.py 
+elif [ "$arg" == "cfh" ]; then
+    pyscript=$DIR/ntds_cfh.py 
 elif [ "$arg" == "cfmeta" ]; then
     pyscript=$DIR/ntds_cfmeta.py 
 elif [ "$arg" == "help" ]; then
