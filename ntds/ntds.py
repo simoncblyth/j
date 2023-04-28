@@ -122,6 +122,21 @@ if __name__ == '__main__':
     elif CHECK == "not_first":
         ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
         ppos_[1] = "t.f.photon[:,0,:3]                  #r : last "
+        ## Problem with this is that the red photon point is degenerate with the cyan points 
+        ## so the appearance flickers. 
+        ## Want to exclude the last point in the cyan step point records so the 
+        ## final red photon point is not degenerate with the last cyan step point.
+        ## BUT trying the below doesnt work::
+        ##
+        ##       t.f.record[:,1:t.n,0,:3].reshape(-1,3) 
+        ##
+        ## HMM could do it with where and selections according to n but thats not convenient 
+        ## trying to do this with arrays of indices (or with tuple indices) is slow and consumes lots of memory 
+        ## and is prone to crashing and dumping huge files
+        ## ... maybe need to do it with a general C extension to NumPy or less general ufunc ?  
+        ## 
+    elif CHECK == "not_first_only":
+        ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
     elif CHECK == "few_point":
         ppos_[0] = "t.f.record[:,0,0,:3] #r 0-position   "
         ppos_[1] = "t.f.record[:,1,0,:3] #g 1-position   "
@@ -148,7 +163,8 @@ if __name__ == '__main__':
 
     for i in range(len(syms)):
         sym = syms[i]
-        w = eval(w_)
+        ew_ = w_.replace("t.","%s."% sym)
+        w = eval(ew_)
 
         for j in range(num): 
             expr = ppos_[j]
