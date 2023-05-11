@@ -536,7 +536,7 @@ EOU
 }
 
 anamgr-normal(){ cat << EOU
---normal-anamgr
+--anamgr-normal
 --no-anamgr-genevt
 --no-anamgr-edm-v2
 --no-anamgr-grdm
