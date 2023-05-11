@@ -535,6 +535,20 @@ anamgr(){ cat << EOU
 EOU
 }
 
+anamgr-normal(){ cat << EOU
+--normal-anamgr
+--no-anamgr-genevt
+--no-anamgr-edm-v2
+--no-anamgr-grdm
+--no-anamgr-deposit
+--no-anamgr-deposit-tt
+--no-anamgr-interesting-process
+--no-anamgr-optical-parameter
+--no-anamgr-timer
+EOU
+}
+
+
 
 
 
@@ -797,7 +811,12 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    esac
 
    opts="$opts --evtmax $evtmax"
-   opts="$opts $(anamgr) "
+
+   if [ "$mode" == "0" ]; then 
+       opts="$opts $(anamgr-normal) "
+   else
+       opts="$opts $(anamgr) "
+   fi 
 
    if [ -n "$DEBUG_DISABLE_STICKS" ]; then
        opts="$opts --debug-disable-sticks"
