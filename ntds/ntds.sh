@@ -1,16 +1,79 @@
 #!/bin/bash -l 
 usage(){ cat << EOU
-ntds.sh
-=========
+ntds.sh : utilities related to the j/jx.bash:ntds bash function 
+=================================================================
+
+Arguments handled by this script
+----------------------------------
+
+grab_evt
+   rsync SEvt from remote, base dir /tmp/$USER/opticks/GEOM/$geom
+grab_geom
+   rsync CSGFoundry folders from remote, geom dir .opticks/GEOM/$geom
+
+
+ana
+   default python analysis with ntds.py
+   sensitive to CHECK envvar to control the type of plotting  
+cf
+   chi2 comparison simulation histories of of (A,B) SEvt 
+cfh
+   (A,B) compatison of histogram of final photon time  
+cfmeta
+   metadata comparison of NEVT (A,B) SEvt pairs  
+
+tt
+   CPU time comparison analysis of time stamps from (A,B) SEvt  
+
+
+pvcap pvpub
+    pyvista screen capture and publish 
+mpcap mppub
+    matplotlib screen capture and publish 
+
+help
+    usage method 
+
+
+
+ana scatter plotting with W photon selection examples
+--------------------------------------------------------
+
+Plot step points for of photons with less_than (or more_than) 10 points::
+
+    N=1 MODE=2 CHECK=all_point W=POINT_MAX POINT=10  ~/j/ntds/ntds.sh ana
+    N=1 MODE=2 CHECK=all_point W=POINT_MIN POINT=10  ~/j/ntds/ntds.sh ana
+
+Comma delimited W selection presents multiple selections together.
+Selections after the first are highlighted with larger points. 
+Highlight step points from a single photon::
+
+    N=1 MODE=3 CHECK=all_point W=ALL,PID PID=9706 ~/j/ntds/ntds.sh ana
+
+Highlight photons with processing time greater than 1000 us, 
+2D and 3D plotting::
+
+    N=1 MODE=2 CHECK=all_point W=ALL,US_MIN US=1000  ~/j/ntds/ntds.sh ana
+    N=1 MODE=3 CHECK=all_point W=ALL,US_MIN US=1000  ~/j/ntds/ntds.sh ana
+
+Scanning US_MAX cuts, its apparent than after 200 us or so 
+are not greatly changing the simulation (with input photons 
+and a particular geometry NNVT:0:1000 target)::
+
+    N=1 MODE=2 CHECK=all_point W=US_MAX US=100  ~/j/ntds/ntds.sh ana
+    N=1 MODE=2 CHECK=all_point W=US_MAX US=200  ~/j/ntds/ntds.sh ana
+    N=1 MODE=2 CHECK=all_point W=US_MAX US=300  ~/j/ntds/ntds.sh ana
+
 
 Remote Running
 ----------------
 
 ::
 
-     jxscp # from laptop, this updates functions .bash on worstation
-     jxf   # update the functions in session    
-     ntds2_cf 
+     jxv        # laptop: review ntds bash function : check environment, IPHO, options etc.. 
+     jxscp      # laptop: scp copies ~/j/jx.bash to workstation
+     jxf        # workstation: update bash functions in session    
+     ntds2_cf   # workstation: invokes ntds bash function for N=0 and N=1 : running tut_detsim.py 
 
 
 Grabbing from remote
@@ -160,6 +223,8 @@ elif [ "$arg" == "cfh" ]; then
     pyscript=$DIR/ntds_cfh.py 
 elif [ "$arg" == "cfmeta" ]; then
     pyscript=$DIR/ntds_cfmeta.py 
+elif [ "$arg" == "tt" ]; then
+    pyscript=$OPTICKS_HOME/sysrap/sevt_tt.py
 elif [ "$arg" == "help" ]; then
     usage
 fi
@@ -199,7 +264,10 @@ if [ "$arg" == "pvcap" -o "$arg" == "pvpub" -o "$arg" == "mpcap" -o "$arg" == "m
             source epub.sh
         fi
     else
-        echo $BASH_SOURCE : pvcap/pvpub/mpcap/mppub ENVOUT non-existing or incomplete
+        echo $BASH_SOURCE : ERROR pvcap/pvpub/mpcap/mppub ENVOUT non-existing or incomplete
+        echo $BASH_SOURCE : ENVOUT          : $ENVOUT
+        echo $BASH_SOURCE : ENVOUT_CAP_STEM : $ENVOUT_CAP_STEM
+        echo $BASH_SOURCE : ENVOUT_CAP_BASE : $ENVOUT_CAP_BASE
     fi 
 fi
 

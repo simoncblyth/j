@@ -47,11 +47,12 @@ EOU
 jxv(){ vi $BASH_SOURCE ~/j/j.bash && jxf ; }
 jx-vi(){ vi $BASH_SOURCE ; }
 jxf(){ source $BASH_SOURCE ; }
-jxn(){ cd ~/j/ntds ; }
-jxm(){ cd ~/j/mtds ; }
-jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
 
-jxp(){  cd ~/j/PMTSimParamSvcTest ; pwd ; }
+jxn(){ cd ~/j/ntds ; pwd ; }
+jxm(){ cd ~/j/mtds ; pwd ; } # minimalist variant 
+jxp(){ cd ~/j/PMTSimParamSvcTest ; pwd ; }
+
+jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
 
 jxscp(){ scp ~/j/jx.bash P:j/jx.bash ; }  ## as git ssh is often blocked 
 
@@ -566,12 +567,12 @@ ntds2_cf()
    : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
 
    export EVTMAX=3
-   #export NODBG=1 
+   export NODBG=1 
 
-   N=0 GEOM=V0J008 ntds
+   N=0 GEOM=V0J008 ntds2
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   N=1 GEOM=V1J008 ntds
+   N=1 GEOM=V1J008 ntds2
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
@@ -709,21 +710,13 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
-   #export U4Recorder__EndOfRunAction_Simtrace=1
-   ## experimental simtrace, that could be very expensive : maybe only when frame set ?
-
-   #export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1  
-   ## above setting makes possible to random align, but changes events and consumes 20-30% more randoms
-
-   export U4Recorder__ClassifyFake_FindPV_r=1 
-   : seems like the above is needed to make fake skipping work 
 
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
 
    # comment IPHO for ordinary non-input photon default gun running 
    #IPHO=RainXZ_Z230_1000_f8.npy
-   #IPHO=RainXZ_Z230_10k_f8.npy
+   IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
 
    #IPHO=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
@@ -779,6 +772,13 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    vars="POM N VERSION LAYOUT TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
 
+
+   #export U4Recorder__EndOfRunAction_Simtrace=1
+   ## experimental simtrace, that could be very expensive : maybe only when frame set ?
+
+   #export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1  
+   ## above setting makes possible to random align, but changes events and consumes 20-30% more randoms
+
    if [ "$VERSION" == "0" ]; then 
 
        if [ -n "$NOFAKESKIP" ]; then 
@@ -787,6 +787,9 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        else
            export U4Recorder__FAKES_SKIP=1
            echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+
+           export U4Recorder__ClassifyFake_FindPV_r=1 
+           ## FindPV_r is needed to make fake skipping work : but its slow
        fi 
    fi 
 

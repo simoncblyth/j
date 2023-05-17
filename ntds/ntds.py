@@ -1,15 +1,55 @@
 #!/usr/bin/env python
 """
-ntds.py : plotting two SEvt
-============================
+ntds.py : scatter plotting in 2D or 3D of (A,B) SEvt in separate windows
+==========================================================================
+
+Control the selection of what to scatter plot with the CHECK envvar. 
+
+
 
 ::
 
     MODE=2 ./ntds.sh ana
     MODE=3 ./ntds.sh ana
 
+
+Exiting PyVista Windows
+-------------------------
+
+Deleting pyvista windows with the red dot at top left seems to work fine, 
+but it causes subsequent exits from ipython to take 10s or more. 
+Instead simply cmd-Q whilst the pyvista window is frontmost to exit 
+more cleanly and avoid the slow ipython exit.  
+
+Flickering Overlayed Plot Point Issue
+---------------------------------------
+
+Problem with pyvista plotting all points (cyan) and then 
+last point on top with different (red) color is that the 
+red photon point is degenerate with the cyan points so 
+the appearance flickers as viewpoint changes. 
+ 
+Want to exclude the last point in the cyan step point records so the 
+final red photon point is not degenerate with the last cyan step point.
+BUT trying the below doesnt work::
+
+      t.f.record[:,1:t.n,0,:3].reshape(-1,3) 
+
+HMM could do it with where and selections according to n but thats not convenient 
+trying to do this with arrays of indices (or with tuple indices) 
+is slow and consumes lots of memory and is prone to crashing and dumping huge files
+... maybe need to do it with a general C extension to NumPy or less general ufunc ?  
+
+TODO : see if simply increasing the size of the last point that want to win 
+       can avoid the issue without any complicated point selection
+
+
 """
 import os, textwrap, numpy as np, re
+from collections import defaultdict
+tree = lambda: defaultdict(tree)
+# dd = tree()
+
 from opticks.ana.fold import Fold
 from opticks.ana.p import * 
 from opticks.sysrap.sevt import SEvt
@@ -25,16 +65,81 @@ N = int(os.environ.get("VERSION", "1"))
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1 
 SLIM = float(os.environ.get("SLIM","1.0"))
 CHECK = os.environ.get("CHECK", "all_point" )
+W = os.environ.get("W", "ALL" )
 UTID = os.environ.get("UTID", CHECK )
+
 
 MODE =  int(os.environ.get("MODE", "2"))
 if MODE in [2,3]:
     from opticks.ana.pvplt import * 
 pass
 
+
+def get_w_(_, sym):
+    """
+    :param W: string picking photon selection
+    :param sym: "a" or "b" symbol of SEvt 
+    :return w_, EXPL: w_ string is evaluated to where expression w which is used as a selection by some of the CHECK 
+    """
+
+    if _ == "EPH_NBOUND_PYREX_AB":
+        w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
+        EXPL = "N=1 needs pmt_log sensitive -> more ProcessHits:false Pyrex AB" 
+    elif _ == "EPH_NEDEP":
+        w_ = "np.where(t.eph == 3)"
+        EXPL = "Lots of edep 0. N=0,1 as multiple volumes have to be sensitive"
+    elif _ == "NOSC":
+        w_ = "np.where(t.nosc)[0]" 
+        EXPL = "Photons without scatter SC, should stay in plane "
+    elif _ == "hist":
+        defhist = "TO BT BT BT BT SA"  
+        hist = os.environ.get("HIST", defhist).encode("utf-8")
+        w_ = "np.where(np.char.startswith(t.q,%(hist)s))[0]" % locals()
+        EXPL = "Photons with histories starting with HIST [%s] " % hist.decode("utf-8")   
+    elif _ == "POINT_MIN":
+        POINT = int(os.environ.get("POINT","25"))
+        w_ = "np.where(t.n > %(POINT)d)" % locals()
+        EXPL = "POINT_MIN photons with more than POINT:%(POINT)d step points" % locals()
+    elif _ == "POINT_MAX":
+        POINT = int(os.environ.get("POINT","25"))
+        w_ = "np.where(t.n < %(POINT)d)" % locals()
+        EXPL = "POINT_MAX photons with less than POINT:%(POINT)d step points" % locals()
+    elif _ == "PID":
+        PID = int(os.environ.get("PID","9706"))
+        w_ = "np.where(t.f.photon.view(np.int32)[:,3,2] == %(PID)s)" % locals()
+        EXPL = "select single photon by PID %(PID)s " % locals()
+    elif _ == "OTHER":
+        w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
+        EXPL = ""
+    elif _ == "ALL":
+        w_ = "np.where(t.n > -1)" 
+        EXPL = "placeholder select everything"
+    elif _ == "US_MAX":
+        US = int(os.environ.get("US","1000"))
+        w_ = "np.where(t.ss < %(US)d)" % locals()
+        EXPL = "US_MAX : photons with processing time less than US:%(US)d (microsecond)" % locals()
+    elif _ == "US_MIN":
+        US = int(os.environ.get("US","1000"))
+        w_ = "np.where(t.ss > %(US)d)" % locals()
+        EXPL = "US_MIN : photons with processing time greater than US:%(US)d (microsecond)" % locals()
+    else:
+        w_ = "np.where(t.n > -1)" 
+        EXPL = "placeholder select everything"
+    pass
+    ew_ = w_.replace("t.","%s."% sym)
+    return ew_, EXPL
+
+
+def mp2pv_pointsize(mp_sz):
+    pv_sz = 2 if mp_sz < 2 else 15 
+    return pv_sz
+
+
 if __name__ == '__main__':
     axes = 0,2  # X,Z
     H,V = axes
+
+    ## thats a PMT-ish sized box
     lim = np.array([[-500.,500.],[-250.,250.],[-250.,250.]])
     lim *= SLIM
 
@@ -64,30 +169,7 @@ if __name__ == '__main__':
     if not a is None:print(repr(a))
     if not b is None:print(repr(b))
 
-    w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
 
-
-    defhist = "SI BT BT BT SD"  
-    hist = os.environ.get("HIST", defhist).encode("utf-8")
-
-    EXPL = ""
-
-    ## w_ string is evaluated to where expression w which is used as a selection by some of the CHECK 
-    if CHECK == "EPH_NBOUND_PYREX_AB":
-        w_ = "np.where(np.logical_and( t.eph == 4, t.qq == 4 ))"
-        EXPL = "N=1 needs pmt_log sensitive -> more ProcessHits:false Pyrex AB" 
-    elif CHECK == "EPH_NEDEP":
-        w_ = "np.where(t.eph == 3)"
-        EXPL = "Lots of edep 0. N=0,1 as multiple volumes have to be sensitive"
-    elif CHECK == "NOSC":
-        w_ = "np.where(t.nosc)[0]" 
-        EXPL = "Photons without scatter SC, should stay in plane "
-    elif CHECK == "hist":
-        w_ = "np.where(np.char.startswith(t.q,hist))[0]"
-        EXPL = "Photons with histories starting with HIST [%s] " % hist.decode("utf-8")   
-    elif CHECK == "select":
-        w_ = "np.where(t.n > 16)"
-    pass
 
     exprs = r"""
     np.c_[np.unique(t.eph,return_counts=True)]   # point level ProcessHits EPH enum 
@@ -106,35 +188,21 @@ if __name__ == '__main__':
     """
     exprs_ = list(filter(None,textwrap.dedent(exprs).split("\n")))
 
+
+    ## ppos_ strings choose the point coordinates to scatter plot  
     num = 4 
     ppos_ = {}
     for i in range(num): ppos_[i] = "None" ; 
 
-
-    ## ppos_ strings choose the point coordinates to scatter plot  
-
     if CHECK == "all_point0":
         ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #r all points "
     elif CHECK == "all_point":
-        ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #c : all points "
-        ppos_[1] = "t.f.record[:,0,0,:3].reshape(-1,3)  #g : first "
-        ppos_[2] = "t.f.photon[:,0,:3]                  #r : last "
+        ppos_[0] = "t.f.record[w][:,:,0,:3].reshape(-1,3)  #c : all points "
+        ppos_[1] = "t.f.record[w][:,0,0,:3].reshape(-1,3)  #g : first "
+        ppos_[2] = "t.f.photon[w][:,0,:3]                  #r : last "
     elif CHECK == "not_first":
         ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
         ppos_[1] = "t.f.photon[:,0,:3]                  #r : last "
-        ## Problem with this is that the red photon point is degenerate with the cyan points 
-        ## so the appearance flickers. 
-        ## Want to exclude the last point in the cyan step point records so the 
-        ## final red photon point is not degenerate with the last cyan step point.
-        ## BUT trying the below doesnt work::
-        ##
-        ##       t.f.record[:,1:t.n,0,:3].reshape(-1,3) 
-        ##
-        ## HMM could do it with where and selections according to n but thats not convenient 
-        ## trying to do this with arrays of indices (or with tuple indices) is slow and consumes lots of memory 
-        ## and is prone to crashing and dumping huge files
-        ## ... maybe need to do it with a general C extension to NumPy or less general ufunc ?  
-        ## 
     elif CHECK == "not_first_only":
         ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
     elif CHECK == "few_point":
@@ -152,34 +220,46 @@ if __name__ == '__main__':
         ppos_[0] = "t.f.record[np.where(t.nosc)][:,:,0,:3].reshape(-1,3) "
     elif CHECK in ["NOSCAB"]:
         ppos_[0] = "t.f.record[np.where(t.noscab)][:,:,0,:3].reshape(-1,3)  #w "
-    elif CHECK in ["hist", "select"]:
+    elif CHECK in ["hist", "select", "PID"]:
         ppos_[0] = "t.f.record[w][:,:,0,:3].reshape(-1,3)  #c %s " % w_ 
     pass 
 
-    ppos = {'a':{}, 'b':{} }
-    uppos = {'a':{}, 'b':{} }
-    color = {'a':{}, 'b':{} }
-    version = {'a':0, 'b':1 }
+    ppos = tree()
+    uppos = tree()
+    color = tree()
+    version = tree()
+    size = tree()
+    wsel_ = tree()
+
+    version['a'] = 0  
+    version['b'] = 1 
+    # HMM: thats an assumption, TODO: extract version from evt metadata
+
+    WW = W.split(",")
 
     for i in range(len(syms)):
         sym = syms[i]
-        ew_ = w_.replace("t.","%s."% sym)
-        w = eval(ew_)
+        for j in range(len(WW)):
+            w_, EXPL = get_w_(WW[j], sym)
+            wsel_[sym][j] = w_
+            w = eval(w_)
 
-        for j in range(num): 
-            expr = ppos_[j]
-            if expr == "None": continue
-            uexpr = expr.replace("t.","%s." % sym)
-            vexpr = eval(uexpr)
+            # over potential sets of points to scatter plot 
+            for k in range(num): 
+                expr = ppos_[k]
+                if expr == "None": continue
+                uexpr = expr.replace("t.","%s." % sym)
+                vexpr = eval(uexpr)
 
-            m = color_ptn.search(expr)
-            col = m.groups()[0] if not m is None else "black"
+                m = color_ptn.search(expr)  # match single char following hash 
+                col = m.groups()[0] if not m is None else "black"
 
-            ppos[sym][j] = vexpr
-            uppos[sym][j] = uexpr
-            color[sym][j] = col
+                ppos[sym][j][k] = vexpr
+                uppos[sym][j][k] = uexpr
+                color[sym][j][k] = col
+                size[sym][j][k] = 1 if j == 0 else 50
+            pass
         pass
-    pass
 
     dump_expr = True
     if dump_expr:
@@ -203,14 +283,17 @@ if __name__ == '__main__':
         evt = evts[i]
         tid[sym] = evt.ID
         base[sym] = evt.f.base
-
-        elem = []
-        for j in range(num): 
-            expr = ppos_[j]
-            if expr == "None": continue
-            elem.append("%s:%s" % (color[sym][j],uppos[sym][j]))
+        for j in range(len(WW)):
+            w_, EXPL = get_w_(WW[j], sym)
+            elem = []
+            for k in range(num): 
+                expr = ppos_[k]
+                if expr == "None": continue
+                if j == 0:
+                    elem.append("%s:%s" % (color[sym][j][k],uppos[sym][j][k]))
+                pass
+            pass
         pass
-
         label = "\n".join( ["(%s) %s : %s " % (sym, tid[sym], EXPL)] + elem )
 
         if MODE in [0,1]:
@@ -234,42 +317,49 @@ if __name__ == '__main__':
                 pass
             pass
         pass
+        for j in range(len(WW)):
+            print("[k qwn loop num:%d " % num )
+            for k in range(num): 
+                expr = ppos_[k]
+                if expr == "None": continue
 
-        print("[j qwn loop num:%d " % num )
-        for j in range(num): 
-            expr = ppos_[j]
-            if expr == "None": continue
+                pp = ppos[sym][j][k]
+                col = color[sym][j][k]
+                siz = size[sym][j][k]
 
-            vexpr = ppos[sym][j]
-            col = color[sym][j]
+                rpp = np.sqrt(np.sum(pp*pp, axis=1 ))  # global distance to origin 
+                if not "NO_SUPPRESS" in os.environ:
+                    pp = pp[rpp > 0]   # suppress points at origin (typically unfilled)
+                pass
 
-            gpos = np.ones( [len(vexpr), 4 ] )
-            gpos[:,:3] = vexpr
-            lpos = np.dot( gpos, evt.f.sframe.w2m ) 
-            upos = gpos if GLOBAL else lpos
+                gpos = np.ones( [len(pp), 4 ] )
+                gpos[:,:3] = pp
+                lpos = np.dot( gpos, evt.f.sframe.w2m ) 
+                upos = gpos if GLOBAL else lpos
 
-            if "ALT" in os.environ:  ## checking alternative way to do the global to local transform
-                gpos_alt = evt.f.record[:,:,0].copy()          # (NUM,32,4) : all point "post" (position, time)
-                gpos_alt[...,3] = 1                          # 1. for position transform
-                lpos_alt = np.dot( gpos_alt, evt.f.sframe.w2m ) 
-                upos_ = gpos_alt if GLOBAL else lpos_alt 
-                upos = upos_.reshape(-1,4)
+                if "ALT" in os.environ:  ## checking alternative way to do the global to local transform
+                    gpos_alt = evt.f.record[:,:,0].copy()          # (NUM,32,4) : all point "post" (position, time)
+                    gpos_alt[...,3] = 1                          # 1. for position transform
+                    lpos_alt = np.dot( gpos_alt, evt.f.sframe.w2m ) 
+                    upos_ = gpos_alt if GLOBAL else lpos_alt 
+                    upos = upos_.reshape(-1,4)
+                pass
+
+                if MODE in [0,1]:
+                    print("expr  : %s " % expr )
+                    print("pp    :\n%s " % pp )
+                    print("gpos  :\n%s " % gpos )
+                    print("lpos  :\n%s " % lpos )
+                    print("upos  :\n%s " % upos )
+                elif MODE == 2:
+                    ax.scatter( upos[:,H], upos[:,V], s=siz, c=col )
+                elif MODE == 3:
+                    pl.add_points(upos[:,:3], color=col, point_size=mp2pv_pointsize(siz) )
+                    if "EDL" in os.environ: pl.enable_eye_dome_lighting()
+                pass
             pass
-
-            if MODE in [0,1]:
-                print("expr  : %s " % expr )
-                print("vexpr :\n%s " % vexpr )
-                print("gpos  :\n%s " % gpos )
-                print("lpos  :\n%s " % lpos )
-                print("upos  :\n%s " % upos )
-            elif MODE == 2:
-                ax.scatter( upos[:,H], upos[:,V], s=1, c=col )
-            elif MODE == 3:
-                pl.add_points(upos[:,:3], color=col )
-                if "EDL" in os.environ: pl.enable_eye_dome_lighting()
-            pass
+            print("]k qwn num loop num:%d " % num )
         pass
-        print("]j qwn num loop num:%d " % num )
 
         if MODE == 2:
             fig.show()

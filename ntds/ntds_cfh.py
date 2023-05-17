@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     syms = ['a','b']
 
-    qwn_ = "%(sym)s.f.photon[:,0,3]  # all photons "  
+    qwn_ = "%(sym)s.f.photon[:,0,3]  # all photons final time  "   
     bins_ = "np.linspace(3, 15, 50)"    
 
     bins = eval(bins_)
