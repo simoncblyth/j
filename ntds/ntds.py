@@ -122,6 +122,10 @@ def get_w_(_, sym):
         US = int(os.environ.get("US","1000"))
         w_ = "np.where(t.ss > %(US)d)" % locals()
         EXPL = "US_MIN : photons with processing time greater than US:%(US)d (microsecond)" % locals()
+    elif _ == "HC":
+        HC = int(os.environ.get("HC","0"))
+        w_ = "np.where(t.hc == %(HC)d)" % locals()
+        EXPL = "HC : photons with HC:%(HC)d ProcessHits calls" % locals()
     else:
         w_ = "np.where(t.n > -1)" 
         EXPL = "placeholder select everything"

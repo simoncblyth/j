@@ -65,6 +65,12 @@ and a particular geometry NNVT:0:1000 target)::
     N=1 MODE=2 CHECK=all_point W=US_MAX US=300  ~/j/ntds/ntds.sh ana
 
 
+Check photons without any ProcessHits calls::
+
+    N=1 MODE=2 CHECK=all_point W=HC HC=0  ~/j/ntds/ntds.sh ana
+
+
+
 Remote Running
 ----------------
 

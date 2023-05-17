@@ -165,9 +165,13 @@ Simon
 HMM : how to fine-grained-instrument ? Start standalone for dev speed
 -----------------------------------------------------------------------
 
-* Q: How clearly does CPU time scale with photon time or number of bounces ? 
+* Q: How clearly does CPU time scale with number of step points ? 
+* A: Very clear linear relationship with number of step points in averages shown.
+
 * Q: Would truncation (photon time OR num bounces) have much benefit ? 
-* Q: Given that backwards QE is set to zero, expect aggressively truncation would have little effect on hits ? And potentially big speedup ? 
+
+* Q: Given that backwards QE is set to zero, expect aggressive truncation would have little effect on hits ? 
+
 * Q: How much of event time is spent simulating big bouncers ? 
 
 
@@ -175,27 +179,8 @@ HMM : how to fine-grained-instrument ? Start standalone for dev speed
 Step Point Timestamps
 --------------------------
 
-* Start with full detail... record timestamps for each step .. does stimer.h have the precision for that ?
-* HMM: do I need a lighter weight debugging mode for this ? Easier to start with full detail. 
-
-::
-
-    epsilon:opticks blyth$ opticks-fl stimer.h
-    ./sysrap/stimer.h
-    ./sysrap/CMakeLists.txt
-    ./sysrap/s_time.h
-    ./sysrap/tests/stimer_test.cc
-    ./sysrap/SEvt.cc
-    ./u4/U4Recorder.cc
-    epsilon:opticks blyth$ 
-
-::
-
-      36 stimer* SEvt::TIMER = new stimer ;
-      37 void SEvt::TimerStart(){ TIMER->start(); }
-      38 double SEvt::TimerDone(){ return TIMER->done() ; }
-      39 uint64_t SEvt::TimerStartCount(){ return TIMER->start_count() ; }
-      40 std::string SEvt::TimerDesc(){ return TIMER->desc() ; }
+* Start with full detail... record timestamps for each step .. 
+* Added stamp.h to do this more simply than stimer.h 
 
 
 trace where the SEvt start time metadata comes from
@@ -297,14 +282,12 @@ U4Recorder::UserSteppingAction_Optical
 
 
 Hmm this is all absolute stamps, could also just store durations. 
-Yes, but the simplicity of the absolute stamps is convenient. 
+Yes, but the simplicity of the absolute stamps for getting timings 
+from anywhere to anywhere is convenient. 
 
 
 U4SimulateTest.sh standalone running
 ---------------------------------------
-
-
-
 
 ::
 
@@ -1365,7 +1348,7 @@ Lower last step CPU times mostly AB::
            [b'TO BT BT AB                                                                                     '],
 
 
-WIP : add stamps from ProcessHits to probe the tail gaps ?
+DONE : add stamps from ProcessHits to probe the tail gaps ?
 --------------------------------------------------------------
 
 * hmm, the photon label is too lightweight to carry uint64_t 
@@ -1386,55 +1369,13 @@ WIP : add stamps from ProcessHits to probe the tail gaps ?
   counts so not suitable for timestamp duties  
 
 
-
-Is ProcessHits called before or after SEvt::finalPhoton ?::
-
-     /**
-     ...
-     344 NB ProcessHits often runs multiple times per photon
-     345 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     346 
-     347 ProcessHits may run 0,1,>1 times per photon, so care is
-     348 required to match m_eph counts with per photon SD flag counts.
-     349 
-     350 When ProcessHits runs more than once for a photon it looks like the 
-     351 above will stomp, but that is not the full story as the label values 
-     352 will get copied into the step point level aux by U4Recorder before stomping happens. 
-     353 So can use NumPy like "np.max(a.eph, axis=1)" to get a photon level eph from 
-     354 the SEvt arrays which can be compared with photon level SD flag counts. 
-     355 The maximum eph from all step points is appropriate due to the EPH enum order. 
-     356 
-     357 **/
-     359 #ifdef WITH_G4CXOPTICKS
-     360 G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
-     361 {
-     362     G4bool is_hit = ProcessHits_(step, nullptr) ;
-     363     m_jpmt_dbg->add( m_eph, is_hit );
-     364 
-     365     G4Track* track = step->GetTrack() ;
-     366     int label_id = C4Track::GetLabelID(track);
-     367 
-     368     C4Track::SetLabelEph(track, m_eph);
-     369     C4Track::IncrementLabelExt(track) ;
-     370 
-     371     LOG_IF(LEVEL, (label_id % 1000) == 0) << " label " << C4Track::Desc(track)  << " m_eph " << EPH::Name(m_eph) ;
-     372 
-     373     return is_hit ;
-     374 }
-
-
-
-
-
-WIP : Probing the gap
-------------------------
+DONE : Probing the gap, shows ProcessHits calls generally in middle of gap
+----------------------------------------------------------------------------
 
 ::
 
    PLOT=STAMP STAMP_TT=90000,5000 STAMP_ANNO=1 ~/j/ntds/ntds.sh tt
-
    PLOT=STAMP STAMP_TT=100000,2000 STAMP_ANNO=1 ~/j/ntds/ntds.sh tt
-
 
 Look into B.9706 with large tail gap and b.hc == 3 (ProcessHits calls)::
 
@@ -1444,124 +1385,116 @@ Look into B.9706 with large tail gap and b.hc == 3 (ProcessHits calls)::
 
    N=1 MODE=3 CHECK=all_point W=ALL,PID PID=9706 ~/j/ntds/ntds.sh ana
 
+Check for slow photons::
 
+   N=1 MODE=2 CHECK=all_point W=ALL,US_MIN US=1500 ~/j/ntds/ntds.sh ana
 
-::
+Sanity check STAMP time range of one photon::
 
     In [8]: i = 9756 ; b.s0[i] - b.ee[0], b.s1[i] - b.ee[0]
     Out[8]: (90499, 90710)
-       
+
+
+DONE : examine some photons with stamp gaps
+-----------------------------------------------
+
+Did this by adding multiple selection plotting to j/ntds/ntds.{sh,py} 
+
+
+DONE : More instrumentation in the gap 
+-----------------------------------------
+
+Added an integer argument to SEvt::AddProcessHitsStamp to 
+allow collecting stamps from multiple positions within the ProcessHits 
+territory and extend sup from quad4 to quad6 to make space for the stamp ranges. 
+
+Bracket the ProcessHits call::
+
+     360 #ifdef WITH_G4CXOPTICKS
+     361 G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
+     362 {
+     363     SEvt::AddProcessHitsStamp(0);
+     364 
+     365     G4bool is_hit = ProcessHits_(step, nullptr) ;
+     366     m_jpmt_dbg->add( m_eph, is_hit );
+     367 
+     368     G4Track* track = step->GetTrack() ;
+     369     int label_id = C4Track::GetLabelID(track);
+     370 
+     371     C4Track::SetLabelEph(track, m_eph);
+     372     C4Track::IncrementLabelExt(track) ;
+     373 
+     374     LOG_IF(LEVEL, (label_id % 1000) == 0) << " label " << C4Track::Desc(track)  << " m_eph " << EPH::Name(m_eph) ;
+     375 
+     376     SEvt::AddProcessHitsStamp(1);
+     377     return is_hit ;
+     378 }
+
+
+DONE : Analyse the extra probe in the gap stamps
+-------------------------------------------------
+
+* How much of the gap is due to ProcessHits ? 
+* compare timings with SD to other terminators 
+
 
 ::
 
-    In [17]: np.c_[np.unique(a.hc, return_counts=True)] 
-    Out[17]: 
-    array([[   0,  204],       
-           [   1, 6258],
-           [   2,  939],
-           [   3,  644],
-           [   4,  636],
-           [   5,  444],
-           [   6,  288],
-           [   7,  205],
-           [   8,  115],
-           [   9,   64],
-           [  10,   55],
-           [  11,   41],
-           [  12,   28],
-           [  13,   25],
-           [  14,   15],
-           [  15,    8],
-           [  16,    8],
-           [  17,   10],
-           [  18,    3],
-           [  19,    1],
-           [  20,    3],
-           [  21,    3],
-           [  24,    1],
-           [  25,    1],
-           [  37,    1]])
+    jcn
+    STAMP_TT=
 
 
-    In [18]: np.c_[np.unique(b.hc, return_counts=True)]
-    Out[18]: 
-    array([[   0,  160],
-           [   1, 6225],
-           [   2,  509],
-           [   3,  511],
-           [   4, 1049],
-           [   5,  289],
-           [   6,  391],
-           [   7,  155],
-           [   8,  203],
-           [   9,  125],
-           [  10,   70],
-           [  11,   64],
-           [  12,   63],
-           [  13,   52],
-           [  14,   16],
-           [  15,   19],
-           [  16,   14],
-           [  17,   28],
-           [  18,    9],
-           [  19,    8],
-           [  20,    8],
-           [  21,    8],
-           [  22,    2],
-           [  23,    5],
-           [  25,    3],
-           [  26,    2],
-           [  27,    4],
-           [  29,    1],
-           [  30,    2],
-           [  31,    1],
-           [  35,    1],
-           [  37,    1],
-           [  48,    1],
-           [  68,    1]])
-    In [19]:                    
+    In [9]: np.c_[np.unique( b.q[b.hi0 > 20], return_counts=True )]
+    Out[9]: 
+    array([[b'TO BT BR BT BT BT BT BT BT BT SD                                                                ', b'2'],
+           [b'TO BT BR BT BT BT BT BT SD                                                                      ', b'3'],
+           [b'TO BT BR BT BT BT SC BT BT BT BT BR BT BT BT BT BT BT SD                                        ', b'1'],
+           [b'TO BT BR BT BT BT SC BT BT BT SD                                                                ', b'1'],
+           [b'TO BT BR BT BT SD                                                                               ', b'5'],
+           [b'TO BT BT BR BT BT BT BT BT BT BT BR BR BT BT BT BT BT BT BT SD                                  ', b'1'],
+           [b'TO BT BT BR BT BT BT BT BT BT BT BT BT BT SD                                                    ', b'1'],
+           [b'TO BT BT BR BT BT BT BT BT BT BT BT SD                                                          ', b'2'],
+           [b'TO BT BT BR BT BT BT BT BT BT SD                                                                ', b'5'],
+           [b'TO BT BT BR BT BT BT BT DR BT BT BT BT BR BT BT BT BT BT BT BT BT BT BT BT SD                   ', b'1'],
+           [b'TO BT BT BR BT BT BT BT SC BT BT BT BT BT BT SD                                                 ', b'2'],
+           [b'TO BT BT BR BT BT BT BT SC BT BT BT SD                                                          ', b'1'],
+           [b'TO BT BT BR BT BT BT SD                                                                         ', b'9'],
+           [b'TO BT BT BT BT SD                                                                               ', b'3366']], dtype='|S96')
 
-    ## BULK_ABSORB have no ProcessHits calls 
-    ## SA : presumably not onto PMTs 
-
-    In [19]: a.q[a.hc == 0]
-    Out[19]: 
-    array([[b'TO BT BT AB                                                                                     '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
-           [b'TO BT BR BT BT SA                                                                               '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BR BT BT SA                                                                               '],
-           [b'TO BT BT AB                                                                                     '],
-           [b'TO BT BR BT BT SA                                                                               '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BR BT BT SA                                                                               '],
-           [b'TO BT BR BT BT SA                                                                               '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT AB                                                                                        '],
-           [b'TO BT BT BT BR BT BT BT BT SA                                                                   '],
-           [b'TO BT BT AB                                                                                     '],
-           [b'TO BT BT BT AB                                                                                  '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
-           [b'TO BT BT BR BT BT BT SA                                                                         '],
+    In [10]:                                            
 
 
-
-TODO : examine some photons with stamp gaps, maybe can add some more stamps from ProcessHits ?
-------------------------------------------------------------------------------------------------
+Fast SD : is that SPMT ?
+---------------------------
 
 ::
 
-    In [1]: a.q[9833]
-    Out[1]: array([b'TO BT BT BT BT BR BT BT BT BT BT BT DR BT BT BT BT BT BT SR BT BT BT BT BT SA                   '], dtype='|S96')
+    In [1]: b.hi0[9801]
+    Out[1]: 1
+
+    In [2]: b.q[9801]
+    Out[2]: array([b'TO BT BT BT BR BT BT BT BT BT BT DR BT BT BT BT BT SC BT BT BT BT BT BT BT BT SD                '], dtype='|S96')
 
 
+TODO : some gdb random sampling to see what inside ProcessHits takes the time
+--------------------------------------------------------------------------------
+
+TODO : standalone ProcessHits 
+--------------------------------
+
+HMM: arranging to run ProcessHits in standalone running 
+would be the best way to find whats taking the time
+as it gives fast dev cycle 
+
+
+
+TODO : Q:What is time fraction for handling the big bouncers ? 
+-----------------------------------------------------------------
+
+* calculate event times from sum of photon times and then vary a truncation cut 
+  to back-of-envelope calculate the benefit would get from truncation. 
+
+
+TODO : gun running stamp analysis
+------------------------------------
 
