@@ -1464,10 +1464,10 @@ DONE : Analyse the extra probe in the gap stamps
     In [10]:                                            
 
 
-Fast SD : is that SPMT ?
----------------------------
+WIP : Fast SD : is that SPMT ?
+---------------------------------
 
-::
+Probably, but the SD point is miles away, so cannot easily see what its hitting::
 
     In [1]: b.hi0[9801]
     Out[1]: 1
@@ -1476,23 +1476,286 @@ Fast SD : is that SPMT ?
     Out[2]: array([b'TO BT BT BT BR BT BT BT BT BT BT DR BT BT BT BT BT SC BT BT BT BT BT BT BT BT SD                '], dtype='|S96')
 
 
-TODO : some gdb random sampling to see what inside ProcessHits takes the time
---------------------------------------------------------------------------------
+::
 
-TODO : standalone ProcessHits 
+   N=1 MODE=3 CHECK=all_point W=ALL,PID PID=9801 ~/j/ntds/ntds.sh ana
+
+
+DONE : ProcessHits Profiling : Initial Coarse SProfile<5> Check
+------------------------------------------------------------------
+
+::
+
+    STAMP_TT=100k,2k ~/j/ntds/stamp.sh 
+
+
+    In [4]: p = a.f.junoSD_PMT_v2_SProfile
+    In [5]: i = 9879  ## pick an SD photon index with large ProcessHits (most of them) 
+
+    In [3]: p.shape        ## CAUTION: ProcessHits often called more than once for a photon 
+    Out[3]: (22063, 6)     ## BUT the last call is probably the one that is interesting (and that takes the time)
+
+    ## HMM: maintaining a max stamp slot in SProfile would be convenient for analysis
+    ## ACTUALLY CAN DO THAT EASILY WITH np.max(p[:,1:], axis=1 )
+
+    In [6]: p[i]
+    Out[6]: array([5673, 1684419268677283,  0, 0,  0, 0], dtype=uint64) ## NOPE: NEED TO DO A LOOKUP
+
+    In [7]: np.where( p[:,0] == i )[0]
+    Out[7]: array([120])
+
+    In [9]: ii = np.where( p[:,0] == i )[0][0]  
+
+    In [10]: p[ii]
+    Out[10]: array([9879, 1684419267540089, 1684419267540090, 1684419267540143, 1684419267540143, 1684419267540146], dtype=uint64)
+
+    In [11]: p[ii,1:]
+    Out[11]: array([1684419267540089, 1684419267540090, 1684419267540143, 1684419267540143, 1684419267540146], dtype=uint64)
+
+    In [12]: np.diff(p[ii,1:])   ## (0,1,2,3,4)   ## ALL TIME BETWEEN 1->2 (THAT WAS NOT EXPECTED)
+    Out[12]: array([ 1, 53,  0,  3], dtype=uint64)
+
+
+    In [11]: pmi = p[:,1]
+    In [12]: pmx = np.max(p[:,1:], axis=1 )
+    In [13]: pp = pmx - pmi 
+
+    In [14]: pp
+    Out[14]: array([2010,    0,    0,   55,    0, ...,    0,    0,    0,    0,    0], dtype=uint64)
+
+    In [15]: pp[pp>10]
+    Out[15]: array([2010,   55,   96,   60,   57, ...,   57,   58,   57,   58,   57], dtype=uint64)
+
+    In [16]: pp[pp>20]
+    Out[16]: array([2010,   55,   96,   60,   57, ...,   57,   58,   57,   58,   57], dtype=uint64)
+
+
+    In [28]: p[pp>20,0]
+    Out[28]: array([9999, 9998, 9995, 9994, 9993, ...,   24,   16,   11,    8,    6], dtype=uint64)
+
+    In [29]: w = p[pp>20,0]
+
+    In [30]: a.q[w]
+    Out[30]: 
+    array([[b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT BR BR SD                                                                         '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           ...,
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               '],
+           [b'TO BT BT BT BT SD                                                                               ']], dtype='|S96')
+
+
+    In [34]: np.diff(p[pp>20,1:],axis=1)
+    Out[34]: 
+    array([[                 191,                  720,                   30,                 1069],
+           [                   1,                   54, 18445059654442035404,                    0],
+           [                   0,                   56,                    0,                   40],
+           [                   0,                   54,                    1,                    5],
+           [                   0,                   53,                    0,                    4],
+           ...,
+           [                   0,                   53,                    0,                    4],
+           [                   0,                   54,                    0,                    4],
+           [                   1,                   52,                    1,                    3],
+           [                   1,                   52,                    1,                    4],
+           [                   0,                   53,                    1,                    3]], dtype=uint64)
+
+
+All time between 1 and 2 looks common.
+
+
+DONE : ProcessHits Profiling : Drill Down SProfile<11> Check
+------------------------------------------------------------------
+
+::
+
+    pp = a.pf[a.pfr>20,1:][10:]  
+
+    In [23]: pp.shape
+    Out[23]: (3783, 11)
+
+    In [24]: pp[:,0].shape
+    Out[24]: (3783,)
+
+    In [25]: pp[:,0,np.newaxis].shape   ## adding an axis allows element-by-element subtraction
+    Out[25]: (3783, 1)
+
+    In [26]: pp[:,0,None].shape
+    Out[26]: (3783, 1)
+
+    In [22]: pp - pp[:,0,None]
+    Out[22]:#0   1   2   3   4-->5
+    array([[ 0,  1,  1,  1,  1, 51, 52, 53, 53, 53, 57],
+           [ 0,  1,  1,  1,  1, 51, 51, 53, 53, 53, 56],
+           [ 0,  0,  1,  1,  1, 51, 52, 53, 53, 53, 56],
+           [ 0,  1,  1,  1,  1, 52, 52, 53, 53, 54, 57],
+           [ 0,  0,  0,  0,  0, 50, 50, 52, 52, 52, 54],
+           [ 0,  0,  0,  0,  0, 50, 50, 51, 51, 52, 54],
+           [ 0,  0,  1,  1,  1, 51, 52, 53, 53, 53, 57],
+           [ 0,  0,  1,  1,  1, 53, 53, 55, 55, 55, 61],
+
+Collect loadsa stamps across the slow zone::
+
+     481 #ifdef WITH_G4CXOPTICKS
+     482     m_profile->stamp(1);
+     483 #endif
+     484     // TODO: get CE and angle response from data.
+     485     // = decide the CE (collection efficiency)
+     486     // = the CE can be different at different position
+     487     // == position
+     488     const G4AffineTransform& trans = track->GetTouchable()->GetHistory()->GetTopTransform();
+     489 #ifdef WITH_G4CXOPTICKS
+     490     m_profile->stamp(2);
+     491 #endif
+     492     const G4ThreeVector& global_pos = postStepPoint->GetPosition();
+     493 #ifdef WITH_G4CXOPTICKS
+     494     m_profile->stamp(3);
+     495 #endif
+     496     G4ThreeVector local_pos = trans.TransformPoint(global_pos);
+     497 #ifdef WITH_G4CXOPTICKS
+     498     m_profile->stamp(4);
+     499 #endif
+     500     double qe = 1;
+     501     double ce = 1;
+     502     // == get the copy number -> pmt id
+     503     int pmtID = get_pmtid(track);
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ LOOKS LIKE get_pmtid IS TAKING ~50us FOR EVERY CANDIDATE HIT 
+     504 #ifdef WITH_G4CXOPTICKS
+     505     m_profile->stamp(5);
+     506 #endif
+     507     // = final DE = QE * CE, 
+     508     // but QE is already applied (this is old implementation,
+     509     // Now we use PMTSimParamSvc to get real QE and CE ), so only CE is important.
+     510     // = DE: Detection Efficiency
+     511     if(m_use_pmtsimsvc){
+     512         qe = (m_enable_optical_model && PMT::Is20inch(pmtID)) ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+     513 #ifdef WITH_G4CXOPTICKS
+     514         m_profile->stamp(6);
+     515 #endif
+     516         ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+     517 
+     518 #ifdef WITH_G4CXOPTICKS
+     519         m_profile->stamp(7);
+     520 #endif
+     521      }
+     522      else{
+     523         std::string volname = track->GetVolume()->GetName();
+     524     GetQEandCEByOldWay(qe , ce , pmtID,  volname, local_pos);
+     525      }
+     526 #ifdef WITH_G4CXOPTICKS
+     527     m_profile->stamp(8);
+     528 #endif
+     529 
+     530 
+
+::
+
+    In [7]: np.diff(a.pf[a.pfr>20,1:],axis=1)[10:]   ## 5->6 is the consuming the time
+    Out[7]: 
+    array([[ 1,  0,  0,  0, 50,  1,  1,  0,  0,  4],
+           [ 1,  0,  0,  0, 50,  0,  2,  0,  0,  3],
+           [ 0,  1,  0,  0, 50,  1,  1,  0,  0,  3],
+           [ 1,  0,  0,  0, 51,  0,  1,  0,  1,  3],
+           [ 0,  0,  0,  0, 50,  0,  2,  0,  0,  2],
+           ...,
+           [ 0,  1,  0,  0, 49,  1,  1,  0,  0,  4],
+           [ 0,  0,  0,  0, 52,  0,  2,  0,  0,  4],
+           [ 0,  1,  0,  0, 50,  0,  2,  0,  0,  3],
+           [ 0,  0,  0,  0, 51,  0,  2,  0,  0,  4],
+           [ 0,  1,  0,  0, 51,  0,  1,  0,  1,  3]], dtype=uint64)
+
+
+
+::
+
+    STAMP_TT=100k,2k ~/j/ntds/stamp.sh 
+
+    In [1]: a.pf.shape
+    Out[1]: (22063, 12)
+
+    In [2]: b.pf.shape
+    Out[2]: (25986, 12)
+
+sevt.py::
+
+    239         if hasattr(f, 'junoSD_PMT_v2_SProfile') and not f.junoSD_PMT_v2_SProfile is None:
+    240             pf = f.junoSD_PMT_v2_SProfile
+    241             pfmx = np.max(pf[:,1:], axis=1 )
+    242             pfmi = pf[:,1]
+    243             pfr = pfmx - pfmi
+    244         else:
+    245             pf = None
+    246             pfmx = None
+    247             pfmi = None
+    248             pfr = None
+    249         pass
+    250         self.pf = pf  ## CAUTION: multiple ProcessHits calls per photon, so not in photon index order 
+    251         self.pfmx = pfmx
+    252         self.pfmi = pfmi
+    253         self.pfr  = pfr 
+
+
+::
+
+    In [4]: a.pfr
+    Out[4]: array([2126,    0,    0,   55,    0, ...,    0,    0,    0,    0,    0], dtype=uint64)
+
+    In [5]: a.pfr[a.pfr>20]
+    Out[5]: array([2126,   55,  102,   58,   61, ...,   56,   58,   56,   57,   57], dtype=uint64)
+
+
+
+DONE : Confirm Culprit "get_pmtid(track)" taking ~50us for every ProcessHits call that gets that far
+--------------------------------------------------------------------------------------------------------
+
+Follow up regarding get_pmtid in :doc:`blyth-88-get_pmtid_from_track_50us`
+
+
+HMM : some gdb ctrl-c random sampling to see what inside ProcessHits takes the time
+---------------------------------------------------------------------------------------
+
+This is not feasible without gdb automation, because it takes ~4 minutes to get to the point of interest 
+of a few seconds only. That could be extended by doing more events, but still impractical. 
+
+::
+
+    ntds2_dbg()
+    {
+       export BP=junoSD_PMT_v2::ProcessHits
+       export EVTMAX=3
+       N=0 GEOM=V0J008 ntds2
+       return 0
+    }
+
+
+* checkout https://github.com/jasonrohrer/wallClockProfiler/blob/master/wallClockProfiler.cpp
+
+wallClockProfiler looks interesting but looks like needs considerable improvement
+to add flexibility. For example restricting sampling to after a breakpoint. 
+
+
+NOPE : standalone ProcessHits 
 --------------------------------
 
-HMM: arranging to run ProcessHits in standalone running 
+Arranging to run ProcessHits in standalone running 
 would be the best way to find whats taking the time
-as it gives fast dev cycle 
+as it gives fast dev cycle.  Actually thats not practical, 
+for decision timings need to be insitu. 
+
+Insitu testing above already reveals that the primary culprit is "get_pmtid(track)".  
 
 
-
-TODO : Q:What is time fraction for handling the big bouncers ? 
+WIP : Q:What is time fraction for handling the big bouncers ? 
 -----------------------------------------------------------------
 
 * calculate event times from sum of photon times and then vary a truncation cut 
   to back-of-envelope calculate the benefit would get from truncation. 
+
+* my guess is that truncation not very helpful, as big bouncers are rare
 
 
 TODO : gun running stamp analysis

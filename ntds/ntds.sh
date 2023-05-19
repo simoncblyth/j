@@ -49,6 +49,7 @@ Selections after the first are highlighted with larger points.
 Highlight step points from a single photon::
 
     N=1 MODE=3 CHECK=all_point W=ALL,PID PID=9706 ~/j/ntds/ntds.sh ana
+    N=1 MODE=3 CHECK=all_point W=ALL,PID PID=9801 ~/j/ntds/ntds.sh ana
 
 Highlight photons with processing time greater than 1000 us, 
 2D and 3D plotting::

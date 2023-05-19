@@ -3,6 +3,10 @@ usage(){ cat << EOU
 stamp.sh
 =========
 
+The "./ntds.sh tt" sets up the environment that points to the 
+SEvt to load while the analysis is implemented in 
+python script $OPTICKS_HOME/sysrap/sevt_tt.py 
+
 ::
 
     jxn
@@ -11,6 +15,9 @@ stamp.sh
     STAMP_TT=104k,2k ~/j/ntds/stamp.sh 
 
     STAMP_TT=100k,20k ~/j/ntds/stamp.sh 
+
+The stamp.sh script reqires the STAMP_TT envvar to be set, 
+try commandlines such as the above. 
 
 EOU
 }

@@ -19,7 +19,8 @@ Exiting PyVista Windows
 Deleting pyvista windows with the red dot at top left seems to work fine, 
 but it causes subsequent exits from ipython to take 10s or more. 
 Instead simply cmd-Q whilst the pyvista window is frontmost to exit 
-more cleanly and avoid the slow ipython exit.  
+the window cleanly and avoid the slow ipython exit.  
+
 
 Flickering Overlayed Plot Point Issue
 ---------------------------------------
@@ -59,7 +60,9 @@ pcf = PhotonCodeFlags()
 fln = pcf.fln
 fla = pcf.fla
 
-color_ptn = re.compile("#(\S*)\s")  # single char color codes in ppos string  "#c "  
+color_ptn = re.compile("#(\S*)\s")  # single char color codes in ppos string, eg "#c "  c:cyan
+size_ptn = re.compile("@(\S*)\s")  # size float string within ppos string, eg "@2 "  
+
 ENVOUT = os.environ.get("ENVOUT", None)
 N = int(os.environ.get("VERSION", "1"))
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1 
@@ -91,6 +94,20 @@ def get_w_(_, sym):
     elif _ == "NOSC":
         w_ = "np.where(t.nosc)[0]" 
         EXPL = "Photons without scatter SC, should stay in plane "
+    elif _ == "NOIIX":
+        w_ = "np.where(t.iix < 0)[0]" 
+        EXPL = "Photons with iix < 0 "
+    elif _ == "IIX":
+        w_ = "np.where(t.iix > -1)[0]" 
+        EXPL = "Photons with iix > -1 "
+    elif _ == "IIX_EQ":
+        IIX_EQ = int(os.environ.get("IIX_EQ","0"))
+        w_ = "np.where(t.iix == %(IIX_EQ)d)[0]" % locals() 
+        EXPL = "IIX_EQ : Photons with iix ==  %(IIX_EQ)d " % locals()
+    elif _ == "IIX_NEQ":
+        IIX_NEQ = int(os.environ.get("IIX_NEQ","0"))
+        w_ = "np.where(t.iix != %(IIX_NEQ)d)[0]" % locals() 
+        EXPL = "IIX_NEQ : Photons with iix != %(IIX_NEQ)d " % locals()
     elif _ == "hist":
         defhist = "TO BT BT BT BT SA"  
         hist = os.environ.get("HIST", defhist).encode("utf-8")
@@ -133,10 +150,6 @@ def get_w_(_, sym):
     ew_ = w_.replace("t.","%s."% sym)
     return ew_, EXPL
 
-
-def mp2pv_pointsize(mp_sz):
-    pv_sz = 2 if mp_sz < 2 else 15 
-    return pv_sz
 
 
 if __name__ == '__main__':
@@ -201,9 +214,9 @@ if __name__ == '__main__':
     if CHECK == "all_point0":
         ppos_[0] = "t.f.record[:,:,0,:3].reshape(-1,3)  #r all points "
     elif CHECK == "all_point":
-        ppos_[0] = "t.f.record[w][:,:,0,:3].reshape(-1,3)  #c : all points "
-        ppos_[1] = "t.f.record[w][:,0,0,:3].reshape(-1,3)  #g : first "
-        ppos_[2] = "t.f.photon[w][:,0,:3]                  #r : last "
+        ppos_[0] = "t.f.record[w][:,:,0,:3].reshape(-1,3)  #c @2 : all points "
+        ppos_[1] = "t.f.record[w][:,0,0,:3].reshape(-1,3)  #g @5 : first "
+        ppos_[2] = "t.f.photon[w][:,0,:3]                  #r @4 : last "
     elif CHECK == "not_first":
         ppos_[0] = "t.f.record[:,1:,0,:3].reshape(-1,3)  #c : not first "
         ppos_[1] = "t.f.photon[:,0,:3]                  #r : last "
@@ -233,6 +246,7 @@ if __name__ == '__main__':
     color = tree()
     version = tree()
     size = tree()
+    high = tree()
     wsel_ = tree()
 
     version['a'] = 0  
@@ -255,13 +269,17 @@ if __name__ == '__main__':
                 uexpr = expr.replace("t.","%s." % sym)
                 vexpr = eval(uexpr)
 
-                m = color_ptn.search(expr)  # match single char following hash 
-                col = m.groups()[0] if not m is None else "black"
+                cm = color_ptn.search(expr)  # match single char following hash 
+                col = cm.groups()[0] if not cm is None else "black"
+
+                sm = size_ptn.search(expr)  # match single char following @
+                sz = float(sm.groups()[0]) if not sm is None else 1
 
                 ppos[sym][j][k] = vexpr
                 uppos[sym][j][k] = uexpr
                 color[sym][j][k] = col
-                size[sym][j][k] = 1 if j == 0 else 50
+                size[sym][j][k] = sz 
+                high[sym][k][k] = j > 0 
             pass
         pass
 
@@ -349,6 +367,12 @@ if __name__ == '__main__':
                     upos = upos_.reshape(-1,4)
                 pass
 
+
+                EDL = "EDL" in os.environ
+                RPS = "RPS" in os.environ
+                SIZ = float(os.environ.get("SIZ",siz))
+                print(" MODE:%s EDL:%d RPS:%d SIZ:%s siz:%s " % (MODE,EDL,RPS,SIZ,siz))
+
                 if MODE in [0,1]:
                     print("expr  : %s " % expr )
                     print("pp    :\n%s " % pp )
@@ -356,10 +380,10 @@ if __name__ == '__main__':
                     print("lpos  :\n%s " % lpos )
                     print("upos  :\n%s " % upos )
                 elif MODE == 2:
-                    ax.scatter( upos[:,H], upos[:,V], s=siz, c=col )
+                    ax.scatter( upos[:,H], upos[:,V], s=SIZ, c=col )
                 elif MODE == 3:
-                    pl.add_points(upos[:,:3], color=col, point_size=mp2pv_pointsize(siz) )
-                    if "EDL" in os.environ: pl.enable_eye_dome_lighting()
+                    pl.add_points(upos[:,:3], color=col, point_size=SIZ, render_points_as_spheres=RPS )
+                    if EDL: pl.enable_eye_dome_lighting()
                 pass
             pass
             print("]k qwn num loop num:%d " % num )
@@ -371,7 +395,7 @@ if __name__ == '__main__':
             pl.show()
         pass
 
-        if MODE == 2 and not ENVOUT is None:
+        if MODE in [2,3] and not ENVOUT is None:
             ## associate metadata with a plot, used for figure naming back in bash 
             envout = "\n".join([
                            "export ENVOUT_PATH=%s" % ENVOUT,

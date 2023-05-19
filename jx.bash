@@ -560,6 +560,13 @@ ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation
 ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
 
 
+ntds2_dbg()
+{
+   export BP=junoSD_PMT_v2::ProcessHits
+   export EVTMAX=3
+   N=0 GEOM=V0J008 ntds2
+   return 0
+}
 
 ntds2_cf()
 {
@@ -733,8 +740,10 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        #moi=NNVT:0:1000 
        #export MOI=${MOI:-$moi}
 
-       #oipf=Hama:0:1000
-       oipf=NNVT:0:1000 
+       oipf=Hama:0:1000
+       #oipf=Hama:0:0
+       #oipf=NNVT:0:1000 
+       #oipf=PMT_20inch_veto:0:1000
        export OPTICKS_INPUT_PHOTON_FRAME=${OPTICKS_INPUT_PHOTON_FRAME:-$oipf}
 
        layout="OIPF_$OPTICKS_INPUT_PHOTON_FRAME"
