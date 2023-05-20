@@ -11,8 +11,14 @@ Here looking into alternatives.
 HMM: this should be a separate junosw issue
 
 
-WIP : getting the get_pmtid result into SEvt ?
-----------------------------------------------------
+DONE : Getting get_pmtid result into SEvt ? Added U4Touchable::ImmediateReplicaNumber used from U4Recorder step pointing
+-------------------------------------------------------------------------------------------------------------------------
+
+
+* Note the limitation to SD step points only
+
+* 
+  
 
 ::
 
@@ -641,7 +647,6 @@ GDML : Check Old Volume structure
 It is clear that the old structure has one extra level of hierarchy. 
 
 
-
 The pv with the pmtid copynumber holds the MaskVirtual which holds NNVTMCPPMT_PMT_20inch_log 
 
 vim -R /Users/blyth/.opticks/GEOM/V0J008/origin.gdml::
@@ -705,171 +710,28 @@ vim -R /Users/blyth/.opticks/GEOM/V0J008/origin.gdml::
 
 
 
+Does junoSD_PMT_v2 needs to know UsePMTNatural ? NO, Not Needed Yet
+----------------------------------------------------------------------
+
+* Could be done easily by adding another declProp, but not currently needed
+
+:doc:`junoSD_PMT_v2_UsePMTNatural`
 
 
-junoSD_PMT_v2 needs to know if NaturalPMT or not ? Needs another declProp to do this
---------------------------------------------------------------------------------------
+G4VTouchable::GetReplicaNumber Take a look at Geant4 impl
+--------------------------------------------------------------
 
-jgl junoSD_PMT_v2::
-
-    epsilon:junosw blyth$ jgl junoSD_PMT_v2
-    ./Simulation/DetSimV2/PMTSim/PMTSim/junoSD_PMT_v2_Debug.h
-    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2_Opticks.hh
-    ./Simulation/DetSimV2/PMTSim/include/PMTEfficiencyCheck.hh
-    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh
-    ./Simulation/DetSimV2/PMTSim/include/PMTHitMerger.hh
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
-    ./Simulation/DetSimV2/PMTSim/src/PMTEfficiency.cc
-    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc
-    ./Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc
-    ./Simulation/DetSimV2/PMTSim/src/PMTEfficiencyCheck.cc
-    ./Simulation/DetSimV2/DetSimOptions/python/DetSimOptions/ConfAcrylic.py
-    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype.py
-    ./Simulation/DetSimV2/DetSimOptions/share/examples/prototype/pyjob_prototype_onepmt.py
-    ./Simulation/DetSimV2/AnalysisCode/include/MuonFastSimVoxel.hh
-    ./Doc/oum/source/quickstart/quickstart.md
-    epsilon:junosw blyth$ 
+* :doc:`G4VTouchable_GetReplicaNumber`
 
 
-jcv PMTSDMgr::
-
-     19 PMTSDMgr::PMTSDMgr(const std::string& name)
-     20     : ToolBase(name)
-     21 {
-     ..
-     51     declProp("UsePMTOpticalModel", m_enable_optical_model=false);
-     52     declProp("UsePmtSimSvc",m_use_pmtsimsvc = true);
-     53 }
-     ..
-     59 G4VSensitiveDetector*
-     60 PMTSDMgr::getSD()
-     61 {
-     ..
-     92     } else if (m_pmt_sd == "junoSD_PMT_v2") {
-     93         junoSD_PMT_v2* sd = new junoSD_PMT_v2(objName(), m_opticksMode);
-     94         // As a merger is attached to a specific SD, so also create new merger for the new SD.
-     95         PMTHitMerger* pmthitmerger = new PMTHitMerger();
-
-
-jcv JUNODetSimModule::
-
-    1854         if args.pmtsd_v2:
-    1855             sim_conf.enable_PMTSD_v2()
-    1856             pmtsdmgr = sim_conf.pmtsd_mgr()
-    1857             pmtsdmgr.property("CollEffiMode").set(args.ce_mode)
-    1858             pmtsdmgr.property("CEFlatValue").set(args.ce_flat_value)
-    1859             pmtsdmgr.property("OpticksMode").set(args.opticks_mode)
-    1860             pmtsdmgr.property("UsePMTOpticalModel").set(args.pmt_optical_model)
-    1861             pmtsdmgr.property("UsePmtSimSvc").set(args.usepmtsimsvc)
-
-
-
-
-G4VTouchable::GetReplicaNumber(1)
------------------------------------
-
-* https://geant4-forum.web.cern.ch/t/identification-of-unique-physical-volumes-with-ids/2568
-
-What you can do at tracking time is make use of the G4Touchable from the
-G4Step. From touchable->GetCopyNumber(), you can get the SiPM’s copy number,
-iSiPM. Then you can go up the placement tree, what’s called the touchable’s
-“history”, and get touchable->GetCopyNumber(1) for the copy number of the
-SiPM’s parent volume, touchable->GetCopyNumber(2) for the grandparent volume,
-and so on. If the SiPM’s are placed directly into your scintillator assembly,
-then iScint = touchable->GetCopyNumber(1) is the scintillator’s copy number.
-
-
-GetReplicaNumber
--------------------
+WIP : Insitu : NOFAKESKIP=1 ntds2_cf
+-------------------------------------
 
 ::
 
-    epsilon:ntds blyth$ g4-hh GetReplicaNumber
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/visualization/modeling/include/G4PhysicalVolumeModel.hh:    G4int GetReplicaNumber(G4int depth) const;
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/visualization/gMocren/include/G4GMocrenTouchable.hh:  virtual G4int GetReplicaNumber(G4int depth=0) const;
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/visualization/gMocren/include/G4GMocrenTouchable.hh:G4int G4GMocrenTouchable::GetReplicaNumber(G4int depth) const {
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/visualization/gMocren/include/G4GMocrenTouchable.hh:    G4Exception("G4GMocrenTouchable::GetReplicaNumber(G4int)", "gMocren0001",
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/geometry/management/include/G4VTouchable.hh://   4) GetReplicaNumber or GetCopyNumber gives the copy number of the
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/geometry/management/include/G4VTouchable.hh://   6) GetReplicaNumber/GetCopyNumber, GetVolume, GetTranslation and
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/geometry/management/include/G4VTouchable.hh:  virtual G4int GetReplicaNumber(G4int depth=0) const;
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/geometry/volumes/include/G4TouchableHistory.hh:  inline G4int GetReplicaNumber( G4int depth=0 ) const;
-    /usr/local/opticks_externals/g4_1042.build/geant4.10.04.p02/source/geometry/biasing/include/G4GeometryCell.hh:  G4int GetReplicaNumber() const;
-    epsilon:ntds blyth$ 
+    NOFAKESKIP=1 ntds2_cf
 
 
-g4-cls G4TouchableHistory::
-
-    074   inline G4int GetReplicaNumber( G4int depth=0 ) const;
-    ...
-     93  private:
-     94 
-     95   inline G4int CalculateHistoryIndex( G4int stackDepth ) const;
-     96 
-     97   G4RotationMatrix frot;
-     98   G4ThreeVector ftlate;
-     99   G4NavigationHistory fhistory;
-    100 };
-
-
-     53 inline
-     54 G4int G4TouchableHistory::CalculateHistoryIndex( G4int stackDepth ) const
-     55 {
-     56   return (fhistory.GetDepth()-stackDepth); // was -1
-     57 }
-     58 
-
-     72 inline
-     73 G4int G4TouchableHistory::GetReplicaNumber( G4int depth ) const
-     74 {
-     75   return fhistory.GetReplicaNo(CalculateHistoryIndex(depth));
-     76 }
-
-g4-cls G4NavigationHistory::
-
-    147  private:
-    148 
-    149   std::vector<G4NavigationLevel> *fNavHistory;
-    150     // Pointer to the vector of navigation levels.
-    151 
-    152   G4int fStackDepth;
-    153     // Depth of stack: effectively depth in geometrical tree.
-    154 };
-
-    159 inline
-    160 G4int G4NavigationHistory::GetReplicaNo(G4int n) const
-    161 {
-    162   return (*fNavHistory)[n].GetReplicaNo();
-    163 }
-    164 
-
-
-g4-cls G4NavigationLevel::
-
-    060 inline
-     61 G4int G4NavigationLevel::GetReplicaNo() const
-     62 {
-     63   return fLevelRep->GetReplicaNo() ;
-     64 }
-
-
-g4-cls G4NavigationLevelRep::
-
-    098  private:
-     99 
-    100    G4AffineTransform  sTransform;
-    101      // Compounded global->local transformation (takes a point in the 
-    102      // global reference system to the system of the volume at this level)
-    103 
-    104    G4VPhysicalVolume* sPhysicalVolumePtr;
-    105      // Physical volume ptrs, for this level's volume
-    106 
-    107    G4int              sReplicaNo;
-    108    EVolume            sVolumeType;
-    109      // Volume `type' 
-    110 
-    111    G4int              fCountRef;
-    112 
-    113 };
 
 
 

@@ -174,9 +174,9 @@ export AGEOM=V0J008
 export BGEOM=V1J008
 export ABASE=$GEOMDIR/$AGEOM/$SCRIPT
 export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
+export NEVT=${NEVT:-0}
 
-
-if [ "$arg" == "cfmeta" ]; then 
+if [ "$arg" == "cfmeta" -o $NEVT -gt 1 ]; then 
     EVT="%0.3d"
 fi 
 

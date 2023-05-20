@@ -725,9 +725,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    #IPHO=RainXZ_Z230_1000_f8.npy
    IPHO=RainXZ_Z230_10k_f8.npy
    #IPHO=RainXZ_Z230_100k_f8.npy
-
    #IPHO=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
-
    #IPHO=GridXY_X700_Z230_10k_f8.npy 
    #IPHO=GridXY_X1000_Z1000_40k_f8.npy
 
@@ -736,14 +734,11 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    if [ -n "$IPHO" ]; then 
        export OPTICKS_INPUT_PHOTON=$IPHO
 
-       #moi=Hama:0:1000 
-       #moi=NNVT:0:1000 
-       #export MOI=${MOI:-$moi}
-
        oipf=Hama:0:1000
        #oipf=Hama:0:0
        #oipf=NNVT:0:1000 
        #oipf=PMT_20inch_veto:0:1000
+
        export OPTICKS_INPUT_PHOTON_FRAME=${OPTICKS_INPUT_PHOTON_FRAME:-$oipf}
 
        layout="OIPF_$OPTICKS_INPUT_PHOTON_FRAME"
@@ -795,10 +790,10 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
            echo $BASH_SOURCE : NOFAKESKIP SWITCH : NOT ENABLING U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
        else
            export U4Recorder__FAKES_SKIP=1
-           echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
-
            export U4Recorder__ClassifyFake_FindPV_r=1 
            ## FindPV_r is needed to make fake skipping work : but its slow
+
+           echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
        fi 
    fi 
 

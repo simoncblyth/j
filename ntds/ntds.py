@@ -3,14 +3,41 @@
 ntds.py : scatter plotting in 2D or 3D of (A,B) SEvt in separate windows
 ==========================================================================
 
-Control the selection of what to scatter plot with the CHECK envvar. 
+Usage
+-------
+::
+
+    MODE=2 ./ntds.sh ana    # 2D matplotlib
+    MODE=3 ./ntds.sh ana    # 3D pyvista
 
 
+See Also
+----------
+
+* sysrap/sevt_tt.py which is invoked by "ntds.sh tt" for histogram presentations
+
+
+CHECK envvar : controlling what to scatter/pointcloud plot
+-----------------------------------------------------------
 
 ::
 
-    MODE=2 ./ntds.sh ana
-    MODE=3 ./ntds.sh ana
+    all_point0
+    all_point
+    not_first
+    not_first_onlt
+    few_point
+    sd_point
+    sa_point
+    EPH_NBOUND_PYREX_AB
+    EPH_NEDEP
+    w_point
+    NOSC
+    NOSCAB
+    hist
+    select
+    PID  
+
 
 
 Exiting PyVista Windows
