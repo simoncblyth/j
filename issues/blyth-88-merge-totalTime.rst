@@ -1761,3 +1761,75 @@ WIP : Q:What is time fraction for handling the big bouncers ?
 TODO : gun running stamp analysis
 ------------------------------------
 
+
+
+WIP : Check regarding SKIP_FAKES is is really ON for N=1  
+-------------------------------------------------------------------
+
+* suspect this is prior run environment pollution
+* equal timings in the below would indicate it is 
+* on fixing the pollution and not calling SKIP_FAKES for N=1 
+  expect the B/N=1 should be faster than the below
+
+ntds2_cf::
+
+    sevt_tt.PHO_AVG.table
+                          a.f.base : /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 :  
+                      a.FAKES_SKIP :        1 :  from run_meta  
+              np.diff(a.rr)[0]/1e6 :    7.058 :  Run 
+                      a.ee[-1]/1e6 :    2.129 :  Evt 
+                  np.sum(a.ss)/1e6 :    2.026 :  Pho  
+             np.sum(a.ss)/a.ee[-1] :    0.951 :  Pho/Evt 
+
+                          b.f.base : /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 :  
+                      b.FAKES_SKIP :        1 :  from run_meta  
+              np.diff(b.rr)[0]/1e6 :    6.490 :  Run 
+                      b.ee[-1]/1e6 :    2.114 :  Evt 
+                  np.sum(b.ss)/1e6 :    2.003 :  Pho  
+             np.sum(b.ss)/b.ee[-1] :    0.947 :  Pho/Evt 
+
+
+Tue May 23 : First a baseline that should be similar to the above.::
+
+    sevt_tt.PHO_AVG.table
+                          a.f.base : /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 :  
+                      a.FAKES_SKIP :        1 :  from run_meta  
+              np.diff(a.rr)[0]/1e6 :    7.493 :  Run 
+                      a.ee[-1]/1e6 :    2.250 :  Evt 
+                  np.sum(a.ss)/1e6 :    2.108 :  Pho  
+             np.sum(a.ss)/a.ee[-1] :    0.937 :  Pho/Evt 
+
+                          b.f.base : /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 :  
+                      b.FAKES_SKIP :        1 :  from run_meta  
+              np.diff(b.rr)[0]/1e6 :    6.305 :  Run 
+                      b.ee[-1]/1e6 :    1.851 :  Evt 
+                  np.sum(b.ss)/1e6 :    1.724 :  Pho  
+             np.sum(b.ss)/b.ee[-1] :    0.931 :  Pho/Evt 
+
+
+After jxscp, jxf, ntds2_cf with the fixed pollution in ntds::
+
+    sevt_tt.PHO_AVG.table ## 
+                          a.f.base : /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/000 : ## 
+                      a.FAKES_SKIP :        1 : ## from run_meta  
+              np.diff(a.rr)[0]/1e6 :    8.038 : # Run 
+                      a.ee[-1]/1e6 :    2.134 : # Evt 
+                  np.sum(a.ss)/1e6 :    2.029 : # Pho  
+             np.sum(a.ss)/a.ee[-1] :    0.951 : # Pho/Evt 
+
+                          b.f.base : /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/000 : ## 
+                      b.FAKES_SKIP :        0 : ## from run_meta  
+              np.diff(b.rr)[0]/1e6 :    5.331 : # Run 
+                      b.ee[-1]/1e6 :    1.561 : # Evt 
+                  np.sum(b.ss)/1e6 :    1.437 : # Pho  
+             np.sum(b.ss)/b.ee[-1] :    0.920 : # Pho/Evt 
+
+
+TODO : Check the stamps with Fakes skipping not ON for N=1
+--------------------------------------------------------------
+
+
+TODO : Try to reproduce Yaoguangs slowdown, using his gun settings
+---------------------------------------------------------------------
+
+

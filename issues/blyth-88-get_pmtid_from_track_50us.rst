@@ -447,7 +447,7 @@ LPMT_OLD (one more level to get copynumber)::
 
 
 
-WIP : Check "get_pmtid_fast" when targetting Hama:0:0 (pmtid 0 is a valid ID)
+DONE : Check "get_pmtid_fast" when targetting Hama:0:0 (pmtid 0 is a valid ID)
 -----------------------------------------------------------------------------------
 
 vim -R ~/.opticks/GEOM/V1J008/origin.gdml ## reverse search for copynumber="1" to get here::
@@ -732,11 +732,304 @@ WIP : Insitu : NOFAKESKIP=1 ntds2_cf
     NOFAKESKIP=1 ntds2_cf
 
 
+* TODO: get Fake skipping setting into RunMeta
+
+::
+
+    In [6]: a.fp.run_meta
+    Out[6]: 
+    T_BeginOfRun:1684583398751971
+    T_EndOfRun:1684583405402707
+
+
+
+
+
+::
+
+     176 void U4Recorder::EndOfRunAction(const G4Run*)
+     177 {
+     178     SEvt::EndOfRun();
+     179     SEvt::SaveRunMeta();
+     180 
+
+
+     835 /**
+     836 SEvt::SaveRunMeta
+     837 -------------------
+     838 
+     839 May be called for example from U4Recorder::EndOfRunAction
+     840 
+     841 **/
+     842 
+     843 void SEvt::SaveRunMeta(const char* base)
+     844 {
+     845     const char* dir = RunDir(base);
+     846     NP* m = NP::Make<float>(1);
+     847     m->set_meta<uint64_t>("T_BeginOfRun", T_BeginOfRun );
+     848     m->set_meta<uint64_t>("T_EndOfRun",   T_EndOfRun );
+     849     m->save(dir, "run.npy") ;
+     850 }
+     851 
+
+::
+
+     176 void U4Recorder::EndOfRunAction(const G4Run*)
+     177 {
+     178     SEvt::EndOfRun();
+     179 
+     180     SEvt::SetRunMeta<int>("FAKES_SKIP", int(FAKES_SKIP) ); 
+     181     SEvt::SaveRunMeta();
+     182     
+
+::
+
+    In [2]: a.fp.run_meta
+    Out[2]: 
+    FAKES_SKIP:1
+    T_BeginOfRun:1684678995630639
+    T_EndOfRun:1684679543766151
+
+
 
 
 
 TODO : BP=DetSim1Construction::inject check whats doing the placement
 ------------------------------------------------------------------------ 
 
+
+
+TODO : Make Connection between SniperProfile totals and my timestamp durations
+---------------------------------------------------------------------------------
+
+::
+
+    SEvt::save@2640:  dir /tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/002
+    SEvt::gatherHit@2092:  not yet implemented for hostside running : change CompMask with SEventConfig to avoid 
+    SEvt::clear_@986: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    [ U4Recorder::EndOfRunAction U4Recorder__EndOfRunAction_Simtrace:N
+    ] U4Recorder::EndOfRunAction U4Recorder__EndOfRunAction_Simtrace:N
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 3           49.82700       16.60900     2.67074      
+    DetSimAlg                3           7007.20703     2335.73568   21.45958     
+    Sum of junotoptask       3           7057.25806     2352.41935   23.87170     
+    #############################################################################
+
+
+    SEvt::save@2640:  dir /tmp/blyth/opticks/GEOM/V1J008/ntds2/ALL1/002
+    SEvt::gatherHit@2092:  not yet implemented for hostside running : change CompMask with SEventConfig to avoid 
+    SEvt::clear_@986: 
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    [ U4Recorder::EndOfRunAction U4Recorder__EndOfRunAction_Simtrace:N
+    ] U4Recorder::EndOfRunAction U4Recorder__EndOfRunAction_Simtrace:N
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 3           50.88600       16.96200     3.96913      
+    DetSimAlg                3           6438.51807     2146.17269   185.90667    
+    Sum of junotoptask       3           6489.59912     2163.19971   189.88513    
+    #############################################################################
+
+
+::
+
+    jxn
+    ./tt.sh 
+
+    ranno
+              np.diff(a.rr)[0]/1e6 :    7.058 :  Run 
+                      a.ee[-1]/1e6 :    2.129 :  Evt 
+                  np.sum(a.ss)/1e6 :    2.026 :  Pho  
+             np.sum(a.ss)/a.ee[-1] :    0.951 :  Pho/Evt 
+
+              np.diff(b.rr)[0]/1e6 :    6.490 :  Run 
+                      b.ee[-1]/1e6 :    2.114 :  Evt 
+                  np.sum(b.ss)/1e6 :    2.003 :  Pho  
+             np.sum(b.ss)/b.ee[-1] :    0.947 :  Pho/Evt 
+
+
+
+
+FAKES_SKIP enabled for both (that may explain the lack of N=0/1 difference insitu, as opposed to standalone)::
+
+    In [1]: a.fp.run_meta
+    Out[1]: 
+    FAKES_SKIP:1
+    T_BeginOfRun:1684680817324754
+    T_EndOfRun:1684680824382895
+
+    In [2]: b.fp.run_meta
+    Out[2]: 
+    FAKES_SKIP:1
+    T_BeginOfRun:1684681043518810
+    T_EndOfRun:1684681050009289
+
+
+
+
+Check SProfile of ProcessHits again
+-------------------------------------
+
+::
+
+    In [4]: a.pf.shape
+    Out[4]: (15617, 17)
+
+    In [5]: b.pf.shape      
+    Out[5]: (18490, 17)    ## more calls to ProcessHits with B(N=1) 
+
+
+::
+
+    334     def init_junoSD_PMT_v2_SProfile(self, f):
+    335         """
+    336         The timestamps come from sysrap/stamp.h and are datetime64[us] (UTC) compliant 
+    337         """
+    338         if hasattr(f, 'junoSD_PMT_v2_SProfile') and not f.junoSD_PMT_v2_SProfile is None:
+    339             pf = f.junoSD_PMT_v2_SProfile
+    340             pfmx = np.max(pf[:,1:], axis=1 )
+    341             pfmi = pf[:,1]
+    342             pfr = pfmx - pfmi
+    343         else:
+    344             pf = None
+    345             pfmx = None
+    346             pfmi = None
+    347             pfr = None
+    348         pass
+    349         self.pf = pf  ## CAUTION: multiple ProcessHits calls per photon, so not in photon index order 
+    350         self.pfmx = pfmx
+    351         self.pfmi = pfmi
+    352         self.pfr  = pfr 
+    353         
+    354 
+
+
+More than 10% of event processing time spent in ProcessHits::
+
+    In [16]: np.sum(a.pfr)/a.ee[-1]
+    Out[16]: 0.10450881266649384
+
+    In [17]: np.sum(b.pfr)/b.ee[-1]
+    Out[17]: 0.11134881257006096
+
+
+    In [30]: aa = a.pf[a.pf[:,6]>0,1:]     ## select complete SProfile (ProcessHit calls that close to being hits)  
+
+    In [38]: bb = b.pf[b.pf[:,6]>0,1:]   
+
+
+    In [35]: aa[:,:6] - aa[:,0,np.newaxis]  ## subtract first timestamp for each ProcessHits call
+    Out[35]: 
+    array([[   0,  551,  551,  571,  678, 1899],
+           [   0,    1,    1,    1,   53,   96],
+           [   0,    1,    1,    1,   54,   61],
+           [   0,    0,    0,    1,   52,   57],
+           [   0,    1,    1,    1,   57,   63],
+           [   0,    1,    1,    1,   57,   61],
+           [   0,    1,    1,    1,   57,   63],
+           [   0,    0,    1,    1,   54,   58],
+           [   0,    1,    1,    1,   54,   61],
+           [   0,    0,    0,    0,   51,   55],
+           [   0,    0,    0,    0,   50,   53],
+           [   0,    1,    1,    1,   53,   58],
+           [   0,    0,    0,    0,   50,   55],
+           [   0,    1,    1,    1,   51,   54],
+           [   0,    1,    1,    1,   51,   55],
+           [   0,    1,    1,    1,   52,   57],
+           ...,
+           [   0,    1,    1,    1,   50,   54],
+           [   0,    0,    0,    1,   51,   54],
+           [   0,    1,    1,    1,   51,   56],
+           [   0,    1,    1,    1,   51,   55],
+           [   0,    1,    1,    1,   51,   55],
+           [   0,    1,    1,    1,   52,   58],
+           [   0,    1,    1,    1,   51,   55],
+           [   0,    1,    1,    1,   50,   54],
+           [   0,    0,    0,    0,   50,   56],
+           [   0,    0,    0,    1,   52,   56],
+           [   0,    0,    1,    1,   51,   56],
+           [   0,    1,    1,    1,   54,   60],
+           [   0,    1,    1,    1,   51,   54],
+           [   0,    1,    1,    1,   51,   55],
+           [   0,    1,    1,    1,   53,   59],
+           [   0,    1,    1,    1,   53,   57]], dtype=uint64)
+                                 3--->4
+
+
+    In [39]: bb[:,:6] - bb[:,0,np.newaxis]
+    Out[39]: 
+    array([[   0,    0,    0,    1,   53, 1192],
+           [   0,    0,    0,    1,   54,   99],
+           [   0,    1,    1,    1,   54,   64],
+           [   0,    1,    1,    1,   53,   59],
+           [   0,    1,    1,    1,   53,   61],
+           [   0,    1,    1,    1,   52,   57],
+           [   0,    0,    0,    0,   53,   60],
+           [   0,    1,    1,    1,   52,   56],
+           [   0,    1,    1,    1,   53,   60],
+           [   0,    0,    1,    1,   53,   58],
+           [   0,    1,    1,    1,   53,   59],
+           [   0,    1,    1,    1,   52,   56],
+           [   0,    1,    1,    1,   53,   60],
+           [   0,    1,    1,    1,   55,   60],
+           [   0,    1,    1,    1,   53,   60],
+           [   0,    1,    1,    1,   52,   59],
+           ...,
+           [   0,    1,    1,    1,   52,   57],
+           [   0,    0,    0,    0,   52,   58],
+           [   0,    1,    1,    1,   55,   61],
+           [   0,    0,    0,    0,   56,   62],
+           [   0,    1,    1,    1,   54,   63],
+           [   0,    1,    1,    1,   53,   59],
+           [   0,    0,    1,    1,   51,   56],
+           [   0,    0,    0,    0,   57,   64],
+           [   0,    1,    1,    1,   53,   58],
+           [   0,    1,    1,    1,   53,   58],
+           [   0,    0,    0,    0,   51,   56],
+           [   0,    0,    0,    0,   52,   57],
+           [   0,    1,    1,    1,   52,   57],
+           [   0,    1,    1,    1,   52,   58],
+           [   0,    0,    1,    1,   53,   60],
+           [   0,    0,    1,    1,   54,   60]], dtype=uint64)
+
+
+
+
+::
+
+     499 #ifdef WITH_G4CXOPTICKS
+     500     m_profile->stamp(1);
+     501 #endif
+     502 
+     503     const G4VTouchable* touch = track->GetTouchable();
+     504     int pmtID_1 = touch->GetReplicaNumber(1) ;
+     505     if(pmtID_1 <= 0) pmtID_1 = touch->GetReplicaNumber(2) ;
+     506 
+     507 #ifdef WITH_G4CXOPTICKS
+     508     m_profile->stamp(2);
+     509 #endif
+     510 
+     511 #ifdef WITH_G4CXOPTICKS
+     512     int pmtID_2 = U4Touchable::AncestorReplicaNumber(touch) ;
+     513 #endif
+     514 
+     515 #ifdef WITH_G4CXOPTICKS
+     516     m_profile->stamp(3);
+     517 #endif
+     518 
+     519     int pmtID = get_pmtid(track);   // takes ~50us (totals > 10% of event time) 
+     520 
+     521 #ifdef WITH_G4CXOPTICKS
+     522     m_profile->stamp(4);
+     523 #endif
+
+
+
+TODO : Comparison with the faster get_pmtid
+-----------------------------------------------
+
+TODO : write this into a new issue
+--------------------------------------
 
 

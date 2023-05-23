@@ -490,7 +490,6 @@ tds-(){
    eval $COMMANDLINE
    date
 
-
    for klog in $klogs  ; do 
        vlog=${!klog}
        if [ -f "$vlog" ]; then 
@@ -509,6 +508,19 @@ tds-(){
           fi 
        fi
    done
+
+   local nlog = "${TDS_TLOG}.npy" 
+   if [ -f "$nlog" ]; then 
+       TLOG_PATH=$nlog $HOME/j/bin/tlog.py 
+       if [ -f "${nlog}" ]; then 
+          if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
+              echo $msg copy $nlog into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR
+              cp $nlog ${TDS_LOG_COPYDIR}/
+          else
+              echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
+          fi 
+       fi
+   fi  
 
    cd $iwd
 
@@ -573,7 +585,7 @@ ntds2_cf()
    : this function runs simulation with N:0 and N:1 geometries allowing comparison of histories
    : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
 
-   export EVTMAX=3
+   export EVTMAX=10
    export NODBG=1 
 
    N=0 GEOM=V0J008 ntds2
@@ -717,22 +729,34 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
 
+   gun=0   # 0/1/2: opticks input photons/gun_default/gun_wangyg
+   GUN=${GUN:-$gun} 
 
+   local gun_default="gun"
+   local gun_wangyg="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
 
+   case $GUN in  
+     0) trgs="$trgs opticks"  ;;
+     1) trgs="$trgs $gun_default" ;;
+     2) trgs="$trgs $gun_wangyg" ;;
+   esac
 
-   # comment IPHO for ordinary non-input photon default gun running 
-   #IPHO=RainXZ_Z230_1000_f8.npy
-   IPHO=RainXZ_Z230_10k_f8.npy
-   #IPHO=RainXZ_Z230_100k_f8.npy
-   #IPHO=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
-   #IPHO=GridXY_X700_Z230_10k_f8.npy 
-   #IPHO=GridXY_X1000_Z1000_40k_f8.npy
-
+   unset MOI 
+   unset OPTICKS_INPUT_PHOTON
+   unset OPTICKS_INPUT_PHOTON_FRAME
 
    layout=""
-   if [ -n "$IPHO" ]; then 
-       export OPTICKS_INPUT_PHOTON=$IPHO
+   if [ "$GUN" == "0" ]; then 
+
+       #ipho=RainXZ_Z230_1000_f8.npy
+       ipho=RainXZ_Z230_10k_f8.npy
+       #ipho=RainXZ_Z230_100k_f8.npy
+       #ipho=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
+       #ipho=GridXY_X700_Z230_10k_f8.npy 
+       #ipho=GridXY_X1000_Z1000_40k_f8.npy
+
+       export OPTICKS_INPUT_PHOTON=$ipho
 
        oipf=Hama:0:1000
        #oipf=Hama:0:0
@@ -745,21 +769,15 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
 
        if [ -n "$OPTICKS_PREFIX" -a -d "$OPTICKS_PREFIX" ]; then
            echo $msg : proceed with GtOpticksTool input photons : using Opticks functionality 
-           trgs="$trgs opticks"
        else
            echo $msg : Opticks not-configured : CANNOT PROCEED with GtOpticksTool input photons : fallback to gun running  
            trgs="$trgs gun"
-           #trgs="$trgs opticks"   ## PROCEED ANYHOW TEMPORARILY 
            export BP=TaskWatchDog::setErr
        fi
-   else
-       unset OPTICKS_INPUT_PHOTON
-       unset MOI 
-       unset OPTICKS_INPUT_PHOTON_FRAME
-
-       echo $msg IPHO not defined : not configuring OPTICKS_INPUT_PHOTON
-       trgs="$trgs gun"
    fi 
+
+
+
 
    vars="BASH_SOURCE FUNCNAME OPTICKS_PREFIX IPHO OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME MOI trgs"
    for var in $vars ; do printf " %30s : %s \n" "$var" "${!var}" ; done 
@@ -783,10 +801,25 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    #export U4Recorder__UserSteppingAction_Optical_ClearNumberOfInteractionLengthLeft=1  
    ## above setting makes possible to random align, but changes events and consumes 20-30% more randoms
 
-   if [ "$VERSION" == "0" ]; then 
+
+   ## HMM: NOTE THAT WITHOUT THESE UNSETS THEN 
+   ## THE N=0 RUN SETTING FOR FIRST FUNCTION INVOKATIONS 
+   ## WILL LEAK INTO THE SECOND N=1 INVOKATION OF THE FUNCTION
+   ##
+   ## NOTICE THIS PROBLEM ONLY EFFECTS CONDITIONAL SETTINGS 
+   ## THAT ARE NOT ALWAYS SET 
+   ##
+   ## HENCE TO AVOID SETTING CONFUSION FROM ENV POLLUTION 
+   ## NEED THE UNSETS : OR COULD USE A SCRIPT TO CALL THE BASH FUNCTION 
+   ## SO START FROM FRESH ENV 
+
+   unset U4Recorder__FAKES_SKIP
+   unset U4Recorder__ClassifyFake_FindPV_r
+
+   #if [ "$VERSION" == "0" ]; then 
+   if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then    ## UNNECESSARILY SKIP FAKES IN B FOR FAIRNESS
 
        if [ -n "$NOFAKESKIP" ]; then 
-           unset U4Recorder__FAKES_SKIP
            echo $BASH_SOURCE : NOFAKESKIP SWITCH : NOT ENABLING U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
        else
            export U4Recorder__FAKES_SKIP=1

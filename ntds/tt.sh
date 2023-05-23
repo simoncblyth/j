@@ -1,8 +1,8 @@
 #!/bin/bash -l 
 
 usage(){ cat << EOU
-tt.sh
-======
+tt.sh : ntds.sh does env setup, analysis with ~/opticks/sysrap/sevt_tt.py 
+==========================================================================
 
 NEVT=0 
    ordinary single event handling, controlled by EVT
@@ -12,7 +12,9 @@ NEVT>0
 EOU
 }
 
-nevt=3   
+#nevt=3
+nevt=10
+#nevt=0
 
 plot=PHO_AVG
 #plot=PHO_N
