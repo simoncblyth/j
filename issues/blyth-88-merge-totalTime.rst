@@ -1758,12 +1758,8 @@ WIP : Q:What is time fraction for handling the big bouncers ?
 * my guess is that truncation not very helpful, as big bouncers are rare
 
 
-TODO : gun running stamp analysis
-------------------------------------
 
-
-
-WIP : Check regarding SKIP_FAKES is is really ON for N=1  
+DONE : Check regarding SKIP_FAKES is is really ON for N=1  
 -------------------------------------------------------------------
 
 * suspect this is prior run environment pollution
@@ -1825,11 +1821,61 @@ After jxscp, jxf, ntds2_cf with the fixed pollution in ntds::
              np.sum(b.ss)/b.ee[-1] :    0.920 : # Pho/Evt 
 
 
-TODO : Check the stamps with Fakes skipping not ON for N=1
---------------------------------------------------------------
-
-
-TODO : Try to reproduce Yaoguangs slowdown, using his gun settings
+WIP : Try to reproduce Yaoguangs slowdown, using his gun settings
 ---------------------------------------------------------------------
+
+Added GUN control to ntds with 0 corresponding to input photons::
+
+    732    gun=0   # 0/1/2: opticks input photons/gun_default/gun_wangyg
+    733    GUN=${GUN:-$gun}
+    734 
+    735    local gun_default="gun"
+    736    local gun_wangyg="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
+    737    local trgs=""     ## arguments after the opts : eg "gun" or "opticks" 
+    738 
+    739    case $GUN in
+    740      0) trgs="$trgs opticks"  ;;
+    741      1) trgs="$trgs $gun_default" ;;
+    742      2) trgs="$trgs $gun_wangyg" ;;
+    743    esac
+
+::
+
+    Begin of Event --> 9
+    SEvt::hostside_running_resize_@1316: resizing photon 0 to evt.num_photon 4
+    SEvt::hostside_running_resize_@1316: resizing photon 4 to evt.num_photon 343
+    SEvt::hostside_running_resize_@1316: resizing photon 343 to evt.num_photon 444
+    SEvt::hostside_running_resize_@1316: resizing photon 444 to evt.num_photon 450
+    SEvt::hostside_running_resize_@1316: resizing photon 450 to evt.num_photon 451
+    SEvt::hostside_running_resize_@1316: resizing photon 451 to evt.num_photon 1152
+
+
+
+GUN=2 ntds2_cf::
+
+    A(N=0) --pmt-unnatural-geometry
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 10          7.16800        0.71680      1.60444      
+    DetSimAlg                10          55232.92090    5523.29209   129.86489    
+    Sum of junotoptask       10          55240.40723    5524.04072   131.12015    
+    #############################################################################
+
+    B(N=1) --pmt-natural-geometry
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 10          6.68800        0.66880      1.46804      
+    DetSimAlg                10          48998.21484    4899.82148   198.55181    
+    Sum of junotoptask       10          49005.18750    4900.51875   199.16772    
+    #############################################################################
+
+
+
+TODO : gun running stamp analysis
+------------------------------------
+
+
+TODO : Try timings with default anamgrs
+------------------------------------------
 
 

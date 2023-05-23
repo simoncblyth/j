@@ -509,17 +509,22 @@ tds-(){
        fi
    done
 
-   local nlog = "${TDS_TLOG}.npy" 
-   if [ -f "$nlog" ]; then 
-       TLOG_PATH=$nlog $HOME/j/bin/tlog.py 
-       if [ -f "${nlog}" ]; then 
-          if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
+   local tlog="${TDS_TLOG}"
+   local nlog="${TDS_TLOG}.npy" 
+   if [ -f "$tlog" ]; then 
+      TLOG_PATH=$tlog $HOME/j/bin/tlog.py 
+      if [ -n "$TDS_LOG_COPYDIR" -a -d "$TDS_LOG_COPYDIR" ]; then 
+          if [ -f "$nlog" ]; then 
               echo $msg copy $nlog into TDS_LOG_COPYDIR $TDS_LOG_COPYDIR
               cp $nlog ${TDS_LOG_COPYDIR}/
           else
-              echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
+              echo $msg FAILED TO CONVERT tlog $tlog into nlog $nlog 
           fi 
-       fi
+      else
+          echo $msg TDS_LOG_COPYDIR : $TDS_LOG_COPYDIR does not exist 
+      fi 
+   else
+      echo $msg nlog $nlog  
    fi  
 
    cd $iwd
