@@ -1875,7 +1875,135 @@ TODO : gun running stamp analysis
 ------------------------------------
 
 
-TODO : Try timings with default anamgrs
+TODO : Try timings with default anamgrs opticksMode 0 
+--------------------------------------------------------
+
+
+
+Below was running opticksMode 0 with opticks compiled in::
+
+    Begin of Event --> 0
+
+    *** Break *** segmentation violation
+
+    ===========================================================
+    There was a crash.
+    This is the entire stack trace of all threads:
+    ===========================================================
+    #0  0x00007f8b6a55d46c in waitpid () from /lib64/libc.so.6
+    #1  0x00007f8b6a4daf62 in do_system () from /lib64/libc.so.6
+    #2  0x00007f8b5fd7ff63 in TUnixSystem::StackTrace() () from /data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libCore.so
+    #3  0x00007f8b5fd82885 in TUnixSystem::DispatchSignals(ESignals) () from /data/blyth/junotop/ExternalLibs/ROOT/6.24.06/lib/libCore.so
+    #4  <signal handler called>
+    #5  0x00007f8b42204795 in InteresingProcessAnaMgr::saveSecondaryInit(G4Track const*) () from /data/blyth/junotop/junosw/InstallArea/lib64/libAnalysisCode.so
+    #6  0x00007f8b42b54109 in MgrOfAnaElem::PreUserTrackingAction(G4Track const*) () from /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimAlg.so
+    #7  0x00007f8b4fadf5f0 in G4TrackingManager::ProcessOneTrack(G4Track*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #8  0x00007f8b4fd16389 in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #9  0x00007f8b4293ed20 in G4SvcRunManager::SimulateEvent(int) () from /data/blyth/junotop/junosw/InstallArea/lib64/libG4Svc.so
+    #10 0x00007f8b42b4a339 in DetSimAlg::execute() () from /data/blyth/junotop/junosw/InstallArea/lib64/libDetSimAlg.so
+    #11 0x00007f8b6122984a in Task::execute() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #12 0x00007f8b6122e855 in TaskWatchDog::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #13 0x00007f8b61229574 in Task::run() () from /data/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+After compiling without opticks the below works::
+
+    GUN=1 ntds0_dbg 
+
+So proceed to::
+
+    GUN=2 ntds0_cf
+
+
+
+WIP : Try timings with Release build
 ------------------------------------------
+
+Did this using GPFX=R prefix for AGEOM, BGEOM 
+rather than GPFX=V for Debug 
+
+Changing GEOM name for Release is an easy way to 
+keep SEvt from both Debug and Release. 
+
+
+
+
+
+
+DONE : Switch C4 to Release from Debug mode, Using workstation junoenv uncommitted change
+---------------------------------------------------------------------------------------------
+
+::
+
+    ntds2_dbg () 
+    { 
+        local bp=C4OpBoundaryProcess::PostStepDoIt;
+        export BP=${BP:-$bp};
+        local evtmax=3;
+        export EVTMAX=${EVTMAX:-$evtmax};
+        echo $FUNCNAME BP $BP EVTMAX $EVTMAX;
+        N=0 GEOM=V0J008 ntds2;
+        return 0
+    }
+
+    GUN=1 ntds2_dbg 
+
+
+Confirm to be Debug::
+
+    (gdb) f 0
+    #0  C4OpBoundaryProcess::PostStepDoIt (this=0x1b2234830, aTrack=..., aStep=...)
+        at /data/blyth/junotop/ExternalLibs/Build/customgeant4-0.1.4/C4OpBoundaryProcess.cc:202
+    202	        m_track_label = C4TrackInfo<C4Pho>::GetRef(&aTrack);
+    (gdb) list 
+    197	//
+    198	
+    199	G4VParticleChange*
+    200	C4OpBoundaryProcess::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
+    201	{
+    202	        m_track_label = C4TrackInfo<C4Pho>::GetRef(&aTrack);
+    203	        m_track_dump = ( m_track_label != nullptr && m_track_label->id == PIDX && PIDX_ENABLED ) || PIDX == -2  ; 
+    204	
+    205	        theStatus = Undefined;
+    206	        m_custom_status = 'U' ;
+    (gdb) 
+
+
+
+Uncomitted change::
+
+    N[blyth@localhost junoenv]$ git diff packages/custom4.sh
+    diff --git a/packages/custom4.sh b/packages/custom4.sh
+    index 358b2b9..4db7d82 100644
+    --- a/packages/custom4.sh
+    +++ b/packages/custom4.sh
+    @@ -146,8 +146,8 @@ function juno-ext-libs-custom4-conf- {
+             mkdir custom4-build
+         fi
+         pushd custom4-build
+    -    cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$(juno-ext-libs-custom4-install-dir)
+    -
+    +    cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$(juno-ext-libs-custom4-install-dir) -DCMAKE_BUILD_TYPE=${CUSTOM4_CMAKE_BUILD_TYPE:-Release} 
+    +    echo === juno-ext-libs-custom4-conf- CUSTOM4_CMAKE_BUILD_TYPE : $CUSTOM4_CMAKE_BUILD_TYPE  
+         # formerly needed  -DG4MULTITHREADED=ON
+         # but now trying to grab cflags from the geant4-config 
+         # to be consistent with the junosw geant4-config approach 
+    N[blyth@localhost junoenv]$ 
+
+
+
+Confirm that the rebuild lost the symbols::
+
+    (gdb) f 0
+    #0  0x00007fffd20c3590 in C4OpBoundaryProcess::PostStepDoIt(G4Track const&, G4Step const&) ()
+       from /data/blyth/junotop/ExternalLibs/custom4/0.1.4/lib64/libCustom4.so
+    (gdb) f 1
+    #1  0x00007fffdba850f9 in G4SteppingManager::InvokePSDIP(unsigned long) ()
+       from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    (gdb) 
+
+
+
+
 
 

@@ -566,6 +566,19 @@ anamgr-normal(){ cat << EOU
 EOU
 }
 
+anamgr-none(){ cat << EOU
+--no-anamgr-normal
+--no-anamgr-genevt
+--no-anamgr-edm-v2
+--no-anamgr-grdm
+--no-anamgr-deposit
+--no-anamgr-deposit-tt
+--no-anamgr-interesting-process
+--no-anamgr-optical-parameter
+--no-anamgr-timer
+EOU
+}
+
 
 
 
@@ -576,12 +589,22 @@ ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10 Geant4 only with Opticks U4Recorder inst
 ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation 
 ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
 
+ntds0_dbg(){ OPTICKS_MODE=0 ntds_dbg ; }
+ntds2_dbg(){ OPTICKS_MODE=2 ntds_dbg ; }
 
-ntds2_dbg()
+ntds_dbg()
 {
-   export BP=junoSD_PMT_v2::ProcessHits
-   export EVTMAX=3
-   N=0 GEOM=V0J008 ntds2
+   #local bp=junoSD_PMT_v2::ProcessHits
+   #local bp=C4OpBoundaryProcess::PostStepDoIt
+   local bp=TaskWatchDog::setErr
+   export BP=${BP:-$bp}
+
+   local evtmax=3
+   export EVTMAX=${EVTMAX:-$evtmax}
+
+   echo $FUNCNAME BP $BP EVTMAX $EVTMAX
+
+   N=0 GEOM=V0J008 ntds
    return 0
 }
 
@@ -593,10 +616,14 @@ ntds2_cf()
    export EVTMAX=10
    export NODBG=1 
 
-   N=0 GEOM=V0J008 ntds2
+   #local gpfx=V          # V:Debug builds of junosw+custom4  
+   local gpfx=R           # R:Release builds of junosw+custom4   
+   GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+
+   N=0 GEOM=${GPFX}0J008 ntds2
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   N=1 GEOM=V1J008 ntds2
+   N=1 GEOM=${GPFX}1J008 ntds2
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
@@ -617,12 +644,17 @@ ntds0_cf()
    : HMM: input photons will not work in this mode
 
    export EVTMAX=10
-   #export NODBG=1 
+   export NODBG=1 
 
-   N=0 GEOM=V0J008 ntds0
+   #local gpfx=V          # V:Debug builds of junosw+custom4  
+   local gpfx=R           # R:Release builds of junosw+custom4   
+   GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+
+
+   N=0 GEOM=${GPFX}0J008 ntds0
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
 
-   N=1 GEOM=V1J008 ntds0
+   N=1 GEOM=${GPFX}1J008 ntds0
    [ $? -ne 1 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 1 && return 2
 
    return 0
@@ -858,7 +890,8 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    opts="$opts --evtmax $evtmax"
 
    if [ "$mode" == "0" ]; then 
-       opts="$opts $(anamgr-normal) "
+       opts="$opts $(anamgr-none) "
+       #opts="$opts"
    else
        opts="$opts $(anamgr) "
    fi 

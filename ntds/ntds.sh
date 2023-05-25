@@ -170,8 +170,13 @@ export OPTICKS_MODE=${OPTICKS_MODE:-2}
 export SCRIPT=ntds$OPTICKS_MODE
 export GEOMDIR=/tmp/$USER/opticks/GEOM
 export CHECK=${CHECK:-$check}
-export AGEOM=V0J008
-export BGEOM=V1J008
+
+#gpfx=V  # V:Debug
+gpfx=R   # R:Relase
+export GPFX=${GPFX:-$gpfx}  # follow gpfx from ntds2_cf
+
+export AGEOM=${GPFX}0J008
+export BGEOM=${GPFX}1J008
 export ABASE=$GEOMDIR/$AGEOM/$SCRIPT
 export BBASE=$GEOMDIR/$BGEOM/$SCRIPT
 export NEVT=${NEVT:-0}

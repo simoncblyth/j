@@ -3,9 +3,14 @@
 tlog.py
 ==========
 
+::
+
+    TLOG_PATH=/tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/ntds2.tlog  ~/j/bin/tlog.py 
+    TLOG_PATH=/tmp/blyth/opticks/GEOM/V0J008/ntds2/ALL0/ntds2.tlog  python2.7 ~/j/bin/tlog.py 
 
 """
 import os, subprocess, numpy as np
+np.set_printoptions(suppress=True)
 
 class TLog(object):
     BEGIN = "### SniperProfiling ###"
