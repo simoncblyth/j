@@ -1097,7 +1097,9 @@ Following a merge tidy up the obsolete branch
 
 Now following the merge of the MR, tidy up : by deleting the now merged branch.
 
-1. hop to main: git checkout main   (working copy changes are safe)
+1. hop to main: git checkout main  
+
+   * HMM it refused when there are working copy changes, suggesting to commit or stash them  
 
 2. list branches, and delete the old one::
      
