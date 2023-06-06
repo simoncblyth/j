@@ -2007,3 +2007,5 @@ Confirm that the rebuild lost the symbols::
 
 
 
+
+

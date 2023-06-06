@@ -171,8 +171,10 @@ export SCRIPT=ntds$OPTICKS_MODE
 export GEOMDIR=/tmp/$USER/opticks/GEOM
 export CHECK=${CHECK:-$check}
 
-#gpfx=V  # V:Debug
-gpfx=R   # R:Relase
+
+# HMM: seems no way to automate this
+gpfx=V  # V:Debug
+#gpfx=R   # R:Release
 export GPFX=${GPFX:-$gpfx}  # follow gpfx from ntds2_cf
 
 export AGEOM=${GPFX}0J008
@@ -213,12 +215,19 @@ case $VERSION in
 esac
 
 geoms="$AGEOM $BGEOM"
+#geoms="ntds2"   ## for running when GEOM not defined : not recommended
+
 if [ "$arg" == "grab_evt" ]; then 
    for geom in $geoms ; do 
        base=/tmp/$USER/opticks/GEOM/$geom
        echo rsync geom $geom base $base
        source $OPTICKS_HOME/bin/rsync.sh $base
        [ $? -ne 0 ] && echo $BASH_SOURCE grab_evt error grabbing base $base && exit 2 
+   done
+elif [ "$arg" == "grab_evt_info" ]; then 
+   for geom in $geoms ; do 
+       base=/tmp/$USER/opticks/GEOM/$geom
+       echo rsync geom $geom base $base
    done
 elif [ "$arg" == "grab_geom" ]; then 
    for geom in $geoms ; do 

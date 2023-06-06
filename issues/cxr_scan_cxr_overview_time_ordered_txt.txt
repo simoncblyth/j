@@ -1,0 +1,445 @@
+idx         -e        time(s)           relative         enabled geometry description                                              
+  0          3         0.0017             0.1129         ONLY: PoolCoversub                                                        
+  1         73         0.0017             0.1138         ONLY: GZ1.B05_06_FlangeI_Web_FlangeII                                     
+  2         52         0.0017             0.1144         ONLY: GLb2.bt01_FlangeI_Web_FlangeII                                      
+  3         72         0.0017             0.1144         ONLY: GZ1.B04_05_FlangeI_Web_FlangeII                                     
+  4         50         0.0017             0.1147         ONLY: GLb1.up01_FlangeI_Web_FlangeII                                      
+  5         57         0.0017             0.1154         ONLY: GLb1.bt06_FlangeI_Web_FlangeII                                      
+  6         51         0.0017             0.1158         ONLY: GLb2.equ_FlangeI_Web_FlangeII                                       
+  7         92         0.0018             0.1182         ONLY: solidSJReceiver                                                     
+  8         86         0.0018             0.1182         ONLY: ZC2.B03_B03_FlangeI_Web_FlangeII                                    
+  9         76         0.0018             0.1184         ONLY: ZC2.A03_B03_FlangeI_Web_FlangeII                                    
+ 10         98         0.0018             0.1184         ONLY: sStrutBallhead                                                      
+ 11         87         0.0018             0.1185         ONLY: ZC2.B05_B05_FlangeI_Web_FlangeII                                    
+ 12         88         0.0018             0.1186         ONLY: ZC2.A03_A03_FlangeI_Web_FlangeII                                    
+ 13         28         0.0018             0.1196         ONLY: GLw2.equ_up01_FlangeI_Web_FlangeII                                  
+ 14         58         0.0018             0.1205         ONLY: GLb1.bt07_FlangeI_Web_FlangeII                                      
+ 15         31         0.0018             0.1205         ONLY: GLw3.bt02_bt03_FlangeI_Web_FlangeII                                 
+ 16         26         0.0018             0.1225         ONLY: GLw1.up02_up03_FlangeI_Web_FlangeII                                 
+ 17         33         0.0018             0.1233         ONLY: GLw2.bt04_bt05_FlangeI_Web_FlangeII                                 
+ 18         82         0.0018             0.1240         ONLY: ZC2.A04_B05_FlangeI_Web_FlangeII                                    
+ 19          7         0.0018             0.1241         ONLY: Upper_Chimney                                                       
+ 20         11         0.0019             0.1265         ONLY: sPanel                                                              
+ 21         22         0.0019             0.1266         ONLY: GLw1.up06_up07_FlangeI_Web_FlangeII                                 
+ 22         10         0.0019             0.1279         ONLY: sPanelTape                                                          
+ 23         12         0.0019             0.1293         ONLY: sPlane                                                              
+ 24          9         0.0019             0.1293         ONLY: sBar                                                                
+ 25         99         0.0020             0.1326         ONLY: uni1                                                                
+ 26        108         0.0020             0.1330         ONLY: HamamatsuR12860_PMT_20inch_inner_edge_solid                         
+ 27        109         0.0020             0.1334         ONLY: HamamatsuR12860_PMT_20inch_inner_ring_solid                         
+ 28        128         0.0020             0.1334         ONLY: PMT_3inch_cntr_solid                                                
+ 29        106         0.0020             0.1365         ONLY: HamamatsuR12860_PMT_20inch_plate_solid                              
+ 30         39         0.0021             0.1388         ONLY: GLw1.bt10_bt11_FlangeI_Web_FlangeII                                 
+ 31        110         0.0021             0.1394         ONLY: HamamatsuR12860_PMT_20inch_dynode_tube_solid                        
+ 32         62         0.0021             0.1412         ONLY: GLb3.bt11_FlangeI_Web_FlangeII                                      
+ 33        136         0.0021             0.1429         ONLY: mask_PMT_20inch_vetosMask                                           
+ 34        144         0.0021             0.1444         ONLY: sBottomRock                                                         
+ 35        126         0.0022             0.1460         ONLY: PMT_3inch_inner2_solid_ell_helper                                   
+ 36        142         0.0022             0.1460         ONLY: sOuterWaterPool                                                     
+ 37        122         0.0023             0.1568         ONLY: NNVTMCPPMT_PMT_20inch_inner_solid_head                              
+ 38        123         0.0023             0.1580         ONLY: NNVTMCPPMT_PMT_20inch_pmt_solid_head                                
+ 39        132         0.0024             0.1642         ONLY: sChimneySteel                                                       
+ 40        113         0.0027             0.1849         ONLY: HamamatsuR12860_PMT_20inch_inner_solid_1_4                          
+ 41         85         0.0027             0.1850         ONLY: ZC2.B01_B01_FlangeI_Web_FlangeII                                    
+ 42         89         0.0028             0.1852         ONLY: ZC2.A05_A05_FlangeI_Web_FlangeII                                    
+ 43         65         0.0028             0.1853         ONLY: GZ1.A03_04_FlangeI_Web_FlangeII                                     
+ 44         74         0.0028             0.1854         ONLY: GZ1.B06_07_FlangeI_Web_FlangeII                                     
+ 45         71         0.0028             0.1854         ONLY: GZ1.B03_04_FlangeI_Web_FlangeII                                     
+ 46         68         0.0028             0.1860         ONLY: GZ1.A06_07_FlangeI_Web_FlangeII                                     
+ 47         54         0.0028             0.1862         ONLY: GLb2.bt03_FlangeI_Web_FlangeII                                      
+ 48         69         0.0028             0.1862         ONLY: GZ1.B01_02_FlangeI_Web_FlangeII                                     
+ 49         45         0.0028             0.1864         ONLY: GLb2.up06_FlangeI_Web_FlangeII                                      
+ 50         27         0.0028             0.1865         ONLY: GLw1.up01_up02_FlangeI_Web_FlangeII                                 
+ 51         47         0.0028             0.1866         ONLY: GLb1.up04_FlangeI_Web_FlangeII                                      
+ 52         80         0.0028             0.1880         ONLY: ZC2.A02_B03_FlangeI_Web_FlangeII                                    
+ 53         90         0.0028             0.1889         ONLY: solidSJCLSanchor                                                    
+ 54         78         0.0028             0.1891         ONLY: ZC2.A05_B05_FlangeI_Web_FlangeII                                    
+ 55         25         0.0028             0.1892         ONLY: GLw1.up03_up04_FlangeI_Web_FlangeII                                 
+ 56        111         0.0028             0.1893         ONLY: HamamatsuR12860_PMT_20inch_grid_solid                               
+ 57         75         0.0028             0.1894         ONLY: ZC2.A02_B02_FlangeI_Web_FlangeII                                    
+ 58         81         0.0028             0.1894         ONLY: ZC2.A03_B04_FlangeI_Web_FlangeII                                    
+ 59         70         0.0028             0.1903         ONLY: GZ1.B02_03_FlangeI_Web_FlangeII                                     
+ 60         91         0.0028             0.1903         ONLY: solidSJFixture                                                      
+ 61         77         0.0028             0.1903         ONLY: ZC2.A04_B04_FlangeI_Web_FlangeII                                    
+ 62         29         0.0028             0.1904         ONLY: GLw2.equ_bt01_FlangeI_Web_FlangeII                                  
+ 63        102         0.0028             0.1904         ONLY: solidXJanchor                                                       
+ 64         55         0.0028             0.1904         ONLY: GLb2.bt04_FlangeI_Web_FlangeII                                      
+ 65         56         0.0028             0.1905         ONLY: GLb1.bt05_FlangeI_Web_FlangeII                                      
+ 66         67         0.0028             0.1906         ONLY: GZ1.A05_06_FlangeI_Web_FlangeII                                     
+ 67         93         0.0028             0.1907         ONLY: solidSJReceiverFastern                                              
+ 68         46         0.0028             0.1908         ONLY: GLb1.up05_FlangeI_Web_FlangeII                                      
+ 69         63         0.0028             0.1912         ONLY: GZ1.A01_02_FlangeI_Web_FlangeII                                     
+ 70         44         0.0028             0.1914         ONLY: GLb2.up07_FlangeI_Web_FlangeII                                      
+ 71         48         0.0028             0.1916         ONLY: GLb1.up03_FlangeI_Web_FlangeII                                      
+ 72         53         0.0028             0.1917         ONLY: GLb1.bt02_FlangeI_Web_FlangeII                                      
+ 73         60         0.0028             0.1918         ONLY: GLb3.bt09_FlangeI_Web_FlangeII                                      
+ 74         14         0.0029             0.1918         ONLY: sAirTT                                                              
+ 75         66         0.0029             0.1920         ONLY: GZ1.A04_05_FlangeI_Web_FlangeII                                     
+ 76         49         0.0029             0.1925         ONLY: GLb1.up02_FlangeI_Web_FlangeII                                      
+ 77         79         0.0029             0.1933         ONLY: ZC2.A06_B06_FlangeI_Web_FlangeII                                    
+ 78         59         0.0029             0.1940         ONLY: GLb1.bt08_FlangeI_Web_FlangeII                                      
+ 79         32         0.0029             0.1943         ONLY: GLw2.bt03_bt04_FlangeI_Web_FlangeII                                 
+ 80         24         0.0029             0.1943         ONLY: GLw1.up04_up05_FlangeI_Web_FlangeII                                 
+ 81         64         0.0029             0.1943         ONLY: GZ1.A02_03_FlangeI_Web_FlangeII                                     
+ 82         43         0.0029             0.1945         ONLY: GLb2.up08_FlangeI_Web_FlangeII                                      
+ 83         83         0.0029             0.1953         ONLY: ZC2.A05_B06_FlangeI_Web_FlangeII                                    
+ 84         36         0.0029             0.1961         ONLY: GLw1.bt07_bt08_FlangeI_Web_FlangeII                                 
+ 85         42         0.0029             0.1962         ONLY: GLb3.up09_FlangeI_Web_FlangeII                                      
+ 86          4         0.0029             0.1964         ONLY: Upper_LS_tube                                                       
+ 87         23         0.0029             0.1965         ONLY: GLw1.up05_up06_FlangeI_Web_FlangeII                                 
+ 88        100         0.0029             0.1966         ONLY: base_steel                                                          
+ 89         37         0.0029             0.1974         ONLY: GLw1.bt08_bt09_FlangeI_Web_FlangeII                                 
+ 90         35         0.0029             0.1977         ONLY: GLw1.bt06_bt07_FlangeI_Web_FlangeII                                 
+ 91         97         0.0029             0.1984         ONLY: sStrut                                                              
+ 92         34         0.0030             0.1986         ONLY: GLw1.bt05_bt06_FlangeI_Web_FlangeII                                 
+ 93        121         0.0030             0.1990         ONLY: NNVTMCPPMT_PMT_20inch_mcp_solid                                     
+ 94        141         0.0030             0.1996         ONLY: mask_PMT_20inch_vetosMask_virtual                                   
+ 95         41         0.0030             0.1996         ONLY: GLb4.up10_FlangeI_Web_FlangeII                                      
+ 96        131         0.0030             0.1997         ONLY: sChimneyLS                                                          
+ 97         13         0.0030             0.2001         ONLY: sWall                                                               
+ 98         84         0.0030             0.2006         ONLY: ZC2.A06_B07_FlangeI_Web_FlangeII                                    
+ 99         21         0.0030             0.2011         ONLY: GLw1.up07_up08_FlangeI_Web_FlangeII                                 
+100         20         0.0030             0.2022         ONLY: GLw1.up08_up09_FlangeI_Web_FlangeII                                 
+101         61         0.0030             0.2041         ONLY: GLb3.bt10_FlangeI_Web_FlangeII                                      
+102          8         0.0030             0.2043         ONLY: sBar                                                                
+103         30         0.0030             0.2046         ONLY: GLw3.bt01_bt02_FlangeI_Web_FlangeII                                 
+104        133         0.0030             0.2049         ONLY: sWaterTube                                                          
+105        125         0.0030             0.2052         ONLY: PMT_3inch_inner1_solid_ell_helper                                   
+106        127         0.0031             0.2053         ONLY: PMT_3inch_body_solid_ell_ell_helper                                 
+107         96         0.0031             0.2057         ONLY: sStrut                                                              
+108          1         0.0031             0.2064         ONLY: sTopRock_dome                                                       
+109        139         0.0031             0.2067         ONLY: PMT_20inch_veto_body_solid_1_2                                      
+110        101         0.0031             0.2076         ONLY: uni_acrylic1                                                        
+111        140         0.0031             0.2076         ONLY: PMT_20inch_veto_pmt_solid_1_2                                       
+112          2         0.0031             0.2093         ONLY: sDomeRockBox                                                        
+113         38         0.0031             0.2093         ONLY: GLw1.bt09_bt10_FlangeI_Web_FlangeII                                 
+114        134         0.0031             0.2096         ONLY: sInnerWater                                                         
+115         19         0.0031             0.2100         ONLY: GLw1.up09_up10_FlangeI_Web_FlangeII                                 
+116         18         0.0031             0.2101         ONLY: GLw1.up10_up11_FlangeI_Web_FlangeII                                 
+117        107         0.0032             0.2124         ONLY: HamamatsuR12860_PMT_20inch_outer_edge_solid                         
+118         40         0.0032             0.2137         ONLY: GLb3.up11_FlangeI_Web_FlangeII                                      
+119        143         0.0032             0.2142         ONLY: sPoolLining                                                         
+120         17         0.0032             0.2144         ONLY: sTopRock                                                            
+121         16         0.0032             0.2146         ONLY: sExpRockBox                                                         
+122        112         0.0032             0.2146         ONLY: HamamatsuR12860_PMT_20inch_shield_solid                             
+123        138         0.0032             0.2154         ONLY: PMT_20inch_veto_inner2_solid                                        
+124        137         0.0032             0.2159         ONLY: PMT_20inch_veto_inner1_solid                                        
+125        145         0.0032             0.2160         ONLY: sWorld                                                              
+126        119         0.0033             0.2189         ONLY: NNVTMCPPMT_PMT_20inch_plate_solid                                   
+127        120         0.0033             0.2206         ONLY: NNVTMCPPMT_PMT_20inch_tube_solid                                    
+128        129         0.0033             0.2215         ONLY: PMT_3inch_pmt_solid                                                 
+129        118         0.0033             0.2218         ONLY: NNVTMCPPMT_PMT_20inch_edge_solid                                    
+130          5         0.0033             0.2254         ONLY: Upper_Steel_tube                                                    
+131          6         0.0034             0.2300         ONLY: Upper_Tyvek_tube                                                    
+132        115         0.0036             0.2445         ONLY: HamamatsuR12860sMask_virtual                                        
+133        104         0.0037             0.2519         ONLY: HamamatsuR12860sMask                                                
+134        114         0.0038             0.2588         ONLY: HamamatsuR12860_PMT_20inch_pmt_solid_1_4                            
+135         15         0.0040             0.2705         ONLY: sExpHall                                                            
+136         95         0.0041             0.2744         ONLY: sAcrylic                                                            
+137        135         0.0041             0.2763         ONLY: sReflectorInCD                                                      
+138          0         0.0041             0.2769         ONLY: sTopRock_domeAir                                                    
+139         94         0.0041             0.2788         ONLY: sTarget                                                             
+140        130         0.0042             0.2801         ONLY: sChimneyAcrylic                                                     
+141        124         0.0044             0.2983         ONLY: NNVTMCPPMTsMask_virtual                                             
+142        116         0.0047             0.3145         ONLY: NNVTMCPPMTsMask                                                     
+143        105         0.0067             0.4514         ONLY: HamamatsuR12860Tail                                                 
+144        117         0.0074             0.4991         ONLY: NNVTMCPPMTTail                                                      
+145     t103,1         0.0075             0.5072         EXCL: solidXJfixture sTopRock_dome                                        
+146   t103,105         0.0078             0.5225         EXCL: solidXJfixture HamamatsuR12860Tail                                  
+147    t103,29         0.0078             0.5237         EXCL: solidXJfixture GLw2.equ_bt01_FlangeI_Web_FlangeII                   
+148   t103,138         0.0079             0.5319         EXCL: solidXJfixture PMT_20inch_veto_inner2_solid                         
+149   t103,122         0.0079             0.5333         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_inner_solid_head               
+150   t103,146         0.0080             0.5350         EXCL: solidXJfixture solidSJReceiverFastern                               
+151     t103,8         0.0080             0.5354         EXCL: solidXJfixture sBar                                                 
+152    t103,84         0.0080             0.5360         EXCL: solidXJfixture ZC2.A06_B07_FlangeI_Web_FlangeII                     
+153    t103,24         0.0080             0.5361         EXCL: solidXJfixture GLw1.up04_up05_FlangeI_Web_FlangeII                  
+154    t103,83         0.0080             0.5369         EXCL: solidXJfixture ZC2.A05_B06_FlangeI_Web_FlangeII                     
+155   t103,147         0.0080             0.5373         EXCL: solidXJfixture uni1                                                 
+156    t103,17         0.0080             0.5374         EXCL: solidXJfixture sTopRock                                             
+157    t103,22         0.0080             0.5380         EXCL: solidXJfixture GLw1.up06_up07_FlangeI_Web_FlangeII                  
+158   t103,103         0.0080             0.5383         EXCL: solidXJfixture solidXJfixture                                       
+159   t103,110         0.0080             0.5386         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_dynode_tube_solid         
+160    t103,63         0.0080             0.5395         EXCL: solidXJfixture GZ1.A01_02_FlangeI_Web_FlangeII                      
+161    t103,50         0.0080             0.5404         EXCL: solidXJfixture GLb1.up01_FlangeI_Web_FlangeII                       
+162    t103,35         0.0080             0.5410         EXCL: solidXJfixture GLw1.bt06_bt07_FlangeI_Web_FlangeII                  
+163    t103,70         0.0080             0.5415         EXCL: solidXJfixture GZ1.B02_03_FlangeI_Web_FlangeII                      
+164    t103,67         0.0080             0.5417         EXCL: solidXJfixture GZ1.A05_06_FlangeI_Web_FlangeII                      
+165   t103,131         0.0081             0.5418         EXCL: solidXJfixture sChimneyLS                                           
+166    t103,19         0.0081             0.5419         EXCL: solidXJfixture GLw1.up09_up10_FlangeI_Web_FlangeII                  
+167    t103,87         0.0081             0.5426         EXCL: solidXJfixture ZC2.B05_B05_FlangeI_Web_FlangeII                     
+168    t103,75         0.0081             0.5426         EXCL: solidXJfixture ZC2.A02_B02_FlangeI_Web_FlangeII                     
+169    t103,46         0.0081             0.5426         EXCL: solidXJfixture GLb1.up05_FlangeI_Web_FlangeII                       
+170    t103,99         0.0081             0.5426         EXCL: solidXJfixture uni1                                                 
+171    t103,89         0.0081             0.5429         EXCL: solidXJfixture ZC2.A05_A05_FlangeI_Web_FlangeII                     
+172   t103,140         0.0081             0.5438         EXCL: solidXJfixture PMT_20inch_veto_pmt_solid_1_2                        
+173    t103,93         0.0081             0.5439         EXCL: solidXJfixture solidSJReceiverFastern                               
+174       t103         0.0081             0.5441         EXCL: solidXJfixture                                                      
+175    t103,20         0.0081             0.5442         EXCL: solidXJfixture GLw1.up08_up09_FlangeI_Web_FlangeII                  
+176    t103,25         0.0081             0.5449         EXCL: solidXJfixture GLw1.up03_up04_FlangeI_Web_FlangeII                  
+177    t103,61         0.0081             0.5450         EXCL: solidXJfixture GLb3.bt10_FlangeI_Web_FlangeII                       
+178    t103,62         0.0081             0.5451         EXCL: solidXJfixture GLb3.bt11_FlangeI_Web_FlangeII                       
+179    t103,65         0.0081             0.5454         EXCL: solidXJfixture GZ1.A03_04_FlangeI_Web_FlangeII                      
+180    t103,49         0.0081             0.5455         EXCL: solidXJfixture GLb1.up02_FlangeI_Web_FlangeII                       
+181    t103,72         0.0081             0.5475         EXCL: solidXJfixture GZ1.B04_05_FlangeI_Web_FlangeII                      
+182   t103,132         0.0081             0.5480         EXCL: solidXJfixture sChimneySteel                                        
+183    t103,36         0.0082             0.5496         EXCL: solidXJfixture GLw1.bt07_bt08_FlangeI_Web_FlangeII                  
+184   t103,102         0.0082             0.5523         EXCL: solidXJfixture solidXJanchor                                        
+185     t103,9         0.0082             0.5533         EXCL: solidXJfixture sBar                                                 
+186    t103,68         0.0085             0.5702         EXCL: solidXJfixture GZ1.A06_07_FlangeI_Web_FlangeII                      
+187   t103,142         0.0085             0.5753         EXCL: solidXJfixture sOuterWaterPool                                      
+188   t103,135         0.0086             0.5755         EXCL: solidXJfixture sReflectorInCD                                       
+189    t103,76         0.0086             0.5811         EXCL: solidXJfixture ZC2.A03_B03_FlangeI_Web_FlangeII                     
+190   t103,133         0.0086             0.5817         EXCL: solidXJfixture sWaterTube                                           
+191    t103,57         0.0086             0.5821         EXCL: solidXJfixture GLb1.bt06_FlangeI_Web_FlangeII                       
+192    t103,47         0.0087             0.5887         EXCL: solidXJfixture GLb1.up04_FlangeI_Web_FlangeII                       
+193    t103,94         0.0088             0.5898         EXCL: solidXJfixture sTarget                                              
+194     t103,0         0.0088             0.5914         EXCL: solidXJfixture sTopRock_domeAir                                     
+195   t103,117         0.0089             0.5959         EXCL: solidXJfixture NNVTMCPPMTTail                                       
+196    t103,16         0.0089             0.5989         EXCL: solidXJfixture sExpRockBox                                          
+197    t103,88         0.0089             0.5993         EXCL: solidXJfixture ZC2.A03_A03_FlangeI_Web_FlangeII                     
+198    t103,11         0.0089             0.6013         EXCL: solidXJfixture sPanel                                               
+199    t103,13         0.0089             0.6015         EXCL: solidXJfixture sWall                                                
+200   t103,144         0.0089             0.6018         EXCL: solidXJfixture sBottomRock                                          
+201   t103,114         0.0090             0.6026         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_pmt_solid_1_4             
+202    t103,64         0.0090             0.6026         EXCL: solidXJfixture GZ1.A02_03_FlangeI_Web_FlangeII                      
+203    t103,74         0.0090             0.6027         EXCL: solidXJfixture GZ1.B06_07_FlangeI_Web_FlangeII                      
+204    t103,37         0.0090             0.6032         EXCL: solidXJfixture GLw1.bt08_bt09_FlangeI_Web_FlangeII                  
+205   t103,127         0.0090             0.6033         EXCL: solidXJfixture PMT_3inch_body_solid_ell_ell_helper                  
+206    t103,97         0.0090             0.6035         EXCL: solidXJfixture sStrut                                               
+207    t103,86         0.0090             0.6042         EXCL: solidXJfixture ZC2.B03_B03_FlangeI_Web_FlangeII                     
+208   t103,129         0.0090             0.6042         EXCL: solidXJfixture PMT_3inch_pmt_solid                                  
+209   t103,137         0.0090             0.6044         EXCL: solidXJfixture PMT_20inch_veto_inner1_solid                         
+210    t103,79         0.0090             0.6044         EXCL: solidXJfixture ZC2.A06_B06_FlangeI_Web_FlangeII                     
+211   t103,115         0.0090             0.6046         EXCL: solidXJfixture HamamatsuR12860sMask_virtual                         
+212     t103,2         0.0090             0.6047         EXCL: solidXJfixture sDomeRockBox                                         
+213   t103,106         0.0090             0.6047         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_plate_solid               
+214    t103,54         0.0090             0.6048         EXCL: solidXJfixture GLb2.bt03_FlangeI_Web_FlangeII                       
+215   t103,113         0.0090             0.6050         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_inner_solid_1_4           
+216    t103,80         0.0090             0.6050         EXCL: solidXJfixture ZC2.A02_B03_FlangeI_Web_FlangeII                     
+217    t103,33         0.0090             0.6051         EXCL: solidXJfixture GLw2.bt04_bt05_FlangeI_Web_FlangeII                  
+218    t103,92         0.0090             0.6055         EXCL: solidXJfixture solidSJReceiver                                      
+219   t103,125         0.0090             0.6060         EXCL: solidXJfixture PMT_3inch_inner1_solid_ell_helper                    
+220    t103,78         0.0090             0.6060         EXCL: solidXJfixture ZC2.A05_B05_FlangeI_Web_FlangeII                     
+221    t103,39         0.0090             0.6063         EXCL: solidXJfixture GLw1.bt10_bt11_FlangeI_Web_FlangeII                  
+222    t103,15         0.0090             0.6066         EXCL: solidXJfixture sExpHall                                             
+223    t103,59         0.0090             0.6067         EXCL: solidXJfixture GLb1.bt08_FlangeI_Web_FlangeII                       
+224   t103,136         0.0090             0.6069         EXCL: solidXJfixture mask_PMT_20inch_vetosMask                            
+225   t103,128         0.0090             0.6071         EXCL: solidXJfixture PMT_3inch_cntr_solid                                 
+226    t103,28         0.0090             0.6071         EXCL: solidXJfixture GLw2.equ_up01_FlangeI_Web_FlangeII                   
+227     t103,5         0.0090             0.6071         EXCL: solidXJfixture Upper_Steel_tube                                     
+228   t103,139         0.0090             0.6073         EXCL: solidXJfixture PMT_20inch_veto_body_solid_1_2                       
+229   t103,119         0.0090             0.6073         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_plate_solid                    
+230    t103,56         0.0090             0.6077         EXCL: solidXJfixture GLb1.bt05_FlangeI_Web_FlangeII                       
+231    t103,53         0.0090             0.6077         EXCL: solidXJfixture GLb1.bt02_FlangeI_Web_FlangeII                       
+232    t103,38         0.0090             0.6078         EXCL: solidXJfixture GLw1.bt09_bt10_FlangeI_Web_FlangeII                  
+233    t103,30         0.0090             0.6080         EXCL: solidXJfixture GLw3.bt01_bt02_FlangeI_Web_FlangeII                  
+234    t103,69         0.0090             0.6083         EXCL: solidXJfixture GZ1.B01_02_FlangeI_Web_FlangeII                      
+235    t103,44         0.0090             0.6088         EXCL: solidXJfixture GLb2.up07_FlangeI_Web_FlangeII                       
+236     t103,7         0.0090             0.6089         EXCL: solidXJfixture Upper_Chimney                                        
+237    t103,31         0.0090             0.6089         EXCL: solidXJfixture GLw3.bt02_bt03_FlangeI_Web_FlangeII                  
+238    t103,23         0.0090             0.6090         EXCL: solidXJfixture GLw1.up05_up06_FlangeI_Web_FlangeII                  
+239   t103,124         0.0090             0.6090         EXCL: solidXJfixture NNVTMCPPMTsMask_virtual                              
+240    t103,55         0.0091             0.6094         EXCL: solidXJfixture GLb2.bt04_FlangeI_Web_FlangeII                       
+241    t103,90         0.0091             0.6095         EXCL: solidXJfixture solidSJCLSanchor                                     
+242    t103,66         0.0091             0.6095         EXCL: solidXJfixture GZ1.A04_05_FlangeI_Web_FlangeII                      
+243   t103,118         0.0091             0.6096         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_edge_solid                     
+244    t103,91         0.0091             0.6097         EXCL: solidXJfixture solidSJFixture                                       
+245   t103,111         0.0091             0.6097         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_grid_solid                
+246    t103,96         0.0091             0.6098         EXCL: solidXJfixture sStrut                                               
+247    t103,82         0.0091             0.6099         EXCL: solidXJfixture ZC2.A04_B05_FlangeI_Web_FlangeII                     
+248   t103,121         0.0091             0.6100         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_mcp_solid                      
+249   t103,120         0.0091             0.6106         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_tube_solid                     
+250    t103,42         0.0091             0.6111         EXCL: solidXJfixture GLb3.up09_FlangeI_Web_FlangeII                       
+251    t103,32         0.0091             0.6114         EXCL: solidXJfixture GLw2.bt03_bt04_FlangeI_Web_FlangeII                  
+252    t103,98         0.0091             0.6116         EXCL: solidXJfixture sStrutBallhead                                       
+253    t103,26         0.0091             0.6117         EXCL: solidXJfixture GLw1.up02_up03_FlangeI_Web_FlangeII                  
+254   t103,130         0.0091             0.6119         EXCL: solidXJfixture sChimneyAcrylic                                      
+255     t103,3         0.0091             0.6120         EXCL: solidXJfixture PoolCoversub                                         
+256    t103,58         0.0091             0.6123         EXCL: solidXJfixture GLb1.bt07_FlangeI_Web_FlangeII                       
+257    t103,77         0.0091             0.6123         EXCL: solidXJfixture ZC2.A04_B04_FlangeI_Web_FlangeII                     
+258     t103,6         0.0091             0.6123         EXCL: solidXJfixture Upper_Tyvek_tube                                     
+259   t103,123         0.0091             0.6128         EXCL: solidXJfixture NNVTMCPPMT_PMT_20inch_pmt_solid_head                 
+260    t103,18         0.0091             0.6129         EXCL: solidXJfixture GLw1.up10_up11_FlangeI_Web_FlangeII                  
+261    t103,45         0.0091             0.6129         EXCL: solidXJfixture GLb2.up06_FlangeI_Web_FlangeII                       
+262    t103,51         0.0091             0.6132         EXCL: solidXJfixture GLb2.equ_FlangeI_Web_FlangeII                        
+263    t103,60         0.0091             0.6141         EXCL: solidXJfixture GLb3.bt09_FlangeI_Web_FlangeII                       
+264   t103,141         0.0091             0.6146         EXCL: solidXJfixture mask_PMT_20inch_vetosMask_virtual                    
+265   t103,143         0.0091             0.6147         EXCL: solidXJfixture sPoolLining                                          
+266   t103,116         0.0091             0.6147         EXCL: solidXJfixture NNVTMCPPMTsMask                                      
+267    t103,21         0.0091             0.6148         EXCL: solidXJfixture GLw1.up07_up08_FlangeI_Web_FlangeII                  
+268    t103,43         0.0091             0.6149         EXCL: solidXJfixture GLb2.up08_FlangeI_Web_FlangeII                       
+269    t103,48         0.0091             0.6156         EXCL: solidXJfixture GLb1.up03_FlangeI_Web_FlangeII                       
+270    t103,41         0.0092             0.6158         EXCL: solidXJfixture GLb4.up10_FlangeI_Web_FlangeII                       
+271   t103,112         0.0092             0.6174         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_shield_solid              
+272   t103,101         0.0092             0.6180         EXCL: solidXJfixture uni_acrylic1                                         
+273    t103,10         0.0092             0.6204         EXCL: solidXJfixture sPanelTape                                           
+274   t103,134         0.0092             0.6210         EXCL: solidXJfixture sInnerWater                                          
+275    t103,85         0.0092             0.6213         EXCL: solidXJfixture ZC2.B01_B01_FlangeI_Web_FlangeII                     
+276    t103,27         0.0093             0.6226         EXCL: solidXJfixture GLw1.up01_up02_FlangeI_Web_FlangeII                  
+277   t103,108         0.0093             0.6233         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_inner_edge_solid          
+278    t103,40         0.0093             0.6270         EXCL: solidXJfixture GLb3.up11_FlangeI_Web_FlangeII                       
+279    t103,95         0.0094             0.6303         EXCL: solidXJfixture sAcrylic                                             
+280    t103,12         0.0094             0.6304         EXCL: solidXJfixture sPlane                                               
+281    t103,34         0.0095             0.6370         EXCL: solidXJfixture GLw1.bt05_bt06_FlangeI_Web_FlangeII                  
+282    t103,52         0.0095             0.6371         EXCL: solidXJfixture GLb2.bt01_FlangeI_Web_FlangeII                       
+283    t103,81         0.0095             0.6409         EXCL: solidXJfixture ZC2.A03_B04_FlangeI_Web_FlangeII                     
+284     t103,4         0.0096             0.6439         EXCL: solidXJfixture Upper_LS_tube                                        
+285   t103,104         0.0096             0.6472         EXCL: solidXJfixture HamamatsuR12860sMask                                 
+286   t103,126         0.0096             0.6486         EXCL: solidXJfixture PMT_3inch_inner2_solid_ell_helper                    
+287   t103,109         0.0097             0.6498         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_inner_ring_solid          
+288    t103,71         0.0097             0.6504         EXCL: solidXJfixture GZ1.B03_04_FlangeI_Web_FlangeII                      
+289    t103,73         0.0097             0.6506         EXCL: solidXJfixture GZ1.B05_06_FlangeI_Web_FlangeII                      
+290   t103,100         0.0097             0.6521         EXCL: solidXJfixture base_steel                                           
+291    t103,14         0.0097             0.6526         EXCL: solidXJfixture sAirTT                                               
+292   t103,107         0.0098             0.6568         EXCL: solidXJfixture HamamatsuR12860_PMT_20inch_outer_edge_solid          
+293   t103,145         0.0102             0.6849         EXCL: solidXJfixture sWorld                                               
+294       t135         0.0135             0.9061         EXCL: sReflectorInCD                                                      
+295       t116         0.0136             0.9167         EXCL: NNVTMCPPMTsMask                                                     
+296        t29         0.0137             0.9190         EXCL: GLw2.equ_bt01_FlangeI_Web_FlangeII                                  
+297        t95         0.0137             0.9191         EXCL: sAcrylic                                                            
+298       t117         0.0137             0.9199         EXCL: NNVTMCPPMTTail                                                      
+299        t74         0.0137             0.9225         EXCL: GZ1.B06_07_FlangeI_Web_FlangeII                                     
+300        t27         0.0137             0.9248         EXCL: GLw1.up01_up02_FlangeI_Web_FlangeII                                 
+301        t22         0.0137             0.9250         EXCL: GLw1.up06_up07_FlangeI_Web_FlangeII                                 
+302        t97         0.0138             0.9254         EXCL: sStrut                                                              
+303        t81         0.0138             0.9258         EXCL: ZC2.A03_B04_FlangeI_Web_FlangeII                                    
+304        t65         0.0138             0.9261         EXCL: GZ1.A03_04_FlangeI_Web_FlangeII                                     
+305        t60         0.0138             0.9265         EXCL: GLb3.bt09_FlangeI_Web_FlangeII                                      
+306       t144         0.0138             0.9266         EXCL: sBottomRock                                                         
+307       t122         0.0138             0.9278         EXCL: NNVTMCPPMT_PMT_20inch_inner_solid_head                              
+308        t80         0.0138             0.9280         EXCL: ZC2.A02_B03_FlangeI_Web_FlangeII                                    
+309         t3         0.0138             0.9282         EXCL: PoolCoversub                                                        
+310        t85         0.0138             0.9303         EXCL: ZC2.B01_B01_FlangeI_Web_FlangeII                                    
+311        t59         0.0138             0.9306         EXCL: GLb1.bt08_FlangeI_Web_FlangeII                                      
+312        t35         0.0138             0.9307         EXCL: GLw1.bt06_bt07_FlangeI_Web_FlangeII                                 
+313       t138         0.0138             0.9308         EXCL: PMT_20inch_veto_inner2_solid                                        
+314        t63         0.0138             0.9316         EXCL: GZ1.A01_02_FlangeI_Web_FlangeII                                     
+315        t13         0.0138             0.9318         EXCL: sWall                                                               
+316        t91         0.0139             0.9328         EXCL: solidSJFixture                                                      
+317       t129         0.0139             0.9329         EXCL: PMT_3inch_pmt_solid                                                 
+318        t72         0.0139             0.9332         EXCL: GZ1.B04_05_FlangeI_Web_FlangeII                                     
+319         t5         0.0139             0.9336         EXCL: Upper_Steel_tube                                                    
+320        t32         0.0139             0.9339         EXCL: GLw2.bt03_bt04_FlangeI_Web_FlangeII                                 
+321       t124         0.0139             0.9340         EXCL: NNVTMCPPMTsMask_virtual                                             
+322        t93         0.0139             0.9344         EXCL: solidSJReceiverFastern                                              
+323        t76         0.0139             0.9347         EXCL: ZC2.A03_B03_FlangeI_Web_FlangeII                                    
+324       t137         0.0139             0.9347         EXCL: PMT_20inch_veto_inner1_solid                                        
+325       t126         0.0139             0.9347         EXCL: PMT_3inch_inner2_solid_ell_helper                                   
+326        t67         0.0139             0.9351         EXCL: GZ1.A05_06_FlangeI_Web_FlangeII                                     
+327        t86         0.0139             0.9351         EXCL: ZC2.B03_B03_FlangeI_Web_FlangeII                                    
+328       t133         0.0139             0.9352         EXCL: sWaterTube                                                          
+329        t11         0.0139             0.9353         EXCL: sPanel                                                              
+330        t66         0.0139             0.9354         EXCL: GZ1.A04_05_FlangeI_Web_FlangeII                                     
+331        t83         0.0139             0.9364         EXCL: ZC2.A05_B06_FlangeI_Web_FlangeII                                    
+332        t30         0.0139             0.9366         EXCL: GLw3.bt01_bt02_FlangeI_Web_FlangeII                                 
+333       t128         0.0139             0.9367         EXCL: PMT_3inch_cntr_solid                                                
+334       t131         0.0139             0.9369         EXCL: sChimneyLS                                                          
+335       t115         0.0139             0.9373         EXCL: HamamatsuR12860sMask_virtual                                        
+336        t68         0.0140             0.9422         EXCL: GZ1.A06_07_FlangeI_Web_FlangeII                                     
+337        t42         0.0140             0.9433         EXCL: GLb3.up09_FlangeI_Web_FlangeII                                      
+338        t53         0.0141             0.9463         EXCL: GLb1.bt02_FlangeI_Web_FlangeII                                      
+339        t70         0.0142             0.9566         EXCL: GZ1.B02_03_FlangeI_Web_FlangeII                                     
+340        t47         0.0143             0.9594         EXCL: GLb1.up04_FlangeI_Web_FlangeII                                      
+341         t1         0.0143             0.9623         EXCL: sTopRock_dome                                                       
+342       t104         0.0143             0.9630         EXCL: HamamatsuR12860sMask                                                
+343        t33         0.0144             0.9662         EXCL: GLw2.bt04_bt05_FlangeI_Web_FlangeII                                 
+344       t134         0.0144             0.9701         EXCL: sInnerWater                                                         
+345       t132         0.0144             0.9709         EXCL: sChimneySteel                                                       
+346         t2         0.0145             0.9750         EXCL: sDomeRockBox                                                        
+347         t0         0.0145             0.9786         EXCL: sTopRock_domeAir                                                    
+348        t43         0.0146             0.9840         EXCL: GLb2.up08_FlangeI_Web_FlangeII                                      
+349       t105         0.0146             0.9854         EXCL: HamamatsuR12860Tail                                                 
+350        t49         0.0147             0.9886         EXCL: GLb1.up02_FlangeI_Web_FlangeII                                      
+351        t38         0.0147             0.9891         EXCL: GLw1.bt09_bt10_FlangeI_Web_FlangeII                                 
+352        t94         0.0147             0.9894         EXCL: sTarget                                                             
+353       t146         0.0147             0.9900         EXCL: solidSJReceiverFastern                                              
+354         t8         0.0147             0.9900         EXCL: sBar                                                                
+355        t55         0.0147             0.9913         EXCL: GLb2.bt04_FlangeI_Web_FlangeII                                      
+356       t113         0.0147             0.9914         EXCL: HamamatsuR12860_PMT_20inch_inner_solid_1_4                          
+357       t143         0.0147             0.9915         EXCL: sPoolLining                                                         
+358       t139         0.0147             0.9920         EXCL: PMT_20inch_veto_body_solid_1_2                                      
+359        t16         0.0148             0.9927         EXCL: sExpRockBox                                                         
+360       t100         0.0148             0.9939         EXCL: base_steel                                                          
+361       t136         0.0148             0.9950         EXCL: mask_PMT_20inch_vetosMask                                           
+362        t62         0.0148             0.9961         EXCL: GLb3.bt11_FlangeI_Web_FlangeII                                      
+363        t57         0.0148             0.9962         EXCL: GLb1.bt06_FlangeI_Web_FlangeII                                      
+364       t110         0.0148             0.9964         EXCL: HamamatsuR12860_PMT_20inch_dynode_tube_solid                        
+365        t64         0.0148             0.9968         EXCL: GZ1.A02_03_FlangeI_Web_FlangeII                                     
+366        t84         0.0148             0.9973         EXCL: ZC2.A06_B07_FlangeI_Web_FlangeII                                    
+367        t78         0.0148             0.9974         EXCL: ZC2.A05_B05_FlangeI_Web_FlangeII                                    
+368        t19         0.0148             0.9974         EXCL: GLw1.up09_up10_FlangeI_Web_FlangeII                                 
+369       t123         0.0148             0.9974         EXCL: NNVTMCPPMT_PMT_20inch_pmt_solid_head                                
+370        t44         0.0148             0.9975         EXCL: GLb2.up07_FlangeI_Web_FlangeII                                      
+371       t147         0.0148             0.9976         EXCL: uni1                                                                
+372        t10         0.0148             0.9978         EXCL: sPanelTape                                                          
+373        t75         0.0148             0.9979         EXCL: ZC2.A02_B02_FlangeI_Web_FlangeII                                    
+374         t9         0.0148             0.9982         EXCL: sBar                                                                
+375       t109         0.0148             0.9982         EXCL: HamamatsuR12860_PMT_20inch_inner_ring_solid                         
+376       t114         0.0148             0.9985         EXCL: HamamatsuR12860_PMT_20inch_pmt_solid_1_4                            
+377        t52         0.0148             0.9985         EXCL: GLb2.bt01_FlangeI_Web_FlangeII                                      
+378        t82         0.0148             0.9988         EXCL: ZC2.A04_B05_FlangeI_Web_FlangeII                                    
+379        t26         0.0148             0.9989         EXCL: GLw1.up02_up03_FlangeI_Web_FlangeII                                 
+380        t50         0.0148             0.9990         EXCL: GLb1.up01_FlangeI_Web_FlangeII                                      
+381        t20         0.0148             0.9991         EXCL: GLw1.up08_up09_FlangeI_Web_FlangeII                                 
+382         t7         0.0148             0.9992         EXCL: Upper_Chimney                                                       
+383        t15         0.0148             0.9992         EXCL: sExpHall                                                            
+384       t108         0.0148             0.9993         EXCL: HamamatsuR12860_PMT_20inch_inner_edge_solid                         
+385        t90         0.0149             0.9995         EXCL: solidSJCLSanchor                                                    
+386        t88         0.0149             0.9995         EXCL: ZC2.A03_A03_FlangeI_Web_FlangeII                                    
+387        t92         0.0149             0.9997         EXCL: solidSJReceiver                                                     
+388         t6         0.0149             0.9999         EXCL: Upper_Tyvek_tube                                                    
+389       t119         0.0149             0.9999         EXCL: NNVTMCPPMT_PMT_20inch_plate_solid                                   
+390          t         0.0149             1.0000         ALL                                                                       
+391       t127         0.0149             1.0001         EXCL: PMT_3inch_body_solid_ell_ell_helper                                 
+392        t21         0.0149             1.0004         EXCL: GLw1.up07_up08_FlangeI_Web_FlangeII                                 
+393       t140         0.0149             1.0006         EXCL: PMT_20inch_veto_pmt_solid_1_2                                       
+394        t96         0.0149             1.0009         EXCL: sStrut                                                              
+395       t125         0.0149             1.0009         EXCL: PMT_3inch_inner1_solid_ell_helper                                   
+396       t111         0.0149             1.0009         EXCL: HamamatsuR12860_PMT_20inch_grid_solid                               
+397       t121         0.0149             1.0015         EXCL: NNVTMCPPMT_PMT_20inch_mcp_solid                                     
+398         t4         0.0149             1.0016         EXCL: Upper_LS_tube                                                       
+399       t141         0.0149             1.0017         EXCL: mask_PMT_20inch_vetosMask_virtual                                   
+400       t118         0.0149             1.0021         EXCL: NNVTMCPPMT_PMT_20inch_edge_solid                                    
+401        t69         0.0149             1.0021         EXCL: GZ1.B01_02_FlangeI_Web_FlangeII                                     
+402        t18         0.0149             1.0022         EXCL: GLw1.up10_up11_FlangeI_Web_FlangeII                                 
+403        t34         0.0149             1.0022         EXCL: GLw1.bt05_bt06_FlangeI_Web_FlangeII                                 
+404       t106         0.0149             1.0023         EXCL: HamamatsuR12860_PMT_20inch_plate_solid                              
+405        t54         0.0149             1.0026         EXCL: GLb2.bt03_FlangeI_Web_FlangeII                                      
+406        t98         0.0149             1.0028         EXCL: sStrutBallhead                                                      
+407        t36         0.0149             1.0035         EXCL: GLw1.bt07_bt08_FlangeI_Web_FlangeII                                 
+408        t77         0.0149             1.0038         EXCL: ZC2.A04_B04_FlangeI_Web_FlangeII                                    
+409        t99         0.0149             1.0044         EXCL: uni1                                                                
+410        t61         0.0149             1.0045         EXCL: GLb3.bt10_FlangeI_Web_FlangeII                                      
+411        t14         0.0149             1.0046         EXCL: sAirTT                                                              
+412        t25         0.0149             1.0048         EXCL: GLw1.up03_up04_FlangeI_Web_FlangeII                                 
+413        t79         0.0149             1.0051         EXCL: ZC2.A06_B06_FlangeI_Web_FlangeII                                    
+414        t51         0.0149             1.0056         EXCL: GLb2.equ_FlangeI_Web_FlangeII                                       
+415        t24         0.0149             1.0060         EXCL: GLw1.up04_up05_FlangeI_Web_FlangeII                                 
+416        t56         0.0150             1.0063         EXCL: GLb1.bt05_FlangeI_Web_FlangeII                                      
+417        t41         0.0150             1.0076         EXCL: GLb4.up10_FlangeI_Web_FlangeII                                      
+418        t58         0.0150             1.0083         EXCL: GLb1.bt07_FlangeI_Web_FlangeII                                      
+419        t46         0.0150             1.0092         EXCL: GLb1.up05_FlangeI_Web_FlangeII                                      
+420        t45         0.0150             1.0094         EXCL: GLb2.up06_FlangeI_Web_FlangeII                                      
+421        t48         0.0150             1.0123         EXCL: GLb1.up03_FlangeI_Web_FlangeII                                      
+422        t87         0.0151             1.0133         EXCL: ZC2.B05_B05_FlangeI_Web_FlangeII                                    
+423       t102         0.0151             1.0138         EXCL: solidXJanchor                                                       
+424        t71         0.0151             1.0152         EXCL: GZ1.B03_04_FlangeI_Web_FlangeII                                     
+425        t40         0.0151             1.0155         EXCL: GLb3.up11_FlangeI_Web_FlangeII                                      
+426       t101         0.0151             1.0173         EXCL: uni_acrylic1                                                        
+427       t142         0.0153             1.0265         EXCL: sOuterWaterPool                                                     
+428       t130         0.0153             1.0271         EXCL: sChimneyAcrylic                                                     
+429        t73         0.0153             1.0297         EXCL: GZ1.B05_06_FlangeI_Web_FlangeII                                     
+430        t37         0.0153             1.0298         EXCL: GLw1.bt08_bt09_FlangeI_Web_FlangeII                                 
+431       t120         0.0153             1.0328         EXCL: NNVTMCPPMT_PMT_20inch_tube_solid                                    
+432        t39         0.0154             1.0340         EXCL: GLw1.bt10_bt11_FlangeI_Web_FlangeII                                 
+433        t28         0.0154             1.0382         EXCL: GLw2.equ_up01_FlangeI_Web_FlangeII                                  
+434        t17         0.0154             1.0389         EXCL: sTopRock                                                            
+435        t12         0.0155             1.0401         EXCL: sPlane                                                              
+436        t23         0.0155             1.0404         EXCL: GLw1.up05_up06_FlangeI_Web_FlangeII                                 
+437       t112         0.0155             1.0426         EXCL: HamamatsuR12860_PMT_20inch_shield_solid                             
+438       t107         0.0155             1.0427         EXCL: HamamatsuR12860_PMT_20inch_outer_edge_solid                         
+439        t31         0.0155             1.0429         EXCL: GLw3.bt02_bt03_FlangeI_Web_FlangeII                                 
+440        t89         0.0155             1.0436         EXCL: ZC2.A05_A05_FlangeI_Web_FlangeII                                    
+441       t145         0.0198             1.3315         EXCL: sWorld                                                              
+442        103         0.0255             1.7182         ONLY: solidXJfixture                                                      
+idx         -e        time(s)           relative         enabled geometry description                                              

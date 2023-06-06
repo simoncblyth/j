@@ -1,0 +1,44 @@
+idx         -e        time(s)           relative         enabled geometry description                                              
+  0         5,         0.0029             0.0029         ONLY: 1:sStrutBallhead                                                    
+  1         9,         0.0029             0.0029         ONLY: 130:sPanel                                                          
+  2         7,         0.0030             0.0030         ONLY: 1:base_steel                                                        
+  3         8,         0.0032             0.0032         ONLY: 1:uni_acrylic1                                                      
+  4         6,         0.0032             0.0032         ONLY: 1:uni1                                                              
+  5         1,         0.0035             0.0035         ONLY: 5:PMT_3inch_pmt_solid                                               
+  6         4,         0.0051             0.0051         ONLY: 6:mask_PMT_20inch_vetosMask_virtual                                 
+  7         2,         0.0076             0.0076         ONLY: 9:NNVTMCPPMTsMask_virtual                                           
+  8         3,         0.0079             0.0079         ONLY: 12:HamamatsuR12860sMask_virtual                                     
+  9       t0,2         0.0087             0.0087         EXCL: 3089:sWorld 9:NNVTMCPPMTsMask_virtual                               
+ 10       t0,3         0.0087             0.0087         EXCL: 3089:sWorld 12:HamamatsuR12860sMask_virtual                         
+ 11       t0,0         0.0094             0.0094         EXCL: 3089:sWorld 3089:sWorld                                             
+ 12       t0,5         0.0095             0.0095         EXCL: 3089:sWorld 1:sStrutBallhead                                        
+ 13       t0,8         0.0097             0.0097         EXCL: 3089:sWorld 1:uni_acrylic1                                          
+ 14       t8,0         0.0097             0.0097         EXCL: 1:uni_acrylic1 3089:sWorld                                          
+ 15       t0,4         0.0100             0.0100         EXCL: 3089:sWorld 6:mask_PMT_20inch_vetosMask_virtual                     
+ 16        t0,         0.0100             0.0100         EXCL: 3089:sWorld                                                         
+ 17       t0,1         0.0102             0.0102         EXCL: 3089:sWorld 5:PMT_3inch_pmt_solid                                   
+ 18       t0,7         0.0104             0.0104         EXCL: 3089:sWorld 1:base_steel                                            
+ 19       t0,9         0.0104             0.0104         EXCL: 3089:sWorld 130:sPanel                                              
+ 20       t0,6         0.0105             0.0105         EXCL: 3089:sWorld 1:uni1                                                  
+ 21    1,2,3,4         0.0109             0.0109         ONLY PMT                                                                  
+ 22       t8,3         0.0135             0.0135         EXCL: 1:uni_acrylic1 12:HamamatsuR12860sMask_virtual                      
+ 23       t8,4         0.0136             0.0136         EXCL: 1:uni_acrylic1 6:mask_PMT_20inch_vetosMask_virtual                  
+ 24       t8,1         0.0137             0.0137         EXCL: 1:uni_acrylic1 5:PMT_3inch_pmt_solid                                
+ 25         t0         0.0139             0.0139         ALL                                                                       
+ 26         0,         0.0141             0.0141         ONLY: 3089:sWorld                                                         
+ 27        t2,         0.0144             0.0144         EXCL: 9:NNVTMCPPMTsMask_virtual                                           
+ 28       t8,2         0.0144             0.0144         EXCL: 1:uni_acrylic1 9:NNVTMCPPMTsMask_virtual                            
+ 29        t1,         0.0145             0.0145         EXCL: 5:PMT_3inch_pmt_solid                                               
+ 30        t3,         0.0146             0.0146         EXCL: 12:HamamatsuR12860sMask_virtual                                     
+ 31        t4,         0.0147             0.0147         EXCL: 6:mask_PMT_20inch_vetosMask_virtual                                 
+ 32        t9,         0.0149             0.0149         EXCL: 130:sPanel                                                          
+ 33        t5,         0.0149             0.0149         EXCL: 1:sStrutBallhead                                                    
+ 34        t6,         0.0149             0.0149         EXCL: 1:uni1                                                              
+ 35       t8,6         0.0149             0.0149         EXCL: 1:uni_acrylic1 1:uni1                                               
+ 36       t8,5         0.0150             0.0150         EXCL: 1:uni_acrylic1 1:sStrutBallhead                                     
+ 37       t8,9         0.0150             0.0150         EXCL: 1:uni_acrylic1 130:sPanel                                           
+ 38       t8,7         0.0150             0.0150         EXCL: 1:uni_acrylic1 1:base_steel                                         
+ 39       t8,8         0.0150             0.0150         EXCL: 1:uni_acrylic1 1:uni_acrylic1                                       
+ 40        t7,         0.0151             0.0151         EXCL: 1:base_steel                                                        
+ 41        t8,         0.0154             0.0154         EXCL: 1:uni_acrylic1                                                      
+idx         -e        time(s)           relative         enabled geometry description                                              

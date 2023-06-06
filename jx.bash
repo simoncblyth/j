@@ -608,17 +608,31 @@ ntds_dbg()
    return 0
 }
 
+
+detect_cmake_build_type()
+{
+   : detect Debug or Release of last build by perl oneliner applied to build/CMakeCache.txt 
+   perl -ne 'm/CMAKE_BUILD_TYPE:STRING=(.*)/ && print $1' $JUNOTOP/junosw/build/CMakeCache.txt 
+}
+
 ntds2_cf()
 {
    : this function runs simulation with N:0 and N:1 geometries allowing comparison of histories
    : the logs are copied into event dir from TDS_LOG_COPYDIR setting by ntds
 
-   export EVTMAX=10
+   local evtmax=1
+   export EVTMAX=${EVTMAX:-$evtmax}
    export NODBG=1 
 
-   #local gpfx=V          # V:Debug builds of junosw+custom4  
-   local gpfx=R           # R:Release builds of junosw+custom4   
+   local btype=$(detect_cmake_build_type)
+   local gpfx=V          # V:Debug builds of junosw+custom4  
+   case $btype in 
+     Debug)   gpfx=V ;;    # V:Debug builds of junosw+custom4
+     Release) gpfx=R ;;    # R:Release builds of junosw+custom4
+   esac
+
    GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+   echo $BASH_SOURCE btype $btype gpfx $gpfx GPFX $GPFX
 
    N=0 GEOM=${GPFX}0J008 ntds2
    [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME ERROR N 0 && return 1
@@ -885,6 +899,16 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    case $VERSION in  ## passed into UsePMTNaturalGeometry
       0) opts="$opts --pmt-unnatural-geometry" ;; 
       1) opts="$opts --pmt-natural-geometry"   ;;
+   esac
+
+   case ${NOXJ:-0} in 
+      0) opts="$opts" ;; 
+      1) opts="$opts --debug-disable-xj" ;; 
+   esac
+
+   case ${NOSJ:-0} in 
+      0) opts="$opts" ;; 
+      1) opts="$opts --debug-disable-sj" ;; 
    esac
 
    opts="$opts --evtmax $evtmax"
