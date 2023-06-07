@@ -583,14 +583,14 @@ EOU
 
 
 
-ntds0(){ OPTICKS_MODE=0 ntds ; }  #0b00 Geant4 running with only minimal Opticks instrumentation 
-ntds2(){ OPTICKS_MODE=2 ntds ; }  #0b10 Geant4 only with Opticks U4Recorder instrumentation 
+ntds0(){ OPTICKS_INTEGRATION_MODE=0 ntds ; }  #0b00 Geant4 running with only minimal Opticks instrumentation 
+ntds2(){ OPTICKS_INTEGRATION_MODE=2 ntds ; }  #0b10 Geant4 only with Opticks U4Recorder instrumentation 
 
-ntds1(){ OPTICKS_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation 
-ntds3(){ OPTICKS_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
+ntds1(){ OPTICKS_INTEGRATION_MODE=1 ntds ; }  #0b01 Only Opticks GPU optical simulation 
+ntds3(){ OPTICKS_INTEGRATION_MODE=3 ntds ; }  #0b11 Both Geant4 and Opticks GPU optical simulation  
 
-ntds0_dbg(){ OPTICKS_MODE=0 ntds_dbg ; }
-ntds2_dbg(){ OPTICKS_MODE=2 ntds_dbg ; }
+ntds0_dbg(){ OPTICKS_INTEGRATION_MODE=0 ntds_dbg ; }
+ntds2_dbg(){ OPTICKS_INTEGRATION_MODE=2 ntds_dbg ; }
 
 ntds_dbg()
 {
@@ -675,20 +675,37 @@ ntds0_cf()
 }
 
 
+ntds_noxj()
+{
+   #local gpfx=R           # R:Release builds of junosw+custom4   
+   local gpfx=V          # V:Debug builds of junosw+custom4  
+   GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+
+   export EVTMAX=1
+
+   NOXJ=1 GEOM=${GPFX}1J009 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds
+
+   ## HMM: INPUT PHOTONS WILL NOT WORK IN OPTICKS MODE 0 HOW AND WHERE TO RAISE AN ERROR FOR THAT ?
+}
+
+ntds0_noxj(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxj ; }
+ntds2_noxj(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxj ; }
+
+
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-1}
-   local mode=${OPTICKS_MODE:-3}
+   local mode=${OPTICKS_INTEGRATION_MODE:-3}
 
    local ACTIVE_MODES="123" 
    if [ "${ACTIVE_MODES/$mode}" != "$ACTIVE_MODES" ]; then
         if [ -n "$OPTICKS_PREFIX" -a -d "$OPTICKS_PREFIX" ]; then 
-            echo $msg OPTICKS_MODE $OPTICKS_MODE is active and OPTICKS_PREFIX $OPTICKS_PREFIX is detected  
+            echo $msg OPTICKS_INTEGRATION_MODE $OPTICKS_INTEGRATION_MODE is active and OPTICKS_PREFIX $OPTICKS_PREFIX is detected  
         else
-            echo $msg OPTICKS_MODE $OPTICKS_MODE REQUIRES OPTICKS_PREFIX $OPTICKS_PREFIX : ABORT 
+            echo $msg OPTICKS_INTEGRATION_MODE $OPTICKS_INTEGRATION_MODE REQUIRES OPTICKS_PREFIX $OPTICKS_PREFIX : ABORT 
             return 1 
         fi 
    fi 
@@ -807,7 +824,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
        #ipho=GridXY_X700_Z230_10k_f8.npy 
        #ipho=GridXY_X1000_Z1000_40k_f8.npy
 
-       export OPTICKS_INPUT_PHOTON=$ipho
+       export OPTICKS_INPUT_PHOTON=${OPTICKS_INPUT_PHOTON:-$ipho}
 
        oipf=Hama:0:1000
        #oipf=Hama:0:0
@@ -842,7 +859,7 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    export TDS_LOG_COPYDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
 
    
-   vars="POM N VERSION LAYOUT TDS_LOG_COPYDIR"
+   vars="NOXJ NOSJ POM N VERSION LAYOUT TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
 
 
@@ -864,27 +881,28 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    ## NEED THE UNSETS : OR COULD USE A SCRIPT TO CALL THE BASH FUNCTION 
    ## SO START FROM FRESH ENV 
 
-   unset U4Recorder__FAKES_SKIP
-   unset U4Recorder__ClassifyFake_FindPV_r
-
+   #unset U4Recorder__FAKES_SKIP
+   #unset U4Recorder__ClassifyFake_FindPV_r
+   #
    #if [ "$VERSION" == "0" ]; then 
-   if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then    ## UNNECESSARILY SKIP FAKES IN B FOR FAIRNESS
-
-       if [ -n "$NOFAKESKIP" ]; then 
-           echo $BASH_SOURCE : NOFAKESKIP SWITCH : NOT ENABLING U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
-       else
-           export U4Recorder__FAKES_SKIP=1
-           export U4Recorder__ClassifyFake_FindPV_r=1 
-           ## FindPV_r is needed to make fake skipping work : but its slow
-
-           echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
-       fi 
-   fi 
+   #if [ "$VERSION" == "0" -o "$VERSION" == "1" ]; then    ## UNNECESSARILY SKIP FAKES IN B FOR FAIRNESS
+   #
+   #    if [ -n "$NOFAKESKIP" ]; then 
+   #        echo $BASH_SOURCE : NOFAKESKIP SWITCH : NOT ENABLING U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+   #    else
+   #        export U4Recorder__FAKES_SKIP=1
+   #        export U4Recorder__ClassifyFake_FindPV_r=1 
+   #        ## FindPV_r is needed to make fake skipping work : but its slow
+   #
+   #        echo $BASH_SOURCE : ENABLED U4Recorder__FAKES_SKIP : $U4Recorder__FAKES_SKIP 
+   #    fi 
+   #fi 
 
    local opts="" 
    opts="$opts --opticks-mode $mode"   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
+   opts="$opts --no-toptask-show"
 
    #case $LSM in   ## pass into UseLSOpticalModel : NOT YET EXPLORED
    #   0) opts="$opts --old-optical-model"  ;;
@@ -896,10 +914,11 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
       1) opts="$opts --pmt-optical-model"     ;;
    esac 
 
-   case $VERSION in  ## passed into UsePMTNaturalGeometry
-      0) opts="$opts --pmt-unnatural-geometry" ;; 
-      1) opts="$opts --pmt-natural-geometry"   ;;
-   esac
+   #case $VERSION in  ## passed into UsePMTNaturalGeometry
+   #   0) opts="$opts --pmt-unnatural-geometry" ;; 
+   #   1) opts="$opts --pmt-natural-geometry"   ;;
+   #esac
+   # no need to act on VERSION as now default 
 
    case ${NOXJ:-0} in 
       0) opts="$opts" ;; 
@@ -970,8 +989,8 @@ mtds_bp(){
 
 
 
-mtds0(){ OPTICKS_MODE=0 mtds ; }
-mtds2(){ OPTICKS_MODE=2 mtds ; }
+mtds0(){ OPTICKS_INTEGRATION_MODE=0 mtds ; }
+mtds2(){ OPTICKS_INTEGRATION_MODE=2 mtds ; }
 
 mtds()
 {
@@ -979,7 +998,7 @@ mtds()
    local args=$*     
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-1}
-   local mode=${OPTICKS_MODE:-3}
+   local mode=${OPTICKS_INTEGRATION_MODE:-3}
    local script=mtds$mode
    local base=/tmp/u4debug
    local tmpdir=$base/$script
