@@ -1,0 +1,9 @@
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t123_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t122_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t113_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t101_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t100_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t99_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t96_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t95_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg
+/tmp/blyth/opticks/GEOM/V1J009/CSGOptiXRenderTest/CVD1/70000/sWaterTube/scan-elv/cxr_view_emm_t0_elv_t94_eye_-1,-1,-1,1__zoom_1__tmin_0.4__sWaterTube.jpg

@@ -109,6 +109,37 @@ LSExpDetectorConstruction::setupCD_Sticks
     1431 }
 
 
+Improve GtOpticksTool failure notification
+---------------------------------------------
+
+::
+
+    GtOpticksTool::configure WITH_G4CXOPTICKS : ERROR : something is missing 
+     SEvt::Exists 0 SEvt::HasInputPhoton 0
+    SEvt::Brief
+    SEvt::Brief  SEvt::Exists N INSTANCE -
+    SEvt::DescInputPhoton-
+
+    GtOpticksTool::configure_FAIL_NOTES
+    =====================================
+
+    GtOpticksTool integrates Opticks input photon machinery 
+    with frame targetting into junosw. 
+
+    Getting this to work requires:
+
+    1. compilation WITH_G4CXOPTICKS
+    2. SEvt::Exists true, this typically requires 
+       an opticksNode greater than zero, configure with 
+       the tut_detsim.py option "--opticks-mode 1/2/3"  
+    3. OPTICKS_INPUT_PHOTONS envvar identifying an 
+       existing .npy file containing the photons
+
+
+    junotoptask:GenTools.initialize  INFO: configure tool "ok" failed
+    junotoptaskalgorithms.initialize ERROR: junotoptask:GenTools initialize failed
+
+
 
 
 Uncommitted addition of options --debug-disable-xj --debug-disable-sj --no-toptask-show

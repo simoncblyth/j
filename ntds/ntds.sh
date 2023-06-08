@@ -230,6 +230,8 @@ elif [ "$arg" == "grab_evt_info" ]; then
        echo rsync geom $geom base $base
    done
 elif [ "$arg" == "grab_geom" ]; then 
+
+   # replacing with "GEOM grab"
    for geom in $geoms ; do 
        base=.opticks/GEOM/$geom
        echo rsync geom $geom base $base
