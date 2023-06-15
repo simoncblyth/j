@@ -6,6 +6,7 @@ But getting there will be faster with more standalone tests
 like simtrace or things like the below initially.:
 
 
+
 DONE : sort out CSGOptiX API for minimal render/simtrace/simulate
 --------------------------------------------------------------------
 
@@ -23,6 +24,52 @@ While the code is minimal all these are using full CSGFoundry geometry::
     8 -rwxr-xr-x  1 blyth  staff  3659 Jun 13 13:56 cxr_min.sh
     epsilon:CSGOptiX blyth$ 
         
+
+
+
+
+
+DONE : rerun geom creation with additional SSim/jpmt RINDEX data
+-------------------------------------------------------------------
+
+::
+
+    ntds_noxj()
+    {
+       #local gpfx=R           # R:Release builds of junosw+custom4   
+       local gpfx=V          # V:Debug builds of junosw+custom4  
+       GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+
+       export EVTMAX=1
+
+       NOXJ=1 GEOM=${GPFX}1J009 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds 
+
+       ## HMM: INPUT PHOTONS WILL NOT WORK IN OPTICKS MODE 0 HOW AND WHERE TO RAISE AN ERROR FOR THAT ?
+    }
+
+    ntds0_noxj(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxj ; }
+    ntds2_noxj(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxj ; }
+
+
+DONE : grab geom with additional SSim/jpmt RINDEX data
+--------------------------------------------------------
+
+::
+
+    epsilon:junosw blyth$ t ntds2_noxj_getgeom
+    ntds2_noxj_getgeom () 
+    { 
+        source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-V1J009};
+        : j/jx.bash
+    }
+
+DONE : Check standalone PMT data access
+-----------------------------------------
+
+::
+
+    Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
+    Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
 
 
 Issue 1 : Getting all SR off the PMT : as expected : need to "Custom4" special case the surface name
@@ -52,7 +99,7 @@ Issue 1 : Getting all SR off the PMT : as expected : need to "Custom4" special c
 
 
 
-WIP : Convert FewPMT geometry from PMTSim into CSGFoundry 
+DONE : Convert FewPMT geometry from PMTSim into CSGFoundry 
 -------------------------------------------------------------
 
 For shakedown of Custom4 equivalent GPU side prefer using simpler FewPMT geometry. 
@@ -62,386 +109,12 @@ FewPMT running was done in u4 using PMTSim.
 But u4 does not depend on CSG so cannot convert there. 
 So get a G4CX test to do the PV to CSGFoundry conversion. 
 
-gxt::
 
-    G4CXOpticks_setGeometry_Test.sh 
-
-    001 /**
-      2 G4CXOpticks_setGeometry_Test.cc
-      3 =================================
-      4 
-      5 Action depends on envvars such as OpticksGDMLPath, see G4CXOpticks::setGeometry
-      6 
-      7 **/
-      8 
-      9 #include "OPTICKS_LOG.hh"
-     10 #include "G4CXOpticks.hh"
-     11 
-     12 int main(int argc, char** argv)
-     13 {
-     14     OPTICKS_LOG(argc, argv);
-     15     
-     16     G4CXOpticks::SetGeometry();
-     17     
-     18     return 0 ;
-     19 }   
+* :doc:`G4CXOpticks_setGeometry_Test_unexpected_GGeo_writing`
 
 
-
-    153 void G4CXOpticks::setGeometry()
-    ...
-    192     else if(SSys::hasenvvar("GEOM"))
-    193     {
-    194         LOG(LEVEL) << " GEOM/U4VolumeMaker::PV " ;
-    195         setGeometry( U4VolumeMaker::PV() );  // this may load GDML using U4VolumeMaker::PVG if "GEOM"_GDMLPath is defined   
-    196     }
-
-
-
-
-
-
-::
-
-    epsilon:tests blyth$ ./G4CXOpticks_setGeometry_Test.sh dbg
-    ./G4CXOpticks_setGeometry_Test.sh : GEOM FewPMT : sourcing geomscript /Users/blyth/opticks/g4cx/tests/../../u4/tests/FewPMT.sh
-    BASH_SOURCE                    : /Users/blyth/opticks/g4cx/tests/../../u4/tests/FewPMT.sh 
-    VERSION                        : 1 
-    version_desc                   : N=1 natural geometry : CustomBoundary 
-    POM                            : 1 
-    pom_desc                       : POM:1 allow photons into PMT which has innards 
-    GEOM                           : FewPMT 
-    FewPMT_GEOMList                : nnvtLogicalPMT 
-    LAYOUT                         : one_pmt 
-    G4CXOpticks=INFO
-    CSGFoundry=INFO
-    Dummy=INFO
-    GSurfaceLib=INFO
-    HEAD
-    TAIL -o run
-    /Applications/Xcode/Xcode_10_1.app/Contents/Developer/usr/bin/lldb -f G4CXOpticks_setGeometry_Test -o run --
-    (lldb) target create "/usr/local/opticks/lib/G4CXOpticks_setGeometry_Test"
-    Current executable set to '/usr/local/opticks/lib/G4CXOpticks_setGeometry_Test' (x86_64).
-    (lldb) run
-    SLOG::EnvLevel adjusting loglevel by envvar   key GSurfaceLib level INFO fallback DEBUG upper_level INFO
-    SLOG::EnvLevel adjusting loglevel by envvar   key CSGFoundry level INFO fallback DEBUG upper_level INFO
-    SLOG::EnvLevel adjusting loglevel by envvar   key G4CXOpticks level INFO fallback DEBUG upper_level INFO
-    2023-06-14 12:14:26.968 INFO  [14498525] [G4CXOpticks::init@116] CSGOptiX::Desc Version 6 PTXNAME CSGOptiX6 GEO_PTXNAME CSGOptiX6geo
-    G4CXOpticks::desc sim 0x10c85a050 tr 0x0 wd 0x0 gg 0x0 fd 0x0 cx N qs N
-    2023-06-14 12:14:26.969 INFO  [14498525] [G4CXOpticks::setGeometry@162]  argumentless 
-    2023-06-14 12:14:26.969 INFO  [14498525] [G4CXOpticks::setGeometry@201]  GEOM/U4VolumeMaker::PV 
-    U4VolumeMaker::PV name FewPMT
-    U4VolumeMaker::PVG_ name FewPMT gdmlpath - sub - exists 0
-    [ PMTSim::GetLV [nnvtLogicalPMT]
-    PMTSim::init                   yielded chars :  cout  24933 cerr      0 : set VERBOSE to see them 
-    PMTSim::getLV geom [nnvtLogicalPMT] mgr Y head [LogicalPMT]
-    Option RealSurface is enabled in Central Detector.  Reduce the m_pmt_h from 570 to 357.225
-     GetName() nnvt
-    NNVT_MCPPMT_PMTSolid::NNVT_MCPPMT_PMTSolid
-    G4Material::GetMaterial() WARNING: The material: PMT_Mirror does not exist in the table. Return NULL pointer.
-    Warning: setting PMT mirror reflectivity to 0.9999 because no PMT_Mirror material properties defined
-    [ ZSolid::ApplyZCutTree zcut    173.225 pmt_delta      0.001 body_delta     -4.999 inner_delta     -5.000 zcut+pmt_delta    173.226 zcut+body_delta    168.226 zcut+inner_delta    168.225
-    ] ZSolid::ApplyZCutTree zcut 173.225
-    Option RealSurface is enabed. Reduce the height of tube_hz from 60.000 to 21.112
-    ] PMTSim::GetLV [nnvtLogicalPMT] lv Y
-    2023-06-14 12:14:27.030 INFO  [14498525] [G4CXOpticks::setGeometry@242]  G4VPhysicalVolume world 0x10cd10100
-    2023-06-14 12:14:27.107 INFO  [14498525] [GSurfaceLib::GSurfaceLib@173] 
-    2023-06-14 12:14:27.207 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name ChimneyTyvekSurface pv1 pLowerChimneyAcrylic pv2 pLowerChimneyTyvek keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.209 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.209 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name nnvt_mcp_plate_opsurface pv1 nnvt_inner_phys pv2 nnvt_plate_phy keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.209 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.210 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name nnvt_mcp_edge_opsurface pv1 nnvt_inner_phys pv2 nnvt_edge_phy keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.210 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.210 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name nnvt_mcp_tube_opsurface pv1 nnvt_inner_phys pv2 nnvt_tube_phy keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.210 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.211 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name nnvt_mcp_opsurface pv1 nnvt_inner_phys pv2 nnvt_mcp_phy keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.211 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.212 INFO  [14498525] [GSurfaceLib::add@332]  GBorderSurface  name water_rock_bs pv1 Water_lv_pv pv2 Rock_lv_pv keys RINDEX REFLECTIVITY GROUPVEL has_EFFICIENCY 0
-    2023-06-14 12:14:27.212 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.212 INFO  [14498525] [GSurfaceLib::add@393]  GSkinSurface  name nnvt_photocathode_mirror_logsurf keys REFLECTIVITY has_EFFICIENCY 0
-    2023-06-14 12:14:27.213 INFO  [14498525] [*GSurfaceLib::createStandardSurface@475]  is_sensor 0
-    2023-06-14 12:14:27.216 INFO  [14498525] [GSurfaceLib::sort@642]  not sorting 
-    2023-06-14 12:14:27.217 INFO  [14498525] [*GSurfaceLib::createMeta@958] 
-    2023-06-14 12:14:27.217 INFO  [14498525] [GSurfaceLib::dumpSkinSurface@1486] dumpSkinSurface
-    2023-06-14 12:14:27.217 INFO  [14498525] [GSurfaceLib::dumpSkinSurface@1491]  SS    0 :         nnvt_photocathode_mirror_logsurf : nnvt_inner_log
-    2023-06-14 12:14:27.283 INFO  [14498525] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GGeo/GItemList
-    2023-06-14 12:14:27.309 INFO  [14498525] [BFile::preparePath@837] created directory /tmp/blyth/opticks/GGeo/GNodeLib
-    2023-06-14 12:14:27.313 INFO  [14498525] [GSurfaceLib::save@100] 
-    2023-06-14 12:14:27.321 INFO  [14498525] [G4CXOpticks::setGeometry@263] 
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]                      : -
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]                 HOME : /Users/blyth
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]                 USER : blyth
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]               SCRIPT : -
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]                  PWD : /Users/blyth/opticks/g4cx/tests
-    2023-06-14 12:14:27.322 INFO  [14498525] [CSGFoundry::setMeta@162]              CMDLINE : -
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setGeometry_@303] [ fd 0x10bf538e0
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setGeometry_@307]  Calling SEvt::Create 
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setGeometry_@325]  skip CSGOptiX::Create as NoGPU has been set 
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setGeometry_@332]  cx N qs N QSim::Get N
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setGeometry_@338] ] fd 0x10bf538e0
-    2023-06-14 12:14:27.344 INFO  [14498525] [CSGFoundry::getFrameE@3187]  ipf 0
-    2023-06-14 12:14:27.344 INFO  [14498525] [G4CXOpticks::setupFrame@373] sframe::desc inst 0 frs 0
-     ekvid sframe_OPTICKS_INPUT_PHOTON_FRAME_0 ek OPTICKS_INPUT_PHOTON_FRAME ev 0
-     ce  ( 0.000, 0.000, 0.000,373.333)  is_zero 0
-     m2w ( 1.000, 0.000, 0.000, 0.000) ( 0.000, 1.000, 0.000, 0.000) ( 0.000, 0.000, 1.000,   nan) ( 0.000, 0.000, 0.000,   nan) 
-     w2m ( 1.000,-0.000, 0.000, 0.000) (-0.000, 1.000,-0.000, 0.000) ( 0.000,-0.000, 1.000,   nan) (-0.000, 0.000,-0.000,   nan) 
-     midx    0 mord    0 iidx    0
-     inst    0
-     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
-     ins     0 gas     0 sensor_identifier       -1 sensor_index     -1
-     propagate_epsilon    0.05000 is_hostside_simtrace NO
-
-    Process 30296 exited with status = 0 (0x00000000) 
-
-    Process 30296 launched: '/usr/local/opticks/lib/G4CXOpticks_setGeometry_Test' (x86_64)
-    (lldb) 
-
-
-
-Surprise directory to write to::
-
-    epsilon:tests blyth$ l /tmp/blyth/opticks/GGeo/
-    total 16
-    8 -rw-r--r--   1 blyth  wheel  285 Jun 14 12:14 cachemeta.json
-    0 drwxr-xr-x  15 blyth  wheel  480 Jun 14 12:14 .
-    8 -rw-r--r--   1 blyth  wheel  222 Jun 14 12:14 runcomment.txt
-    0 drwxr-xr-x  14 blyth  wheel  448 Jun 14 12:14 stree
-    0 drwxr-xr-x   3 blyth  wheel   96 Jun 14 12:14 GBndLib
-    0 drwxr-xr-x   6 blyth  wheel  192 Jun 14 12:14 GItemList
-    0 drwxr-xr-x   3 blyth  wheel   96 Jun 14 12:14 GSourceLib
-    0 drwxr-xr-x   5 blyth  wheel  160 Jun 14 12:14 GSurfaceLib
-    0 drwxr-xr-x   4 blyth  wheel  128 Jun 14 12:14 GMaterialLib
-    0 drwxr-xr-x  11 blyth  wheel  352 Jun 14 12:14 GNodeLib
-    0 drwxr-xr-x  11 blyth  wheel  352 Jun 14 12:14 GMeshLib
-    0 drwxr-xr-x  10 blyth  wheel  320 Jun 14 12:14 GMeshLibNCSG
-    0 drwxr-xr-x   3 blyth  wheel   96 Jun 14 12:14 GPts
-    0 drwxr-xr-x   3 blyth  wheel   96 Jun 14 12:14 GMergedMesh
-
-
-
-Plant std::raise(SIGINT) to find where writing done::
-
-    (lldb) bt
-    * thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGINT
-      * frame #0: 0x00007fff77104b66 libsystem_kernel.dylib`__pthread_kill + 10
-        frame #1: 0x00007fff772cf080 libsystem_pthread.dylib`pthread_kill + 333
-        frame #2: 0x00007fff770126fe libsystem_c.dylib`raise + 26
-        frame #3: 0x000000010aa48da6 libBoostRap.dylib`BFile::preparePath(dir_="/tmp/blyth/opticks/GGeo/GPts/0", name="GPts.txt", create=true) at BFile.cc:836
-        frame #4: 0x000000010aa48993 libBoostRap.dylib`BFile::preparePath(dir_="/tmp/blyth/opticks/GGeo/GPts/0", reldir_=0x0000000000000000, name="GPts.txt", create=true) at BFile.cc:815
-        frame #5: 0x0000000106a9e388 libGGeo.dylib`GItemList::save(this=0x000000010cc48d10, idpath="/tmp/blyth/opticks/GGeo/GPts/0") at GItemList.cc:105
-        frame #6: 0x0000000106c28d70 libGGeo.dylib`GPts::save(this=0x000000010cc48d90, dir="/tmp/blyth/opticks/GGeo/GPts/0") at GPts.cc:76
-        frame #7: 0x0000000106c58e08 libGGeo.dylib`GGeoLib::saveConstituents(this=0x000000010ca38eb0, idpath="/tmp/blyth/opticks/GGeo") at GGeoLib.cc:329
-        frame #8: 0x0000000106c585a0 libGGeo.dylib`GGeoLib::save(this=0x000000010ca38eb0) at GGeoLib.cc:167
-        frame #9: 0x0000000106ccbdbc libGGeo.dylib`GGeo::save_(this=0x000000010ca365b0) at GGeo.cc:833
-        frame #10: 0x0000000106cc8b2a libGGeo.dylib`GGeo::save(this=0x000000010ca365b0) at GGeo.cc:821
-        frame #11: 0x0000000106cc7ca9 libGGeo.dylib`GGeo::postDirectTranslation(this=0x000000010ca365b0) at GGeo.cc:632
-        frame #12: 0x000000010080d6e1 libExtG4.dylib`X4Geo::Translate(top=0x000000010cd004e0) at X4Geo.cc:27
-        frame #13: 0x000000010018c7d8 libG4CX.dylib`G4CXOpticks::setGeometry(this=0x000000010c850a30, world=0x000000010cd004e0) at G4CXOpticks.cc:256
-        frame #14: 0x000000010018c3da libG4CX.dylib`G4CXOpticks::setGeometry(this=0x000000010c850a30) at G4CXOpticks.cc:202
-        frame #15: 0x000000010018b570 libG4CX.dylib`G4CXOpticks::SetGeometry() at G4CXOpticks.cc:59
-        frame #16: 0x000000010003efbf G4CXOpticks_setGeometry_Test`main(argc=1, argv=0x00007ffeefbfe598) at G4CXOpticks_setGeometry_Test.cc:17
-        frame #17: 0x00007fff76fb4015 libdyld.dylib`start + 1
-        frame #18: 0x00007fff76fb4015 libdyld.dylib`start + 1
-    (lldb) 
-
-
-
-    (lldb) f 7
-    frame #7: 0x0000000106c58e08 libGGeo.dylib`GGeoLib::saveConstituents(this=0x000000010ca38eb0, idpath="/tmp/blyth/opticks/GGeo") at GGeoLib.cc:329
-       326 	        {          
-       327 	           std::string ptsp_ = BFile::FormPath(idpath, GPTS, sidx );
-       328 	           const char* ptsp = ptsp_.c_str();
-    -> 329 	           pts->save(ptsp); 
-       330 	        }
-       331 	
-       332 	    }
-    (lldb) p idpath
-    (const char *) $0 = 0x000000010c815140 "/tmp/blyth/opticks/GGeo"
-    (lldb) f 8 
-    frame #8: 0x0000000106c585a0 libGGeo.dylib`GGeoLib::save(this=0x000000010ca38eb0) at GGeoLib.cc:167
-       164 	void GGeoLib::save()
-       165 	{
-       166 	    const char* idpath = m_ok->getIdPath() ;
-    -> 167 	    saveConstituents(idpath);
-       168 	}
-       169 	
-       170 	
-    (lldb) p idpath
-    (const char *) $1 = 0x000000010c815140 "/tmp/blyth/opticks/GGeo"
-    (lldb) 
-
-
-
-
-::
-
-     620 void GGeo::postDirectTranslation()
-     621 {
-     622     LOG(LEVEL) << "[" ;
-     623 
-     624     prepare();     // instances are formed here     
-     625 
-     626     LOG(LEVEL) << "( GBndLib::fillMaterialLineMap " ;
-     627     GBndLib* blib = getBndLib();
-     628     blib->fillMaterialLineMap();
-     629     LOG(LEVEL) << ") GBndLib::fillMaterialLineMap " ;
-     630 
-     631     LOG(LEVEL) << "( GGeo::save " ;
-     632     save();
-     633     LOG(LEVEL) << ") GGeo::save " ;
-     634 
-     635 
-     636     deferred();
-     637 
-     638     postDirectTranslationDump();
-     639 
-     640     LOG(LEVEL) << "]" ;
-     641 }
-
-
-Unexpected relative path save of CSGFoundry::
-
-    epsilon:tests blyth$ l 1
-    total 248
-      0 drwxr-xr-x  25 blyth  staff    800 Jun 14 12:58 ..
-      8 -rw-r--r--   1 blyth  staff    159 Jun 14 12:56 origin_gdxml_report.txt
-    120 -rw-r--r--   1 blyth  staff  57820 Jun 14 12:56 origin.gdml
-    120 -rw-r--r--   1 blyth  staff  57863 Jun 14 12:56 origin_raw.gdml
-      0 drwxr-xr-x   6 blyth  staff    192 Jun 14 12:56 .
-      0 drwxr-xr-x  13 blyth  staff    416 Jun 14 12:51 CSGFoundry
-    epsilon:tests blyth$ pwd
-    /Users/blyth/opticks/g4cx/tests
-    epsilon:tests blyth$ l 1/CSGFoundry/
-    total 80
-    8 -rw-r--r--   1 blyth  staff   192 Jun 14 12:56 inst.npy
-    8 -rw-r--r--   1 blyth  staff   832 Jun 14 12:56 itra.npy
-    8 -rw-r--r--   1 blyth  staff   832 Jun 14 12:56 tran.npy
-    8 -rw-r--r--   1 blyth  staff  1024 Jun 14 12:56 node.npy
-    8 -rw-r--r--   1 blyth  staff   640 Jun 14 12:56 prim.npy
-    8 -rw-r--r--   1 blyth  staff   176 Jun 14 12:56 solid.npy
-    8 -rw-r--r--   1 blyth  staff   147 Jun 14 12:56 meta.txt
-    8 -rw-r--r--   1 blyth  staff    13 Jun 14 12:56 mmlabel.txt
-    8 -rw-r--r--   1 blyth  staff   129 Jun 14 12:56 primname.txt
-    8 -rw-r--r--   1 blyth  staff   129 Jun 14 12:56 meshname.txt
-    0 drwxr-xr-x   6 blyth  staff   192 Jun 14 12:56 ..
-    0 drwxr-xr-x   8 blyth  staff   256 Jun 14 12:51 SSim
-    0 drwxr-xr-x  13 blyth  staff   416 Jun 14 12:51 .
-    epsilon:tests blyth$ pwd
-    /Users/blyth/opticks/g4cx/tests
-    epsilon:tests blyth$ 
-
-::
-
-    545 void G4CXOpticks::saveGeometry() const
-    546 {
-    547     // SGeo::DefaultDir() was giving null : due to static const depending on static const
-    548     const char* dir = SEventConfig::OutFold() ;
-    549     LOG(LEVEL)  << "dir [" << ( dir ? dir : "-" )  ;
-    550     saveGeometry(dir) ;
-    551 }
-
-::
-
-    epsilon:tests blyth$ SEventConfigTest  | grep OutFold
-             OPTICKS_OUT_FOLD            OutFold  : $DefaultOutputDir
-
-
-Hmm, probably the token being treated as envvar rather than internal token. 
-
-HUH, look like its resolving to "1"::
-
-    552 void G4CXOpticks::saveGeometry(const char* dir_) const
-    553 {
-    554     const char* dir = SPath::Resolve(dir_, DIRPATH);
-    555     LOG(LEVEL) << "[ " << ( dir ? dir : "-" ) ;
-    556     LOG(info)  << "[ " << ( dir ? dir : "-" ) ;
-    557     std::cout << "G4CXOpticks::saveGeometry [ " << ( dir ? dir : "-" ) << std::endl ;
-    558 
-
-    2023-06-14 12:56:46.909 INFO  [14565081] [G4CXOpticks::setGeometry_@298] [ G4CXOpticks__setGeometry_saveGeometry 
-    2023-06-14 12:56:46.909 INFO  [14565081] [G4CXOpticks::saveGeometry@555] [ 1
-    2023-06-14 12:56:46.909 INFO  [14565081] [G4CXOpticks::saveGeometry@556] [ 1
-    G4CXOpticks::saveGeometry [ 1
-
-Plot thickens its "1" before resolution. Thats pilot error need to set the 
-envvar to directory not a bool::
-
-    export G4CXOpticks__setGeometry_saveGeometry=~/.opticks/GEOM/$GEOM
-
- 
-
-
-The GGeo save directory is unrelated to this one.. add GGeo__save_SIGINT::
-
-    (lldb) bt
-    * thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGINT
-      * frame #0: 0x00007fff77104b66 libsystem_kernel.dylib`__pthread_kill + 10
-        frame #1: 0x00007fff772cf080 libsystem_pthread.dylib`pthread_kill + 333
-        frame #2: 0x00007fff770126fe libsystem_c.dylib`raise + 26
-        frame #3: 0x0000000106cc98e0 libGGeo.dylib`GGeo::save(this=0x000000010c99cec0) at GGeo.cc:821
-        frame #4: 0x0000000106cc88d9 libGGeo.dylib`GGeo::postDirectTranslation(this=0x000000010c99cec0) at GGeo.cc:632
-        frame #5: 0x000000010080d6e1 libExtG4.dylib`X4Geo::Translate(top=0x000000010c9744e0) at X4Geo.cc:27
-        frame #6: 0x000000010018c688 libG4CX.dylib`G4CXOpticks::setGeometry(this=0x000000010c957490, world=0x000000010c9744e0) at G4CXOpticks.cc:256
-        frame #7: 0x000000010018c28a libG4CX.dylib`G4CXOpticks::setGeometry(this=0x000000010c957490) at G4CXOpticks.cc:202
-        frame #8: 0x000000010018b420 libG4CX.dylib`G4CXOpticks::SetGeometry() at G4CXOpticks.cc:59
-        frame #9: 0x000000010003efbf G4CXOpticks_setGeometry_Test`main(argc=1, argv=0x00007ffeefbfe580) at G4CXOpticks_setGeometry_Test.cc:17
-        frame #10: 0x00007fff76fb4015 libdyld.dylib`start + 1
-    (lldb) 
-
-
-::
-
-    199     else if(SSys::hasenvvar("GEOM"))
-    200     {
-    201         LOG(LEVEL) << " GEOM/U4VolumeMaker::PV " ;
-    202         setGeometry( U4VolumeMaker::PV() );  // this may load GDML using U4VolumeMaker::PVG if "GEOM"_GDMLPath is defined   
-    203     }
-
-    240 void G4CXOpticks::setGeometry(const G4VPhysicalVolume* world )
-    241 {   
-    242     LOG(LEVEL) << " G4VPhysicalVolume world " << world ;
-    243     assert(world);
-    244     wd = world ;
-    245     
-    246     assert(sim && "sim instance should have been created in ctor" );
-    247     
-    248     stree* st = sim->get_tree(); 
-    249     // TODO: sim argument, not st : or do SSim::Create inside U4Tree::Create 
-    250     tr = U4Tree::Create(st, world, SensorIdentifier ) ;
-    251 
-    252     
-    253     // GGeo creation done when starting from a gdml or live G4,  still needs Opticks instance
-    254     Opticks::Configure("--gparts_transform_offset --allownokey" );
-    255     
-    256     GGeo* gg_ = X4Geo::Translate(wd) ;
-    257     setGeometry(gg_);
-    258 }
-
-
-    0620 void GGeo::postDirectTranslation()
-     621 {
-     622     LOG(LEVEL) << "[" ;
-     623 
-     624     prepare();     // instances are formed here     
-     625 
-     626     LOG(LEVEL) << "( GBndLib::fillMaterialLineMap " ;
-     627     GBndLib* blib = getBndLib();
-     628     blib->fillMaterialLineMap();
-     629     LOG(LEVEL) << ") GBndLib::fillMaterialLineMap " ;
-     630 
-     631     LOG(LEVEL) << "( GGeo::save " ;
-     632     save();
-     633     LOG(LEVEL) << ") GGeo::save " ;
-     634 
-     635 
-     636     deferred();
-     637 
-     638     postDirectTranslationDump();
-     639 
-     640     LOG(LEVEL) << "]" ;
-     641 }
-
-
+DONE : Fix undersized FewPMT box
+------------------------------------
 
 Suspect the Rock_solid, Water_solid box too small in Y::
 
@@ -470,9 +143,435 @@ HMM doing a XY simtrace at Z=0 would confirm. Probably the Y needs the aspect 1.
 
 Cycle on the conversion whilst dumping from U4VolumeMaker::
 
+    gxt
     ./G4CXOpticks_setGeometry_Test.sh
 
+FewPMT.sh boxscale use the aspect for both x and y::
 
+    epsilon:opticks blyth$ git diff
+    diff --git a/u4/tests/FewPMT.sh b/u4/tests/FewPMT.sh
+    index 43ca769f3..cb0f79605 100644
+    --- a/u4/tests/FewPMT.sh
+    +++ b/u4/tests/FewPMT.sh
+    @@ -111,7 +111,7 @@ if [ "$LAYOUT" == "one_pmt" ]; then
+     
+        export U4VolumeMaker_WrapRockWater_Rock_HALFSIDE=210
+        export U4VolumeMaker_WrapRockWater_Water_HALFSIDE=200
+    -   export U4VolumeMaker_WrapRockWater_BOXSCALE=$aspect,1,1
+    +   export U4VolumeMaker_WrapRockWater_BOXSCALE=$aspect,$aspect,1
+     
+     elif [ "$LAYOUT" == "two_pmt" ]; then 
+
+
+    N[blyth@localhost tests]$ grep box ~/.opticks/GEOM/FewPMT/origin.gdml
+        <box lunit="mm" name="Water_solid0x7eee30" x="711.11111111108" y="711.11111111108" z="400"/>
+        <box lunit="mm" name="Rock_solid0x7eeca0" x="746.666666666634" y="746.666666666634" z="420"/>
+
+
+
+
+DONE : cxr_min/cxt_min/cxs_min all working with the FewPMT geometry 
+---------------------------------------------------------------------
+
+WIP : Review CPU C4CustomART and work out how to do it standalone and then on GPU, QProp ?
+--------------------------------------------------------------------------------------------
+
+Relevant things
+
+* how to provision the C4CustomART calculation ?
+
+  * see PMTAccessor_test.sh : it does standalone calc from persisted jpmt 
+
+* how to represent special surfaces in CSGFoundry model ? optical enumeration ?
+* how to kick off the custom calulation in qsim.h qsim::propagate ?
+
+**hmm need to generalise qsim::propagate for special surfaces**
+
+qsim.h::
+
+    1461     if( command == BOUNDARY )
+    1462     {
+    1463         command = ctx.s.optical.x == 0 ?
+    1464                                       propagate_at_boundary( flag, rng, ctx )
+    1465                                   :
+    1466                                       propagate_at_surface( flag, rng, ctx )
+    1467                                   ; 
+    1468 
+    1469 
+    1470     }
+
+
+
+**CPU kickoff**
+
+c4/C4OpBoundaryProcess.cc::
+
+     502             //[OpticalSurface.mpt.CustomPrefix
+     503             if( OpticalSurfaceName0 == '@' || OpticalSurfaceName0 == '#' )  // only customize specially named OpticalSurfaces 
+     504             {
+     505                 if( m_custom_art->local_z(aTrack) < 0. ) // lower hemi : No customization, standard boundary  
+     506                 {
+     507                     m_custom_status = 'Z' ;
+     508                 }
+     509                 else if( OpticalSurfaceName0 == '@') //  upper hemi with name starting @ : MultiFilm ART transmit thru into PMT
+     510                 {
+     511                     m_custom_status = 'Y' ;
+     512 
+     513                     m_custom_art->doIt(aTrack, aStep) ;
+     514 
+
+
+c4/C4CustomART.h 
+
+* connector between c4/C4OpBoundaryProcess and the Stack calculation 
+
+::
+
+    251 inline void C4CustomART::doIt(const G4Track& aTrack, const G4Step& )
+    252 {
+    253     G4double minus_cos_theta = OldMomentum*theRecoveredNormal ;
+    254     G4double energy = thePhotonMomentum ;
+    255     G4double wavelength = CLHEP::twopi*CLHEP::hbarc/energy ;
+    256     G4double energy_eV = energy/CLHEP::eV ;
+    257     G4double wavelength_nm = wavelength/CLHEP::nm ;
+    258 
+    259     int pmtid = C4Touchable::VolumeIdentifier(&aTrack, true );
+
+    ///  THIS STILL THE OLD SLOW WAY : CAN DO IT MUCH FASTER   
+
+    260     int pmtcat = accessor->get_pmtcat( pmtid ) ;
+    261     double _qe = minus_cos_theta > 0. ? 0.0 : accessor->get_pmtid_qe( pmtid, energy ) ;
+    262     // following the old junoPMTOpticalModel with "backwards" _qe always zero 
+
+    ///  HMM: WOULD BE MORE GENERAL TO MAKE CHOICE OF BACKWARDS QE ZERO OR NOT INSIDE ACCESSOR ?
+
+    263 
+    264     std::array<double,16> a_spec ;
+    265     accessor->get_stackspec(a_spec, pmtcat, energy_eV );
+
+    /// providing layer thicknesses, complex refractive indices for that energy 
+
+    266     StackSpec<double,4> spec ;
+    267     spec.import( a_spec );
+
+    /// import just copying into different type, could be avoided 
+
+    268 
+    269     Stack<double,4> stack(wavelength_nm, minus_cos_theta, spec );
+    270 
+
+
+jcv DsPhysConsOptical::
+
+    367 #include "IPMTSimParamSvc/IPMTSimParamSvc.h"
+    368 #include "PMTSimParamSvc/PMTSimParamData.h"
+    369 #include "PMTSimParamSvc/PMTAccessor.h"
+    370 
+    371 C4OpBoundaryProcess* DsPhysConsOptical::CreateCustomG4OpBoundaryProcess()
+    372 {
+    373     SniperPtr<IPMTSimParamSvc> psps_ptr(*getParent(), "PMTSimParamSvc");
+    374 
+    375     if(psps_ptr.invalid()) 
+    376     {
+    377         std::cout << "invalid" << std::endl ;
+    378         return nullptr ; 
+    379     }   
+    380 
+    381     IPMTSimParamSvc* ipsps = psps_ptr.data();
+    382     PMTSimParamData* pspd = ipsps->getPMTSimParamData() ;
+    383 
+    384     C4IPMTAccessor* accessor = new PMTAccessor(pspd) ;
+    385     C4OpBoundaryProcess* boundproc = new C4OpBoundaryProcess(accessor) ;
+    386     std::cout << "DsPhysConsOptical::CreateCustomG4OpBoundaryProcess" << std::endl ;
+    387 
+    388     return boundproc ;
+    389 }   
+
+
+PMTAccessor
+-------------
+
+::
+
+    epsilon:PMTSimParamData blyth$ jcv PMTAccessor
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+
+
+
+
+DONE : Check PMTSimParamData is complete and can provide standalone StackSpec creation
+------------------------------------------------------------------------------------------
+
+DONE : cleaned up the test::
+
+   /Users/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
+
+
+Accessor is built on top of PMTSimParamData which should be persisted. Is it complete::
+
+    epsilon:jpmt blyth$ pwd
+    /Users/blyth/.opticks/GEOM/V1J009/CSGFoundry/SSim/jpmt
+    epsilon:jpmt blyth$ cd PMTSimParamData/
+    epsilon:PMTSimParamData blyth$ l
+    total 10992
+       0 drwxr-xr-x  17 blyth  staff      544 Jun  7 14:17 .
+       0 drwxr-xr-x   9 blyth  staff      288 Jun  7 14:17 CONST
+       0 drwxr-xr-x   8 blyth  staff      256 Jun  7 14:17 QEshape
+       0 drwxr-xr-x   6 blyth  staff      192 Jun  7 14:17 MPT
+       8 -rw-rw-r--   1 blyth  staff      116 Jun  7 14:17 NPFold_index.txt
+       8 -rw-rw-r--   1 blyth  staff      144 Jun  7 14:17 pmtTotal.npy
+       8 -rw-rw-r--   1 blyth  staff       48 Jun  7 14:17 pmtTotal_names.txt
+    3736 -rw-rw-r--   1 blyth  staff  1440992 Jun  7 14:17 lpmtData.npy
+       8 -rw-rw-r--   1 blyth  staff       26 Jun  7 14:17 spmtData_meta.txt
+     144 -rw-rw-r--   1 blyth  staff    70576 Jun  7 14:17 lpmtCat.npy
+       8 -rw-rw-r--   1 blyth  staff       21 Jun  7 14:17 lpmtCat_meta.txt
+     720 -rw-rw-r--   1 blyth  staff   365024 Jun  7 14:17 pmtCat.npy
+     360 -rw-rw-r--   1 blyth  staff   182576 Jun  7 14:17 pmtCatVec.npy
+    4912 -rw-rw-r--   1 blyth  staff  2048128 Jun  7 14:17 spmtData.npy
+       0 drwxr-xr-x   5 blyth  staff      160 Jun  7 14:17 ..
+     360 -rw-rw-r--   1 blyth  staff   182576 Jun  7 14:17 pmtID.npy
+     720 -rw-rw-r--   1 blyth  staff   365024 Jun  7 14:17 qeScale.npy
+
+    epsilon:PMTSimParamData blyth$ l ../PMTParamData/
+    total 688
+      0 drwxr-xr-x  4 blyth  staff     128 Jun  7 14:17 .
+      0 drwxr-xr-x  5 blyth  staff     160 Jun  7 14:17 ..
+      8 -rw-rw-r--  1 blyth  staff      11 Jun  7 14:17 NPFold_index.txt
+    680 -rw-rw-r--  1 blyth  staff  345824 Jun  7 14:17 pmtCat.npy
+    epsilon:PMTSimParamData blyth$ 
+
+    epsilon:SSim blyth$ cd jpmt/PMTSimParamData/MPT
+    epsilon:MPT blyth$ l
+    total 8
+    0 drwxr-xr-x  17 blyth  staff  544 Jun  7 14:17 ..
+    0 drwxr-xr-x   6 blyth  staff  192 Jun  7 14:17 .
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  7 14:17 001
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  7 14:17 003
+    0 drwxr-xr-x   7 blyth  staff  224 Jun  7 14:17 000
+    8 -rw-rw-r--   1 blyth  staff   12 Jun  7 14:17 NPFold_index.txt
+    epsilon:MPT blyth$ l 000/
+    total 40
+    0 drwxr-xr-x  6 blyth  staff  192 Jun  7 14:17 ..
+    0 drwxr-xr-x  7 blyth  staff  224 Jun  7 14:17 .
+    8 -rw-rw-r--  1 blyth  staff  160 Jun  7 14:17 ARC_KINDEX.npy
+    8 -rw-rw-r--  1 blyth  staff  352 Jun  7 14:17 ARC_RINDEX.npy
+    8 -rw-rw-r--  1 blyth  staff   60 Jun  7 14:17 NPFold_index.txt
+    8 -rw-rw-r--  1 blyth  staff  352 Jun  7 14:17 PHC_KINDEX.npy
+    8 -rw-rw-r--  1 blyth  staff  352 Jun  7 14:17 PHC_RINDEX.npy
+
+
+jcv _PMTSimParamData::
+
+    198 inline NPFold* _PMTSimParamData::serialize() const
+    199 {
+    200     NP* pmtID = NPX::ArrayFromVec<int, int>(data.m_all_pmtID) ;
+    201     NP* qeScale = NPX::ArrayFromVec<double,double>(data.m_all_pmtID_qe_scale) ;
+    202     NP* lpmtCat = NPX::ArrayFromMap<int, int>(data.m_map_pmt_category) ;
+    203     NP* pmtCat = NPX::ArrayFromDiscoMap<int>(data.m_all_pmt_category) ;
+    204     NP* pmtCatVec = NPX::ArrayFromVec<int, int>(data.m_all_pmt_catvec) ;
+    205 
+    206     NP* spmtData = NPX::ArrayFromMap<double, PmtSimData_SPMT>(data.pd_map_SPMT) ;
+    207     NP* lpmtData = NPX::ArrayFromVec<double, PmtSimData_LPMT>(data.pd_vector) ;
+    208     NP* pmtTotal = serialize_pmtTotal();
+    209 
+    210     NPFold* MPT = S4MaterialPropertyVector::Serialize_MIMSV(data.m_PMT_MPT);
+    211     NPFold* CONST = NPFold::Serialize_MIMSD(data.m_PMT_CONST);
+    212     NPFold* QEshape = serialize_QEshape() ;
+    213 
+
+
+Q: where do the 0,1,3 keys come from and why no 2?
+A: Those are PMTCategory enums with no entry for 2 kPMT_HZC
+
+
+jcv PMTCategory::
+
+     06 enum PMT_CATEGORY {
+      7   kPMT_Unknown=-1,
+      8   kPMT_NNVT,
+      9   kPMT_Hamamatsu,
+     10   kPMT_HZC,
+     11   kPMT_NNVT_HighQE
+     12 };
+     13 
+     14 
+     15 struct PMTCategory
+     16 {
+     17    static constexpr const char* Unknown     = "kPMT_Unknown" ;
+     18    static constexpr const char* NNVT        = "kPMT_NNVT" ;
+     19    static constexpr const char* Hamamatsu   = "kPMT_Hamamatsu" ;
+     20    static constexpr const char* HZC         = "kPMT_HZC" ;
+     21    static constexpr const char* NNVT_HighQE = "kPMT_NNVT_HighQE" ;
+
+
+        
+
+::
+
+    :set nowrap
+
+    epsilon:issues blyth$ jgr m_PMT_MPT
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:    std::map<int, std::map<std::string, G4MaterialPropertyVector*>>& MPT = data.m_PMT_MPT;
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:    NPFold* MPT = S4MaterialPropertyVector::Serialize_MIMSV(data.m_PMT_MPT); 
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:    S4MaterialPropertyVector::Import_MIMSV( data.m_PMT_MPT, MPT ); 
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:    ss << S4MaterialPropertyVector::Desc_MIMSV(data.m_PMT_MPT)   << std::endl ; 
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h:    std::map<int, std::map<std::string, G4MaterialPropertyVector*>> m_PMT_MPT;
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h:    return m_PMT_MPT.at(pmtcat).at(prop_name) ;
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTQty.h:            if(data.m_PMT_MPT.count(cat) == 0)           continue ; 
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTQty.h:            if(data.m_PMT_MPT.at(cat).count(qname) == 0) continue ; 
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTQty.h:            mpva[cat] = data.m_PMT_MPT.at(cat).at(qname) ;  
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.h:  std::map<int, std::map<std::string, G4MaterialPropertyVector*>>& m_PMT_MPT;
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    m_PMT_MPT(m_data.m_PMT_MPT),
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["ARC_RINDEX"], mcgt.data(), "PMTProperty.R12860.ARC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["ARC_KINDEX"], mcgt.data(), "PMTProperty.R12860.ARC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["PHC_RINDEX"], mcgt.data(), "PMTProperty.R12860.PHC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_Hamamatsu]["PHC_KINDEX"], mcgt.data(), "PMTProperty.R12860.PHC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT]["ARC_RINDEX"], mcgt.data(), "PMTProperty.NNVTMCP.ARC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT]["ARC_KINDEX"], mcgt.data(), "PMTProperty.NNVTMCP.ARC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT]["PHC_RINDEX"], mcgt.data(), "PMTProperty.NNVTMCP.PHC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT]["PHC_KINDEX"], mcgt.data(), "PMTProperty.NNVTMCP.PHC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT_HighQE]["ARC_RINDEX"], mcgt.data(), "PMTProperty.NNVTMCP_HiQE.ARC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT_HighQE]["ARC_KINDEX"], mcgt.data(), "PMTProperty.NNVTMCP_HiQE.ARC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT_HighQE]["PHC_RINDEX"], mcgt.data(), "PMTProperty.NNVTMCP_HiQE.PHC_RINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    helper_pmt_mpt(m_PMT_MPT[kPMT_NNVT_HighQE]["PHC_KINDEX"], mcgt.data(), "PMTProperty.NNVTMCP_HiQE.PHC_KINDEX");
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    auto iter1 = m_PMT_MPT.find(pmtcat);
+    ./Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:    assert(iter1 != m_PMT_MPT.end());
+    epsilon:junosw blyth$ 
+
+
+
+
+
+SSim/jpmt vs SSim/juno ? jpmt is the standard now 
+------------------------------------------------------
+
+:: 
+
+    epsilon:junosw blyth$ jgr SSim
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:#include "SSim.hh"
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:        SSim::Create();                    // done by G4CXOpticks::G4CXOpticks in opticksMode > 0
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:        SSim::AddSubfold("jpmt", jpmt );
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:        SSim::AddSubfold("jpmt", jpmt );  // needs to be before SaveGeometry 
+    Binary file ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/.PMTSimParamData_test.sh.swp matches
+    ./Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh:    base=$HOME/.opticks/GEOM/${GEOM:-J006}/CSGFoundry/SSim/juno/PMTSimParamData
+    ./Detector/Geometry/Geometry/tests/PMTParamData_test.sh:    base=$HOME/.opticks/GEOM/J005/CSGFoundry/SSim/juno/PMTParamData
+    epsilon:junosw blyth$ 
+
+
+::
+
+     16 void LSExpDetectorConstruction_Opticks::Setup(
+     17           int opticksMode,
+     18           const G4VPhysicalVolume* world,
+     19           const G4VSensitiveDetector* sd,
+     20           PMTParamData* ppd,
+     21           PMTSimParamData* psd,
+     22           NPFold* pmtscan
+     23           )
+     24 {   
+     25     bool opticksMode_valid = opticksMode > -1 && opticksMode <= 3 ;  
+     26     LOG_IF(fatal, !opticksMode_valid ) << " unexpected opticksMode " << opticksMode ;
+     27     assert( opticksMode_valid );
+     28     
+     29     NPFold* jpmt = SerializePMT(ppd, psd, pmtscan) ;
+     30     
+     31     LOG(info) << "[ WITH_G4CXOPTICKS opticksMode " << opticksMode << " sd " << sd  ;
+     32     if( opticksMode == 0 )
+     33     {   
+     34         SEvt::HighLevelCreateOrReuse();    // U4RecorderAnaMgr not active in opticksMode:0 
+     35         SSim::Create();                    // done by G4CXOpticks::G4CXOpticks in opticksMode > 0
+     36         SSim::AddSubfold("jpmt", jpmt );
+     37     }
+     38     else if( opticksMode == 1 || opticksMode == 3 || opticksMode == 2 )
+     39     {   
+     40         if(opticksMode == 2) G4CXOpticks::SetNoGPU() ;
+     41         G4CXOpticks::SetGeometry(world) ; 
+     42         SSim::AddSubfold("jpmt", jpmt );  // needs to be before SaveGeometry 
+     43         G4CXOpticks::SaveGeometry();
+     44     }
+     45     LOG(info) << "] WITH_G4CXOPTICKS " ;
+     46 }
+
+
+
+DONE : incorporate PyrexRINDEX VacuumRINDEX into SerializePMT
+--------------------------------------------------------------- 
+
+
+::
+
+     48 NPFold* LSExpDetectorConstruction_Opticks::SerializePMT(
+     49           PMTParamData* ppd,
+     50           PMTSimParamData* psd,
+     51           NPFold* pmtscan
+     52      )
+     53 {
+     54     _PMTParamData    _ppd(*ppd) ;
+     55     _PMTSimParamData _psd(*psd) ;
+     56 
+     57     NPFold* j = new NPFold ;
+     58     j->add_subfold( "PMTParamData",    _ppd.serialize() );
+     59     j->add_subfold( "PMTSimParamData", _psd.serialize() );
+     60     if(pmtscan) j->add_subfold( "PMTScan",  pmtscan );
+     61 
+     62     return j ;
+     63 }
+
+::
+
+    118 inline const PMTAccessor* PMTAccessor::Load(const char* base )
+    119 {   
+    120     const PMTSimParamData* data = LoadData(base) ;
+    121     assert( data ); 
+    122     return Create(data);
+    123 }
+    124 
+
+::
+
+      4 int main(int argc, char** argv)
+      5 {
+      6     const char* pathspec = "$HOME/.opticks/GEOM/$GEOM/CSGFoundry/SSim/jpmt/PMTSimParamData" ;
+      7     const PMTAccessor* pmt = PMTAccessor::Load(pathspec) ;
+      8     if( pmt == nullptr )
+
+
+Can PMTAccessor::Load from one directory up::
+
+    $HOME/.opticks/GEOM/$GEOM/CSGFoundry/SSim/jpmt
+
+Thence can include the RINDEX in another subfold. 
+
+
+TODO : commit persisted jpmt changes into another branch and MR
+-----------------------------------------------------------------------
+
+::
+
+    epsilon:issues blyth$ jo
+    /Users/blyth/junotop/junosw
+    On branch blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping
+    Your branch is up-to-date with 'origin/blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.cc
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+
+        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.cc
+        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    epsilon:junosw blyth$ 
 
 
 

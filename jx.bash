@@ -691,6 +691,9 @@ ntds_noxj()
 ntds0_noxj(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxj ; }
 ntds2_noxj(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxj ; }
 
+ntds2_noxj_getgeom(){ source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-V1J009} ; : j/jx.bash ; }  
+
+
 
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
