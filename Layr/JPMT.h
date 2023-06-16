@@ -10,6 +10,13 @@ that contain all the PMT param needed for TMM ART calculation.
 This is aiming to provide the input arrays for the CPU counterpart 
 of a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
 
+
+
+* TODO: work out the subset if JPMT.h current used from QPMTTest.cc
+* TODO : reimplement JPMT.h in different struct KPMT.h(?) operating from 
+  the full serialized PMT NPFold rather that the prop txt files
+
+
 Usage
 -------
 
@@ -63,9 +70,9 @@ if get rid of StackSpec ?   StackSpec is rather handy though.
 **/
 
 #include "NPFold.h"
-#include "PMTSimParamSvc/IPMTAccessor.h"
+#include "C4IPMTAccessor.h"
 
-struct JPMT : public IPMTAccessor
+struct JPMT : public C4IPMTAccessor
 {
     static JPMT* INSTANCE ; 
     static JPMT* Get(); 
@@ -182,7 +189,7 @@ inline int JPMT::FindCatAll( const char* name )  // static
 } 
 
 
-inline JPMT* JPMT::INSTANCE = nullptr ; 
+JPMT* JPMT::INSTANCE = nullptr ; 
 
 inline JPMT* JPMT::Get()  // static
 {
@@ -190,6 +197,26 @@ inline JPMT* JPMT::Get()  // static
     assert(INSTANCE) ; 
     return INSTANCE ; 
 }
+
+/**
+JPMT::JPMT based on NPFold::LoadProp low level access to property text files
+------------------------------------------------------------------------------
+
+::
+
+    epsilon:~ blyth$ echo $NP_PROP_BASE
+    /Users/blyth/junotop/data/Simulation/DetSim
+    epsilon:~ blyth$ l $NP_PROP_BASE/
+    total 0
+    0 drwxr-xr-x   5 blyth  staff   160 Oct 27  2022 ..
+    0 drwxr-xr-x   6 blyth  staff   192 Oct 27  2022 .
+    0 drwxr-xr-x   9 blyth  staff   288 Oct 27  2022 PMTProperty
+    0 drwxr-xr-x   3 blyth  staff    96 Oct 27  2022 PhysiSim
+    0 drwxr-xr-x  35 blyth  staff  1120 Oct 27  2022 Material
+    0 drwxr-xr-x   3 blyth  staff    96 Oct 27  2022 VoxelMethod
+
+
+**/
 
 inline JPMT::JPMT()
     :
@@ -273,6 +300,21 @@ inline void JPMT::init()
     init_mapcat(); 
 }
 
+
+/**
+JPMT::init_rindex_thickness
+-----------------------------
+
+1. collect NUM_PMTCAT*NUM_LAYER*NUM_PROP (3*4*2=24) arrays into v_rindex 
+2. collect NUM_PMTCAT*NUM_LAYER (3*4=12) thickness values into tt
+3. create rindex array with NP::Combine(v_rindex) that combines 2D property arrays 
+   of different item counts into a 3D array with the largest item plus one count 
+   as the mid dimension. The plus one is used to encode the size into the last column.   
+4. change rindex array shape into more intuitive (NUM_PMTCAT, NUM_LAYER, NUM_PROP, max-item-count+1, 2 )
+5. collect PMTCAT names into rindex and thickness array names 
+
+**/
+
 inline void JPMT::init_rindex_thickness()
 {
     assert( PMTProperty ); 
@@ -281,16 +323,16 @@ inline void JPMT::init_rindex_thickness()
     GetNamesLPMT(names); 
     assert( names.size() == NUM_PMTCAT ); 
 
-    for(int i=0 ; i < NUM_PMTCAT ; i++) 
+    for(int i=0 ; i < NUM_PMTCAT ; i++)   // NUM_PMTCAT:3
     {
         const char* name = names[i].c_str(); 
         NPFold* pmt = PMTProperty->get_subfold(name); 
         const NP* pmt_thickness = pmt->get("THICKNESS") ; 
         // p_thickness is funny named value property array 
 
-        for(int j=0 ; j < NUM_LAYER ; j++) 
+        for(int j=0 ; j < NUM_LAYER ; j++)   // NUM_LAYER:4 
         {
-            for(int k=0 ; k < NUM_PROP ; k++) 
+            for(int k=0 ; k < NUM_PROP ; k++)   // NUM_PROP:2 (RINDEX,KINDEX) 
             {
                 const NP* a = nullptr ; 
                 switch(j)
@@ -438,6 +480,16 @@ inline std::string JPMT::desc_mapcat() const
     std::string str = ss.str(); 
     return str ; 
 }
+
+/**
+JPMT::get_localcat
+--------------------
+
+HMM: given the small number of cats and smallness of the 
+data it would be simpler to live with gaps in the arrays 
+and just use 1+pmtcat_ directly avoiding mapcat ?
+
+**/
 
 inline int JPMT::get_localcat( int pmtcat_ ) const 
 {

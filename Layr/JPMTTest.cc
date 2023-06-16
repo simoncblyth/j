@@ -49,7 +49,7 @@ void test_JPMT()
 void test_JPMT_get_stackspec()
 {
     JPMT jpmt ; 
-    IPMTAccessor* ipmt = dynamic_cast<IPMTAccessor*>(&jpmt) ; 
+    C4IPMTAccessor* ipmt = dynamic_cast<C4IPMTAccessor*>(&jpmt) ; 
    
     std::cout << "test_JPMT_get_stackspec typename " << ipmt->get_typename() << std::endl ; 
 
@@ -67,8 +67,9 @@ int main(int argc, char** argv)
     /*
     test_FindCat20(); 
     test_JPMT(); 
-    */
     test_JPMT_get_stackspec(); 
+    */
+    test_JPMT(); 
 
     return 0 ; 
 }

@@ -7,6 +7,35 @@ like simtrace or things like the below initially.:
 
 
 
+Issue 1 : Getting all SR off the PMT : as expected : need to "Custom4" special case the surface name
+------------------------------------------------------------------------------------------------------
+
+::
+
+    epsilon:CSGOptiX blyth$ ./cxs_min.sh ana
+    CSGFoundry.CFBase returning [/Users/blyth/.opticks/GEOM/V1J009], note:[via GEOM] 
+    GLOBAL:0 MODE:3
+    INFO:opticks.ana.pvplt:SEvt.Load NEVT:0 
+    INFO:opticks.ana.fold:Fold.Load args ['/Users/blyth/.opticks/GEOM/V1J009/CSGOptiXSMTest/ALL/000'] quiet:1
+    INFO:opticks.ana.pvplt:init_ee with_photon_meta:0 with_ff:0
+    INFO:opticks.ana.pvplt:SEvt.__init__  symbol e pid -1 opt  off [0. 0. 0.] 
+    SEvt symbol e pid -1 opt  off [0. 0. 0.] e.f.base /Users/blyth/.opticks/GEOM/V1J009/CSGOptiXSMTest/ALL/000 
+    INFO:opticks.ana.pvplt:minimal_qtab : np.c_[nq,iq,uq][oq][:10] 
+    [[b'746' b'185' b'TO BT BT BT BT SA                                                                               ']
+     [b'734' b'1736' b'TO BT BT BT BT SR BT BT BT BT BT BT AB                                                          ']
+     [b'372' b'1666' b'TO BT BT BT BT SR BT BT BT BT AB                                                                ']
+     [b'227' b'2189' b'TO BT BT BT BT SR BT BT BT BT BT BT SC AB                                                       ']
+     [b'91' b'319' b'TO BT BT BT BT SR BR BR BR BR BR BR BR BT DR AB                                                 ']
+     [b'90' b'1641' b'TO BT BT BT BT SR BT BT BT BT BT AB                                                             ']
+     [b'86' b'2198' b'TO BT BT BT BT SR BT BT BT BT BT BT SC SC AB                                                    ']
+     [b'84' b'0' b'TO BT BT BR BR BR BR BT SA                                                                      ']
+     [b'80' b'26' b'TO BT BT AB                                                                                     ']
+     [b'69' b'349' b'TO BT BT BT BT SR BR BR BR BR BR BR BR BT SA                                                    ']]
+
+
+
+
+
 DONE : sort out CSGOptiX API for minimal render/simtrace/simulate
 --------------------------------------------------------------------
 
@@ -23,9 +52,6 @@ While the code is minimal all these are using full CSGFoundry geometry::
     8 -rwxr-xr-x  1 blyth  staff  2701 Jun 13 16:33 cxs_min.sh
     8 -rwxr-xr-x  1 blyth  staff  3659 Jun 13 13:56 cxr_min.sh
     epsilon:CSGOptiX blyth$ 
-        
-
-
 
 
 
@@ -70,33 +96,6 @@ DONE : Check standalone PMT data access
 
     Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
     Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
-
-
-Issue 1 : Getting all SR off the PMT : as expected : need to "Custom4" special case the surface name
-------------------------------------------------------------------------------------------------------
-
-::
-
-    epsilon:CSGOptiX blyth$ ./cxs_min.sh ana
-    CSGFoundry.CFBase returning [/Users/blyth/.opticks/GEOM/V1J009], note:[via GEOM] 
-    GLOBAL:0 MODE:3
-    INFO:opticks.ana.pvplt:SEvt.Load NEVT:0 
-    INFO:opticks.ana.fold:Fold.Load args ['/Users/blyth/.opticks/GEOM/V1J009/CSGOptiXSMTest/ALL/000'] quiet:1
-    INFO:opticks.ana.pvplt:init_ee with_photon_meta:0 with_ff:0
-    INFO:opticks.ana.pvplt:SEvt.__init__  symbol e pid -1 opt  off [0. 0. 0.] 
-    SEvt symbol e pid -1 opt  off [0. 0. 0.] e.f.base /Users/blyth/.opticks/GEOM/V1J009/CSGOptiXSMTest/ALL/000 
-    INFO:opticks.ana.pvplt:minimal_qtab : np.c_[nq,iq,uq][oq][:10] 
-    [[b'746' b'185' b'TO BT BT BT BT SA                                                                               ']
-     [b'734' b'1736' b'TO BT BT BT BT SR BT BT BT BT BT BT AB                                                          ']
-     [b'372' b'1666' b'TO BT BT BT BT SR BT BT BT BT AB                                                                ']
-     [b'227' b'2189' b'TO BT BT BT BT SR BT BT BT BT BT BT SC AB                                                       ']
-     [b'91' b'319' b'TO BT BT BT BT SR BR BR BR BR BR BR BR BT DR AB                                                 ']
-     [b'90' b'1641' b'TO BT BT BT BT SR BT BT BT BT BT AB                                                             ']
-     [b'86' b'2198' b'TO BT BT BT BT SR BT BT BT BT BT BT SC SC AB                                                    ']
-     [b'84' b'0' b'TO BT BT BR BR BR BR BT SA                                                                      ']
-     [b'80' b'26' b'TO BT BT AB                                                                                     ']
-     [b'69' b'349' b'TO BT BT BT BT SR BR BR BR BR BR BR BR BT SA                                                    ']]
-
 
 
 DONE : Convert FewPMT geometry from PMTSim into CSGFoundry 
@@ -173,19 +172,49 @@ FewPMT.sh boxscale use the aspect for both x and y::
 DONE : cxr_min/cxt_min/cxs_min all working with the FewPMT geometry 
 ---------------------------------------------------------------------
 
-WIP : Review CPU C4CustomART and work out how to do it standalone and then on GPU, QProp ?
+DONE : Review CPU C4CustomART and work out how to do it standalone and then on GPU
 --------------------------------------------------------------------------------------------
 
-Relevant things
 
-* how to provision the C4CustomART calculation ?
+WIP : provisioning the C4CustomART calculation ?
+-------------------------------------------------
 
-  * see PMTAccessor_test.sh : it does standalone calc from persisted jpmt 
+* see PMTSimParamData_test.sh 
+* see PMTAccessor_test.sh : it does standalone calc from persisted jpmt 
 
-* how to represent special surfaces in CSGFoundry model ? optical enumeration ?
-* how to kick off the custom calulation in qsim.h qsim::propagate ?
+* Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData.sh 
 
-**hmm need to generalise qsim::propagate for special surfaces**
+  * python load the persisted PMTSimParamData 
+
+* Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh 
+
+  * _PMTSimParamData::Load from "$HOME/.opticks/GEOM/$GEOM/CSGFoundry/SSim/jpmt/PMTSimParamData"
+  * test a few simple queries against the loaded PMTSimParamData 
+
+* Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
+
+  * PMTAccessor::Load from "$HOME/.opticks/GEOM/$GEOM/CSGFoundry/SSim/jpmt" 
+  * standalone CPU use of PMTAccessor to do the stack calc  
+
+* qudarap/tests/QPMTTest.sh 
+
+  * JPMT NP_PROP_BASE loading rindex and thickness
+  * on GPU interpolation check using QPMT
+  * TODO: extend this to do the full calculation based off the PMTAccessor NPFold data, not JPMT
+
+    * form a (17612,4) array (pmtcat,qescale,spare,pmtidx) 
+    * 1st reproduce the JPMT.rindex JPMT.thickness arrays frm PMTAccessor NPFold
+    * HMM: dont want to use junosw within opticks so start from NPFold ?
+
+
+
+
+
+TODO : generalise qsim::propagate for special surfaces
+---------------------------------------------------------
+
+* devise optical enumeration to handle boundary/ordinarySurface/specialSurface/...
+* use the enumeration in the translation to CSGFoundry
 
 qsim.h::
 
@@ -572,6 +601,96 @@ TODO : commit persisted jpmt changes into another branch and MR
 
     no changes added to commit (use "git add" and/or "git commit -a")
     epsilon:junosw blyth$ 
+
+
+
+
+What is missing with JPMT approach ?
+---------------------------------------
+
+See c4/C4CustomART::doIt getting pmtcat from pmtid and getting qe for (pmtid,energy)::
+
+    260     int pmtcat = accessor->get_pmtcat( pmtid ) ;
+    261     double _qe = minus_cos_theta > 0. ? 0.0 : accessor->get_pmtid_qe( pmtid, energy ) ;
+
+::
+
+    210 inline double PMTAccessor::get_pmtid_qe( int pmtid, double energy ) const
+    211 {   
+    212     return data->get_pmtid_qe(pmtid, energy) ;
+    213 }
+
+    134 inline int PMTSimParamData::get_pmtcat(int pmtid) const
+    135 {
+    136     int idx = get_pmtContiguousIndex(pmtid);
+    137     return m_all_pmt_catvec[idx];
+    138 }
+
+    177 inline double PMTSimParamData::get_pmtid_qe(int pmtid, double energy) const
+    178 {
+    179     int idx = get_pmtContiguousIndex(pmtid) ;
+    180     int cat = m_all_pmt_catvec[idx] ;
+    181     double qe = get_pmtcat_qe(cat, energy);   // interpolation on m_QEshape_.. MPV
+    182     double qe_scale = m_all_pmtID_qe_scale[idx] ;
+    183     qe *= qe_scale ;
+
+
+    184     assert(qe > 0 && qe < 1);
+    185     return qe ;
+    186 }
+
+
+    188 inline double PMTSimParamData::get_pmtcat_qe(int cat, double energy) const
+    189 {
+    190     G4MaterialPropertyVector* vec = get_pmtcat_qe_vs_energy(cat);
+    191     double qe = vec->Value(energy);
+    192     return qe;
+    193 }
+
+    245 inline G4MaterialPropertyVector* PMTSimParamData::get_pmtcat_qe_vs_energy(int pmtcat) const
+    246 {
+    247     G4MaterialPropertyVector * vec = 0 ;
+    248     switch(pmtcat)
+    249     {
+    250         case kPMT_Unknown:     vec = m_QEshape_WP_PMT    ; break ;
+    251         case kPMT_NNVT:        vec = m_QEshape_NNVT      ; break ;
+    252         case kPMT_Hamamatsu:   vec = m_QEshape_R12860    ; break ;
+    253         case kPMT_HZC:         vec = m_QEshape_HZC       ; break ;
+    254         case kPMT_NNVT_HighQE: vec = m_QEshape_NNVT_HiQE ; break ;
+    255     }
+
+   
+Whats missing is contiguous pmt index array with category and qe_scale.
+
+
+HMM : Skip WPMTs SPMTs from the arrays needed for QPMT ?
+----------------------------------------------------------
+
+Only pmtid from NNVT,NNVTHiQE,HAMA PMTs will be arriving into 
+QPMT because only those have the special "@/#" surface names prefix.  
+So can skip WPMTs and SPMTs. 
+
+HMM: that restriction means the pmtid is already contiguous so 
+can directly use it to lookup pmtCat and qeScale. 
+
+
+::
+
+    /Users/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData.py
+
+
+                                          t.pmtID.shape  : (45612, 1) 
+                                         t.pmtCat.shape  : (45612, 2) 
+                                      t.pmtCatVec.shape  : (45612, 1) 
+                                        t.qeScale.shape  : (45612, 1) 
+                                         t.lpmtCat.shape : (17612, 1) 
+                                        t.lpmtData.shape : (20012, 9) 
+
+                     np.all(t.pmtID[:,0]==t.pmtCat[:,0]) : True 
+                 np.all(t.pmtCatVec[:,0]==t.pmtCat[:,1]) : True 
+      np.all(t.pmtCat[:len(t.lpmtCat),1]==t.lpmtCat[:,0]) : True 
+
+      np.all(t.lpmtData[:len(t.lpmtCat),0].view(np.int64)==t.pmtID[:len(t.lpmtCat),0]) : True 
 
 
 
