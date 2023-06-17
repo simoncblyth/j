@@ -13,7 +13,6 @@ Usage::
 #include "Layr.h"    // needed for FOR StackSpec
 #include "JPMT.h"
 
-const char* FOLD = "/tmp/JPMTTest" ; 
 
 
 void test_FindCat20()
@@ -35,7 +34,7 @@ void test_JPMT()
 {
     JPMT jpmt ; 
     std::cout << jpmt.desc() << std::endl ; 
-    jpmt.save(FOLD); 
+    jpmt.save("$FOLD"); 
 
     int pmtcat = JPMT::HAMA ; 
     for(double wavelength_nm=400. ; wavelength_nm <= 800. ; wavelength_nm += 100. )

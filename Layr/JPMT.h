@@ -114,8 +114,7 @@ struct JPMT : public C4IPMTAccessor
 
     std::array<int, 5> mapcat ; 
     std::vector<const NP*> v_rindex ; 
-    std::vector<const NP*> v_thickness ; 
-    std::vector<const NP*> v_qe_shape ; 
+    std::vector<const NP*> v_qeshape ; 
 
     NP* rindex ;      // (num_pmtcat, num_layer, num_prop,  num_energies ~15 , num_payload:2 )    # payload is (energy, value)  
     NP* thickness ;   // (num_pmtcat, num_layer, num_payload:1 )
@@ -127,7 +126,7 @@ struct JPMT : public C4IPMTAccessor
 
     void init(); 
     void init_rindex_thickness(); 
-    void init_qe_shape(); 
+    void init_qeshape(); 
     void init_mapcat(); 
 
     std::string desc_mapcat() const ; 
@@ -156,8 +155,14 @@ struct JPMT : public C4IPMTAccessor
 
 inline void JPMT::GetNamesLPMT( std::vector<std::string>& names ) // static
 {
+/*
     names.push_back(_HAMA);  
     names.push_back(_NNVT);  
+    names.push_back(_NNVTQ);  
+*/
+    // reorder to same as PMTCategory enum numerical order
+    names.push_back(_NNVT);  
+    names.push_back(_HAMA);  
     names.push_back(_NNVTQ);  
 }
 inline void JPMT::GetNamesAll( std::vector<std::string>& names ) // static
@@ -296,7 +301,7 @@ for all PMT categories and stack layers into two arrays.::
 inline void JPMT::init()
 {
     init_rindex_thickness(); 
-    init_qe_shape(); 
+    init_qeshape(); 
     init_mapcat(); 
 }
 
@@ -368,7 +373,7 @@ inline void JPMT::init_rindex_thickness()
 }
 
 /**
-JPMT::init_qe_shape
+JPMT::init_qeshape
 ----------------------
 
 jcv IPMTParamSvc::
@@ -425,22 +430,32 @@ Added NP::LoadCategoryArrayFromTxtFile to load files like::
 
 **/
 
-inline void JPMT::init_qe_shape() // not currently used
+inline void JPMT::init_qeshape() // not currently used
 {
     assert( PMTProperty ); 
     std::vector<std::string> names ; 
-    GetNamesAll(names); 
+    //GetNamesAll(names); 
+    GetNamesLPMT(names); 
 
     for(int i=0 ; i < int(names.size()) ; i++) 
     {
         const char* name = names[i].c_str(); 
         NPFold* pmt = PMTProperty->get_subfold(name); 
         const NP* a = pmt->get("QE_shape") ; 
-        v_qe_shape.push_back(a) ; 
+        v_qeshape.push_back(a) ; 
     }
-    qe_shape = NP::Combine(v_qe_shape); 
-    qe_shape->set_names(names);  
+    qeshape = NP::Combine(v_qeshape); 
+    qeshape->set_names(names);  
 }
+
+/**
+JPMT::init_mapcat
+--------------------
+
+std::array<int, 5>
+
+**/
+
 
 inline void JPMT::init_mapcat()
 {

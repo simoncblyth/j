@@ -12,8 +12,13 @@ REALDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 name=${TEST:-JPMTTest}
 echo $BASH_SOURCE TEST $TEST name $name 
 
-mkdir -p /tmp/$name
-bin=/tmp/$name/$name 
+FOLD=/tmp/$name
+
+mkdir -p $FOLD
+bin=$FOLD/$name 
+
+export FOLD 
+
 
 defarg="build_run_ana"
 arg=${1:-$defarg}
