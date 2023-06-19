@@ -102,6 +102,11 @@ struct JPMT : public C4IPMTAccessor
     static constexpr int NUM_LAYER = 4 ; 
     static constexpr int NUM_PROP = 2 ; 
 
+    static constexpr const double EN0 = 1.55 ;
+    static constexpr const double EN1 = 4.20 ;  // 15.5 
+    static constexpr const int   NEN = 420 - 155 + 1 ;
+
+
     enum { HAMA, NNVT, NNVTQ }; 
     enum { L0, L1, L2, L3 } ; 
     enum { RINDEX, KINDEX } ; 
@@ -119,7 +124,7 @@ struct JPMT : public C4IPMTAccessor
     NP* rindex ;      // (num_pmtcat, num_layer, num_prop,  num_energies ~15 , num_payload:2 )    # payload is (energy, value)  
     NP* thickness ;   // (num_pmtcat, num_layer, num_payload:1 )
     double* tt ; 
-    NP* qe_shape ; 
+    NP* qeshape ; 
     NP* cat ; 
 
     JPMT(); 
@@ -129,8 +134,11 @@ struct JPMT : public C4IPMTAccessor
     void init_qeshape(); 
     void init_mapcat(); 
 
+    double get_energy(int j, int nj) const ;
+
     std::string desc_mapcat() const ; 
-    int get_localcat( int pmtcat_ ) const ; 
+    int get_localcat( int pmtcat_ ) const ;   // NOW DOES NO MAPPING 
+    int get_localcat_old( int pmtcat_ ) const ; 
 
     const char* get_pmtcat_name( int pmtcat ) const ; 
     double get_thickness_nm(int pmtcat, int layer) const  ; 
@@ -141,6 +149,9 @@ struct JPMT : public C4IPMTAccessor
     double get_qescale( int pmtid ) const ;   // placeholder returning zero 
     int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
+    NP*    get_stackspec() const ; 
+    NPFold* make_testfold() const ; 
+
     const char* get_typename() const ; 
     int get_num_lpmt() const ; 
 
@@ -231,7 +242,7 @@ inline JPMT::JPMT()
     rindex(nullptr),
     thickness(NP::Make<double>(NUM_PMTCAT, NUM_LAYER, 1)),
     tt(thickness->values<double>()),
-    qe_shape(nullptr),
+    qeshape(nullptr),
     cat(LoadPMTType(_PMTType_base, _PMTType_cats, _PMTType_names, _PMTType_catfield, ','))
 {
     INSTANCE = this ; 
@@ -496,9 +507,34 @@ inline std::string JPMT::desc_mapcat() const
     return str ; 
 }
 
+
+inline double JPMT::get_energy(int j, int nj) const
+{
+    double fr = double(j)/double(nj-1) ;
+    double en = EN0*(1.-fr) + EN1*fr ;
+    return en ;
+}
+
+
+
 /**
 JPMT::get_localcat
 --------------------
+
+Decided to deal directly in localcat 0,1,2 rather than diddle 
+
+**/
+
+inline int JPMT::get_localcat( int cat ) const 
+{
+    assert( cat == 0 || cat == 1 || cat == 2 );  
+    return cat ; 
+}
+
+
+/**
+JPMT::get_localcat_old
+------------------------
 
 HMM: given the small number of cats and smallness of the 
 data it would be simpler to live with gaps in the arrays 
@@ -506,13 +542,16 @@ and just use 1+pmtcat_ directly avoiding mapcat ?
 
 **/
 
-inline int JPMT::get_localcat( int pmtcat_ ) const 
+inline int JPMT::get_localcat_old( int pmtcat_ ) const 
 {
     assert( pmtcat_ >= -1 && pmtcat_ <= 3 ); 
     int localcat = mapcat[1+pmtcat_] ;   // need to offset as kPMT_Unknown=-1 (corres to WP)
     assert( localcat >= 0 && localcat <= 2 ); 
     return localcat ; 
 }
+
+
+
 
 /**
 JPMT::LoadPMTType
@@ -644,6 +683,37 @@ inline void JPMT::get_stackspec( std::array<double, 16>& ss, int pmtcat, double 
     ss[4*3+0] = get_rindex(       pmtcat, L3, RINDEX, energy_eV );
 }
 
+inline NP* JPMT::get_stackspec() const
+{
+    int ni = NUM_PMTCAT ; 
+    int nj = NEN ; 
+    int nk = 4 ; 
+    int nl = 4 ; 
+
+    NP* a = NP::Make<double>(ni, nj, nk, nl );
+    double* aa = a->values<double>();
+
+    std::array<double, 16> spec ; 
+ 
+    for(int i=0 ; i < ni ; i++)
+    for(int j=0 ; j < nj ; j++)
+    {
+       double en = get_energy(j, nj );
+       get_stackspec(spec, i, en );
+       int idx = i*nj*nk*nl + j*nk*nl ;
+       memcpy( aa+idx, spec.data(), nk*nl*sizeof(double) );
+    }
+    return a ;
+}
+
+inline NPFold* JPMT::make_testfold() const
+{
+    NPFold* f = new NPFold ;
+    f->add("get_stackspec", get_stackspec() ); 
+    return f ; 
+}
+
+
 inline const char* JPMT::get_typename() const 
 {
     return _TypeName ; 
@@ -656,7 +726,7 @@ inline void JPMT::save(const char* dir) const
     // HMM: JPMT directory ? 
     rindex->save(dir, "jpmt_rindex.npy"); 
     thickness->save(dir, "jpmt_thickness.npy"); 
-    qe_shape->save(dir, "jpmt_qe_shape.npy"); 
+    qeshape->save(dir, "jpmt_qeshape.npy"); 
     cat->save(dir, "cat.npy"); 
 }
 inline std::string JPMT::desc() const 

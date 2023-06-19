@@ -60,6 +60,12 @@ void test_JPMT_get_stackspec()
     std::cout << " aa " << aa ; 
 }
 
+void test_JPMT_make_testfold()
+{
+    JPMT jpmt ; 
+    NPFold* f = jpmt.make_testfold(); 
+    f->save("$FOLD/test" ); 
+}
 
 int main(int argc, char** argv)
 {
@@ -67,8 +73,9 @@ int main(int argc, char** argv)
     test_FindCat20(); 
     test_JPMT(); 
     test_JPMT_get_stackspec(); 
-    */
     test_JPMT(); 
+    */
+    test_JPMT_make_testfold(); 
 
     return 0 ; 
 }

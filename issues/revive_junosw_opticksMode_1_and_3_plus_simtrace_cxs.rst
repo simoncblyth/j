@@ -5,6 +5,12 @@ The goal is junosw opticksMode 1 and 3 initially with input photons.
 But getting there will be faster with more standalone tests 
 like simtrace or things like the below initially.:
 
+High Level Progress
+---------------------
+
+1. DONE : summarized the PMTSimParamData NPFold into a few arrays in SPMT.h 
+2. DONE : checked  SPMT.h by comparison with JPMT get_stackspec scans
+
 
 
 Issue 1 : Getting all SR off the PMT : as expected : need to "Custom4" special case the surface name
