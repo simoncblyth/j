@@ -10,6 +10,121 @@ High Level Progress
 
 1. DONE : summarized the PMTSimParamData NPFold into a few arrays in SPMT.h 
 2. DONE : checked  SPMT.h by comparison with JPMT get_stackspec scans
+3. DONE : revived j/Layr/LayrTest 
+3. TODO : updated version of LayrTest using QPMT with the full PMT info
+i
+
+
+E_s2 ?
+---------
+
+::
+
+     mom       nrm
+         +--s--+
+          \    |
+           \   | 
+     pol.   \  |  
+             \ | 
+              \|
+     ----------0-------
+
+     OldMomentum.cross(theRecoveredNormal) 
+         transverse direction, eg out the page 
+         (OldMomentum, theRecoveredNoraml are normalized, 
+         so magnitude will be sine of angle between mom and nrm) 
+
+     (OldPolarization*OldMomentum.cross(theRecoveredNormal)) 
+         dot product between the OldPolarization and transverse direction
+         is expressing the S polarization fraction
+         (OldPolarization is normalized so the magnitude will be 
+          cos(angle-between-pol-and-transverse)*sin(angle-between-mom-and-nrm)
+
+         * hmm pulling out "pol_dot_mom_cross_nrm" argument 
+           would provide some splitting 
+
+     mct is OldMomentum*theRecoveredNormal (both those are normalized)
+
+
+
+* dot product with a cross product is the determinant of the three vectors 
+
+
+::
+
+    271     const double _si = stack.ll[0].st.real() ;
+
+    /// mct = do
+    ///     this : sqrt(1.f - mct*mct )
+
+    272     double E_s2 = _si > 0. ? (OldPolarization*OldMomentum.cross(theRecoveredNormal))/_si : 0. ;
+    273     E_s2 *= E_s2;
+    274 
+    275     // E_s2 : S-vs-P power fraction : signs make no difference as squared
+    276     // E_s2 matches E1_perp*E1_perp see sysrap/tests/stmm_vs_sboundary_test.cc 
+
+
+
+      
+WIP : Bringing C4CustomART::doIt to GPU : Can the Stack ART API be encapsulated more ? 
+-----------------------------------------------------------------------------------------
+
+HMM looks rather S/P polarizartion entangled, difficult to pull off API::
+
+
+    259     int pmtid = C4Touchable::VolumeIdentifier(&aTrack, true );
+    260     int pmtcat = accessor->get_pmtcat( pmtid ) ;
+    263 
+    264     std::array<double,16> a_spec ;
+    265     accessor->get_stackspec(a_spec, pmtcat, energy_eV );
+    266     StackSpec<double,4> spec ;
+    267     spec.import( a_spec );
+    268 
+    269     Stack<double,4> stack(wavelength_nm, minus_cos_theta, spec );
+    270 
+    271     const double _si = stack.ll[0].st.real() ;
+    272     double E_s2 = _si > 0. ? (OldPolarization*OldMomentum.cross(theRecoveredNormal))/_si : 0. ;
+    273     E_s2 *= E_s2;
+
+    
+
+
+    274 
+    275     // E_s2 : S-vs-P power fraction : signs make no difference as squared
+    276     // E_s2 matches E1_perp*E1_perp see sysrap/tests/stmm_vs_sboundary_test.cc 
+    277 
+    278     double one = 1.0 ;
+    279     double S = E_s2 ;
+    280     double P = one - S ;
+    281 
+    282     double T = S*stack.art.T_s + P*stack.art.T_p ;  // matched with TransCoeff see sysrap/tests/stmm_vs_sboundary_test.cc
+    283     double R = S*stack.art.R_s + P*stack.art.R_p ;
+    284     double A = S*stack.art.A_s + P*stack.art.A_p ;
+    285     //double A1 = one - (T+R);  // note that A1 matches A 
+    286 
+    287     theAbsorption = A ;
+    288     theReflectivity  = R/(1.-A) ;
+    289     theTransmittance = T/(1.-A)  ;
+    290 
+
+
+Because the stackNormal has no S/P worries, getting theEfficiency could be split off more easily::
+
+    261     double _qe = minus_cos_theta > 0. ? 0.0 : accessor->get_pmtid_qe( pmtid, energy ) ;
+
+    291     // stackNormal is not flipped (as minus_cos_theta is fixed at -1.) presumably this is due to _qe definition
+    292     Stack<double,4> stackNormal(wavelength_nm, -1. , spec );
+    293 
+    294     // at normal incidence S/P distinction is meaningless, and the values converge anyhow : so no polarization worries here
+    295     //double An = stackNormal.art.A ; 
+    296     double An = one - (stackNormal.art.T + stackNormal.art.R) ;
+    297     double escape_fac = _qe/An;
+    298     theEfficiency = escape_fac ;
+    299 
+
+
+
+
 
 
 

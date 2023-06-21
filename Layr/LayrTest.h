@@ -36,12 +36,13 @@ to be used on both device and host and copied between them
 template<typename T, int N>
 struct LayrTestData    // LayrScanData  better name ?
 {
-    int      ni ;     // number of items : currently angles 
+    int      ni ;     // number of items 
     T        wl ;     // hmm could vary wl, by making this an array 
-    T*       mct ;    // minus_cos_theta from -1 to 1, > 0 is backwards stack
-    ART_<T>* arts ; 
-    Layr<T>* comps ;  
-    Layr<T>* lls ; 
+
+    T*       mct ;    // ni : minus_cos_theta from -1 to 1, > 0 is backwards stack
+    ART_<T>* arts ;   // ni : ART_ results
+    Layr<T>* comps ;  // ni : composite layers
+    Layr<T>* lls ;    // ni*N : individual layers 
 };
 
 
@@ -58,10 +59,9 @@ LayrTest
 template<typename T, int N>
 struct LayrTest
 {
-
-    LayrTestData<T,N> h ;      
-    LayrTestData<T,N> d ;      
-    LayrTestData<T,N>* d_ptr ; 
+    LayrTestData<T,N> h ;   // host instance
+    LayrTestData<T,N> d ;   // hostside device instance, to enable pre-init      
+    LayrTestData<T,N>* d_ptr ; // pointer to deviceside instance
 
     bool             gpu ; 
     const char*      base ; 
@@ -72,6 +72,7 @@ struct LayrTest
 #else
     static const char* Base(); 
     LayrTest(int ni=90, T wl=0, const char* label=nullptr );
+    void init_h(int ni, T wl); 
 
 #ifdef WITH_THRUST
     void upload(); 
@@ -112,9 +113,24 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     label(label_ ? strdup(label_) : nullptr),
     half(U::GetEnvInt("LAYRTEST_HALF",0) == 1)
 {
+    init_h(ni, wl); 
+}
+
+/**
+LayrTest::init_h
+-----------------
+
+Hostside allocate, populate mct with minus_cos_theta values for AOI scan.  
+
+**/
+
+template<typename T, int N>
+inline void LayrTest<T,N>::init_h(int ni, T wl)
+{
     assert( sizeof(T) == 4 || sizeof(T) == 8 ); 
     h.ni = ni ; 
     h.wl = wl > 0. ? wl : U::GetE<double>("WL", 500.) ; 
+
     h.mct = new T[ni] ; 
     h.arts  = new ART_<T>[ni] ; 
     h.comps = new Layr<T>[ni] ; 
@@ -130,6 +146,16 @@ inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
         h.mct[i] = -cos(theta) ;  
     }
 }
+
+/**
+LayrTest::upload
+-----------------
+
+1. copy values from h to d LayrTestData instances
+2. allocate LayrTestData memory on device, collecting pointers  
+3. upload the d instance with pre-initialized pointers to device 
+
+**/
 
 #ifdef WITH_THRUST
 template<typename T, int N>
@@ -149,6 +175,14 @@ inline void LayrTest<T,N>::upload()   // prepare device side arrays
 
     d_ptr = (LayrTestData<T,N>*)SU::upload_array_sizeof((char*)&d, 1, sizeof(LayrTestData<T,N>) );  
 }
+
+/**
+LayrTest::download
+--------------------
+
+Copy the LayrTestData components from device to hostside instance. 
+
+**/
 
 template<typename T, int N>
 inline void LayrTest<T,N>::download() // d->h : copy device side arrays down into host side 

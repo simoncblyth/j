@@ -1,16 +1,13 @@
 /**
-LayrTest.cc
-=============
+LayrTest.cc : based on JPMT.h and Layr.h 
+===========================================
 
-DONE: integrated with JPMT.h so can make realistic plots 
+JPMT.h with its partial PMT info is now superceeded 
+by SPMT.h with the full PMT info from PMTSimParamData/NPFold
 
 Currently gpu scanning is populating the StackSpec on CPU 
 using NP interpolation and then that gets passed by value 
 into the kernel launch. 
-
-TODO: getting JPMT.h info accessible on GPU
-
-* qudarap/QPMT.hh/qpmt.h  has done most of this : needs integrating 
 
 **/
 
@@ -23,8 +20,8 @@ void test_scan_(const JPMT& jpmt, int wavelength, int pmtcat)
 {
     T wavelength_nm = wavelength ; 
 
-    const char* pmtcat_label = jpmt.get_pmtcat(pmtcat) ; 
-    std::cout << " pmtcat " << pmtcat << " pmtcat_label " << pmtcat_label << std::endl ;  
+    const char* pmtcat_name = jpmt.get_pmtcat_name(pmtcat) ; 
+    std::cout << " pmtcat " << pmtcat << " pmtcat_name " << pmtcat_name << std::endl ;  
 
     StackSpec<T,N> spec = jpmt.get<T,N>(pmtcat, wavelength_nm ) ; 
 
@@ -32,12 +29,12 @@ void test_scan_(const JPMT& jpmt, int wavelength, int pmtcat)
 
     int ni = 900 ; 
 
-    LayrTest<T,N> t0(ni, wavelength_nm, pmtcat_label) ; 
+    LayrTest<T,N> t0(ni, wavelength_nm, pmtcat_name) ; 
     t0.scan_cpu(spec) ;
 
 #ifdef WITH_THRUST
     std::cout << " WITH_THRUST " << std::endl ; 
-    LayrTest<T,N> t1(ni, wavelength_nm, pmtcat_label ) ; 
+    LayrTest<T,N> t1(ni, wavelength_nm, pmtcat_name ) ; 
     t1.scan_gpu(spec) ;
 #else
     std::cout << " not-WITH_THRUST skip gpu scan " << std::endl ; 
@@ -66,7 +63,7 @@ void test_scans()
     switch(mode)
     {
         case 4: test_scan<4>( jpmt, wl, pmtcat );  break ; 
-        case 2: test_scan<2>( jpmt, wl, pmtcat );  break ; 
+        //case 2: test_scan<2>( jpmt, wl, pmtcat );  break ;   // missing symbol link errors WITH_THRUST
     }
 }
 
@@ -107,20 +104,17 @@ void test_StackSpec_is_equal()
     std::cout << " is_equal " << eq << std::endl ; 
 
     std::cout << ss0.desc_compare(ss1) << std::endl ; 
-
 }
-
-
-
 
 
 int main(int argc, char** argv)
 {
     /*
-    test_scans()
+    test_scans(); 
     test_StackSpec_serialize(); 
-    */
     test_StackSpec_is_equal(); 
+    */
+    test_scans(); 
 
     return 0 ; 
 }

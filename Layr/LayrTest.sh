@@ -11,6 +11,8 @@ by the NP.hh header is needed in both cases
    LAYRTEST_INCL=ARTQspx ./LayrTest.sh ana
 
 
+HMM : it seems out of proportion that need to wheel in the SysRap lib 
+just for SU.cc functionality ... TODO: header only su.h ? 
 
 EOU
 }
@@ -21,9 +23,11 @@ defarg=build_run_ana
 arg=${1:-$defarg}
 
 opt="-std=c++11 -I. -I/usr/local/cuda/include -I$OPTICKS_PREFIX/include/SysRap"
+c4opt="-I$HOME/customgeant4"
+
 linkflags="-lstdc++"
 
-#WITH_THRUST=1  # comment for CPU only test
+WITH_THRUST=1     # comment for CPU only test
 WITH_STACKSPEC=1
 
 if [ -n "$WITH_THRUST" ]; then 
@@ -53,8 +57,8 @@ pmtcat=R12860
 #pmtcat=NNVTMCP_HiQE
 #pmtcat=EGet
 
-#mode=4  # 4 layer : ordinary stack of 4 
-mode=2   # 2 layer : unusual check of 2 layer, picking first and last of the 4 
+mode=4  # 4 layer : ordinary stack of 4 
+#mode=2   # 2 layer : unusual check of 2 layer, picking first and last of the 4 
 
 #excl=0.05
 excl=0
@@ -75,13 +79,13 @@ if [ "${arg/build}" != "$arg" ]; then
     mkdir -p $fold
     if [ "${opt/WITH_THRUST}" != "$opt" ]; then
 
-        cmds=( "gcc  -c $name.cc $opt -o $fold/$name.o"
+        cmds=( "gcc  -c $name.cc $opt $c4opt -o $fold/$name.o"
                "nvcc -c $name.cu $opt -o $fold/${name}_cu.o"
                "nvcc -o $fold/$name $linkflags $fold/$name.o $fold/${name}_cu.o " 
                "rm $fold/$name.o $fold/${name}_cu.o "
             )
     else
-        cmds=( "gcc   $name.cc $opt $linkflags -o  $fold/$name" )
+        cmds=( "gcc   $name.cc $opt $c4opt $linkflags -o  $fold/$name" )
     fi 
 
     for cmd in "${cmds[@]}"; do

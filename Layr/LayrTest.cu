@@ -5,8 +5,19 @@
 
 #define LAYRTEST_API  __attribute__ ((visibility ("default")))
 
+/**
+Stack_computeART_gpu
+---------------------
 
-// NB spec is passed by value (passing by reference with kernel calls causes crash)
+Parallelism is over the mct minus_cos_theta "AOI" value. 
+
+NB the StackSpec spec is passed by value, kernel call pass-by-reference crashes. 
+
+Note that passing the StackSpec for every ART calc is not a realistic
+way of doing things. Need to get the StackSpec GPU side. This is done 
+already with qudarap/qpmt.h 
+
+**/
 template<typename T, int N>
 __global__ void Stack_computeART_gpu(LayrTestData<T,N>* ltd, const StackSpec<T,N> spec )
 { 

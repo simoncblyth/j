@@ -15,7 +15,7 @@ Plot is too busy with everything visible. Use incl to restrict what is included:
     Out[6]: ARTPlot(q,incl="Axsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
 Notice the very large difference between S and P polarizations.
-Its crucial get that use the values appropriate for the photon polatization.  
+Its crucial that use the values appropriate for the photon polatization.  
 
 """
 import os, builtins, numpy as np
@@ -48,11 +48,11 @@ class LayrTest(object):
     def __init__(self, f):
         self.f = f  
         if not f is None:
-            title = f.arts_meta.d.get("title","-") 
-            brief = f.arts_meta.d.get("brief","-") 
-            name = f.arts_meta.d.get("name","-") 
+            title = f.arts_meta.d.get("title",["-"])[0] 
+            brief = f.arts_meta.d.get("brief",["-"])[0] 
+            name = f.arts_meta.d.get("name",["-"])[0] 
             tag = self.Tag(name)
-            label = f.arts_meta.d.get("label","-") 
+            label = f.arts_meta.d.get("label",["-"])[0] 
             symbol = f.symbol
 
             if not getattr(f, "lls", None) is None:
@@ -454,7 +454,7 @@ class MARTPlot(object):
 if __name__ == '__main__':
     ts = LayrTestSet()  
     print(repr(ts))
-    print(repr(CF(a,b)))
+    print(repr(CF(a,b))) # LayrTestSet instanciation populates scope with a,b,c,...
 
     pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
     excl = float(os.environ.get("LAYRTEST_EXCL", "0.05"))

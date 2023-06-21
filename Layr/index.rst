@@ -53,13 +53,26 @@ Layr.rst
    notes and references for Layr.h 
 
 LayrTest.cc
-LayrTest.cu
+   gets StackSpec from JPMT.h and uses LayrTest to 
+   do cpu scans, and when WITH_THRUST enabled also GPU scans 
+
 LayrTest.h
+
+   * LayrTestData struct acts as primary host device communication conduit
+   * hostside upload/download/scan mechanics  
+ 
+LayrTest.cu
+
+   * LayrTest_launch, Stack_computeART_gpu NB passing StackSpec by value in kernel call 
+
 LayrTest.py
+   ARTPlot etc..  
+
 LayrTest.sh
-   aoi scans 
+   aoi scans, WITH_THRUST/without for GPU/CPU test 
    
-   HMM: how did I make the original POM scan ?
+
+
 
 LayrMinimal.cc
 LayrMinimal.sh

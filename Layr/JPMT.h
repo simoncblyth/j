@@ -112,7 +112,9 @@ struct JPMT : public C4IPMTAccessor
     static constexpr const double EN1 = 15.5 ;  
     static constexpr const int   NEN = 1550 - 155 + 1 ;
 
-    enum { HAMA, NNVT, NNVTQ }; 
+    // enum { HAMA, NNVT, NNVTQ };  old arbitrary order
+    enum { NNVT, HAMA, NNVTQ };  // following "jcv PMTCategory" enum order
+
     enum { L0, L1, L2, L3 } ; 
     enum { RINDEX, KINDEX } ; 
 
@@ -178,7 +180,7 @@ inline void JPMT::GetNamesLPMT( std::vector<std::string>& names ) // static
     names.push_back(_NNVT);  
     names.push_back(_NNVTQ);  
 */
-    // reorder to same as PMTCategory enum numerical order
+    // reorder to same as PMTCategory enum numerical order AND also same as JPMT enum  
     names.push_back(_NNVT);  
     names.push_back(_HAMA);  
     names.push_back(_NNVTQ);  
@@ -626,8 +628,8 @@ inline const char* JPMT::get_pmtcat_name( int pmtcat ) const
     const char* n = nullptr ; 
     switch(pmtcat)
     {
-        case HAMA : n = _HAMA  ; break ; 
         case NNVT : n = _NNVT  ; break ; 
+        case HAMA : n = _HAMA  ; break ; 
         case NNVTQ: n = _NNVTQ ; break ; 
     } 
     return n ; 

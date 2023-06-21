@@ -55,8 +55,12 @@ include_directories($ENV{JUNOTOP}/junosw/Utilities/EGet)
 
 set(BASE_PMTSimParamSvc $ENV{JUNOTOP}/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc)
 
-list(APPEND HEADERS_PMTSimParamSvc
+
+set(FORMER_HEADERS_PMTSimParamSvc
     ${BASE_PMTSimParamSvc}/IPMTAccessor.h
+)
+
+list(APPEND HEADERS_PMTSimParamSvc
     ${BASE_PMTSimParamSvc}/PMTAccessor.h
     ${BASE_PMTSimParamSvc}/PMTSimParamData.h
     ${BASE_PMTSimParamSvc}/_PMTSimParamData.h
@@ -70,9 +74,13 @@ list(APPEND HEADERS_Geometry
     ${BASE_Geometry}/PMTCategory.h
 )
 
+set(FORMER_HEADERS_SimUtil
+    ${BASE_SimUtil}/S4Touchable.h
+)
+
+
 set(BASE_SimUtil      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil/SimUtil)
 list(APPEND HEADERS_SimUtil
-    ${BASE_SimUtil}/S4Touchable.h
 )
 
 
