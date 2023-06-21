@@ -102,10 +102,15 @@ struct JPMT : public C4IPMTAccessor
     static constexpr int NUM_LAYER = 4 ; 
     static constexpr int NUM_PROP = 2 ; 
 
+    /*  
     static constexpr const double EN0 = 1.55 ;
     static constexpr const double EN1 = 4.20 ;  // 15.5 
     static constexpr const int   NEN = 420 - 155 + 1 ;
-
+    */  
+ 
+    static constexpr const double EN0 = 1.55 ;
+    static constexpr const double EN1 = 15.5 ;  
+    static constexpr const int   NEN = 1550 - 155 + 1 ;
 
     enum { HAMA, NNVT, NNVTQ }; 
     enum { L0, L1, L2, L3 } ; 
@@ -125,6 +130,8 @@ struct JPMT : public C4IPMTAccessor
     NP* thickness ;   // (num_pmtcat, num_layer, num_payload:1 )
     double* tt ; 
     NP* qeshape ; 
+    NP* lcqs ;    // placeholder to match SPMT.h 
+
     NP* cat ; 
 
     JPMT(); 
@@ -243,6 +250,7 @@ inline JPMT::JPMT()
     thickness(NP::Make<double>(NUM_PMTCAT, NUM_LAYER, 1)),
     tt(thickness->values<double>()),
     qeshape(nullptr),
+    lcqs(nullptr),
     cat(LoadPMTType(_PMTType_base, _PMTType_cats, _PMTType_names, _PMTType_catfield, ','))
 {
     INSTANCE = this ; 
