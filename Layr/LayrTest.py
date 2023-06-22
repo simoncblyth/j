@@ -48,17 +48,17 @@ class LayrTest(object):
     def __init__(self, f):
         self.f = f  
         if not f is None:
-            title = f.arts_meta.d.get("title",["-"])[0] 
-            brief = f.arts_meta.d.get("brief",["-"])[0] 
-            name = f.arts_meta.d.get("name",["-"])[0] 
+            title = f.art_meta.d.get("title",["-"])[0] 
+            brief = f.art_meta.d.get("brief",["-"])[0] 
+            name = f.art_meta.d.get("name",["-"])[0] 
             tag = self.Tag(name)
-            label = f.arts_meta.d.get("label",["-"])[0] 
+            label = f.art_meta.d.get("label",["-"])[0] 
             symbol = f.symbol
 
             if not getattr(f, "lls", None) is None:
-                layrs = str(np.c_[f.lls[0,:,0,0,0],f.lls[0,:,0,1]])
+                layr = str(np.c_[f.ll[0,:,0,0,0],f.ll[0,:,0,1]])
             else:
-                layrs = "?" 
+                layr = "?" 
             pass
         else:
             title = "-"
@@ -67,11 +67,20 @@ class LayrTest(object):
             tag = "?"
             label = "-"
             symbol = "?"
-            layrs = "?" 
+            layr = "?" 
         pass
 
-        nr_first = f.spec[0,0] 
-        nr_last = f.spec[-1,0] 
+        if f.spec.shape == (4,4):
+            nr_first = f.spec[0,0]  # Pyrex rindex
+            nr_last = f.spec[3,0]  # Vacuum rindex 
+        else:
+            # SPMT has f.spec.shape (1, 1, 900, 1, 4, 4)
+            f_spec = f.spec.squeeze()
+            assert np.all( f_spec[:,0,0] == f_spec[0,0,0] )   
+            assert np.all( f_spec[:,3,0] == f_spec[0,3,0] )   
+            nr_first = f_spec[0,0,0] 
+            nr_last  = f_spec[0,3,0] 
+        pass
         nr_frac = np.array([nr_last/nr_first,nr_first/nr_last])
 
         brewster = np.array( [np.arctan(nr_frac[0]), np.pi - np.arctan(nr_frac[1]) ] )
@@ -89,13 +98,19 @@ class LayrTest(object):
         self.tag = tag
         self.label = label
         self.symbol = symbol
-        self.layrs = layrs
-        self.arts = f.arts
-        self.lls = f.lls
-        self.comps = f.comps
+        self.layr = layr
+        self.art = f.art
+        self.ll = f.ll
+        self.comp = f.comp
 
     def __repr__(self):
         return "%s : %s" % (self.symbol, self.title)
+
+
+
+
+def getdirnames(base, prefix="xscan"):
+    return list(sorted(list(filter(lambda name:name.startswith("xscan"),os.listdir(base)))) )
 
 
 class LayrTestSet(object):
@@ -115,8 +130,18 @@ class LayrTestSet(object):
     NAMES = sorted(list(filter(lambda name:name.startswith("scan_"),os.listdir(os.path.join(BASE, MODE))))) 
     SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
 
-    def __init__(self):
-        assert len(self.NAMES) < len(self.SYMBOLS) 
+
+    def __init__(self, symbol="ts"):
+
+        self.symbol = symbol
+        self.xbase = os.path.expandvars("$SFOLD/get_ARTE") 
+        self.xnames = getdirnames( self.xbase, "xscan" )
+        self.ALL_NAMES = self.NAMES + self.xnames 
+        assert len(self.ALL_NAMES) < len(self.SYMBOLS) 
+
+        print(" %s.xbase     : %s " % (self.symbol, str(self.xbase)))
+        print(" %s.xnames    : %s " % (self.symbol, str(self.xnames)))
+        print(" %s.ALL_NAMES : %s " % (self.symbol, str(self.ALL_NAMES)))
 
         names = [] 
         labels = [] 
@@ -124,12 +149,27 @@ class LayrTestSet(object):
         folds = [] 
         tests = []
 
-        for idx in range(len(self.NAMES)):
-            name = self.NAMES[idx]
+        for idx in range(len(self.ALL_NAMES)):
+            name = self.ALL_NAMES[idx]
             symbol = self.SYMBOLS[idx]
-            fold = Fold.Load(self.BASE, self.MODE, name,  symbol=symbol)
+
+            is_extra = idx >= len(self.NAMES) 
+
+
+            if is_extra:
+                fold = Fold.Load(self.xbase, name,  symbol=symbol)
+            else:
+                fold = Fold.Load(self.BASE, self.MODE, name,  symbol=symbol)
+            pass
+
             test = LayrTest(fold)
             test.name = name 
+
+            if is_extra:
+                test.label = "R12860"
+                print("kludge the label of is_extra ")
+            pass 
+
 
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
@@ -147,9 +187,13 @@ class LayrTestSet(object):
         self.tests = tests
 
     def select(self, label):
+        """ 
+        :param q_label: str
+        :return list: of LayrTest instances with t.label matching the argument 
+        """
         return list(filter(lambda t:t.label == label, self.tests))
 
-    def cf_table(self, tt, label, qwns="arts comps".split(), excl=0 ):
+    def cf_table(self, tt, label, qwns="art comp".split(), excl=0 ):
         """
         ::
 
@@ -235,37 +279,43 @@ class CF(object):
     """
     def __init__(self, A, B, excl=0):
         """
+        :param A:
+        :param B:
+        :param excl:  Can be used to exclude a band around mct=0 
         """
         self.A = A 
         self.B = B 
         self.excl = excl
 
         if A is None or B is None or A.f is None or B.f is None:
-            self.lls = None
-            self.comps = None
-            self.arts = None
+            self.ll = None
+            self.comp = None
+            self.art = None
         else:
 
-            assert np.abs( A.arts[:,-1,-1] - B.arts[:,-1,-1] ).max() < 1e-6
+            a_mct = A.art.squeeze()[:,2,3]
+            b_mct = B.art.squeeze()[:,2,3]
+            ab_mct = np.abs(a_mct-b_mct)
+            assert ab_mct.max() < 1e-6
 
-            mct = A.arts[:,-1,-1] 
+            mct = a_mct 
             sel = np.abs(mct) > excl     
 
-            _lls = A.f.lls - B.f.lls
-            _comps = A.f.comps - B.f.comps
-            _arts = A.f.arts - B.f.arts
+            _ll = A.f.ll.squeeze() - B.f.ll.squeeze()
+            _comp = A.f.comp.squeeze() - B.f.comp.squeeze()
+            _art = A.f.art.squeeze() - B.f.art.squeeze()
 
-            lls = _lls[sel]
-            comps = _comps[sel]
-            arts = _arts[sel]
+            ll = _ll[sel]
+            comp = _comp[sel]
+            art = _art[sel]
 
-            self._lls   = _lls
-            self._comps = _comps
-            self._arts  = _arts
+            self._ll   = _ll
+            self._comp = _comp
+            self._art  = _art
 
-            self.lls = lls
-            self.comps = comps
-            self.arts = arts
+            self.ll = ll
+            self.comp = comp
+            self.art = art
         pass
 
     def __repr__(self):
@@ -273,9 +323,9 @@ class CF(object):
         B = self.B 
         excl = self.excl
 
-        lls = self.lls
-        comps = self.comps
-        arts = self.arts
+        ll = self.ll
+        comp = self.comp
+        art = self.art
 
         if A is None or B is None or A.f is None or B.f is None:
              return "CANNOT COMPARE"
@@ -290,9 +340,9 @@ class CF(object):
         ffmt = "%10.3g"
         fmt = "%%10s : %(ffmt)s : %(ffmt)s : %(ffmt)s" % locals()  
 
-        lines += [ fmt % ("lls",   np.abs(lls).max(),   lls.max(),   lls.min()) ]
-        lines += [ fmt % ("comps", np.abs(comps).max(), comps.max(), comps.min()) ]  
-        lines += [ fmt % ("arts",  np.abs(arts).max(),  arts.max(),  arts.min()) ]  
+        lines += [ fmt % ("lls",   np.abs(ll).max(),   ll.max(),   ll.min()) ]
+        lines += [ fmt % ("comps", np.abs(comp).max(), comp.max(), comp.min()) ]  
+        lines += [ fmt % ("arts",  np.abs(art).max(),  art.max(),  art.min()) ]  
 
         return "\n".join(lines)
 
@@ -300,23 +350,39 @@ class CF(object):
 
 class ARTPlot(object):
     @classmethod
-    def Plot(cls, ax, test, excl=0, incl="ARTQxsp"):
+    def Plot(cls, ax, test, excl=0, incl="ARTQxsp", squeeze=True):
         f = test.f
 
-        R_s = f.arts[:,0,0]
-        R_p = f.arts[:,0,1]
-        T_s = f.arts[:,0,2]
-        T_p = f.arts[:,0,3]
+        R_s = f.art[...,0,0]
+        R_p = f.art[...,0,1]
+        T_s = f.art[...,0,2]
+        T_p = f.art[...,0,3]
 
-        A_s = f.arts[:,1,0]
-        A_p = f.arts[:,1,1]
-        R   = f.arts[:,1,2]
-        T   = f.arts[:,1,3]
+        A_s = f.art[...,1,0]
+        A_p = f.art[...,1,1]
+        R   = f.art[...,1,2]
+        T   = f.art[...,1,3]
 
-        A     = f.arts[:,2,0]
-        A_R_T = f.arts[:,2,1]
-        wl    = f.arts[:,2,2] 
-        mct   = f.arts[:,2,3]  # minus_cos_theta 
+        A     = f.art[...,2,0]
+        A_R_T = f.art[...,2,1]
+        wl    = f.art[...,2,2] 
+        mct   = f.art[...,2,3]  # minus_cos_theta 
+
+        if squeeze:
+             R_s = R_s.squeeze()
+             R_p = R_p.squeeze()
+             T_s = T_s.squeeze()
+             T_p = T_p.squeeze()
+             A_s = A_s.squeeze()
+             A_p = A_p.squeeze()
+             R = R.squeeze()
+             T = T.squeeze()
+             A = A.squeeze()
+             A_R_T = A_R_T.squeeze()
+             wl = wl.squeeze()
+             mct = mct.squeeze()
+        pass
+
 
         th2mct_ = lambda th:-np.cos(th*np.pi/180.)
         mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
@@ -400,7 +466,7 @@ class ARTPlot(object):
         pass
         extra = "\n".join(extra_)
 
-        ax.text( 125, 0.6, "\n".join([test.layrs,extra]))
+        ax.text( 125, 0.6, "\n".join([test.layr,extra]))
 
         sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
         sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
@@ -452,7 +518,7 @@ class MARTPlot(object):
 
 
 if __name__ == '__main__':
-    ts = LayrTestSet()  
+    ts = LayrTestSet(symbol="ts")  
     print(repr(ts))
     print(repr(CF(a,b))) # LayrTestSet instanciation populates scope with a,b,c,...
 

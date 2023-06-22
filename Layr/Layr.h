@@ -296,7 +296,12 @@ struct ART_
     F wl ;     // wl  = a.arts[:,2,2]
     F mct ;    // mct  = a.arts[:,2,3]   
 
-    // persisted into shape (3,4) 
+    F xx ; 
+    F yy ; 
+    F zz ; 
+    F ww ; 
+
+    // persisted into shape (4,4) 
 };
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
@@ -692,6 +697,11 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
 
     art.wl = wl ; 
     art.mct = minus_cos_theta ; 
+
+    art.xx = zero ; 
+    art.yy = zero ; 
+    art.zz = zero ; 
+    art.ww = zero ; 
 
     const complex<T> zOne(one,zero); 
     const complex<T> zI(zero,one); 

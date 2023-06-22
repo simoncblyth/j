@@ -11,12 +11,12 @@ High Level Progress
 1. DONE : summarized the PMTSimParamData NPFold into a few arrays in SPMT.h 
 2. DONE : checked  SPMT.h by comparison with JPMT get_stackspec scans
 3. DONE : revived j/Layr/LayrTest 
-3. TODO : updated version of LayrTest using QPMT with the full PMT info
-i
+4. TODO : NumPy compare scans from LayrTest.sh and SPMT_test.sh
+5. TODO : updated version of LayrTest using QPMT with the full PMT info
 
 
-E_s2 ?
----------
+E_s2 : Expresses the amount of S-pol 
+---------------------------------------
 
 ::
 
@@ -65,11 +65,25 @@ E_s2 ?
 
 
 
-      
-WIP : Bringing C4CustomART::doIt to GPU : Can the Stack ART API be encapsulated more ? 
------------------------------------------------------------------------------------------
+DONE : Encapsulate the Stack ART API further with SPMT::get_ARTE 
+-------------------------------------------------------------------
 
-HMM looks rather S/P polarizartion entangled, difficult to pull off API::
+HMM looks rather S/P polarizartion entangled, difficult to pull off API
+
+* yes but using whacky arg "dot_pol_cross_mom_nrm" enables the encapsulation
+* testing with SPMT_test.sh 
+
+::
+
+    788 inline void SPMT::get_ARTE(
+             SPMTData& pd, 
+             int pmtid, 
+             float wavelength_nm, 
+             float minus_cos_theta, 
+             float dot_pol_cross_mom_nrm ) const
+
+
+::
 
 
     259     int pmtid = C4Touchable::VolumeIdentifier(&aTrack, true );
@@ -85,10 +99,6 @@ HMM looks rather S/P polarizartion entangled, difficult to pull off API::
     271     const double _si = stack.ll[0].st.real() ;
     272     double E_s2 = _si > 0. ? (OldPolarization*OldMomentum.cross(theRecoveredNormal))/_si : 0. ;
     273     E_s2 *= E_s2;
-
-    
-
-
     274 
     275     // E_s2 : S-vs-P power fraction : signs make no difference as squared
     276     // E_s2 matches E1_perp*E1_perp see sysrap/tests/stmm_vs_sboundary_test.cc 
@@ -123,8 +133,8 @@ Because the stackNormal has no S/P worries, getting theEfficiency could be split
     299 
 
 
-
-
+WIP : Bringing C4CustomART::doIt to GPU
+------------------------------------------
 
 
 
@@ -297,8 +307,8 @@ DONE : Review CPU C4CustomART and work out how to do it standalone and then on G
 --------------------------------------------------------------------------------------------
 
 
-WIP : provisioning the C4CustomART calculation ?
--------------------------------------------------
+DONE : provisioned the C4CustomART calculation using SPMT.h, see SPMT_test.sh 
+---------------------------------------------------------------------------------
 
 * see PMTSimParamData_test.sh 
 * see PMTAccessor_test.sh : it does standalone calc from persisted jpmt 

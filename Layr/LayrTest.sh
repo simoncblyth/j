@@ -19,7 +19,7 @@ EOU
 
 name="LayrTest"
 
-defarg=build_run_ana
+defarg=info_build_run_ana
 arg=${1:-$defarg}
 
 opt="-std=c++11 -I. -I/usr/local/cuda/include -I$OPTICKS_PREFIX/include/SysRap"
@@ -50,6 +50,8 @@ fold=/tmp/$USER/opticks/$name
 
 export FOLD=$fold
 export LAYRTEST_BASE=$fold
+export SFOLD=/tmp/SPMT_test
+
 #export LAYRTEST_HALF=1
 
 pmtcat=R12860
@@ -60,8 +62,8 @@ pmtcat=R12860
 mode=4  # 4 layer : ordinary stack of 4 
 #mode=2   # 2 layer : unusual check of 2 layer, picking first and last of the 4 
 
-#excl=0.05
-excl=0
+excl=0.05
+#excl=0
 
 
 export LAYRTEST_PMTCAT=$pmtcat
@@ -69,6 +71,11 @@ export LAYRTEST_WL=440
 export LAYRTEST_EXCL=$excl
 export LAYRTEST_MODE=${LAYRTEST_MODE:-$mode} 
 
+vars="LAYRTEST_PMTCAT LAYRTEST_WL LAYRTEST_EXCL LAYRTEST_MODE LAYRTEST_BASE FOLD" 
+
+if [ "${arg/info}" != "$arg" ]; then
+    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
+fi 
 
 if [ "${arg/clean}" != "$arg" ]; then
     rm -rf $fold

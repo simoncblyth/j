@@ -240,7 +240,7 @@ inline void LayrTest<T,N>::scan_cpu(const StackSpec<T,N>& spec)
         //std::cout << stack << std::endl ; 
         //std::cout << "j:" << j << std::endl << stack.art << std::endl ; 
     }
-    save(spec); 
+    save(spec);  // saves arts, comps, lls and spec 
 }
 
 template<typename T, int N>
@@ -332,22 +332,22 @@ inline void LayrTest<T,N>::save(const StackSpec<T,N>& spec) const
     std::cout << " title " << ti << std::endl ;  
     std::cout << " brief " << br << std::endl ;  
 
-    assert( sizeof(ART_<T>)/sizeof(T) == 12 ); 
+    assert( sizeof(ART_<T>)/sizeof(T) == 4*4 ); 
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
     const char* name = get_name() ; 
-    NP::Write(base, name,"comps.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
-    NP::Write(base, name,"lls.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
+    NP::Write(base, name,"comp.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
+    NP::Write(base, name,"ll.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
 
     // use manual way for _arts so can set metadata
-    NP* _arts = NP::Make<T>( h.ni, 3, 4 );
-    _arts->read2( (T*)h.arts ); 
-    _arts->set_meta<std::string>("title", ti); 
-    _arts->set_meta<std::string>("brief", br); 
-    _arts->set_meta<std::string>("name", name); 
-    _arts->set_meta<std::string>("label", label); 
-    _arts->set_meta<T>("wl", h.wl); 
-    _arts->save(base, name, "arts.npy" ); 
+    NP* _art = NP::Make<T>( h.ni, 4, 4 );
+    _art->read2( (T*)h.arts ); 
+    _art->set_meta<std::string>("title", ti); 
+    _art->set_meta<std::string>("brief", br); 
+    _art->set_meta<std::string>("name", name); 
+    _art->set_meta<std::string>("label", label); 
+    _art->set_meta<T>("wl", h.wl); 
+    _art->save(base, name, "art.npy" ); 
 
     NP::Write(base, name, "spec.npy", (T*)spec.data(), N, 4 ) ; 
 
