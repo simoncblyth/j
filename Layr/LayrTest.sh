@@ -24,7 +24,6 @@ arg=${1:-$defarg}
 
 opt="-std=c++11 -I. -I/usr/local/cuda/include -I$OPTICKS_PREFIX/include/SysRap"
 c4opt="-I$HOME/customgeant4"
-
 linkflags="-lstdc++"
 
 WITH_THRUST=1     # comment for CPU only test

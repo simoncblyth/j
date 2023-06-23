@@ -11,8 +11,217 @@ High Level Progress
 1. DONE : summarized the PMTSimParamData NPFold into a few arrays in SPMT.h 
 2. DONE : checked  SPMT.h by comparison with JPMT get_stackspec scans
 3. DONE : revived j/Layr/LayrTest 
-4. TODO : NumPy compare scans from LayrTest.sh and SPMT_test.sh
-5. TODO : updated version of LayrTest using QPMT with the full PMT info
+4. DONE : NumPy compare scans from LayrTest.sh and SPMT_test.sh, small SPMT dev at critical angle 
+5. TODO : updated version of QPMTTest using the full SPMT info
+
+
+WIP : LayrTest.sh vs SPMT_test.sh comparison
+-----------------------------------------------
+
+The last ART row (xx,yy,zz,ww) is not used in LayrTest::  
+
+    a_art = a.f.art.squeeze()
+    e_art = e.f.art.squeeze()
+
+    In [13]: np.abs(a_art[:,:3] - e_art[:,:3]).max()
+    Out[13]: 6.361931981246904e-05
+
+
+    In [15]: a_art[0]
+    Out[15]: 
+    array([[  0.045,   0.045,   0.328,   0.328],
+           [  0.627,   0.627,   0.045,   0.328],
+           [  0.627,   1.   , 440.   ,  -1.   ],
+           [  0.   ,   0.   ,   0.   ,   0.   ]])
+
+    In [16]: e_art[0]
+    Out[16]: 
+    array([[  0.045,   0.045,   0.328,   0.328],
+           [  0.627,   0.627,   0.045,   0.328],
+           [  0.627,   1.   , 440.   ,  -1.   ],
+           [  0.627,   0.045,   0.328,   0.   ]], dtype=float32)
+
+
+SPMT.h::
+
+     847     const float S = E_s2 ;
+     848     const float P = one - S ;
+     849 
+     850     const float T = S*stack.art.T_s + P*stack.art.T_p ;  // matched with TransCoeff see sysrap/tests/stmm_vs_sboundary_test.cc
+     851     const float R = S*stack.art.R_s + P*stack.art.R_p ;
+     852     const float A = S*stack.art.A_s + P*stack.art.A_p ;
+     853     //const float A1 = one - (T+R);  // note that A1 matches A 
+     854 
+     855     stack.art.xx = A ;
+     856     stack.art.yy = R ;
+     857     stack.art.zz = T ;
+     858     stack.art.ww = S ;
+
+
+DONE : investigate comp deviation close to critical angle 
+----------------------------------------------------------
+
+::
+
+    epsilon:Layr blyth$ ./LayrTest.sh ana
+    ./LayrTest.sh : WITH_THRUST config
+    ./LayrTest.sh : WITH_STACKSPEC config
+    ## ts = LayrTestSet(symbol="ts") 
+     ts.xbase     : /tmp/SPMT_test/get_ARTE 
+     ts.xnames    : ['xscan'] 
+     ts.ALL_NAMES : ['scan__R12860__cpu_thr_double', 'scan__R12860__cpu_thr_float', 'scan__R12860__gpu_thr_double', 'scan__R12860__gpu_thr_float', 'xscan'] 
+    LayrTest.py:88: RuntimeWarning: invalid value encountered in arcsin
+      critical = np.array( [np.arcsin(nr_frac[0]), np.pi - np.arcsin(nr_frac[1]) ] )  # one of these will be np.nan
+    kludge the label of is_extra 
+    ## repr(ts) 
+    CFLayrTest
+     a :          R12860 : scan__R12860__cpu_thr_double 
+     b :          R12860 : scan__R12860__cpu_thr_float 
+     c :          R12860 : scan__R12860__gpu_thr_double 
+     d :          R12860 : scan__R12860__gpu_thr_float 
+     e :          R12860 : xscan 
+    ## cf_ab  = CF(a,b,excl)   # excl: 0.05 
+    ## repr(cf_ab) 
+    CF(a,b,0.05) : scan__R12860__cpu_thr_double vs scan__R12860__cpu_thr_float 
+    LayrTest<double,4> WITH_THRUST  name scan__R12860__cpu_thr_double ni 900 wl 440 mct[0] -1 mct[ni-1] 1
+    LayrTest<float,4> WITH_THRUST  name scan__R12860__cpu_thr_float ni 900 wl 440 mct[0] -1 mct[ni-1] 1
+            ll :   7.33e-05 :   7.11e-05 :  -7.33e-05
+          comp :   4.83e-05 :   4.83e-05 :  -4.65e-05
+           art :    6.1e-06 :    6.1e-06 :   -6.1e-06
+    ## ts.select(pmtcat)  # pmtcat: R12860  
+    ## pmtcat:R12860 tt:5 t:e : SPMT.title 
+    ## ARTPlot 
+    ## rst = ts.cf_table(tt, pmtcat, excl=excl) # excl 0.05 
+    ## rst 
+    +------------------------------+----------+----------+----------+----------+----------+
+    |          R12860 art\comp 0.05|     a:ctd|     b:ctf|     c:gtd|     d:gtf|        e:|
+    +==============================+==========+==========+==========+==========+==========+
+    |                         a:ctd|         0| 4.829e-05| 7.445e-14| 4.829e-05| 0.0003496|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         b:ctf| 6.101e-06|         0| 4.829e-05| 3.977e-05|  0.000318|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         c:gtd| 1.321e-14| 6.101e-06|         0| 4.829e-05| 0.0003496|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         d:gtf| 1.523e-06| 7.451e-06| 1.523e-06|         0| 0.0003578|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                            e:| 6.362e-05| 5.752e-05| 6.362e-05| 6.497e-05|         0|
+    +------------------------------+----------+----------+----------+----------+----------+
+
+
+    In [1]: be = CF(b,e,0.05)
+
+    In [2]: be 
+    Out[2]: 
+    CF(b,e,0.05) : scan__R12860__cpu_thr_float vs xscan 
+    LayrTest<float,4> WITH_THRUST  name scan__R12860__cpu_thr_float ni 900 wl 440 mct[0] -1 mct[ni-1] 1
+    SPMT.brief
+            ll :   0.000412 :   0.000385 :  -0.000412
+          comp :   0.000318 :    4.3e-05 :  -0.000318
+           art :   5.75e-05 :   5.75e-05 :  -5.75e-05
+
+    In [10]: np.where( be.comp < -3e-4 )
+    Out[10]: (array([212]), array([1]), array([3]), array([0]))
+
+    In [11]: np.where( be.comp < -2e-4 )
+    Out[11]: (array([212]), array([1]), array([3]), array([0]))
+
+    In [12]: np.where( be.comp < -1e-4 )
+    Out[12]: (array([212, 212, 213]), array([1, 1, 1]), array([1, 3, 3]), array([1, 0, 0]))
+
+    In [8]: be.comp.shape
+    Out[8]: (872, 4, 4, 2)
+
+    In [6]: be.comp[:,:,:,0].min()
+    Out[6]: -0.00031801313          
+
+    In [7]: be.comp[:,:,:,1].min()
+    Out[7]: -0.00010895729
+
+    In [12]: be.mct[np.where( be.comp < -1e-4 )[0]]   
+    Out[12]: array([-0.738, -0.738, -0.736], dtype=float32)   ## minus_cos_theta where deviation is largest 
+
+    In [15]: np.arccos( -be.mct[np.where( be.comp < -1e-4 )[0]]  )  ## convert minus_cos_theta into theta 
+    Out[15]: array([0.741, 0.741, 0.744], dtype=float32)
+
+    In [14]: b.critical            ## discontinuities close to critical angle implicated in deviation
+    Out[14]: array([0.74,  nan])   ## problem is the kinks, no resolution is enough at critical angle   
+
+
+    In [17]: e.critical[0]
+    Out[17]: 0.7404550313949585
+
+    In [18]: b.critical[0]
+    Out[18]: 0.7404559254646301
+
+    In [1]: a.critical_mct 
+    Out[1]: -0.7381610892515559
+
+    In [2]: e.critical_mct
+    Out[2]: -0.7381616601198697
+
+    In [3]: b.critical_mct
+    Out[3]: -0.7381610569588344
+
+    In [1]: a.critical_theta_degrees
+    Out[1]: 42.42499670195976
+
+    In [2]: e.critical_theta_degrees
+    Out[2]: 42.42494821815799
+
+
+DONE : After excluding critical, brings SPMT_test into line with LayrTest
+------------------------------------------------------------------------------
+
+HMM: this doesnt answer why SPMT_test has small deviation from LayrTest 
+at critical angle. Possibly there is small property difference 
+between old NP_PROP_BASE and the new SPMT data ? 
+
+But useful nevertherless to know where the small deviation is concentrated. 
+
+::
+
+    epsilon:Layr blyth$ ./LayrTest.sh ana
+    ..
+
+    ## repr(ts) 
+    CFLayrTest
+     a :          R12860 : scan__R12860__cpu_thr_double 
+     b :          R12860 : scan__R12860__cpu_thr_float 
+     c :          R12860 : scan__R12860__gpu_thr_double 
+     d :          R12860 : scan__R12860__gpu_thr_float 
+     e :          R12860 : xscan 
+    ## cf_ab  = CF(a,b,excl)   # excl: 0.05 
+    ## repr(cf_ab) 
+    CF(a,b,0.05,exclude_pole=True,exclude_critical=True) : scan__R12860__cpu_thr_double vs scan__R12860__cpu_thr_float 
+    LayrTest<double,4> WITH_THRUST  name scan__R12860__cpu_thr_double ni 900 wl 440 mct[0] -1 mct[ni-1] 1
+    LayrTest<float,4> WITH_THRUST  name scan__R12860__cpu_thr_float ni 900 wl 440 mct[0] -1 mct[ni-1] 1
+            ll :   7.33e-05 :   7.11e-05 :  -7.33e-05
+          comp :   4.83e-05 :   4.83e-05 :  -4.65e-05
+           art :   9.32e-07 :   9.02e-07 :  -9.32e-07
+    mct pole/critical/sel 28/43/829 
+    ## ts.select(pmtcat)  # pmtcat: R12860  
+    ## pmtcat:R12860 tt:5 t:e : SPMT.title 
+    ## ARTPlot 
+    ## tab, rst = ts.cf_table(tt, pmtcat, excl=excl) # excl 0.05 
+    ## rst 
+    +------------------------------+----------+----------+----------+----------+----------+
+    |          R12860 art\comp 0.05|     a:ctd|     b:ctf|     c:gtd|     d:gtf|        e:|
+    +==============================+==========+==========+==========+==========+==========+
+    |                         a:ctd|         0| 4.829e-05| 1.066e-14| 4.829e-05| 8.644e-05|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         b:ctf| 9.317e-07|         0| 4.829e-05| 5.722e-06| 4.578e-05|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         c:gtd| 1.582e-15| 9.317e-07|         0| 4.829e-05| 8.644e-05|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                         d:gtf| 7.958e-07| 8.792e-07| 7.958e-07|         0| 4.196e-05|
+    +------------------------------+----------+----------+----------+----------+----------+
+    |                            e:| 2.956e-06| 3.159e-06| 2.956e-06|  3.07e-06|         0|
+    +------------------------------+----------+----------+----------+----------+----------+
+
+
+
+
+
 
 
 E_s2 : Expresses the amount of S-pol 

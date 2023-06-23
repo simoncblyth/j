@@ -141,8 +141,8 @@ inline void LayrTest<T,N>::init_h(int ni, T wl)
 
     for(int i=0 ; i < ni ; i++ ) 
     {
-        T frac =  T(i)/T(end_one ? ni-1 : ni) ;  
-        T theta = frac*max_theta_pi*M_PI ; 
+        T theta_frac =  T(i)/T(end_one ? ni-1 : ni) ;  
+        T theta = theta_frac*max_theta_pi*M_PI ; 
         h.mct[i] = -cos(theta) ;  
     }
 }

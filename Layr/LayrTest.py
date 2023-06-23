@@ -55,11 +55,12 @@ class LayrTest(object):
             label = f.art_meta.d.get("label",["-"])[0] 
             symbol = f.symbol
 
-            if not getattr(f, "lls", None) is None:
-                layr = str(np.c_[f.ll[0,:,0,0,0],f.ll[0,:,0,1]])
-            else:
-                layr = "?" 
-            pass
+            f_ll = f.ll.squeeze() 
+            f_ll_thickness = f_ll[0,:,0,0,0]
+            f_ll_rindex_kindex = f_ll[0,:,0,1,:]   
+            layr = str(np.c_[f_ll_thickness,f_ll_rindex_kindex])
+            # curious f_ll diddling : would be easier to just show the spec
+            # a.f.ll.squeeze().shape   (900, 4, 4, 4, 2)
         else:
             title = "-"
             brief = "-"
@@ -85,12 +86,18 @@ class LayrTest(object):
 
         brewster = np.array( [np.arctan(nr_frac[0]), np.pi - np.arctan(nr_frac[1]) ] )
         critical = np.array( [np.arcsin(nr_frac[0]), np.pi - np.arcsin(nr_frac[1]) ] )  # one of these will be np.nan
+        critical_theta = critical[~np.isnan(critical)][0]
+        critical_theta_degrees = critical_theta/np.pi*180.  
+        critical_mct = -np.cos(critical_theta)
 
         self.nr_first = nr_first
         self.nr_last = nr_last
         self.nr_frac = nr_frac
         self.brewster = brewster 
         self.critical = critical 
+        self.critical_theta = critical_theta
+        self.critical_theta_degrees = critical_theta_degrees
+        self.critical_mct = critical_mct
 
         self.title = title
         self.brief = brief
@@ -99,14 +106,23 @@ class LayrTest(object):
         self.label = label
         self.symbol = symbol
         self.layr = layr
-        self.art = f.art
-        self.ll = f.ll
-        self.comp = f.comp
+
+
+        f_art = f.art.squeeze()
+        f_art3 = f_art[:,3,:].copy()
+        f_art[:,3,:] = 0. 
+        # as SPMT test fills row 3, but LayrTest doesnt : separate it and zero  
+
+        f_mct = f_art[:,2,3]
+        self.art = f_art
+        self.art3 = f_art3
+        self.mct = f_mct 
+
+        self.ll = f.ll.squeeze()
+        self.comp = f.comp.squeeze()
 
     def __repr__(self):
         return "%s : %s" % (self.symbol, self.title)
-
-
 
 
 def getdirnames(base, prefix="xscan"):
@@ -240,7 +256,7 @@ class LayrTestSet(object):
 
         ntt = len(tt)
         labels = [key] 
-        tab= np.zeros( [ntt,1+ntt], dtype=np.object )
+        tab = np.zeros( [ntt,1+ntt], dtype=np.object )
 
         for i in range(ntt):
             ti = tt[i]
@@ -251,14 +267,14 @@ class LayrTestSet(object):
                 if i == j: continue
                 tj = tt[j]
                 cf = CF(ti,tj,excl)
-                qwn = qwns[0] if i > j else qwns[1]
-                cfv = np.abs( getattr(cf, qwn) ).max()
+                qwn = qwns[0] if i > j else qwns[1]   # "art" or "comp"
+                cfv = np.abs( getattr(cf, qwn) ).max() 
                 pass
                 tab[i,j+1] = cfv
             pass
         pass
         rst = RSTTable.Rdr(tab, labels, rfm="%10.4g", left_wid=30, hfm="%10s", left_rfm="%30s", left_hfm="%30s" )
-        return rst 
+        return tab, rst 
 
     def __repr__(self):
         lines = []
@@ -277,51 +293,77 @@ class CF(object):
     """
     Compare two LayrTest objects 
     """
-    def __init__(self, A, B, excl=0):
+    def __init__(self, A, B, mct_excl=0, exclude_pole=True, exclude_critical=True ):
         """
         :param A:
         :param B:
-        :param excl:  Can be used to exclude a band around mct=0 
+        :param mct_excl: center to edge size of exclusion bands
+        :param exclude_pole: bool around mct zero (90 degrees theta) 
+        :param exclude_critical: bool around critical_mct (close to 42.42 degrees for Pyrex->Vacuum)
         """
         self.A = A 
         self.B = B 
-        self.excl = excl
+        self.mct_excl = mct_excl
+        self.exclude_pole = exclude_pole
+        self.exclude_critical = exclude_critical
 
         if A is None or B is None or A.f is None or B.f is None:
             self.ll = None
             self.comp = None
             self.art = None
         else:
-
-            a_mct = A.art.squeeze()[:,2,3]
-            b_mct = B.art.squeeze()[:,2,3]
-            ab_mct = np.abs(a_mct-b_mct)
+            ab_mct = np.abs(A.mct-B.mct)
             assert ab_mct.max() < 1e-6
 
-            mct = a_mct 
-            sel = np.abs(mct) > excl     
+            mct = A.mct 
+            mct_critical = A.critical_mct 
 
-            _ll = A.f.ll.squeeze() - B.f.ll.squeeze()
-            _comp = A.f.comp.squeeze() - B.f.comp.squeeze()
-            _art = A.f.art.squeeze() - B.f.art.squeeze()
+            mct_pole = np.abs(mct) < mct_excl  
+            mct_critical = np.abs(mct - mct_critical) < mct_excl
 
-            ll = _ll[sel]
-            comp = _comp[sel]
-            art = _art[sel]
+            if exclude_pole == True and exclude_critical == False: 
+                 mct_sel = ~mct_pole
+            elif exclude_pole == False and exclude_critical == True: 
+                 mct_sel = ~mct_critical
+            elif exclude_pole == False and exclude_critical == False: 
+                 mct_sel = np.abs(mct) >= 0.   # all True  
+            elif exclude_pole == True and exclude_critical == True:
+                 mct_sel = np.logical_and( ~mct_pole, ~mct_critical )
+            pass  
+
+            mct_pole_count = np.count_nonzero(mct_pole)   
+            mct_critical_count = np.count_nonzero(mct_critical)   
+            mct_sel_count = np.count_nonzero(mct_sel)
+
+            self.mct_pole_count = mct_pole_count
+            self.mct_critical_count = mct_critical_count
+            self.mct_sel_count = mct_sel_count
+
+
+            _ll = A.ll - B.ll
+            _comp = A.comp - B.comp
+            _art = A.art - B.art
+            _mct = A.mct  # NOT diff for mct, as should be very matched 
+
+            ll = _ll[mct_sel]
+            comp = _comp[mct_sel]
+            art = _art[mct_sel]
+            mct = _mct[mct_sel]
 
             self._ll   = _ll
             self._comp = _comp
             self._art  = _art
+            self._mct  = _mct 
 
             self.ll = ll
             self.comp = comp
             self.art = art
+            self.mct = mct 
         pass
 
     def __repr__(self):
         A = self.A
         B = self.B 
-        excl = self.excl
 
         ll = self.ll
         comp = self.comp
@@ -330,9 +372,8 @@ class CF(object):
         if A is None or B is None or A.f is None or B.f is None:
              return "CANNOT COMPARE"
         pass
-
-
-        CF_brief = "CF(%s,%s,%s) : %s vs %s " % (A.symbol, B.symbol, excl, A.name, B.name ) 
+        args = (A.symbol, B.symbol, self.mct_excl, self.exclude_pole, self.exclude_critical, A.name, B.name ) 
+        CF_brief = "CF(%s,%s,%s,exclude_pole=%s,exclude_critical=%s) : %s vs %s " % args
         lines = [CF_brief]
         lines += [A.brief]
         lines += [B.brief]
@@ -340,9 +381,11 @@ class CF(object):
         ffmt = "%10.3g"
         fmt = "%%10s : %(ffmt)s : %(ffmt)s : %(ffmt)s" % locals()  
 
-        lines += [ fmt % ("lls",   np.abs(ll).max(),   ll.max(),   ll.min()) ]
-        lines += [ fmt % ("comps", np.abs(comp).max(), comp.max(), comp.min()) ]  
-        lines += [ fmt % ("arts",  np.abs(art).max(),  art.max(),  art.min()) ]  
+        lines += [ fmt % ("ll",   np.abs(ll).max(),   ll.max(),   ll.min()) ]
+        lines += [ fmt % ("comp", np.abs(comp).max(), comp.max(), comp.min()) ]  
+        lines += [ fmt % ("art",  np.abs(art).max(),  art.max(),  art.min()) ]  
+
+        lines += [ "mct pole/critical/sel %d/%d/%d " % (self.mct_pole_count, self.mct_critical_count, self.mct_sel_count)] 
 
         return "\n".join(lines)
 
@@ -518,26 +561,38 @@ class MARTPlot(object):
 
 
 if __name__ == '__main__':
-    ts = LayrTestSet(symbol="ts")  
-    print(repr(ts))
-    print(repr(CF(a,b))) # LayrTestSet instanciation populates scope with a,b,c,...
 
     pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
     excl = float(os.environ.get("LAYRTEST_EXCL", "0.05"))
     incl = os.environ.get("LAYRTEST_INCL", "ARTQxsp")
     xtitle = "LAYRTEST_INCL %s " % incl
 
+    print("## ts = LayrTestSet(symbol=\"ts\") " ) 
+    ts = LayrTestSet(symbol="ts")  
+
+    print("## repr(ts) ")
+    print(repr(ts))
+
+    print("## cf_ab  = CF(a,b,excl)   # excl: %s " % excl )
+    cf_ab  = CF(a,b,excl) # LayrTestSet instanciation populates scope with a,b,c,...
+
+    print("## repr(cf_ab) ")
+    print(repr(cf_ab)) 
+    print("## ts.select(pmtcat)  # pmtcat: %s  " % pmtcat)
     tt = ts.select(pmtcat)
 
     t = tt[-1] if len(tt) > 0 else None
-    print("pmtcat:%s tt:%d t:%s " % (pmtcat, len(tt), t ))
+    print("## pmtcat:%s tt:%d t:%s " % (pmtcat, len(tt), t ))
       
     if not t is None:
+       print("## ARTPlot ")
        ap = ARTPlot(t, excl=excl, incl=incl, xtitle=xtitle )
     pass 
 
     if len(tt) > 0:
-        rst = ts.cf_table(tt, pmtcat, excl=excl)
+        print("## tab, rst = ts.cf_table(tt, pmtcat, excl=excl) # excl %s " % excl ) 
+        tab, rst = ts.cf_table(tt, pmtcat, excl=excl)
+        print("## rst ")
         print(rst)
     pass
 pass
