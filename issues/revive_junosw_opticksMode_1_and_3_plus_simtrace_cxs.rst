@@ -12,10 +12,125 @@ High Level Progress
 2. DONE : checked  SPMT.h by comparison with JPMT get_stackspec scans
 3. DONE : revived j/Layr/LayrTest 
 4. DONE : NumPy compare scans from LayrTest.sh and SPMT_test.sh, small SPMT dev at critical angle 
-5. TODO : updated version of QPMTTest using the full SPMT info
+5. DONE : generalize qpmt/QPMT/QPMTTest for lpmtid lookups based off the full SPMT info
+6. TODO : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
+7. TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
+
+TODO : qpmt/QPMT TMM Stack calc AOI scanning based off SPMT.h full data, like SPMT_test but on GPU
+------------------------------------------------------------------------------------------------------
 
 
-WIP : LayrTest.sh vs SPMT_test.sh comparison
+TODO : Bring C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
+------------------------------------------------------------------------------------------------------
+
+
+DONE : qpmt/QPMT/QPMTTest generalization for lpmtid info lookups based off the full SPMT info
+-----------------------------------------------------------------------------------------------
+
+::
+
+    103 template<typename T>
+    104 inline QPMT_METHOD void qpmt<T>::get_lpmtid_stackspec( quad4& spec, int lpmtid, T energy_eV ) const
+    105 {           
+    106             
+    107     const int& lpmtcat = i_lcqs[lpmtid*2+0] ;
+    108         
+    109     // printf("//qpmt::get_lpmtid_stackspec lpmtid %d lpmtcat %d \n", lpmtid, lpmtcat );  
+    110 
+    111     const T& qe_scale = lcqs[lpmtid*2+1] ;
+    112     const T qe = qeshape_prop->interpolate( lpmtcat, energy_eV ) ;
+    113     const T _qe = qe_scale*qe ;
+    114 
+    115     spec.q0.i.w = lpmtcat ; 
+    116     spec.q1.f.w = qe_scale ;
+    117     spec.q2.f.w = qe ;
+    118     spec.q3.f.w = _qe ; 
+    119     
+    120     get_lpmtcat_stackspec( spec, lpmtcat, energy_eV );
+    121 }   
+
+::
+
+    In [15]: t.lpmtid_stackspec[:,:,0,3].view(np.int32)
+    Out[15]: 
+    array([[1, 1, 1, 1, 1, ..., 1, 1, 1, 1, 1],
+           [1, 1, 1, 1, 1, ..., 1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2, ..., 2, 2, 2, 2, 2],
+           [1, 1, 1, 1, 1, ..., 1, 1, 1, 1, 1],
+           [2, 2, 2, 2, 2, ..., 2, 2, 2, 2, 2]], dtype=int32)
+
+    In [16]: t.lpmtid_stackspec[:,:,1,3]
+    Out[16]: 
+    array([[1.025, 1.025, 1.025, 1.025, 1.025, ..., 1.025, 1.025, 1.025, 1.025, 1.025],
+           [1.027, 1.027, 1.027, 1.027, 1.027, ..., 1.027, 1.027, 1.027, 1.027, 1.027],
+           [1.287, 1.287, 1.287, 1.287, 1.287, ..., 1.287, 1.287, 1.287, 1.287, 1.287],
+           [1.041, 1.041, 1.041, 1.041, 1.041, ..., 1.041, 1.041, 1.041, 1.041, 1.041],
+           [1.338, 1.338, 1.338, 1.338, 1.338, ..., 1.338, 1.338, 1.338, 1.338, 1.338]], dtype=float32)
+
+    In [17]: t.lpmtid_stackspec[:,:,2,3]
+    Out[17]: 
+    array([[0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.014, 0.014, 0.014, 0.014, 0.014, ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.014, 0.014, 0.014, 0.014, 0.014, ..., 0.   , 0.   , 0.   , 0.   , 0.   ]], dtype=float32)
+
+    In [18]: t.lpmtid_stackspec[:,:,3,3]
+    Out[18]: 
+    array([[0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.018, 0.018, 0.018, 0.018, 0.018, ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.   , 0.   , 0.   , 0.   , 0.   , ..., 0.   , 0.   , 0.   , 0.   , 0.   ],
+           [0.019, 0.019, 0.019, 0.019, 0.019, ..., 0.   , 0.   , 0.   , 0.   , 0.   ]], dtype=float32)
+
+
+
+    In [19]: np.max(t.lpmtid_stackspec[:,:,0,3].view(np.int32), axis=1)
+    Out[19]: array([1, 1, 2, 1, 2], dtype=int32)
+
+    In [20]: np.max(t.lpmtid_stackspec[:,:,1,3], axis=1)
+    Out[20]: array([1.025, 1.027, 1.287, 1.041, 1.338], dtype=float32)
+
+    In [21]: np.max(t.lpmtid_stackspec[:,:,2,3], axis=1)
+    Out[21]: array([0.356, 0.356, 0.288, 0.356, 0.288], dtype=float32)
+
+    In [22]: np.max(t.lpmtid_stackspec[:,:,3,3], axis=1)
+    Out[22]: array([0.365, 0.366, 0.371, 0.37 , 0.385], dtype=float32)
+
+
+
+    In [23]: np.argmax(t.lpmtid_stackspec[:,:,0,3].view(np.int32), axis=1)
+    Out[23]: array([0, 0, 0, 0, 0])
+
+    In [24]: np.argmax(t.lpmtid_stackspec[:,:,1,3], axis=1)
+    Out[24]: array([0, 0, 0, 0, 0])
+
+    In [25]: np.argmax(t.lpmtid_stackspec[:,:,2,3], axis=1)
+    Out[25]: array([163, 163, 163, 163, 163])
+
+    In [26]: np.argmax(t.lpmtid_stackspec[:,:,3,3], axis=1)
+    Out[26]: array([163, 163, 163, 163, 163])
+
+
+::
+
+    In [32]: t.lpmtid
+    Out[32]: array([    0,    10,   100,  1000, 10000], dtype=int32)
+
+
+Those 5 lpmtid are all lpmt 1,2 no 0, so find some::
+
+    In [30]: np.where( t.src_lcqs[:,0] == 0 )[0]
+    Out[30]: array([   55,    98,   137,   267,   368, ..., 17255, 17327, 17504, 17526, 17537])
+
+    In [31]: np.where( t.src_lcqs[:,0] == 0 )[0].shape
+    Out[31]: (2720,)
+
+
+
+
+
+DONE : LayrTest.sh vs SPMT_test.sh comparison
 -----------------------------------------------
 
 The last ART row (xx,yy,zz,ww) is not used in LayrTest::  
@@ -172,7 +287,7 @@ DONE : investigate comp deviation close to critical angle
 DONE : After excluding critical, brings SPMT_test into line with LayrTest
 ------------------------------------------------------------------------------
 
-HMM: this doesnt answer why SPMT_test has small deviation from LayrTest 
+BUT: this doesnt answer why SPMT_test has small deviation from LayrTest 
 at critical angle. Possibly there is small property difference 
 between old NP_PROP_BASE and the new SPMT data ? 
 
@@ -219,13 +334,8 @@ But useful nevertherless to know where the small deviation is concentrated.
     +------------------------------+----------+----------+----------+----------+----------+
 
 
-
-
-
-
-
-E_s2 : Expresses the amount of S-pol 
----------------------------------------
+DONE : work out how to scan the polarization fraction with SPMT::get_ARTE using E_s2 : S-pol fraction
+------------------------------------------------------------------------------------------------------------
 
 ::
 
@@ -253,8 +363,6 @@ E_s2 : Expresses the amount of S-pol
            would provide some splitting 
 
      mct is OldMomentum*theRecoveredNormal (both those are normalized)
-
-
 
 * dot product with a cross product is the determinant of the three vectors 
 
@@ -340,10 +448,6 @@ Because the stackNormal has no S/P worries, getting theEfficiency could be split
     297     double escape_fac = _qe/An;
     298     theEfficiency = escape_fac ;
     299 
-
-
-WIP : Bringing C4CustomART::doIt to GPU
-------------------------------------------
 
 
 
@@ -545,8 +649,6 @@ DONE : provisioned the C4CustomART calculation using SPMT.h, see SPMT_test.sh
     * form a (17612,4) array (pmtcat,qescale,spare,pmtidx) 
     * 1st reproduce the JPMT.rindex JPMT.thickness arrays frm PMTAccessor NPFold
     * HMM: dont want to use junosw within opticks so start from NPFold ?
-
-
 
 
 
