@@ -23,6 +23,47 @@ TODO : qpmt/QPMT TMM Stack calc AOI scanning based off SPMT.h full data, like SP
 TODO : Bring C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
 ------------------------------------------------------------------------------------------------------
 
+WIP : remove stackNormal instance
+------------------------------------
+
+After rationalizing the serialization layout:
+
++---+--------+--------+--------+--------+
+|   |  x     |  y     |  z     |  w     |
++===+========+========+========+========+
+| 0 |  A_s   |  A_p   |  A_av  |  A     |
++---+--------+--------+--------+--------+
+| 1 |  R_s   |  R_p   |  R_av  |  R     |
++---+--------+--------+--------+--------+
+| 2 |  T_s   |  T_p   |  T_av  |  T     |
++---+--------+--------+--------+--------+
+| 3 |  SF    |  wl    | ART_av |  mct   |
++---+--------+--------+--------+--------+
+
+
+    st ; ./SPMT_scan.sh ana::
+
+    In [1]: nart[0]
+    Out[1]: 
+    array([[  0.627,   0.627,   0.627,   0.627],
+           [  0.045,   0.045,   0.045,   0.045],
+           [  0.328,   0.328,   0.328,   0.328],
+           [  0.   , 440.   ,   1.   ,  -1.   ]], dtype=float32)
+
+    In [2]: art[0]
+    Out[2]: 
+    array([[  0.627,   0.627,   0.627,   0.627],
+           [  0.045,   0.045,   0.045,   0.045],
+           [  0.328,   0.328,   0.328,   0.328],
+           [  0.   , 440.   ,   1.   ,  -1.   ]], dtype=float32)
+
+    In [3]: np.all( nart[0] == art[0] )
+    Out[3]: True
+
+
+
+
+
 
 DONE : qpmt/QPMT/QPMTTest generalization for lpmtid info lookups based off the full SPMT info
 -----------------------------------------------------------------------------------------------
