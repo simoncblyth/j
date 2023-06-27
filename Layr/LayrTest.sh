@@ -45,11 +45,15 @@ else
 fi 
 
 
-fold=/tmp/$USER/opticks/$name
+fold=/tmp/$USER/opticks/$name/4
+
+# Formerly had separate LAYRTEST_MODE holding 4 OR 2 
+# Now combining that MODE with the BASE to make more standard.
 
 export FOLD=$fold
 export LAYRTEST_BASE=$fold
 export SFOLD=/tmp/SPMT_test
+export QFOLD=/tmp/QPMTTest
 
 #export LAYRTEST_HALF=1
 
@@ -58,9 +62,6 @@ pmtcat=R12860
 #pmtcat=NNVTMCP_HiQE
 #pmtcat=EGet
 
-mode=4  # 4 layer : ordinary stack of 4 
-#mode=2   # 2 layer : unusual check of 2 layer, picking first and last of the 4 
-
 excl=0.05
 #excl=0
 
@@ -68,9 +69,8 @@ excl=0.05
 export LAYRTEST_PMTCAT=$pmtcat
 export LAYRTEST_WL=440
 export LAYRTEST_EXCL=$excl
-export LAYRTEST_MODE=${LAYRTEST_MODE:-$mode} 
 
-vars="LAYRTEST_PMTCAT LAYRTEST_WL LAYRTEST_EXCL LAYRTEST_MODE LAYRTEST_BASE FOLD" 
+vars="LAYRTEST_PMTCAT LAYRTEST_WL LAYRTEST_EXCL LAYRTEST_BASE FOLD" 
 
 if [ "${arg/info}" != "$arg" ]; then
     for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
@@ -112,9 +112,9 @@ if [ "${arg/ana}" != "$arg" ]; then
 fi 
 
 if [ "$arg" == "mpcap" -o "$arg" == "mppub" ]; then
-    export CAP_BASE=$FOLD/${LAYRTEST_MODE}/figs
+    export CAP_BASE=$FOLD/figs
     export CAP_REL=LayrTest
-    export CAP_STEM=LayrTest_${LAYRTEST_MODE}_${LAYRTEST_INCL}_${LAYRTEST_PMTCAT}
+    export CAP_STEM=LayrTest_${LAYRTEST_INCL}_${LAYRTEST_PMTCAT}
     # /Users/blyth/env/bin/mpcap.sh
     case $arg in
        mpcap) source mpcap.sh cap  ;;   

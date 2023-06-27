@@ -47,7 +47,7 @@ class LayrTest(object):
 
     def __init__(self, f):
         self.f = f  
-        if not f is None:
+        if not f is None and not f.art_meta is None:
             title = f.art_meta.d.get("title",["-"])[0] 
             brief = f.art_meta.d.get("brief",["-"])[0] 
             name = f.art_meta.d.get("name",["-"])[0] 
@@ -109,14 +109,17 @@ class LayrTest(object):
 
 
         f_art = f.art.squeeze()
-        f_art3 = f_art[:,3,:].copy()
-        f_art[:,3,:] = 0. 
-        # as SPMT test fills row 3, but LayrTest doesnt : separate it and zero  
+        f_mct = f_art[:,3,3]
 
-        f_mct = f_art[:,2,3]
         self.art = f_art
-        self.art3 = f_art3
         self.mct = f_mct 
+        
+        # f_art3 = f_art[:,3,:].copy()
+        # f_art[:,3,:] = 0. 
+        # self.art3 = f_art3
+        #
+        # as SPMT test fills row 3, but LayrTest doesnt : separate it and zero  
+        # TODO: duplicate third row in LayrTest 
 
         self.ll = f.ll.squeeze()
         self.comp = f.comp.squeeze()
@@ -126,7 +129,12 @@ class LayrTest(object):
 
 
 def getdirnames(base, prefix="xscan"):
-    return list(sorted(list(filter(lambda name:name.startswith("xscan"),os.listdir(base)))) )
+    """
+    :param base:
+    :param prefix:
+    :return sorted list of str: names of directories inside base that start with prefix
+    """
+    return list(sorted(list(filter(lambda name:name.startswith(prefix),os.listdir(base)))) )
 
 
 class LayrTestSet(object):
@@ -141,23 +149,68 @@ class LayrTestSet(object):
          'scan_NNVTMCP_HiQE_gpu_thr_float']
      
     """
-    BASE = os.environ.get("LAYRTEST_BASE", "/tmp/LayrTest")
-    MODE = os.environ.get("LAYRTEST_MODE", "4")
-    NAMES = sorted(list(filter(lambda name:name.startswith("scan_"),os.listdir(os.path.join(BASE, MODE))))) 
     SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
 
 
     def __init__(self, symbol="ts"):
 
         self.symbol = symbol
-        self.xbase = os.path.expandvars("$SFOLD/get_ARTE") 
-        self.xnames = getdirnames( self.xbase, "xscan" )
-        self.ALL_NAMES = self.NAMES + self.xnames 
-        assert len(self.ALL_NAMES) < len(self.SYMBOLS) 
 
-        print(" %s.xbase     : %s " % (self.symbol, str(self.xbase)))
-        print(" %s.xnames    : %s " % (self.symbol, str(self.xnames)))
-        print(" %s.ALL_NAMES : %s " % (self.symbol, str(self.ALL_NAMES)))
+        if "LAYRTEST_BASE" in os.environ:
+            l_base = os.path.expandvars("$LAYRTEST_BASE")
+            l_names = getdirnames( l_base, "scan_" )
+        else:
+            l_base = None
+            l_names = []
+        pass
+
+        if "SFOLD" in os.environ:
+            s_base = os.path.expandvars("$SFOLD")
+            s_names = getdirnames( s_base, "sscan" )
+        else:
+            s_base = None
+            s_names = []
+        pass
+
+        if "QFOLD" in os.environ:
+            q_base = os.path.expandvars("$QFOLD") 
+            q_names = getdirnames( q_base, "qscan" )
+        else:
+            q_base = None
+            q_names = []
+        pass
+
+
+        # record the base for each name 
+        all_bases = []
+        for name in l_names:all_bases.append(l_base)
+        for name in s_names:all_bases.append(s_base)
+        for name in q_names:all_bases.append(q_base)
+
+        all_names = l_names + s_names + q_names 
+        assert len(all_names) < len(self.SYMBOLS) 
+        assert len(all_names) == len(all_bases)
+
+        self.l_base = l_base
+        self.l_names = l_names
+
+        self.s_base = s_base
+        self.s_names = s_names
+
+        self.q_base = q_base
+        self.q_names = q_names
+
+        self.all_names = all_names
+        self.all_bases = all_bases
+
+        print(" %s.l_base     : %s " % (self.symbol, str(self.l_base)))
+        print(" %s.l_names    : %s " % (self.symbol, str(self.l_names)))
+        print(" %s.s_base     : %s " % (self.symbol, str(self.s_base)))
+        print(" %s.s_names    : %s " % (self.symbol, str(self.s_names)))
+        print(" %s.q_base     : %s " % (self.symbol, str(self.q_base)))
+        print(" %s.q_names    : %s " % (self.symbol, str(self.q_names)))
+        print(" %s.all_names : %s " % (self.symbol, str(self.all_names)))
+        print(" %s.all_bases : %s " % (self.symbol, str(self.all_bases)))
 
         names = [] 
         labels = [] 
@@ -165,28 +218,21 @@ class LayrTestSet(object):
         folds = [] 
         tests = []
 
-        for idx in range(len(self.ALL_NAMES)):
-            name = self.ALL_NAMES[idx]
+        num = len(self.all_names)
+
+        for idx in range(num):
+            base = self.all_bases[idx]
+            name = self.all_names[idx]
             symbol = self.SYMBOLS[idx]
 
-            is_extra = idx >= len(self.NAMES) 
-
-
-            if is_extra:
-                fold = Fold.Load(self.xbase, name,  symbol=symbol)
-            else:
-                fold = Fold.Load(self.BASE, self.MODE, name,  symbol=symbol)
-            pass
-
+            fold = Fold.Load(base, name,  symbol=symbol)
             test = LayrTest(fold)
             test.name = name 
 
-            if is_extra:
+            if base == s_base:
                 test.label = "R12860"
-                print("kludge the label of is_extra ")
+                print("kludge s_base label to %s " % test.label )
             pass 
-
-
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
 
@@ -393,39 +439,31 @@ class CF(object):
 
 class ARTPlot(object):
     @classmethod
-    def Plot(cls, ax, test, excl=0, incl="ARTQxsp", squeeze=True):
+    def Plot(cls, ax, test, excl=0, incl="ARTQxsp"):
         f = test.f
 
-        R_s = f.art[...,0,0]
-        R_p = f.art[...,0,1]
-        T_s = f.art[...,0,2]
-        T_p = f.art[...,0,3]
+        art = f.art
 
-        A_s = f.art[...,1,0]
-        A_p = f.art[...,1,1]
-        R   = f.art[...,1,2]
-        T   = f.art[...,1,3]
+        # rationalized layout 
+        As   = art[...,0,0].squeeze()
+        Ap   = art[...,0,1].squeeze()
+        Aa   = art[...,0,2].squeeze()
+        A_   = art[...,0,3].squeeze()
 
-        A     = f.art[...,2,0]
-        A_R_T = f.art[...,2,1]
-        wl    = f.art[...,2,2] 
-        mct   = f.art[...,2,3]  # minus_cos_theta 
+        Rs   = art[...,1,0].squeeze()
+        Rp   = art[...,1,1].squeeze()
+        Ra   = art[...,1,2].squeeze()
+        R_   = art[...,1,3].squeeze()
 
-        if squeeze:
-             R_s = R_s.squeeze()
-             R_p = R_p.squeeze()
-             T_s = T_s.squeeze()
-             T_p = T_p.squeeze()
-             A_s = A_s.squeeze()
-             A_p = A_p.squeeze()
-             R = R.squeeze()
-             T = T.squeeze()
-             A = A.squeeze()
-             A_R_T = A_R_T.squeeze()
-             wl = wl.squeeze()
-             mct = mct.squeeze()
-        pass
+        Ts   = art[...,2,0].squeeze()
+        Tp   = art[...,2,1].squeeze()
+        Ta   = art[...,2,2].squeeze()
+        T_   = art[...,2,3].squeeze()
 
+        SF     = art[...,3,0].squeeze()
+        wl     = art[...,3,1].squeeze()
+        ARTa   = art[...,3,2].squeeze()
+        mct    = art[...,3,3].squeeze()
 
         th2mct_ = lambda th:-np.cos(th*np.pi/180.)
         mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
@@ -433,20 +471,20 @@ class ARTPlot(object):
         th = mct2th_(mct)
 
         if "x" in incl:
-            if "R" in incl: ax.plot(th, R, label="R", linestyle="dotted" )
-            if "T" in incl: ax.plot(th, T, label="T", linestyle="dotted")
-            if "A" in incl: ax.plot(th, A, label="A", linestyle="dotted")
-            if "Q" in incl: ax.plot(th, A_R_T, label="A_R_T", linestyle="dotted")
+            if "R" in incl: ax.plot(th, R_, label="R", linestyle="dotted" )
+            if "T" in incl: ax.plot(th, T_, label="T", linestyle="dotted")
+            if "A" in incl: ax.plot(th, A_, label="A", linestyle="dotted")
+            if "Q" in incl: ax.plot(th, ARTa, label="ARTa", linestyle="dotted")
         pass
         if "s" in incl:
-            if "R" in incl:ax.plot(th, R_s, label="R_s")
-            if "T" in incl:ax.plot(th, T_s, label="T_s")
-            if "A" in incl:ax.plot(th, A_s, label="A_s")
+            if "R" in incl:ax.plot(th, Rs, label="Rs")
+            if "T" in incl:ax.plot(th, Ts, label="Ts")
+            if "A" in incl:ax.plot(th, As, label="As")
         pass 
         if "p" in incl:
-            if "R" in incl:ax.plot(th, R_p, label="R_p")
-            if "T" in incl:ax.plot(th, T_p, label="T_p")
-            if "A" in incl:ax.plot(th, A_p, label="A_p")
+            if "R" in incl:ax.plot(th, Rp, label="Rp")
+            if "T" in incl:ax.plot(th, Tp, label="Tp")
+            if "A" in incl:ax.plot(th, Ap, label="Ap")
         pass 
 
 
@@ -469,9 +507,6 @@ class ARTPlot(object):
         for x in brewster_angle:
             ax.plot( [x,x], [0,1], linestyle="dashed", color=brewster_color )
         pass
-
-
-
 
 
         critical_angle = t.critical[np.isfinite( t.critical )] *180./np.pi

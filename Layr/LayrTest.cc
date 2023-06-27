@@ -94,7 +94,8 @@ void test_scans()
     switch(mode)
     {
         case 4: test_scan<4>( jpmt, wl, pmtcat );  break ; 
-        //case 2: test_scan<2>( jpmt, wl, pmtcat );  break ;   // missing symbol link errors WITH_THRUST
+        //case 2: test_scan<2>( jpmt, wl, pmtcat );  break ;  
+        // missing symbol link errors WITH_THRUST
     }
 }
 

@@ -97,8 +97,8 @@ template<typename T, int N>
 inline const char* LayrTest<T,N>::Base()  // static 
 {
     std::stringstream ss ; 
-    ss << U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest") ; 
-    ss << "/" << N ; 
+    ss << U::GetEnv("LAYRTEST_BASE", "/tmp/LayrTest/4") ; 
+    // ss << "/" << N ;     // now assuming the "4" or "2" is in the BASE  
     std::string s = ss.str(); 
     const char* base = strdup(s.c_str()); 
     return base ; 
@@ -336,6 +336,14 @@ inline void LayrTest<T,N>::save(const StackSpec<T,N>& spec) const
     assert( sizeof(Layr<T>)/sizeof(T) == 4*4*2 ); 
 
     const char* name = get_name() ; 
+
+    std::cout 
+       << "LayrTest::save"
+       << " base " << ( base ? base : "-" )
+       << " name " << ( name ? name : "-" )
+       << std::endl 
+       ;
+
     NP::Write(base, name,"comp.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
     NP::Write(base, name,"ll.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
 

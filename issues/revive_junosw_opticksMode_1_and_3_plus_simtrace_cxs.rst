@@ -13,17 +13,160 @@ High Level Progress
 3. DONE : revived j/Layr/LayrTest 
 4. DONE : NumPy compare scans from LayrTest.sh and SPMT_test.sh, small SPMT dev at critical angle 
 5. DONE : generalize qpmt/QPMT/QPMTTest for lpmtid lookups based off the full SPMT info
-6. TODO : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
+6. DONE : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
 7. TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
 
-TODO : qpmt/QPMT TMM Stack calc AOI scanning based off SPMT.h full data, like SPMT_test but on GPU
+
+
+WIP : LayrTest standardize layout etc.. to match SPMT and QPMT
+----------------------------------------------------------------
+
+Hmm QPMT/qscan not following the standard spec + stack:(art,comp,ll) layout::
+
+    epsilon:Layr blyth$ l /tmp/QPMTTest/qscan/
+    total 776
+     56 -rw-r--r--   1 blyth  wheel   26192 Jun 27 10:28 lpmtid_ARTE.npy
+    256 -rw-r--r--   1 blyth  wheel  104384 Jun 27 10:28 lpmtid_ART.npy
+     40 -rw-r--r--   1 blyth  wheel   16880 Jun 27 10:28 lpmtcat_qeshape.npy
+    384 -rw-r--r--   1 blyth  wheel  134144 Jun 27 10:28 lpmtcat_rindex.npy
+      8 -rw-r--r--   1 blyth  wheel     164 Jun 27 10:28 lpmtid.npy
+      8 -rw-r--r--   1 blyth  wheel     852 Jun 27 10:28 mct_domain.npy
+     16 -rw-r--r--   1 blyth  wheel    5712 Jun 27 10:28 energy_eV_domain.npy
+      8 -rw-r--r--   1 blyth  wheel     117 Jun 27 10:28 NPFold_index.txt
+
+This is standard::
+
+    epsilon:Layr blyth$ l /tmp/blyth/opticks/LayrTest/4/scan__R12860__cpu_thr_double/
+    total 2704
+       8 -rw-r--r--  1 blyth  wheel     256 Jun 27 12:09 spec.npy
+     256 -rw-r--r--  1 blyth  wheel  115328 Jun 27 12:09 art.npy
+       8 -rw-r--r--  1 blyth  wheel     227 Jun 27 12:09 art_meta.txt
+    1920 -rw-r--r--  1 blyth  wheel  921744 Jun 27 12:09 ll.npy
+     512 -rw-r--r--  1 blyth  wheel  230528 Jun 27 12:09 comp.npy
+       0 drwxr-xr-x  7 blyth  wheel     224 Jun 27 12:09 ..
+       0 drwxr-xr-x  7 blyth  wheel     224 Jun 27 11:37 .
+
+    epsilon:Layr blyth$ l /tmp/SPMT_test/sscan/
+    total 2912
+     120 -rw-r--r--   1 blyth  wheel   57744 Jun 27 10:13 art.npy
+       8 -rw-r--r--   1 blyth  wheel      66 Jun 27 10:13 art_meta.txt
+     256 -rw-r--r--   1 blyth  wheel  115344 Jun 27 10:13 comp.npy
+    1024 -rw-r--r--   1 blyth  wheel  460944 Jun 27 10:13 ll.npy
+    1280 -rw-r--r--   1 blyth  wheel  633744 Jun 27 10:13 stack.npy
+     120 -rw-r--r--   1 blyth  wheel   57744 Jun 27 10:13 spec.npy
+      32 -rw-r--r--   1 blyth  wheel   14544 Jun 27 10:13 extra.npy
+      32 -rw-r--r--   1 blyth  wheel   14544 Jun 27 10:13 ARTE.npy
+      32 -rw-r--r--   1 blyth  wheel   14544 Jun 27 10:13 args.npy
+       8 -rw-r--r--   1 blyth  wheel      71 Jun 27 10:13 NPFold_index.txt
+       0 drwxr-xr-x   6 blyth  wheel     192 Jun 27 10:13 ..
+
+
+
+DONE : Fixed bug : uninitialized ART values
+---------------------------------------------
+
+::
+
+    In [21]: ts
+    Out[21]: 
+    CFLayrTest
+     a :          R12860 : scan__R12860__cpu_thr_double 
+     b :          R12860 : scan__R12860__cpu_thr_float 
+     c :          R12860 : scan__R12860__gpu_thr_double 
+     d :          R12860 : scan__R12860__gpu_thr_float 
+     e :          R12860 : sscan 
+
+    In [22]: a.f.art[0]
+    Out[22]: 
+    array([[  0.627,   0.627,   0.627,   0.   ],
+           [  0.045,   0.045,   0.045,   0.   ],
+           [  0.328,   0.328,   0.328, 440.   ],
+           [  0.   , 440.   ,   1.   ,  -1.   ]])
+
+    In [23]: b.f.art[0]
+    Out[23]: 
+    array([[ 6.272e-01,  6.272e-01,  6.272e-01,  4.591e-41],
+           [ 4.470e-02,  4.470e-02,  4.470e-02,  1.401e-45],
+           [ 3.281e-01,  3.281e-01,  3.281e-01,  4.591e-41],
+           [-1.764e+22,  4.400e+02,  1.000e+00, -1.000e+00]], dtype=float32)
+
+    In [24]: c.f.art[0]
+    Out[24]: 
+    array([[  0.627,   0.627,   0.627,     nan],
+           [  0.045,   0.045,   0.045,     nan],
+           [  0.328,   0.328,   0.328,     nan],
+           [    nan, 440.   ,   1.   ,  -1.   ]])
+
+    In [25]: d.f.art[0]
+    Out[25]: 
+    array([[ 6.272e-01,  6.272e-01,  6.272e-01,  1.845e-31],
+           [ 4.470e-02,  4.470e-02,  4.470e-02,  5.266e+10],
+           [ 3.281e-01,  3.281e-01,  3.281e-01,  1.617e-36],
+           [ 1.934e+00,  4.400e+02,  1.000e+00, -1.000e+00]], dtype=float32)
+
+    In [26]: e.f.art.squeeze()[0]
+    Out[26]: 
+    array([[  0.627,   0.627,   0.627,   0.627],
+           [  0.045,   0.045,   0.045,   0.045],
+           [  0.328,   0.328,   0.328,   0.328],
+           [  0.   , 440.   ,   1.   ,  -1.   ]], dtype=float32)
+
+    In [27]:                      
+
+
+
+DONE : Debug cudaMemCopy crash
+---------------------------------
+
+"Binary" search investigating the kernel, shows
+smoking gun : the pmtcat lookup is going wrong 
+for anything other than lpmtid 0::
+
+
+    //qpmt::get_lpmtid_stackspec lpmtid 0 lpmtcat 1 
+    //qpmt::get_lpmtid_stackspec lpmtid 0 lpmtcat 1 
+    //qpmt::get_lpmtid_stackspec lpmtid 0 lpmtcat 1 
+    //qpmt::get_lpmtid_stackspec lpmtid 0 lpmtcat 1 
+    //qpmt::get_lpmtid_stackspec lpmtid 0 lpmtcat 1 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+
+
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 10 lpmtcat -268500993 
+    //qpmt::get_lpmtid_stackspec lpmtid 55 lpmtcat -1 
+    //qpmt::get_lpmtid_stackspec lpmtid 55 lpmtcat -1 
+    //qpmt::get_lpmtid_stackspec lpmtid 55 lpmtcat -1 
+
+
+    In [5]: t.src_lcqs
+    Out[5]: array([[         1, 1065565820]], dtype=int32)
+
+    In [6]: t.src_lcqs.shape
+    Out[6]: (1, 2)
+
+
+DONE : qpmt/QPMT TMM Stack calc AOI scanning based off SPMT.h full data, like SPMT_test but on GPU
 ------------------------------------------------------------------------------------------------------
+
+* see qudarap/QPMTTest.sh 
+
+TODO : compare QPMTTest GPU AOI scans with others using LayrTest.sh comparison machinery 
+-------------------------------------------------------------------------------------------
 
 
 TODO : Bring C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
 ------------------------------------------------------------------------------------------------------
 
-WIP : remove stackNormal instance
+
+DONE : remove stackNormal instance
 ------------------------------------
 
 After rationalizing the serialization layout:
@@ -166,8 +309,6 @@ Those 5 lpmtid are all lpmt 1,2 no 0, so find some::
 
     In [31]: np.where( t.src_lcqs[:,0] == 0 )[0].shape
     Out[31]: (2720,)
-
-
 
 
 
@@ -1146,8 +1287,8 @@ See c4/C4CustomART::doIt getting pmtcat from pmtid and getting qe for (pmtid,ene
 Whats missing is contiguous pmt index array with category and qe_scale.
 
 
-HMM : Skip WPMTs SPMTs from the arrays needed for QPMT ?
-----------------------------------------------------------
+DONE : Skip WPMTs SPMTs from the SPMT.h arrays needed for QPMT ? YES
+----------------------------------------------------------------------
 
 Only pmtid from NNVT,NNVTHiQE,HAMA PMTs will be arriving into 
 QPMT because only those have the special "@/#" surface names prefix.  

@@ -33,7 +33,7 @@ template<typename T> struct Layr : (4,4,2)
 
     * d = zero : indicates thick (incoherent) layer 
 
-template<typename F> struct ART_ : (3,4) 
+template<typename F> struct ART_ : (4,4) 
     results  
 
 template<typename T, int N> StackSpec :  (4,3) 
@@ -278,31 +278,35 @@ inline std::ostream& operator<<(std::ostream& os, const Layr<T>& l)
 }
 #endif
 
+
 template<typename F>
 struct ART_
-{   
-    F R_s;     // R_s = a.arts[:,0,0]
-    F R_p;     // R_p = a.arts[:,0,1]
-    F T_s;     // T_s = a.arts[:,0,2]
-    F T_p;     // T_p = a.arts[:,0,3]
+{
+    F A_s;     // A_s  = a.arts[:,0,0]
+    F A_p;     // A_p  = a.arts[:,0,1]
+    F A_av;    // A_av = a.arts[:,0,2]
+    F A ;      // A    = a.arts[:,0,3]
 
-    F A_s;     // A_s = a.arts[:,1,0]
-    F A_p;     // A_p = a.arts[:,1,1]
-    F R;       // R   = a.arts[:,1,2]
-    F T;       // T   = a.arts[:,1,3]
+    F R_s;     // R_s = a.arts[:,1,0]
+    F R_p;     // R_p = a.arts[:,1,1]
+    F R_av;    // R_av= a.arts[:,1,2]
+    F R ;      // R   = a.arts[:,1,3]
 
-    F A;       // A   = a.arts[:,2,0]
-    F A_R_T ;  // A_R_T = a.arts[:,2,1] 
-    F wl ;     // wl  = a.arts[:,2,2]
-    F mct ;    // mct  = a.arts[:,2,3]   
+    F T_s;     // T_s  = a.arts[:,2,0]
+    F T_p;     // T_p  = a.arts[:,2,1]
+    F T_av;    // T_av = a.arts[:,2,2]
+    F T ;      // T    = a.arts[:,2,3]
 
-    F xx ; 
-    F yy ; 
-    F zz ; 
-    F ww ; 
+    F SF ;      // SF        = a.arts[:,3,0]     S_pol vs P_pol power fraction 
+    F wl ;      // wl       = a.arts[:,3,1]
+    F ART_av ;  // ART_av   = a.arts[:,3,2] 
+    F mct ;     // mct      = a.arts[:,3,3]   
 
+    LAYR_METHOD const F* cdata() const { return &A_s ; } 
     // persisted into shape (4,4) 
 };
+
+
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
@@ -311,19 +315,21 @@ inline std::ostream& operator<<(std::ostream& os, const ART_<T>& art )
 {
     os 
         << "ART_" << std::endl 
-        << " R_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_s 
-        << " R_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_p 
-        << std::endl 
-        << " T_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.T_s 
-        << " T_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.T_p 
         << std::endl 
         << " A_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.A_s 
         << " A_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.A_p 
+        << " A_av " << std::fixed << std::setw(10) << std::setprecision(4) << art.A_av 
+        << " A " << std::fixed << std::setw(10) << std::setprecision(4) << art.A
         << std::endl 
-        << " R   " << std::fixed << std::setw(10) << std::setprecision(4) << art.R   
-        << " T   " << std::fixed << std::setw(10) << std::setprecision(4) << art.T   
-        << " A   " << std::fixed << std::setw(10) << std::setprecision(4) << art.A  
-        << " A_R_T " << std::fixed << std::setw(10) << std::setprecision(4) << art.A_R_T 
+        << " R_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_s 
+        << " R_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_p 
+        << " R_av " << std::fixed << std::setw(10) << std::setprecision(4) << art.R_av 
+        << " R " << std::fixed << std::setw(10) << std::setprecision(4) << art.R 
+        << std::endl 
+        << " T_s " << std::fixed << std::setw(10) << std::setprecision(4) << art.T_s 
+        << " T_p " << std::fixed << std::setw(10) << std::setprecision(4) << art.T_p 
+        << " T_av " << std::fixed << std::setw(10) << std::setprecision(4) << art.T_av 
+        << " T " << std::fixed << std::setw(10) << std::setprecision(4) << art.T 
         << std::endl 
         << " wl  " << std::fixed << std::setw(10) << std::setprecision(4) << art.wl  << std::endl 
         << " mct " << std::fixed << std::setw(10) << std::setprecision(4) << art.mct << std::endl 
@@ -698,10 +704,6 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
     art.wl = wl ; 
     art.mct = minus_cos_theta ; 
 
-    art.xx = zero ; 
-    art.yy = zero ; 
-    art.zz = zero ; 
-    art.ww = zero ; 
 
     const complex<T> zOne(one,zero); 
     const complex<T> zI(zero,one); 
@@ -833,10 +835,19 @@ LAYR_METHOD Stack<T,N>::Stack(T wl, T minus_cos_theta, const StackSpec<T,N>& ss 
     art.A_p = one-art.R_p-art.T_p;
 
     // average of S and P 
-    art.R   = (art.R_s+art.R_p)/two ;
-    art.T   = (art.T_s+art.T_p)/two ;
-    art.A   = (art.A_s+art.A_p)/two ;
-    art.A_R_T = art.A + art.R + art.T ;  
+    art.R_av   = (art.R_s+art.R_p)/two ;
+    art.T_av   = (art.T_s+art.T_p)/two ;
+    art.A_av   = (art.A_s+art.A_p)/two ;
+    art.ART_av = art.A_av + art.R_av + art.T_av ;  
+
+
+    // Below A,R,T,SF should be the polarization customized values, 
+    // but for now just set then to the pure P-polarized value.
+    art.A = art.A_p ;    
+    art.R = art.R_p ; 
+    art.T = art.T_p ; 
+    art.SF = zero   ;   // S_pol fraction 
+
 }
 
 #if defined(__CUDACC__) || defined(__CUDABE__)
