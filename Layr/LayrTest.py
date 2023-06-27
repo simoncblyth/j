@@ -22,6 +22,8 @@ import os, builtins, numpy as np
 from opticks.ana.fold import Fold 
 from opticks.ana.rsttable import RSTTable
 SIZE = np.array([1280, 720])
+PMTIDX = int(os.environ.get("PMTIDX","0"))
+
 
 def both(x,y):
     return not x is None and not y is None
@@ -71,16 +73,27 @@ class LayrTest(object):
             layr = "?" 
         pass
 
+
+
         if f.spec.shape == (4,4):
             nr_first = f.spec[0,0]  # Pyrex rindex
             nr_last = f.spec[3,0]  # Vacuum rindex 
         else:
-            # SPMT has f.spec.shape (1, 1, 900, 1, 4, 4)
+            # SPMT f.spec.shape (1, 1, 900, 1, 4, 4)
+            # QPMT f.spec.shape (9, 181, 4, 4) 
+
             f_spec = f.spec.squeeze()
-            assert np.all( f_spec[:,0,0] == f_spec[0,0,0] )   
-            assert np.all( f_spec[:,3,0] == f_spec[0,3,0] )   
-            nr_first = f_spec[0,0,0] 
-            nr_last  = f_spec[0,3,0] 
+            nr_first_ = f_spec[...,0,0].ravel()
+            nr_last_  = f_spec[...,3,0].ravel()
+
+            assert np.all( nr_first_ == nr_first_[0] )  
+            # all Pyrex rindex should be the same, no matter pmtcat or domain scanning  
+
+            assert np.all( nr_last_ == 1. ) 
+            # all Vacuum rindex should be 1. 
+
+            nr_first = nr_first_[0]
+            nr_last  = nr_last_[0]
         pass
         nr_frac = np.array([nr_last/nr_first,nr_first/nr_last])
 
@@ -108,21 +121,40 @@ class LayrTest(object):
         self.layr = layr
 
 
-        f_art = f.art.squeeze()
-        f_mct = f_art[:,3,3]
+        f_art_ = f.art.squeeze()
+        if f_art_.ndim == 3:   # eg (900, 4, 4)
+            f_art = f_art_
+        elif f_art_.ndim == 4:  # eg (9, 900, 4, 4)
+            f_art = f_art_[PMTIDX] 
+        else:
+            print("unexpected f_art_ shape %s " % str(f_art_.shape))
+            assert 0 
+        pass
 
         self.art = f_art
-        self.mct = f_mct 
-        
-        # f_art3 = f_art[:,3,:].copy()
-        # f_art[:,3,:] = 0. 
-        # self.art3 = f_art3
-        #
-        # as SPMT test fills row 3, but LayrTest doesnt : separate it and zero  
-        # TODO: duplicate third row in LayrTest 
+        self.mct =  f_art[:,3,3]
 
-        self.ll = f.ll.squeeze()
-        self.comp = f.comp.squeeze()
+        f_ll_ = f.ll.squeeze()
+        if f_ll_.ndim == 5:    # eg (900, 4, 4, 4, 2)
+            f_ll = f_ll_
+        elif f_ll_.ndim == 6:  # eg (9,900, 4, 4, 4, 2) 
+            f_ll = f_ll_[PMTIDX] 
+        else:    
+            print("unexpected f_ll_ shape %s " % str(f_ll_.shape))
+            assert 0
+        pass
+        self.ll = f_ll
+
+        f_comp_ = f.comp.squeeze()
+        if f_comp_.ndim == 4:    # eg (900, 4, 4, 2)
+            f_comp = f_comp_
+        elif f_comp_.ndim == 5:  # eg (9,900, 4, 4, 2) 
+            f_comp = f_comp_[PMTIDX] 
+        else:    
+            print("unexpected f_comp_ shape %s " % str(f_comp_.shape))
+            assert 0
+        pass
+        self.comp = f_comp
 
     def __repr__(self):
         return "%s : %s" % (self.symbol, self.title)
@@ -180,7 +212,6 @@ class LayrTestSet(object):
             q_names = []
         pass
 
-
         # record the base for each name 
         all_bases = []
         for name in l_names:all_bases.append(l_base)
@@ -229,9 +260,13 @@ class LayrTestSet(object):
             test = LayrTest(fold)
             test.name = name 
 
+            # TODO: examine tea leaves to find actual pmtcat, not guess 
             if base == s_base:
                 test.label = "R12860"
                 print("kludge s_base label to %s " % test.label )
+            elif base == q_base:
+                test.label = "R12860"
+                print("kludge q_base label to %s " % test.label )
             pass 
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
