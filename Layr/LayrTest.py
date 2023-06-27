@@ -474,31 +474,103 @@ class CF(object):
 
 class ARTPlot(object):
     @classmethod
-    def Plot(cls, ax, test, excl=0, incl="ARTQxsp"):
-        f = test.f
+    def PlotBrewster(cls, ax, test, **kwa ):
 
-        art = f.art
+        assert len(test.brewster) == 2 
+        brewster_angle = test.brewster*180./np.pi
+
+        brewster = np.zeros( (2, len(brewster_angle), 2) )
+        brewster[0,:,0] = brewster_angle
+        brewster[0,:,1] = 0. 
+        brewster[1,:,0] = brewster_angle
+        brewster[1,:,1] = 1. 
+        brewster = brewster.reshape(-1,2)
+
+        brewster_sz = 30 
+        brewster_color = "red"
+        brewster_label = "Brewster"
+
+        ax.scatter( brewster[:,0], brewster[:,1], s=brewster_sz, color=brewster_color, label=brewster_label )
+
+        for x in brewster_angle:
+            ax.plot( [x,x], [0,1], linestyle="dashed", color=brewster_color )
+        pass
+
+    @classmethod
+    def PlotCritical(cls, ax, test, **kwa):
+
+        critical_angle = test.critical[np.isfinite( test.critical )] *180./np.pi
+        critical = np.zeros( (2, len(critical_angle), 2 ) )
+        critical[0,:,0] = critical_angle
+        critical[0,:,1] = 0.
+        critical[1,:,0] = critical_angle
+        critical[1,:,1] = 1.
+        critical = critical.reshape(-1,2)
+
+        critical_sz = 30 
+        critical_color = "blue"
+        critical_label = "Critical"
+
+        ax.scatter( critical[:,0], critical[:,1], s=critical_sz, color=critical_color, label=critical_label )
+
+        for x in critical_angle:
+            ax.plot( [x,x], [0,1], linestyle="dashed", color=critical_color )
+        pass
+
+    @classmethod
+    def PlotVertical(cls, ax, test, **kwa ):
+        verticals = kwa.pop("verticals", [])
+        for x in verticals:
+            ax.plot( [ x,  x],   [0, 1], linestyle="dashed" )  
+        pass
+
+    @classmethod
+    def PlotAnnotate(cls, ax, test, **kwa ):
+        excl = kwa.pop("excl", 0)
+        incl = kwa.pop("incl", "")
+        excl_deg = kwa.pop("excl_deg", [])
+
+        extra_ = ["excl: %s " % excl, "incl: %s" % incl]
+        for i in range(len(excl_deg)):
+            extra_.append("edeg[%d] : %7.2f " % (i, excl_deg[i]))
+        pass
+        extra = "\n".join(extra_)
+
+        ax.text( 125, 0.6, "\n".join([test.layr,extra]))
+
+
+    @classmethod
+    def Plot(cls, ax, test, **kwa ):
+
+        excl = kwa.pop("excl", 0)
+        incl = kwa.pop("incl", "ARTQxsp")
+        pidx = kwa.pop("pidx", None)
+
+        #art = test.f.art  ## multiple lpmtid 
+        #art = test.art    ## one PMTIDX 
+
+        art = test.art if pidx is None else  test.f.art[pidx] 
 
         # rationalized layout 
-        As   = art[...,0,0].squeeze()
-        Ap   = art[...,0,1].squeeze()
-        Aa   = art[...,0,2].squeeze()
-        A_   = art[...,0,3].squeeze()
+        As   = art[:,0,0]
+        Ap   = art[:,0,1]
+        Aa   = art[:,0,2]
+        A_   = art[:,0,3]
 
-        Rs   = art[...,1,0].squeeze()
-        Rp   = art[...,1,1].squeeze()
-        Ra   = art[...,1,2].squeeze()
-        R_   = art[...,1,3].squeeze()
+        Rs   = art[:,1,0]
+        Rp   = art[:,1,1]
+        Ra   = art[:,1,2]
+        R_   = art[:,1,3]
 
-        Ts   = art[...,2,0].squeeze()
-        Tp   = art[...,2,1].squeeze()
-        Ta   = art[...,2,2].squeeze()
-        T_   = art[...,2,3].squeeze()
+        Ts   = art[:,2,0]
+        Tp   = art[:,2,1]
+        Ta   = art[:,2,2]
+        T_   = art[:,2,3]
 
-        SF     = art[...,3,0].squeeze()
-        wl     = art[...,3,1].squeeze()
-        ARTa   = art[...,3,2].squeeze()
-        mct    = art[...,3,3].squeeze()
+        SF   = art[:,3,0]
+        wl   = art[:,3,1]
+        ARTa = art[:,3,2]
+        mct  = art[:,3,3]
 
         th2mct_ = lambda th:-np.cos(th*np.pi/180.)
         mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
@@ -522,75 +594,26 @@ class ARTPlot(object):
             if "A" in incl:ax.plot(th, Ap, label="Ap")
         pass 
 
-
-        assert len(t.brewster) == 2 
-        brewster_angle = t.brewster*180./np.pi
-
-        brewster = np.zeros( (2, len(brewster_angle), 2) )
-        brewster[0,:,0] = brewster_angle
-        brewster[0,:,1] = 0. 
-        brewster[1,:,0] = brewster_angle
-        brewster[1,:,1] = 1. 
-        brewster = brewster.reshape(-1,2)
-
-        brewster_sz = 30 
-        brewster_color = "red"
-        brewster_label = "Brewster"
-
-        ax.scatter( brewster[:,0], brewster[:,1], s=brewster_sz, color=brewster_color, label=brewster_label )
-
-        for x in brewster_angle:
-            ax.plot( [x,x], [0,1], linestyle="dashed", color=brewster_color )
-        pass
-
-
-        critical_angle = t.critical[np.isfinite( t.critical )] *180./np.pi
-        critical = np.zeros( (2, len(critical_angle), 2 ) )
-        critical[0,:,0] = critical_angle
-        critical[0,:,1] = 0.
-        critical[1,:,0] = critical_angle
-        critical[1,:,1] = 1.
-        critical = critical.reshape(-1,2)
-
-        critical_sz = 30 
-        critical_color = "blue"
-        critical_label = "Critical"
-
-        ax.scatter( critical[:,0], critical[:,1], s=critical_sz, color=critical_color, label=critical_label )
-
-        for x in critical_angle:
-            ax.plot( [x,x], [0,1], linestyle="dashed", color=critical_color )
-        pass
-
-
-
-
-        xx = [0,90,180] 
-
-        edeg = [np.arccos(excl)*180/np.pi,np.arccos(-excl)*180/np.pi] if excl > 0 else []
-        xx.extend(edeg)
-        for x in xx:
-            ax.plot( [ x,  x],   [0, 1], linestyle="dashed" )  
-        pass
-
-        extra_ = ["excl: %s " % excl, "incl: %s" % incl]
-        for i in range(len(edeg)):
-            extra_.append("edeg[%d] : %7.2f " % (i, edeg[i]))
-        pass
-        extra = "\n".join(extra_)
-
-        ax.text( 125, 0.6, "\n".join([test.layr,extra]))
-
         sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
         sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
         ax.set_xlabel('aoi [degrees] ( 90:180 : reverse stack )' )
 
 
-
     def __init__(self, test, **kwa):
+        """
+        :param test: LayrTest instance 
+        """
         self.test = test
         self.kwa = kwa
         xtitle = kwa.pop("xtitle", None)
+        excl = kwa.pop("excl", 0)
+
+        verticals = [0,90,180] 
+        edeg = [np.arccos(excl)*180/np.pi,np.arccos(-excl)*180/np.pi] if excl > 0 else []
+        verticals.extend(edeg)
+        kwa["verticals"] = verticals
+        kwa["pidx"] = None
+
 
         fig, ax = plt.subplots(1, figsize=SIZE/100.)
 
@@ -600,7 +623,16 @@ class ARTPlot(object):
         pass 
         fig.suptitle(title)   
 
-        self.Plot(ax, test, **kwa)  
+        for i in range(9):
+            kwa["pidx"] = i 
+            self.Plot(        ax, test, **kwa)  
+        pass
+
+
+        self.PlotBrewster(ax, test, **kwa)  
+        self.PlotCritical(ax, test, **kwa)  
+        self.PlotAnnotate(ax, test, **kwa)  
+        self.PlotVertical(ax, test, **kwa)  
 
         ax.legend(loc=os.environ.get("LOC", "upper right")) 
         fig.show()                
