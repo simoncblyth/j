@@ -11,10 +11,8 @@ This is aiming to provide the input arrays for the CPU counterpart
 of a GPU interpolator using (or doing similar to) QProp.hh/qprop.h 
 
 
-
-* TODO: work out the subset if JPMT.h current used from QPMTTest.cc
-* TODO : reimplement JPMT.h in different struct KPMT.h(?) operating from 
-  the full serialized PMT NPFold rather that the prop txt files
+* DONE : reimplement JPMT.h in different struct SPMT.h
+  operating from the full serialized PMT NPFold rather that the prop txt files
 
 
 Usage
@@ -158,7 +156,9 @@ struct JPMT : public C4IPMTAccessor
     double get_qescale( int pmtid ) const ;   // placeholder returning zero 
     int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
-    NP*    get_stackspec() const ; 
+    NP*     get_stackspec() const ; 
+    NPFold* get_fold() const ; 
+
     NPFold* make_testfold() const ; 
 
     const char* get_typename() const ; 
@@ -716,6 +716,15 @@ inline NP* JPMT::get_stackspec() const
     return a ;
 }
 
+inline NPFold* JPMT::get_fold() const
+{
+    NPFold* fold = new NPFold ; 
+    fold->add("rindex", rindex) ; 
+    fold->add("thickness", thickness) ;
+    fold->add("qeshape", qeshape) ;
+    //fold->add("lcqs", lcqs) ;
+    return fold ; 
+}
 inline NPFold* JPMT::make_testfold() const
 {
     NPFold* f = new NPFold ;

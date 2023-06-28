@@ -47,80 +47,43 @@ class LayrTest(object):
         if "float" in name: tag += "f" ; 
         return tag
 
-    def __init__(self, f):
-        self.f = f  
+    def init_meta(self, f):
+        assert not f is None
+        symbol = f.symbol
+
         if not f is None and not f.art_meta is None:
             title = f.art_meta.d.get("title",["-"])[0] 
             brief = f.art_meta.d.get("brief",["-"])[0] 
             name = f.art_meta.d.get("name",["-"])[0] 
-            tag = self.Tag(name)
             label = f.art_meta.d.get("label",["-"])[0] 
-            symbol = f.symbol
-
-            f_ll = f.ll.squeeze() 
-            f_ll_thickness = f_ll[0,:,0,0,0]
-            f_ll_rindex_kindex = f_ll[0,:,0,1,:]   
-            layr = str(np.c_[f_ll_thickness,f_ll_rindex_kindex])
-            # curious f_ll diddling : would be easier to just show the spec
-            # a.f.ll.squeeze().shape   (900, 4, 4, 4, 2)
         else:
             title = "-"
             brief = "-"
             name = "-"
-            tag = "?"
             label = "-"
-            symbol = "?"
-            layr = "?" 
         pass
+        tag = self.Tag(name)
 
-
-
-        if f.spec.shape == (4,4):
-            nr_first = f.spec[0,0]  # Pyrex rindex
-            nr_last = f.spec[3,0]  # Vacuum rindex 
-        else:
-            # SPMT f.spec.shape (1, 1, 900, 1, 4, 4)
-            # QPMT f.spec.shape (9, 181, 4, 4) 
-
-            f_spec = f.spec.squeeze()
-            nr_first_ = f_spec[...,0,0].ravel()
-            nr_last_  = f_spec[...,3,0].ravel()
-
-            assert np.all( nr_first_ == nr_first_[0] )  
-            # all Pyrex rindex should be the same, no matter pmtcat or domain scanning  
-
-            assert np.all( nr_last_ == 1. ) 
-            # all Vacuum rindex should be 1. 
-
-            nr_first = nr_first_[0]
-            nr_last  = nr_last_[0]
-        pass
-        nr_frac = np.array([nr_last/nr_first,nr_first/nr_last])
-
-        brewster = np.array( [np.arctan(nr_frac[0]), np.pi - np.arctan(nr_frac[1]) ] )
-        critical = np.array( [np.arcsin(nr_frac[0]), np.pi - np.arcsin(nr_frac[1]) ] )  # one of these will be np.nan
-        critical_theta = critical[~np.isnan(critical)][0]
-        critical_theta_degrees = critical_theta/np.pi*180.  
-        critical_mct = -np.cos(critical_theta)
-
-        self.nr_first = nr_first
-        self.nr_last = nr_last
-        self.nr_frac = nr_frac
-        self.brewster = brewster 
-        self.critical = critical 
-        self.critical_theta = critical_theta
-        self.critical_theta_degrees = critical_theta_degrees
-        self.critical_mct = critical_mct
-
+        self.symbol = symbol
         self.title = title
         self.brief = brief
         self.name = name
-        self.tag = tag
         self.label = label
-        self.symbol = symbol
-        self.layr = layr
+        self.tag = tag
 
 
+    def init_lpmt(self, f):
+        lpmtid = getattr(f, 'lpmtid', [] )
+        lpmtcat = getattr(f, 'lpmtcat', [] )
+        if lpmtid is None: lpmtid = []  
+        if lpmtcat is None: lpmtcat = []  
+
+        assert len(lpmtid) == len(lpmtcat)
+        self.lpmtid = lpmtid
+        self.lpmtcat = lpmtcat
+
+
+    def init_art(self, f):
         f_art_ = f.art.squeeze()
         if f_art_.ndim == 3:   # eg (900, 4, 4)
             f_art = f_art_
@@ -130,10 +93,10 @@ class LayrTest(object):
             print("unexpected f_art_ shape %s " % str(f_art_.shape))
             assert 0 
         pass
-
         self.art = f_art
         self.mct =  f_art[:,3,3]
 
+    def init_ll(self, f):
         f_ll_ = f.ll.squeeze()
         if f_ll_.ndim == 5:    # eg (900, 4, 4, 4, 2)
             f_ll = f_ll_
@@ -145,6 +108,7 @@ class LayrTest(object):
         pass
         self.ll = f_ll
 
+    def init_comp(self, f):
         f_comp_ = f.comp.squeeze()
         if f_comp_.ndim == 4:    # eg (900, 4, 4, 2)
             f_comp = f_comp_
@@ -155,6 +119,78 @@ class LayrTest(object):
             assert 0
         pass
         self.comp = f_comp
+
+    def init_spec(self, f):
+
+        lpmtid = self.lpmtid
+
+        f_spec = f.spec.squeeze()
+        if f_spec.ndim == 2:
+            assert f_spec.shape == (4,4)
+            nr_first = f_spec[0,0]  # Pyrex rindex
+            nr_last = f_spec[3,0]  # Vacuum rindex 
+            layr = str(f_spec)
+        elif f_spec.ndim in (3,4):
+            if f_spec.ndim == 3:
+                assert f_spec.shape == (len(f_spec),4,4)
+                layr = str(f_spec[0])
+            elif f_spec.ndim == 4:
+                assert f_spec.shape[0] == len(lpmtid)
+                assert f.spec.shape[-2:] == (4,4)
+                layr = str(f_spec[PMTIDX,0])
+            pass
+            nr_first_ = f_spec[...,0,0].ravel()
+            nr_last_  = f_spec[...,3,0].ravel()
+            assert np.all( nr_first_ == nr_first_[0] )  
+            # all Pyrex rindex should be the same, no matter pmtcat or domain scanning  
+            assert np.all( nr_last_ == 1. ) 
+            # all Vacuum rindex should be 1. 
+            nr_first = nr_first_[0]
+            nr_last  = nr_last_[0]
+        else:
+            print("ABORT : unexpectd f_spec.shape %s " % str(f_spec.shape))
+        pass
+        self.nr_first = nr_first
+        self.nr_last = nr_last
+        self.layr = layr 
+        self.spec = f_spec
+
+
+    def init_critical(self):
+        """
+        """
+        nr_first = self.nr_first
+        nr_last = self.nr_last 
+        nr_frac = np.array([nr_last/nr_first,nr_first/nr_last])
+        assert nr_frac[0] < 1 
+        assert nr_frac[1] > 1 
+
+        brewster = np.array( [np.arctan(nr_frac[0]), np.pi - np.arctan(nr_frac[1]) ] )
+
+        #critical = np.array( [np.arcsin(nr_frac[0]), np.pi - np.arcsin(nr_frac[1]) ] )  
+        #self.critical = critical 
+        #critical_theta = critical[~np.isnan(critical)][0]
+        # one of these will be np.nan, looks like its always the 2nd ? 
+
+        critical_theta = np.arcsin(nr_frac[0])
+        critical_theta_degrees = critical_theta*180./np.pi  
+        critical_mct = -np.cos(critical_theta)
+
+        self.nr_frac = nr_frac   
+        self.brewster = brewster 
+        self.critical_theta = critical_theta
+        self.critical_theta_degrees = critical_theta_degrees
+        self.critical_mct = critical_mct
+
+    def __init__(self, f):
+        self.f = f  
+        self.init_meta(f)
+        self.init_lpmt(f)
+        self.init_art(f)
+        self.init_ll(f)
+        self.init_comp(f)
+        self.init_spec(f)
+        self.init_critical()
 
     def __repr__(self):
         return "%s : %s" % (self.symbol, self.title)
@@ -261,6 +297,9 @@ class LayrTestSet(object):
             test.name = name 
 
             # TODO: examine tea leaves to find actual pmtcat, not guess 
+            # HMM: qscan has lpmtid, lpmtcat already, need to add 
+            # those to sscan so can treat them together
+            
             if base == s_base:
                 test.label = "R12860"
                 print("kludge s_base label to %s " % test.label )
@@ -499,7 +538,9 @@ class ARTPlot(object):
     @classmethod
     def PlotCritical(cls, ax, test, **kwa):
 
-        critical_angle = test.critical[np.isfinite( test.critical )] *180./np.pi
+        #critical_angle = test.critical[np.isfinite( test.critical )] *180./np.pi
+        critical_angle = np.array( [test.critical_theta_degrees, test.critical_theta_degrees] ) 
+          
         critical = np.zeros( (2, len(critical_angle), 2 ) )
         critical[0,:,0] = critical_angle
         critical[0,:,1] = 0.
