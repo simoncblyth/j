@@ -1,76 +1,58 @@
 #!/bin/bash -l 
-
 usage(){ cat << EOU
+build.sh : currently failing to find SysRap due to plog
+=========================================================
 
-Have moved to building PMTSim using standard Opticks *om* rather than this script
+Need to install PMTSim in a more controllable manner, 
+than installing into OPTICKS_PREFIX in order to make 
+it easier to switch off finding it. 
+
+As that proved diffult see the kludge : om_remove.sh 
 
 EOU
 }
 
-
-g4-
-clhep-
-boost-
-
-name=PMTSimTest
-
-srcs="
-      tests/$name.cc
-      PMTSim.cc
-      Hamamatsu_R12860_PMTSolid.cc
-      HamamatsuR12860PMTManager.cc 
-      NNVT_MCPPMT_PMTSolid.cc
-      NNVTMCPPMTManager.cc
-      DetectorConstruction.cc
-      ZSolid.cc
-      MaterialSvc.cc
-     "
-
-bin=/tmp/$name/$name
-mkdir -p $(dirname $bin)
-
-gcc \
-        $srcs \
-        -DPMTSIM_STANDALONE \
-       -std=c++11 \
-       -Wcomment \
-       -Wunused-variable \
-       -Wunused-parameter \
-       -Wextra \
-       -Wunused \
-       -Wall \
-       -I. \
-       -I$HOME/np \
-       -g \
-       -I$(g4-prefix)/include/Geant4 \
-       -I$(clhep-prefix)/include \
-       -I$(boost-prefix)/include \
-       -L$(g4-libdir) \
-       -L$(clhep-prefix)/lib \
-       -lstdc++ \
-       -lG4global \
-       -lG4materials \
-       -lG4particles \
-       -lG4track \
-       -lG4tracking \
-       -lG4processes \
-       -lG4geometry \
-       -lG4graphics_reps \
-       -lCLHEP \
-       -o $bin
-
-[ $? -ne 0 ] && echo compile error && exit 1
+opticks-
+pmtsim_prefix=${OPTICKS_PREFIX}_externals/pmtsim
+PMTSIM_PREFIX=${PMTSIM_PREFIX:-$pmtsim_prefix}
 
 
-if [ "$(uname)" == "Darwin" ]; then
-   lldb__ $bin
-else
-   gdb -r ex --args  $bin
-fi 
+REALDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
+sdir=$(pwd)
+name=$(basename $sdir)
+
+BASE=/tmp/$USER/$name
+bdir=$BASE/build
 
 
-[ $? -ne 0 ] && echo run error && exit 2
+defarg="info_install"
+arg=${1:-$defarg}
 
-exit 0 
+vars="sdir name BASE bdir idir arg OPTICKS_PREFIX pmtsim_prefix PMTSIM_PREFIX"
+
+
+echo $CMAKE_PREFIX_PATH | tr ":" "\n"
+
+
+if [ "${arg/info}" != "$arg" ]; then
+   for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done
+fi
+
+if [ "${arg/install}" != "$arg" ]; then
+
+    rm -rf $bdir
+    mkdir -p $bdir  
+    cd $bdir
+    pwd
+
+    cmake $sdir \
+         -DCMAKE_BUILD_TYPE=Debug \
+         -DCMAKE_PREFIX_PATH=$(opticks-prefix)/externals \
+         -DCMAKE_MODULE_PATH=$(opticks-home)/cmake/Modules \
+         -DCMAKE_INSTALL_PREFIX=$PMTSIM_PREFIX
+
+    make
+    make install
+fi
 
 

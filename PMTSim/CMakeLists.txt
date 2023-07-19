@@ -29,7 +29,8 @@ if(Custom4_FOUND)
    message(STATUS "Custom4 already found" )
 else()
   set(Custom4_VERBOSE YES)
-  find_package(Custom4 0.1.3 EXACT REQUIRED)
+  #find_package(Custom4 0.1.3 EXACT REQUIRED)
+  find_package(Custom4 CONFIG)
   if(Custom4_FOUND)
   message(STATUS "Custom4_VERSION        : ${Custom4_VERSION} ")
   message(STATUS "Custom4_VERSION_MAJOR  : ${Custom4_VERSION_MAJOR} ")
@@ -39,6 +40,16 @@ else()
   message(STATUS "Custom4_VERSION_COUNT  : ${Custom4_VERSION_COUNT} ")
   endif()
 endif()
+
+#[=[
+A successful find of Custom4 sets WITH_CUSTOM4::
+
+    cat ${OPTICKS_PREFIX}_externals/custom4/0.1.6/lib/Custom4-0.1.6/Custom4Config.cmake | grep WITH
+    set(Custom4_DEFINITIONS -DWITH_CUSTOM4 )
+          INTERFACE_COMPILE_DEFINITIONS "WITH_CUSTOM4"
+
+#]=]
+
 
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
@@ -185,8 +196,14 @@ target_link_libraries(${name} PUBLIC
    Boost::system
    Boost::program_options
    Boost::filesystem
-   Custom4::Custom4
 )
+
+if(Custom4_FOUND)
+    target_link_libraries(${name} PUBLIC Custom4::Custom4 ) 
+endif()
+
+
+
 
 bcm_deploy(TARGETS ${name} NAMESPACE Opticks:: SKIP_HEADER_INSTALL)
 
