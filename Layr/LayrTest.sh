@@ -6,6 +6,8 @@ LayrTest.sh
 
 ::
 
+    LAYRTEST_INCL=Axspa PIDX=0,2,4 ./LayrTest.sh ana
+
     PIDX=0,2,4  ./LayrTest.sh ana   # pick one of each lpmtcat to plot 
 
     In[1]:f.lpmtid
@@ -65,8 +67,10 @@ fold=/tmp/$USER/opticks/$name/4
 
 export FOLD=$fold
 export LAYRTEST_BASE=$fold
+
 export SFOLD=/tmp/SPMT_test
-export QFOLD=/tmp/QPMT_Test
+export QFOLD=/tmp/QPMTTest
+export PFOLD=/tmp/QPMT_Test
 export MFOLD=/tmp/QPMT_MockTest
 
 #export LAYRTEST_HALF=1

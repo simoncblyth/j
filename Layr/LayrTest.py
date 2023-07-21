@@ -26,6 +26,8 @@ SIZE = np.array([1280, 720])
 PMTIDX = int(os.environ.get("PMTIDX","0"))
 
 
+class STR(str):__repr__ = lambda self:str(self) # subclass str : override repr to give str  
+
 def both(x,y):
     return not x is None and not y is None
 
@@ -230,42 +232,26 @@ class LayrTestSet(object):
     SYMBOLS = "abcdefghijklmnopqrstuvwxyz"
 
 
-    def __init__(self, symbol="ts"):
+    @classmethod
+    def GetNames(cls, ekey, dirpfx ):
+        """
+        :param ekey: eg "SFOLD", "QFOLD", "MFOLD", "PFOLD"
+        :param dirpfx: eg "scan_" "sscan" "qscan"
+        """
+        base = os.environ.get(ekey, None) 
+        names = getdirnames( base, dirpfx ) if not base is None else []
+        return base, names
 
+
+    def __init__(self, symbol="ts"):
         self.symbol = symbol
 
-        if "LAYRTEST_BASE" in os.environ:
-            l_base = os.path.expandvars("$LAYRTEST_BASE")
-            l_names = getdirnames( l_base, "scan_" )
-        else:
-            l_base = None
-            l_names = []
-        pass
 
-        if "SFOLD" in os.environ:
-            s_base = os.path.expandvars("$SFOLD")
-            s_names = getdirnames( s_base, "sscan" )
-        else:
-            s_base = None
-            s_names = []
-        pass
-
-        if "QFOLD" in os.environ:
-            q_base = os.path.expandvars("$QFOLD") 
-            q_names = getdirnames( q_base, "qscan" )
-        else:
-            q_base = None
-            q_names = []
-        pass
-
-        if "MFOLD" in os.environ:
-            m_base = os.path.expandvars("$MFOLD") 
-            m_names = getdirnames( m_base, "qscan" )
-        else:
-            m_base = None
-            m_names = []
-        pass
-
+        l_base, l_names = self.GetNames("LAYRTEST_BASE", "scan_" )
+        s_base, s_names = self.GetNames("SFOLD", "sscan")
+        q_base, q_names = self.GetNames("QFOLD", "qscan")
+        m_base, m_names = self.GetNames("MFOLD", "qscan")
+        p_base, p_names = self.GetNames("PFOLD", "qscan")
 
         # record the base for each name 
         all_bases = []
@@ -273,8 +259,9 @@ class LayrTestSet(object):
         for name in s_names:all_bases.append(s_base)
         for name in q_names:all_bases.append(q_base)
         for name in m_names:all_bases.append(m_base)
+        for name in p_names:all_bases.append(p_base)
 
-        all_names = l_names + s_names + q_names + m_names
+        all_names = l_names + s_names + q_names + m_names + p_names
         assert len(all_names) < len(self.SYMBOLS) 
         assert len(all_names) == len(all_bases)
 
@@ -290,6 +277,9 @@ class LayrTestSet(object):
         self.m_base = m_base
         self.m_names = m_names
 
+        self.p_base = p_base
+        self.p_names = p_names
+
         self.all_names = all_names
         self.all_bases = all_bases
 
@@ -301,6 +291,9 @@ class LayrTestSet(object):
         print(" %s.q_names    : %s " % (self.symbol, str(self.q_names)))
         print(" %s.m_base     : %s " % (self.symbol, str(self.m_base)))
         print(" %s.m_names    : %s " % (self.symbol, str(self.m_names)))
+        print(" %s.p_base     : %s " % (self.symbol, str(self.p_base)))
+        print(" %s.p_names    : %s " % (self.symbol, str(self.p_names)))
+
 
         print(" %s.all_names : %s " % (self.symbol, str(self.all_names)))
         print(" %s.all_bases : %s " % (self.symbol, str(self.all_bases)))
@@ -336,6 +329,9 @@ class LayrTestSet(object):
             elif base == m_base:
                 test.label = "R12860"
                 print("kludge m_base label to %s " % test.label )
+            elif base == p_base:
+                test.label = "R12860"
+                print("kludge p_base label to %s " % test.label )
             pass 
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
@@ -424,7 +420,7 @@ class LayrTestSet(object):
             pass
         pass
         rst = RSTTable.Rdr(tab, labels, rfm="%10.4g", left_wid=30, hfm="%10s", left_rfm="%30s", left_hfm="%30s" )
-        return tab, rst 
+        return tab, STR(rst) 
 
     def __repr__(self):
         lines = []
@@ -665,6 +661,11 @@ class ARTPlot(object):
             if "T" in incl:ax.plot(th, Tp, label="Tp")
             if "A" in incl:ax.plot(th, Ap, label="Ap")
         pass 
+        if "a" in incl:
+            if "R" in incl:ax.plot(th, Ra, label="Ra")
+            if "T" in incl:ax.plot(th, Ta, label="Ta")
+            if "A" in incl:ax.plot(th, Aa, label="Aa")
+        pass 
 
         sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
         sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
@@ -766,6 +767,8 @@ if __name__ == '__main__':
     pass 
 
     if len(tt) > 0:
+        print("## repr(ts) ")
+        print(repr(ts))
         print("## tab, rst = ts.cf_table(tt, pmtcat, excl=excl) # excl %s " % excl ) 
         tab, rst = ts.cf_table(tt, pmtcat, excl=excl)
         print("## rst ")
