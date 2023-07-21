@@ -14,11 +14,83 @@ High Level Progress
 4. DONE : NumPy compare scans from LayrTest.sh and SPMT_test.sh, small SPMT dev at critical angle 
 5. DONE : generalize qpmt/QPMT/QPMTTest for lpmtid lookups based off the full SPMT info
 6. DONE : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
-7. TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
+7. WIP : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
+8. TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
+
+
+WIP : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
+-------------------------------------------------------------------------------------
+
+* ~/opticks/notes/issues/mat_sur_bnd_optical_direct_without_GGeo_X4.rst
+
+* Water RAYLEIGH : old Geant4 special case strikes again 
+* note that vetoWater has no RAYLEIGH and as not called "Water" is not special cased : possible junosw bug 
+* GROUPVEL looks like the Geant4 calc has changed : need to use new one 
 
 
 
-WIP : LayrTest standardize layout etc.. to match SPMT and QPMT
+DONE : regenerate the geom with ntds2_noxj to get X4/GGeo oldmat oldsur for comparison
+----------------------------------------------------------------------------------------
+
+It was necessary to C4 bump to 0.1.5 in order for Opticks to compile. 
+Motivation is to get the oldmat oldsur for checking with new workflow
+versions of these::
+
+    N[blyth@localhost SSim]$ l
+    total 13360
+        4 drwxr-xr-x. 6 blyth blyth     4096 Jul  2 23:45 stree
+        0 drwxr-xr-x. 4 blyth blyth      273 Jul  2 23:45 .
+        4 -rw-rw-r--. 1 blyth blyth      109 Jul  2 23:45 icdf_meta.txt
+        4 -rw-rw-r--. 1 blyth blyth        3 Jul  2 23:45 icdf_names.txt
+      100 -rw-rw-r--. 1 blyth blyth    98432 Jul  2 23:45 icdf.npy
+        4 -rw-rw-r--. 1 blyth blyth       56 Jul  2 23:45 NPFold_index.txt
+        4 -rw-rw-r--. 1 blyth blyth     1490 Jul  2 23:45 oldsur_names.txt
+        4 -rw-rw-r--. 1 blyth blyth      179 Jul  2 23:45 oldmat_names.txt
+     2188 -rw-rw-r--. 1 blyth blyth  2240512 Jul  2 23:45 oldsur.npy
+      952 -rw-rw-r--. 1 blyth blyth   974208 Jul  2 23:45 oldmat.npy
+        4 -rw-rw-r--. 1 blyth blyth     3520 Jul  2 23:45 optical.npy
+        4 -rw-rw-r--. 1 blyth blyth       69 Jul  2 23:45 bnd_meta.txt
+        4 -rw-rw-r--. 1 blyth blyth     2734 Jul  2 23:45 bnd_names.txt
+    10084 -rw-rw-r--. 1 blyth blyth 10325392 Jul  2 23:45 bnd.npy
+        0 drwxr-xr-x. 5 blyth blyth       91 Jun 16 02:34 jpmt
+        0 drwxr-xr-x. 3 blyth blyth      190 Jun  7 21:17 ..
+    N[blyth@localhost SSim]$ pwd
+    /home/blyth/.opticks/GEOM/V1J009/CSGFoundry/SSim
+    N[blyth@localhost SSim]$ 
+
+::
+
+    epsilon:~ blyth$ t ntds2_noxj
+    ntds2_noxj () 
+    { 
+        OPTICKS_INTEGRATION_MODE=2 ntds_noxj
+    }
+    epsilon:~ blyth$ t ntds_noxj
+    ntds_noxj () 
+    { 
+        local gpfx=V;
+        GPFX=${GPFX:-$gpfx};
+        export EVTMAX=1;
+        NOXJ=1 GEOM=${GPFX}1J009 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds
+    }
+    epsilon:~ blyth$ 
+
+    epsilon:~ blyth$ ntds2_noxj_getgeom
+    == /Users/blyth/opticks/bin/rsync.sh odir .opticks/GEOM/V1J009 exists
+    BASH_SOURCE                    : /Users/blyth/opticks/bin/rsync.sh 
+    xdir                           : .opticks/GEOM/V1J009/ 
+    from                           : P:.opticks/GEOM/V1J009/ 
+    to                             : /Users/blyth/.opticks/GEOM/V1J009/ 
+
+
+
+
+
+TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
+--------------------------------------------------------------------------------------------------------
+
+
+DONE : LayrTest standardize layout etc.. to match SPMT and QPMT
 ----------------------------------------------------------------
 
 Hmm QPMT/qscan not following the standard spec + stack:(art,comp,ll) layout::

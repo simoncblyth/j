@@ -20,6 +20,7 @@ Its crucial that use the values appropriate for the photon polatization.
 """
 import os, builtins, numpy as np
 from opticks.ana.fold import Fold 
+from opticks.ana.eget import eintarray_
 from opticks.ana.rsttable import RSTTable
 SIZE = np.array([1280, 720])
 PMTIDX = int(os.environ.get("PMTIDX","0"))
@@ -56,11 +57,13 @@ class LayrTest(object):
             brief = f.art_meta.d.get("brief",["-"])[0] 
             name = f.art_meta.d.get("name",["-"])[0] 
             label = f.art_meta.d.get("label",["-"])[0] 
+            ExecutableName = f.art_meta.d.get("ExecutableName",["-"])[0] 
         else:
             title = "-"
             brief = "-"
             name = "-"
             label = "-"
+            ExecutableName = "-"
         pass
         tag = self.Tag(name)
 
@@ -69,13 +72,20 @@ class LayrTest(object):
         self.brief = brief
         self.name = name
         self.label = label
+        self.ExecutableName = ExecutableName
         self.tag = tag
-
 
     def init_lpmt(self, f):
         lpmtid = getattr(f, 'lpmtid', [] )
-        lpmtcat = getattr(f, 'lpmtcat', [] )
+        if lpmtid is None:
+            lpmtid = getattr(f, 'lpmtid_domain', [] ) # SPMT_test using _domain
+        pass
         if lpmtid is None: lpmtid = []  
+
+        lpmtcat = getattr(f, 'lpmtcat', [] )
+        if lpmtcat is None:
+            lpmtcat = getattr(f, 'lpmtcat_domain', [] )
+        pass
         if lpmtcat is None: lpmtcat = []  
 
         assert len(lpmtid) == len(lpmtcat)
@@ -248,13 +258,23 @@ class LayrTestSet(object):
             q_names = []
         pass
 
+        if "MFOLD" in os.environ:
+            m_base = os.path.expandvars("$MFOLD") 
+            m_names = getdirnames( m_base, "qscan" )
+        else:
+            m_base = None
+            m_names = []
+        pass
+
+
         # record the base for each name 
         all_bases = []
         for name in l_names:all_bases.append(l_base)
         for name in s_names:all_bases.append(s_base)
         for name in q_names:all_bases.append(q_base)
+        for name in m_names:all_bases.append(m_base)
 
-        all_names = l_names + s_names + q_names 
+        all_names = l_names + s_names + q_names + m_names
         assert len(all_names) < len(self.SYMBOLS) 
         assert len(all_names) == len(all_bases)
 
@@ -267,6 +287,9 @@ class LayrTestSet(object):
         self.q_base = q_base
         self.q_names = q_names
 
+        self.m_base = m_base
+        self.m_names = m_names
+
         self.all_names = all_names
         self.all_bases = all_bases
 
@@ -276,6 +299,9 @@ class LayrTestSet(object):
         print(" %s.s_names    : %s " % (self.symbol, str(self.s_names)))
         print(" %s.q_base     : %s " % (self.symbol, str(self.q_base)))
         print(" %s.q_names    : %s " % (self.symbol, str(self.q_names)))
+        print(" %s.m_base     : %s " % (self.symbol, str(self.m_base)))
+        print(" %s.m_names    : %s " % (self.symbol, str(self.m_names)))
+
         print(" %s.all_names : %s " % (self.symbol, str(self.all_names)))
         print(" %s.all_bases : %s " % (self.symbol, str(self.all_bases)))
 
@@ -299,13 +325,17 @@ class LayrTestSet(object):
             # TODO: examine tea leaves to find actual pmtcat, not guess 
             # HMM: qscan has lpmtid, lpmtcat already, need to add 
             # those to sscan so can treat them together
-            
+           
+            # NOW : that scan over lpmtid this test label makes no sense  
             if base == s_base:
                 test.label = "R12860"
                 print("kludge s_base label to %s " % test.label )
             elif base == q_base:
                 test.label = "R12860"
                 print("kludge q_base label to %s " % test.label )
+            elif base == m_base:
+                test.label = "R12860"
+                print("kludge m_base label to %s " % test.label )
             pass 
             setattr(builtins, symbol, test)
             setattr(self, symbol, test) 
@@ -400,10 +430,11 @@ class LayrTestSet(object):
         lines = []
         lines.append("CFLayrTest")
         for idx in range(len(self.tests)):
+            test = self.tests[idx]
             symbol = self.symbols[idx]
             label = self.labels[idx]
             name = self.names[idx]
-            lines.append("%2s : %15s : %s " % (symbol, label, name))    
+            lines.append("%2s : %15s : %20s : %s " % (symbol, label, test.ExecutableName, name))    
         pass
         return "\n".join(lines)
 
@@ -664,11 +695,13 @@ class ARTPlot(object):
         pass 
         fig.suptitle(title)   
 
-        for i in range(9):
-            kwa["pidx"] = i 
-            self.Plot(        ax, test, **kwa)  
-        pass
+        PIDX = eintarray_("PIDX", "0")  # comma delimited list of pidx to use
+        self.PIDX = PIDX 
 
+        for pidx in PIDX:
+            kwa["pidx"] = pidx 
+            self.Plot(ax, test, **kwa)  
+        pass
 
         self.PlotBrewster(ax, test, **kwa)  
         self.PlotCritical(ax, test, **kwa)  

@@ -13,6 +13,7 @@ to allow reuse of the same code for both CPU and GPU running.
 #if defined(__CUDACC__) || defined(__CUDABE__)
 #else
     #include "NP.hh"
+    #include "sproc.h"
     #ifdef WITH_THRUST
         #include "SU.hh"
         #include <cuda_runtime.h>
@@ -63,6 +64,7 @@ struct LayrTest
     LayrTestData<T,N> d ;   // hostside device instance, to enable pre-init      
     LayrTestData<T,N>* d_ptr ; // pointer to deviceside instance
 
+    const char* ExecutableName ; 
     bool             gpu ; 
     const char*      base ; 
     const char*      label ; 
@@ -108,6 +110,7 @@ template<typename T, int N>
 inline LayrTest<T,N>::LayrTest(int ni, T wl, const char* label_ )
     :
     d_ptr(nullptr),
+    ExecutableName(sproc::ExecutableName()),
     gpu(false),    // flipped true/false by calling scan_gpu/scan_cpu
     base(Base()),
     label(label_ ? strdup(label_) : nullptr),
@@ -347,6 +350,8 @@ inline void LayrTest<T,N>::save(const StackSpec<T,N>& spec) const
     NP::Write(base, name,"comp.npy",(T*)h.comps, h.ni,    4, 4, 2 ) ;
     NP::Write(base, name,"ll.npy",  (T*)h.lls  , h.ni, N, 4, 4, 2 ) ;
 
+    
+
     // use manual way for _arts so can set metadata
     NP* _art = NP::Make<T>( h.ni, 4, 4 );
     _art->read2( (T*)h.arts ); 
@@ -354,6 +359,7 @@ inline void LayrTest<T,N>::save(const StackSpec<T,N>& spec) const
     _art->set_meta<std::string>("brief", br); 
     _art->set_meta<std::string>("name", name); 
     _art->set_meta<std::string>("label", label); 
+    _art->set_meta<std::string>("ExecutableName", ExecutableName); 
     _art->set_meta<T>("wl", h.wl); 
     _art->save(base, name, "art.npy" ); 
 

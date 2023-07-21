@@ -157,7 +157,10 @@ struct JPMT : public C4IPMTAccessor
     int    get_pmtcat( int pmtid  ) const ;  // placeholder returning DEFAULT_CAT 
     void   get_stackspec( std::array<double, 16>& ss, int pmtcat, double energy_eV ) const ; 
     NP*     get_stackspec() const ; 
-    NPFold* get_fold() const ; 
+
+
+    static NPFold* Serialize() ; 
+    NPFold* serialize() const ;  // formerly get_fold
 
     NPFold* make_testfold() const ; 
 
@@ -716,7 +719,14 @@ inline NP* JPMT::get_stackspec() const
     return a ;
 }
 
-inline NPFold* JPMT::get_fold() const
+
+inline NPFold* JPMT::Serialize() // static
+{
+    JPMT jpmt ; 
+    return jpmt.serialize() ; 
+}
+
+inline NPFold* JPMT::serialize() const // formerly get_fold
 {
     NPFold* fold = new NPFold ; 
     fold->add("rindex", rindex) ; 

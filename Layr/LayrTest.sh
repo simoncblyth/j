@@ -3,8 +3,21 @@ usage(){ cat << EOU
 LayrTest.sh
 =============
 
-SysRap lib only needed for WITH_THRUST GPU running 
-by the NP.hh header is needed in both cases
+
+::
+
+    PIDX=0,2,4  ./LayrTest.sh ana   # pick one of each lpmtcat to plot 
+
+    In[1]:f.lpmtid
+    Out[1]:array([0,10,55,98,100,137,1000,10000,17611],dtype=int32)
+
+    In[2]:f.lpmtcat
+    Out[2]:array([1,1,0,0,2,0,1,2,1],dtype=int32)
+
+
+
+SysRap lib only needed for WITH_THRUST GPU running
+but the NP.hh header is needed in both cases
 
 ::
 
@@ -53,7 +66,8 @@ fold=/tmp/$USER/opticks/$name/4
 export FOLD=$fold
 export LAYRTEST_BASE=$fold
 export SFOLD=/tmp/SPMT_test
-export QFOLD=/tmp/QPMTTest
+export QFOLD=/tmp/QPMT_Test
+export MFOLD=/tmp/QPMT_MockTest
 
 #export LAYRTEST_HALF=1
 
@@ -70,7 +84,7 @@ export LAYRTEST_PMTCAT=$pmtcat
 export LAYRTEST_WL=440
 export LAYRTEST_EXCL=$excl
 
-vars="LAYRTEST_PMTCAT LAYRTEST_WL LAYRTEST_EXCL LAYRTEST_BASE FOLD" 
+vars="LAYRTEST_PMTCAT LAYRTEST_WL LAYRTEST_EXCL LAYRTEST_BASE FOLD SFOLD QFOLD" 
 
 if [ "${arg/info}" != "$arg" ]; then
     for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 

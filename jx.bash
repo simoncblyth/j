@@ -795,10 +795,20 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    if [ -n "$GEOM" ]; then 
        #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+       export G4CXOpticks__saveGeometry_saveGGeo=1 
        export G4CXOpticks=INFO   # to see the directory 
    else
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM
    fi 
+
+   export GBndLib__SENSOR_BOUNDARY_LIST=$(cat << EOL
+    Pyrex/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/Vacuum
+    Pyrex/NNVTMCPPMT_PMT_20inch_photocathode_mirror_logsurf/NNVTMCPPMT_PMT_20inch_photocathode_mirror_logsurf/Vacuum
+    Pyrex/PMT_3inch_photocathode_logsurf2/PMT_3inch_photocathode_logsurf1/Vacuum
+    Pyrex/PMT_20inch_veto_photocathode_logsurf2/PMT_20inch_veto_photocathode_logsurf1/Vacuum
+EOL
+)
+
 
    gun=0   # 0/1/2: opticks input photons/gun_default/gun_wangyg
    GUN=${GUN:-$gun} 
