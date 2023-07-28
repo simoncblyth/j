@@ -689,9 +689,11 @@ ntds_noxj()
 }
 
 ntds0_noxj(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxj ; }
+ntds1_noxj(){ OPTICKS_INTEGRATION_MODE=1 ntds_noxj ; }
 ntds2_noxj(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxj ; }
+ntds3_noxj(){ OPTICKS_INTEGRATION_MODE=3 ntds_noxj ; }
 
-ntds2_noxj_getgeom(){ source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-V1J009} ; : j/jx.bash ; }  
+ntds2_noxj_getgeom(){ source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-V1J009} ; : j/jx.bash ; }   # USE "GEOM get" not this
 
 
 

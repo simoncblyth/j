@@ -3,16 +3,16 @@
 LayrTest.py
 =============
 
-Plot is too busy with everything visible. Use incl to restrict what is included::
+Plot is too busy with everything visible. Use opt to restrict what is included::
 
-    In [4]: ARTPlot(q,incl="Rxsp")
-    Out[4]: ARTPlot(q,incl="Rxsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
+    In [4]: ARTPlot(q,opt="Rxsp")
+    Out[4]: ARTPlot(q,opt="Rxsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
-    In [5]: ARTPlot(q,incl="Txsp")
-    Out[5]: ARTPlot(q,incl="Txsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
+    In [5]: ARTPlot(q,opt="Txsp")
+    Out[5]: ARTPlot(q,opt="Txsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
-    In [6]: ARTPlot(q,incl="Axsp")
-    Out[6]: ARTPlot(q,incl="Axsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
+    In [6]: ARTPlot(q,opt="Axsp")
+    Out[6]: ARTPlot(q,opt="Axsp") # j/Layr/LayrTest scan__R12860__gpu_thr_float ni 900 wl 440  
 
 Notice the very large difference between S and P polarizations.
 Its crucial that use the values appropriate for the photon polatization.  
@@ -595,10 +595,10 @@ class ARTPlot(object):
     @classmethod
     def PlotAnnotate(cls, ax, test, **kwa ):
         excl = kwa.pop("excl", 0)
-        incl = kwa.pop("incl", "")
+        opt = kwa.pop("opt", "")
         excl_deg = kwa.pop("excl_deg", [])
 
-        extra_ = ["excl: %s " % excl, "incl: %s" % incl]
+        extra_ = ["excl: %s " % excl, "opt: %s" % opt]
         for i in range(len(excl_deg)):
             extra_.append("edeg[%d] : %7.2f " % (i, excl_deg[i]))
         pass
@@ -611,7 +611,7 @@ class ARTPlot(object):
     def Plot(cls, ax, test, **kwa ):
 
         excl = kwa.pop("excl", 0)
-        incl = kwa.pop("incl", "ARTQxsp")
+        opt = kwa.pop("opt", "ARTQxsp")
         pidx = kwa.pop("pidx", None)
 
         #art = test.f.art  ## multiple lpmtid 
@@ -635,41 +635,52 @@ class ARTPlot(object):
         Ta   = art[:,2,2]
         T_   = art[:,2,3]
 
-        SF   = art[:,3,0]
-        wl   = art[:,3,1]
-        ARTa = art[:,3,2]
-        mct  = art[:,3,3]
+        SF   = art[:,3,0]  ## S-pol-power-fraction 
+        wl   = art[:,3,1]  ## wavelength 
+        ARTa = art[:,3,2]  ## ? probably Aa+Ra+Ta which should be 1  
+        mct  = art[:,3,3]  ## minus_cos_theta 
 
         th2mct_ = lambda th:-np.cos(th*np.pi/180.)
         mct2th_ = lambda mct:np.arccos(-mct)*180./np.pi
 
         th = mct2th_(mct)
 
-        if "x" in incl:
-            if "R" in incl: ax.plot(th, R_, label="R", linestyle="dotted" )
-            if "T" in incl: ax.plot(th, T_, label="T", linestyle="dotted")
-            if "A" in incl: ax.plot(th, A_, label="A", linestyle="dotted")
-            if "Q" in incl: ax.plot(th, ARTa, label="ARTa", linestyle="dotted")
+        if "x" in opt:
+            if "R" in opt: ax.plot(th, R_, label="R" )
+            if "T" in opt: ax.plot(th, T_, label="T" )
+            if "A" in opt: ax.plot(th, A_, label="A" )
+            if "Q" in opt: ax.plot(th, ARTa, label="ARTa", linestyle="dotted")
         pass
-        if "s" in incl:
-            if "R" in incl:ax.plot(th, Rs, label="Rs")
-            if "T" in incl:ax.plot(th, Ts, label="Ts")
-            if "A" in incl:ax.plot(th, As, label="As")
+        if "s" in opt:
+            if "R" in opt:ax.plot(th, Rs, label="Rs")
+            if "T" in opt:ax.plot(th, Ts, label="Ts")
+            if "A" in opt:ax.plot(th, As, label="As")
         pass 
-        if "p" in incl:
-            if "R" in incl:ax.plot(th, Rp, label="Rp")
-            if "T" in incl:ax.plot(th, Tp, label="Tp")
-            if "A" in incl:ax.plot(th, Ap, label="Ap")
+        if "p" in opt:
+            if "R" in opt:ax.plot(th, Rp, label="Rp")
+            if "T" in opt:ax.plot(th, Tp, label="Tp")
+            if "A" in opt:ax.plot(th, Ap, label="Ap")
         pass 
-        if "a" in incl:
-            if "R" in incl:ax.plot(th, Ra, label="Ra")
-            if "T" in incl:ax.plot(th, Ta, label="Ta")
-            if "A" in incl:ax.plot(th, Aa, label="Aa")
+        if "a" in opt:
+            if "R" in opt:ax.plot(th, Ra, label="Ra", linestyle="dotted")
+            if "T" in opt:ax.plot(th, Ta, label="Ta", linestyle="dotted")
+            if "A" in opt:ax.plot(th, Aa, label="Aa", linestyle="dotted")
         pass 
 
         sax = ax.secondary_xaxis('top', functions=(th2mct_, mct2th_))
         sax.set_xlabel('mct : -cos(theta) : dot(photon_momentum,surface_normal) ')
         ax.set_xlabel('aoi [degrees] ( 90:180 : reverse stack )' )
+        cls.AddLabel(ax, opt)
+
+    @classmethod
+    def AddLabel(cls, ax, label ):
+        ax.text(0.0, 1.0, label, 
+           verticalalignment='bottom', 
+           horizontalalignment='right',
+           transform=ax.transAxes,
+           bbox={'facecolor': 'red', 'alpha': 0.1, 'pad': 10},
+           fontsize=30
+          )
 
 
     def __init__(self, test, **kwa):
@@ -741,8 +752,8 @@ if __name__ == '__main__':
 
     pmtcat = os.environ.get("LAYRTEST_PMTCAT", "EGet")
     excl = float(os.environ.get("LAYRTEST_EXCL", "0.05"))
-    incl = os.environ.get("LAYRTEST_INCL", "ARTQxsp")
-    xtitle = "LAYRTEST_INCL %s " % incl
+    opt = os.environ.get("OPT", "ARTQxsp")
+    xtitle = "OPT %s " % opt
 
     print("## ts = LayrTestSet(symbol=\"ts\") " ) 
     ts = LayrTestSet(symbol="ts")  
@@ -763,7 +774,7 @@ if __name__ == '__main__':
       
     if not t is None:
        print("## ARTPlot ")
-       ap = ARTPlot(t, excl=excl, incl=incl, xtitle=xtitle )
+       ap = ARTPlot(t, excl=excl, opt=opt, xtitle=xtitle )
     pass 
 
     if len(tt) > 0:

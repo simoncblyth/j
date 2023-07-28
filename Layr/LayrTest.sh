@@ -6,7 +6,7 @@ LayrTest.sh
 
 ::
 
-    LAYRTEST_INCL=Axspa PIDX=0,2,4 ./LayrTest.sh ana
+    OPT=Axspa PIDX=0,2,4 ./LayrTest.sh ana
 
     PIDX=0,2,4  ./LayrTest.sh ana   # pick one of each lpmtcat to plot 
 
@@ -18,13 +18,14 @@ LayrTest.sh
 
 
 
-SysRap lib only needed for WITH_THRUST GPU running
-but the NP.hh header is needed in both cases
-
 ::
 
-   LAYRTEST_INCL=ARTQspx ./LayrTest.sh ana
+   OPT=ARTQspx ./LayrTest.sh ana
 
+
+
+SysRap lib only needed for WITH_THRUST GPU running
+but the NP.hh header is needed in both cases
 
 HMM : it seems out of proportion that need to wheel in the SysRap lib 
 just for SU.cc functionality ... TODO: header only su.h ? 
