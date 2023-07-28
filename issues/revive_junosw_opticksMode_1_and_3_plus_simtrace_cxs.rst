@@ -14,11 +14,12 @@ High Level Progress
 4. DONE : NumPy compare scans from LayrTest.sh and SPMT_test.sh, small SPMT dev at critical angle 
 5. DONE : generalize qpmt/QPMT/QPMTTest for lpmtid lookups based off the full SPMT info
 6. DONE : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
-7. WIP : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
-8. TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
+7. DONE : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
+8. DONE : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
+9. TODO : review SEvt usage with opticksMode:1 and opticksMode:2 consider how to do both at once in opticksMode:3
 
 
-WIP : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
+DONE : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
 -------------------------------------------------------------------------------------
 
 * ~/opticks/notes/issues/mat_sur_bnd_optical_direct_without_GGeo_X4.rst
@@ -26,7 +27,6 @@ WIP : getting mat/sur/bnd/optical into new workflow as qpmt needs to change opti
 * Water RAYLEIGH : old Geant4 special case strikes again 
 * note that vetoWater has no RAYLEIGH and as not called "Water" is not special cased : possible junosw bug 
 * GROUPVEL looks like the Geant4 calc has changed : need to use new one 
-
 
 
 DONE : regenerate the geom with ntds2_noxj to get X4/GGeo oldmat oldsur for comparison
@@ -86,7 +86,7 @@ versions of these::
 
 
 
-TODO : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
+DONE : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
 --------------------------------------------------------------------------------------------------------
 
 
@@ -230,11 +230,11 @@ DONE : qpmt/QPMT TMM Stack calc AOI scanning based off SPMT.h full data, like SP
 
 * see qudarap/QPMTTest.sh 
 
-TODO : compare QPMTTest GPU AOI scans with others using LayrTest.sh comparison machinery 
+DONE : compare QPMTTest GPU AOI scans with others using LayrTest.sh comparison machinery 
 -------------------------------------------------------------------------------------------
 
 
-TODO : Bring C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
+DONE : Bring C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum
 ------------------------------------------------------------------------------------------------------
 
 
@@ -906,7 +906,7 @@ DONE : provisioned the C4CustomART calculation using SPMT.h, see SPMT_test.sh
 
 
 
-TODO : generalise qsim::propagate for special surfaces
+DONE : generalise qsim::propagate for special surfaces
 ---------------------------------------------------------
 
 * devise optical enumeration to handle boundary/ordinarySurface/specialSurface/...
@@ -1388,5 +1388,98 @@ can directly use it to lookup pmtCat and qeScale.
 
       np.all(t.lpmtData[:len(t.lpmtCat),0].view(np.int64)==t.pmtID[:len(t.lpmtCat),0]) : True 
 
+
+
+
+
+
+TODO : revive SEvt in opticksMode:1 + 3
+---------------------------------------------
+
+
+Reviving CPU+GPU (opticksMode:3) running after a long hiatus. 
+
+* HMM: maybe need separate SEvt instances ? 
+* TODO: review SEvt usage in opticksMode:1 (GPU only) 
+* TODO: review SEvt usage in opticksMode:2 (CPU only) 
+
+
+ntds3_noxj::
+
+    .idx 7 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 8 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 9 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+    2023-07-28 21:49:38.013 FATAL [424508] [SEvt::hostside_running_resize@1315]  NOT-is_self_provider SEvt::descProvider provider: 0x16e9a6590 that address is: another object
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:1322: void SEvt::hostside_running_resize(): Assertion `is_self_provider' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    (gdb) bt
+    #4  0x00007fffcf32b801 in SEvt::hostside_running_resize (this=0xb56690) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1322
+    #5  0x00007fffcf32c088 in SEvt::beginPhoton (this=0xb56690, label=...) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1501
+    #6  0x00007fffd296e036 in U4Recorder::PreUserTrackingAction_Optical (this=0xb2d300, track=0x7fff17989710)
+        at /data/blyth/junotop/opticks/u4/U4Recorder.cc:314
+    #7  0x00007fffd296d7f0 in U4Recorder::PreUserTrackingAction (this=0xb2d300, track=0x7fff17989710) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:230
+    #8  0x00007fffcdc8d8a8 in U4RecorderAnaMgr::PreUserTrackingAction (this=0x93f2e0, trk=0x7fff17989710)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:33
+    #9  0x00007fffce6cbd39 in MgrOfAnaElem::PreUserTrackingAction (this=0x7fffce8dab00 <MgrOfAnaElem::instance()::s_mgr>, trk=0x7fff17989710)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:60
+    #10 0x00007fffcdfbb779 in LSExpTrackingAction::PreUserTrackingAction (this=0x597a030, aTrack=0x7fff17989710)
+
+
+
+::
+
+    (gdb) f 4
+    #4  0x00007fffcf32b801 in SEvt::hostside_running_resize (this=0xb56690) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1322
+    1322        assert( is_self_provider ); 
+    (gdb) f 3
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    (gdb) f 5
+    #5  0x00007fffcf32c088 in SEvt::beginPhoton (this=0xb56690, label=...) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1501
+    1501        if(!hostside_running_resize_done) hostside_running_resize(); 
+    (gdb) f 6
+    #6  0x00007fffd296e036 in U4Recorder::PreUserTrackingAction_Optical (this=0xb2d300, track=0x7fff17989710)
+        at /data/blyth/junotop/opticks/u4/U4Recorder.cc:314
+    314             sev->beginPhoton(ulabel);  // THIS ZEROS THE SLOT 
+    (gdb) 
+
+
+::
+
+    1304 /**
+    1305 SEvt::hostside_running_resize
+    1306 -------------------------------
+    1307 
+    1308 Canonically called from SEvt::beginPhoton  (also SEvt::setFrame_HostsideSimtrace)
+    1309 
+    1310 **/
+    1311 
+    1312 void SEvt::hostside_running_resize()
+    1313 {
+    1314     bool is_self_provider = isSelfProvider() ;
+    1315     LOG_IF(fatal, is_self_provider == false ) << " NOT-is_self_provider " << descProvider() ;
+    1316     LOG(LEVEL)
+    1317         << " is_self_provider " << is_self_provider
+    1318         << " hostside_running_resize_done " << hostside_running_resize_done
+    1319         ;
+    1320 
+    1321     assert( hostside_running_resize_done == false );
+    1322     assert( is_self_provider );
+    1323 
+    1324     hostside_running_resize_done = true ;
+    1325     hostside_running_resize_();
+    1326 
+    1327     LOG(LEVEL)
+    1328         << " is_self_provider " << is_self_provider
+    1329         << std::endl
+    1330         << evt->desc()
+    1331         ;
+    1332 
+    1333 }
 
 
