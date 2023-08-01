@@ -832,8 +832,9 @@ EOL
    layout=""
    if [ "$GUN" == "0" ]; then 
 
+       ipho=RainXZ_Z230_100_f8.npy       # unk  
        #ipho=RainXZ_Z230_1000_f8.npy
-       ipho=RainXZ_Z230_10k_f8.npy
+       #ipho=RainXZ_Z230_10k_f8.npy      # failing
        #ipho=RainXZ_Z230_100k_f8.npy
        #ipho=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
        #ipho=GridXY_X700_Z230_10k_f8.npy 
@@ -867,6 +868,7 @@ EOL
 
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
+   export OPTICKS_MAX_PHOTON=10000
 
    export POM=${POM:-1}
    export VERSION=${N:-1}

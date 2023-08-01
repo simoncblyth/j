@@ -16,7 +16,45 @@ High Level Progress
 6. DONE : qpmt/QPMT Stack AOI scanning based off SPMT.h full data, like SPMT_test but on GPU  
 7. DONE : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
 8. DONE : Bringing C4CustomART::doIt to GPU, by integrating qpmt with new CSGFoundry special surface enum 
-9. TODO : review SEvt usage with opticksMode:1 and opticksMode:2 consider how to do both at once in opticksMode:3
+9. WIP : review SEvt usage with opticksMode:1 and opticksMode:2 consider how to do both at once in opticksMode:3
+
+
+
+
+TODO : commit junosw changes (mostly SPMT prep) into another branch and MR
+------------------------------------------------------------------------------
+
+::
+
+    epsilon:issues blyth$ jo
+    /Users/blyth/junotop/junosw
+    On branch blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping
+    Your branch is up-to-date with 'origin/blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.cc
+        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+
+        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.cc
+        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    epsilon:junosw blyth$ 
+
+
+
+
+
 
 
 DONE : getting mat/sur/bnd/optical into new workflow as qpmt needs to change optical 
@@ -1268,38 +1306,6 @@ Can PMTAccessor::Load from one directory up::
 Thence can include the RINDEX in another subfold. 
 
 
-TODO : commit persisted jpmt changes into another branch and MR
------------------------------------------------------------------------
-
-::
-
-    epsilon:issues blyth$ jo
-    /Users/blyth/junotop/junosw
-    On branch blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping
-    Your branch is up-to-date with 'origin/blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping'.
-
-    Changes not staged for commit:
-      (use "git add <file>..." to update what will be committed)
-      (use "git checkout -- <file>..." to discard changes in working directory)
-
-        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
-        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h
-        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h
-        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
-        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.cc
-        modified:   Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTSimParamData_test.sh
-
-    Untracked files:
-      (use "git add <file>..." to include in what will be committed)
-
-        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.cc
-        Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/tests/PMTAccessor_test.sh
-
-    no changes added to commit (use "git add" and/or "git commit -a")
-    epsilon:junosw blyth$ 
-
-
-
 
 What is missing with JPMT approach ?
 ---------------------------------------
@@ -1432,6 +1438,30 @@ ntds3_noxj::
 
 
 
+
+Same assert in opticksMode:1::
+
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 1 eventID 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+    2023-07-28 22:50:29.534 FATAL [434171] [SEvt::hostside_running_resize@1315]  NOT-is_self_provider SEvt::descProvider provider: 0x16eac4060 that address is: another object
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:1322: void SEvt::hostside_running_resize(): Assertion `is_self_provider' failed.
+
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf32b801 in SEvt::hostside_running_resize (this=0xb560e0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1322
+    #5  0x00007fffcf32c088 in SEvt::beginPhoton (this=0xb560e0, label=...) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1501
+    #6  0x00007fffd296e036 in U4Recorder::PreUserTrackingAction_Optical (this=0xb2d1b0, track=0x7fff17988170)
+        at /data/blyth/junotop/opticks/u4/U4Recorder.cc:314
+    #7  0x00007fffd296d7f0 in U4Recorder::PreUserTrackingAction (this=0xb2d1b0, track=0x7fff17988170) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:230
+    #8  0x00007fffcdc8d8a8 in U4RecorderAnaMgr::PreUserTrackingAction (this=0xb55f10, trk=0x7fff17988170)
+
+
+
+
 ::
 
     (gdb) f 4
@@ -1482,4 +1512,1448 @@ ntds3_noxj::
     1332 
     1333 }
 
+
+SEvt::hostside_running_resize is assuming sole SEvt but QSim needs its own ? 
+
+
+
+
+TODO : review SEvt usage for GPU and CPU running 
+------------------------------------------------
+
+Beware that Opticks itself is deliberately kinda ignorant of opticksMode as its 
+kinda more to do with the integration.  This may need to change to handle 
+management of two SEvt simulataneously. 
+
+::
+
+    333 void G4CXOpticks::setGeometry_(CSGFoundry* fd_)
+    334 {
+    335     fd = fd_ ;
+    336     
+    337     sim->serialize() ;
+    338     
+    339     // formerly did G4CXOpticks__setGeometry_saveGeometry here 
+    340     
+    341     
+    342     LOG(LEVEL) << "[ fd " << fd ;
+    343     SEvt* sev = SEvt::Get() ; 
+    344     if( sev == nullptr )
+    345     {
+    346         LOG(LEVEL) << " Calling SEvt::Create " ;
+    347         sev = SEvt::Create() ; 
+    348         // formerly setReldir to "ALL" but thats now default, and SEvt::RELDIR now static 
+    349     }   
+    350     else
+    351     {
+    352         LOG(LEVEL) << " Using pre-existing SEvt (happens when U4Recorder instanciated it first) " ;
+    353     }   
+
+
+
+::
+
+    epsilon:g4cx blyth$ opticks-f SEvt::Get
+    ./sysrap/SGenerate.h:        ph = SEvt::GetInputPhoton(); 
+    ./sysrap/tests/SEvt_Lifecycle_Test.cc:        assert( SEvt::Get() == evt ); 
+    ./sysrap/tests/SEvt_Lifecycle_Test.cc:        int npc = SEvt::GetNumPhotonCollected() ; 
+    ./sysrap/tests/SEvt_Lifecycle_Test.cc:        assert( SEvt::Get() == evt ); 
+    ./sysrap/tests/SEvt_test.cc:   std::cout << SEvt::Get()->desc() << std::endl ; 
+    ./sysrap/tests/SEvt_test.cc:    unsigned num_hit = SEvt::GetNumHit(); 
+    ./sysrap/tests/SEvtTest.cc:   std::cout << SEvt::Get()->desc() << std::endl ; 
+    ./sysrap/tests/SGenerate_test.cc:    NP* gs = SEvt::GetGenstep();     
+    ./sysrap/SEvt.cc:const char* SEvt::GetSaveDir(){ return INSTANCE ? INSTANCE->getSaveDir() : nullptr ; }
+    ./sysrap/SEvt.cc:const char* SEvt::GetFrameId(){    return INSTANCE ? INSTANCE->getFrameId() : nullptr ; }
+    ./sysrap/SEvt.cc:const NP*   SEvt::GetFrameArray(){ return INSTANCE ? INSTANCE->getFrameArray() : nullptr ; } 
+    ./sysrap/SEvt.cc:    SEvt* prior = SEvt::Get();  
+    ./sysrap/SEvt.cc:SEvt* SEvt::Get(){     return INSTANCE ; }
+    ./sysrap/SEvt.cc:int  SEvt::GetTagSlot(){ return INSTANCE->getTagSlot() ; }
+    ./sysrap/SEvt.cc:        assert( index == SEvt::GetIndex() );  
+    ./sysrap/SEvt.cc:int SEvt::GetIndex(){           return INSTANCE ? INSTANCE->getIndex()  :  0 ; }
+    ./sysrap/SEvt.cc:S4RandomArray* SEvt::GetRandomArray(){ return INSTANCE ? INSTANCE->random_array : nullptr ; }
+    ./sysrap/SEvt.cc:const char* SEvt::GetReldir(){ return RELDIR ? RELDIR : DEFAULT_RELDIR ; }
+    ./sysrap/SEvt.cc:const char* SEvt::GetReldir(){  return INSTANCE ? INSTANCE->getReldir() : nullptr ; }
+    ./sysrap/SEvt.cc:int SEvt::GetNumPhotonCollected(){    return INSTANCE ? INSTANCE->getNumPhotonCollected() : UNDEF ; }
+    ./sysrap/SEvt.cc:int SEvt::GetNumPhotonGenstepMax(){   return INSTANCE ? INSTANCE->getNumPhotonGenstepMax() : UNDEF ; }
+    ./sysrap/SEvt.cc:int SEvt::GetNumPhotonFromGenstep(){  return INSTANCE ? INSTANCE->getNumPhotonFromGenstep() : UNDEF ; }
+    ./sysrap/SEvt.cc:int SEvt::GetNumGenstepFromGenstep(){ return INSTANCE ? INSTANCE->getNumGenstepFromGenstep() : UNDEF ; }
+    ./sysrap/SEvt.cc:int SEvt::GetNumHit(){  return INSTANCE ? INSTANCE->getNumHit() : UNDEF ; }
+    ./sysrap/SEvt.cc:NP* SEvt::GetInputPhoton() {  return INSTANCE ? INSTANCE->getInputPhoton() : nullptr ; }
+    ./qudarap/tests/QSimTest.cc:    SEvt* evt = SEvt::Get(); 
+    ./qudarap/tests/QSimTest.cc:    SEvt* sev = SEvt::Get();
+    ./qudarap/QEvent.cc:    sev(SEvt::Get()),
+    ./qudarap/QEvent.cc:    input_photon = SEvt::GetInputPhoton(); 
+    ./qudarap/QSim.cc:    const NP* p = SEvt::GetInputPhoton(); 
+    ./qudarap/QSim.cc:    const NP* ip = SEvt::GetInputPhoton(); 
+    ./u4/tests/U4SimulateTest.cc:    LOG(info) << SLOG::Banner() << " " << " savedir " << SEvt::GetSaveDir() ; 
+    ./u4/tests/U4App.h:    const char* savedir = SEvt::GetSaveDir(); 
+    ./u4/U4Random.cc:    int slot = SEvt::GetTagSlot(); 
+    ./u4/U4Recorder.cc:    const char* savedir = SEvt::GetSaveDir() ; 
+    ./u4/U4Recorder.cc:    SEvt* sev = SEvt::Get(); 
+    ./u4/U4Recorder.cc:    LOG_IF(fatal, sev == nullptr) << " SEvt::Get returned nullptr " ; 
+    ./u4/U4Recorder.cc:    SEvt* sev = SEvt::Get(); 
+    ./u4/U4Recorder.cc:        SEvt* sev = SEvt::Get(); 
+    ./u4/U4Recorder.cc:    SEvt* sev = SEvt::Get(); 
+    ./u4/InstrumentedG4OpBoundaryProcess.cc:        quad2& prd = SEvt::Get()->current_prd ; 
+    ./u4/U4HitGet.h:    SEvt* sev = SEvt::Get(); 
+    ./g4cx/tests/G4CXOpticks_SetGeometry_GetInputPhoton_Test.cc:    NP* ip = SEvt::GetInputPhoton() ; 
+    ./g4cx/tests/G4CXOpticks_SetGeometry_GetInputPhoton_Test.cc:    LOG_IF(error, ip == nullptr) << "SEvt::GetInputPhoton GIVES nullptr : SET OPTICKS_INPUT_PHOTON TO CONFIGURE " ; 
+    ./g4cx/tests/G4CXOpticks_SetGeometry_GetInputPhoton_Test.cc:    const char* id = SEvt::GetFrameId() ; 
+    ./g4cx/tests/G4CXOpticks_SetGeometry_GetInputPhoton_Test.cc:    const NP*   fr = SEvt::GetFrameArray() ; 
+    ./g4cx/G4CXOpticks.cc:    SEvt* sev = SEvt::Get() ; 
+    ./g4cx/G4CXOpticks.cc:    SEvt* sev = SEvt::Get();  
+    ./g4cx/G4CXOpticks.cc:    SEvt* sev = SEvt::Get();  assert(sev); 
+    ./g4cx/G4CXOpticks.cc:    int sev_index = SEvt::GetIndex() ;
+    ./g4cx/G4CXOpticks.cc:    SEvt* sev = SEvt::Get(); 
+    epsilon:opticks blyth$ 
+
+
+
+
+
+
+DONE : maybe SEvt::Create SEvt::Get statics could manage multiple SEvt instances depending on opticksMode
+-----------------------------------------------------------------------------------------------------------
+
+so have 0,1 OR 2 SEvt INSTANCE not just 1 ?
+
+
+::
+
+    SEvt::CreateOrReuse
+    ---------------------
+
+    Creates 0, 1 OR 2 SEvt depending on SEventConfig::IntegrationMode()::
+
+        OPTICKS_INTEGRATION_MODE (aka opticksMode)
+
+    +-----------------+----------+----------+--------------------------------------------+
+    |  opticksMode    | num SEvt | SEvt idx | notes                                      |
+    +=================+==========+==========+============================================+
+    |             0   |    0     |    -     |                                            |
+    +-----------------+----------+----------+--------------------------------------------+
+    |             1   |    1     |    0     |  GPU optical simulation only               |
+    +-----------------+----------+----------+--------------------------------------------+
+    |             2   |    1     |    1     |  CPU optical simulation only               |
+    +-----------------+----------+----------+--------------------------------------------+
+    |             3   |    2     |   0,1    |  both GPU and CPU optical simulations      |
+    +-----------------+----------+----------+--------------------------------------------+
+
+
+
+
+
+
+integrated running shakedown
+-------------------------------
+
+::
+
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    GtOpticksTool::mutate event_number 0 deferred SEvt::GetInputPhoton  SEvt::Brief  SEvt::Exists(0) Y SEvt::Exists(1) Y
+     SEvt::Get(0)->brief() SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed Y
+     SEvt::Get(1)->brief() SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed Y
+     m_input_photon (10000, 4, 4, )
+    GtOpticksTool::mutate event_number 0 numPhotons 10000
+     idx 0 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 1 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 2 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 3 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 4 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 5 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 6 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 7 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 8 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 9 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 2 eventID 0 LEVEL 5:DEBUG
+    2023-07-30 00:16:30.262 FATAL [77715] [SEvt::SetIndex@1174]  index 0 count 2
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:1175: static void SEvt::SetIndex(int): Assertion `index_permitted' failed.
+    [New Thread 0x7fff9ffff700 (LWP 77783)]
+
+    (gdb) 
+
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf32967c in SEvt::SetIndex (index=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1175
+    #5  0x00007fffcf3293ab in SEvt::BeginOfEvent (index=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1129
+    #6  0x00007fffd296d553 in U4Recorder::BeginOfEventAction (this=0xb2cfe0, event=0x7fff4e205d30) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:212
+    #7  0x00007fffcdc8584c in U4RecorderAnaMgr::BeginOfEventAction (this=0xb55d60, evt=0x7fff4e205d30)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:31
+    #8  0x00007fffce6cba69 in MgrOfAnaElem::BeginOfEventAction (this=0x7fffce8dab00 <MgrOfAnaElem::instance()::s_mgr>, evt=0x7fff4e205d30)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:46
+    #9  0x00007fffcdfb4068 in LSExpEventAction::BeginOfEventAction (this=0x5979620, evt=0x7fff4e205d30)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpEventAction.cc:66
+    #10 0x00007fffdbcc50bc in G4EventManager::DoProcessing(G4Event*) () from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+
+
+
+    (gdb) f 7
+    #7  0x00007fffcdc8584c in U4RecorderAnaMgr::BeginOfEventAction (this=0xb55d60, evt=0x7fff4e205d30)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:31
+    31	void U4RecorderAnaMgr::BeginOfEventAction(const G4Event* evt) {     m_recorder->BeginOfEventAction(evt);     }
+    (gdb) f 6
+    #6  0x00007fffd296d553 in U4Recorder::BeginOfEventAction (this=0xb2cfe0, event=0x7fff4e205d30) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:212
+    212	    SEvt::BeginOfEvent(eventID); 
+    (gdb) p eventID
+    $1 = 0
+    (gdb) f 5
+    #5  0x00007fffcf3293ab in SEvt::BeginOfEvent (index=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1129
+    1129	        SEvt::SetIndex(index); 
+    (gdb) p index
+    $2 = 0
+
+    (gdb) f 4
+    #4  0x00007fffcf32967c in SEvt::SetIndex (index=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1175
+    1175	    assert( index_permitted ); 
+    (gdb) 
+
+
+
+
+
+Note that are getting 2 SEvt in opticksMode:2 due to G4CXOpticks::setGeometry called : although only CPU one will be filled
+---------------------------------------------------------------------------------------------------------------------------------
+
+
+
+HMM where is SEvt getting instanciated::
+
+    BP=SEvt::SEvt ntds2_noxj 
+
+
+    Breakpoint 1, SEvt::SEvt (this=0xb56130) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:132
+    132	    clear_count(0)
+    (gdb) bt
+    #0  SEvt::SEvt (this=0xb56130) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:132
+    #1  0x00007fffcf327465 in SEvt::Create (idx=1) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:801
+    #2  0x00007fffcf328008 in SEvt::HighLevelCreate (idx=1) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:937
+    #3  0x00007fffd296d1f4 in U4Recorder::U4Recorder (this=0xb2d1f0) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:157
+    #4  0x00007fffcdc846c7 in U4RecorderAnaMgr::U4RecorderAnaMgr (this=0xb55f60, name=...)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:14
+
+
+
+1st SEvt::
+
+     152 U4Recorder::U4Recorder()
+     153     :
+     154     eventID(-1),
+     155     transient_fSuspend_track(nullptr),
+     156     rerun_rand(nullptr),
+     157     evt(SEvt::HighLevelCreate(SEvt::ECPU))
+     158 {
+     159     INSTANCE = this ;
+     160 }
+     161 
+
+
+2nd SEvt::
+
+    (gdb) bt
+    #0  SEvt::SEvt (this=0x16ba5d8b0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:132
+    #1  0x00007fffcf327465 in SEvt::Create (idx=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:801
+    #2  0x00007fffcf32768f in SEvt::CreateOrReuse (idx=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:815
+    #3  0x00007fffd2e7b717 in G4CXOpticks::setGeometry_ (this=0x7513d90, fd_=0x164775110) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:343
+    #4  0x00007fffd2e7b5eb in G4CXOpticks::setGeometry (this=0x7513d90, fd_=0x164775110) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:309
+    #5  0x00007fffd2e7b5a3 in G4CXOpticks::setGeometry (this=0x7513d90, gg_=0xb32e530) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:272
+    #6  0x00007fffd2e7b47c in G4CXOpticks::setGeometry (this=0x7513d90, world=0x59f2eb0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:264
+    #7  0x00007fffd2e79ccf in G4CXOpticks::SetGeometry (world=0x59f2eb0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:66
+    #8  0x00007fffcdf97754 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=2, world=0x59f2eb0, sd=0x5bd48d0, ppd=0x926c10, psd=0x929610, pmtscan=0x0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:50
+    #9  0x00007fffcdf7a0c8 in LSExpDetectorConstruction::setupOpticks (this=0x580c660, world=0x59f2eb0)
+
+
+Presumably could skip the second one in opticksMode 2 ... but opticksMode 2 and 3 are debug focussed 
+so might as well just have both SEvt for them both. 
+
+
+
+
+FIXED : Another index assert
+------------------------------
+
+::
+
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf328d38 in SEvt::SetIndex (index=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1196
+    #5  0x00007fffd20889d8 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd4810, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:165
+    #6  0x00007fffd207bc9b in junoSD_PMT_v2::EndOfEvent (this=0x5bd4870, HCE=0x7fff4de79fb0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    #7  0x00007fffd9bbac95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] ()
+       from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+
+
+
+Looks like the two SEvt saved into same dir, switch on SPath::Resolve prefix:true
+------------------------------------------------------------------------------------
+
+::
+
+    idx 8 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 9 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 2 eventID 0 LEVEL 5:DEBUG
+    Begin of Event --> 0
+    2023-07-30 02:30:46.942 INFO  [124069] [SEvt::hostside_running_resize_@1762] resizing photon 0 to evt.num_photon 10000
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 2 with m_jpmt_dbg YES
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 2 hitCollection 3922 hcMuon 0 hcOpticks 0 GPU NO
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    2023-07-30 02:30:47.731 INFO  [124069] [SEvt::AddArray@2886]  k U4R.npy a (1, )
+    2023-07-30 02:30:47.732 INFO  [124069] [SEvt::AddArray@2886]  k SEventConfig.npy a (1, )
+    2023-07-30 02:30:47.732 INFO  [124069] [SEvt::save@3132]  dir /tmp/blyth/opticks/GEOM/V1J009/ntds2/ALL1/001
+    2023-07-30 02:30:47.732 ERROR [124069] [SEvt::gatherHit@2541]  not yet implemented for hostside running : change CompMask with SEventConfig to avoid 
+    2023-07-30 02:30:47.736 INFO  [124069] [SEvt::save@3132]  dir /tmp/blyth/opticks/GEOM/V1J009/ntds2/ALL1/001
+    2023-07-30 02:30:47.842 ERROR [124069] [SEvt::gatherHit@2541]  not yet implemented for hostside running : change CompMask with SEventConfig to avoid 
+    2023-07-30 02:30:47.950 INFO  [124069] [SEvt::clear@1405] SEvt::clear
+    2023-07-30 02:30:47.950 INFO  [124069] [SEvt::clear@1405] SEvt::clear
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+
+
+
+
+opticksMode:3 
+----------------
+
+::
+
+    Begin of Event --> 0
+    2023-07-30 03:16:40.122 INFO  [153097] [SEvt::hostside_running_resize_@1762] resizing photon 0 to evt.num_photon 10000
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES
+    2023-07-30 03:16:40.900 INFO  [153097] [G4CXOpticks::simulate@440] [
+    2023-07-30 03:16:40.900 INFO  [153097] [G4CXOpticks::simulate@441] G4CXOpticks::desc sim 0x7515680 tr 0x794e4f0 wd 0x59f2a60 gg 0xb32e040 fd 0x1647747e0 cx Y qs Y
+    2023-07-30 03:16:40.900 INFO  [153097] [G4CXOpticks::simulate@455] [ num_genstep 1 num_photon 10000 SEvt::brief  getIndex 1 hasInputPhoton Y hasInputPhotonTransformed Y
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:545: void SEvt::addFrameGenstep(): Assertion `genstep.size() == 0' failed.
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf326146 in SEvt::addFrameGenstep (this=0x16ba5cf70) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:545
+    #5  0x00007fffcf325dd6 in SEvt::AddFrameGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:522
+    #6  0x00007fffcf328a8f in SEvt::BeginOfEvent (eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1151
+    #7  0x00007fffcf7675a4 in QSim::simulate (this=0x16ec45a20, eventID=0) at /data/blyth/junotop/opticks/qudarap/QSim.cc:315
+    #8  0x00007fffd2e7c4bf in G4CXOpticks::simulate (this=0x75138c0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:463
+    #9  0x00007fffd2088e57 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd4420, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:237
+    #10 0x00007fffd2088a15 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd4420, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:172
+    #11 0x00007fffd207bc9b in junoSD_PMT_v2::EndOfEvent (this=0x5bd4480, HCE=0x7fff17a62c10) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    #12 0x00007fffd9bbac95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] ()
+
+
+    (gdb) f 8 
+    #8  0x00007fffd2e7c4bf in G4CXOpticks::simulate (this=0x75138c0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:463
+    463	    qs->simulate(eventID);   // GPU launch doing generation and simulation here 
+    (gdb) f 7
+    #7  0x00007fffcf7675a4 in QSim::simulate (this=0x16ec45a20, eventID=0) at /data/blyth/junotop/opticks/qudarap/QSim.cc:315
+    315	    SEvt::BeginOfEvent(eventID);  // set SEvt index and tees up frame gensteps for simtrace and input photon simulate running
+    (gdb) f 6
+    #6  0x00007fffcf328a8f in SEvt::BeginOfEvent (eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1151
+    1151	    SEvt::AddFrameGenstep();  // needed for simtrace and input photon running
+    (gdb) list
+    1146	void SEvt::BeginOfEvent(int eventID)  // static
+    1147	{
+    1148	    int index = 1+eventID ;  
+    1149	    LOG(LEVEL) << " index " << index ; 
+    1150	    SEvt::SetIndex(index); 
+    1151	    SEvt::AddFrameGenstep();  // needed for simtrace and input photon running
+    1152	}
+    1153	
+    1154	/**
+    1155	SEvt::EndOfEvent
+    (gdb) f 5
+    #5  0x00007fffcf325dd6 in SEvt::AddFrameGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:522
+    522	    if(Exists(0)) Get(0)->addFrameGenstep() ; 
+    (gdb) f 4
+    #4  0x00007fffcf326146 in SEvt::addFrameGenstep (this=0x16ba5cf70) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:545
+    545	        assert( genstep.size() == 0 ) ; // cannot mix input photon running with other genstep running  
+    (gdb) 
+
+
+
+Where are the extra genstep coming from ?
+----------------------------------------------
+
+::
+
+    BP=SEvt::addGenstep ntds3_noxj
+
+
+::
+
+    (gdb) bt
+    #0  SEvt::addGenstep (this=0x16ba5d8b0, q_=...) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1541
+    #1  0x00007fffcf32630a in SEvt::addFrameGenstep (this=0x16ba5d8b0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:557
+    #2  0x00007fffcf325dd6 in SEvt::AddFrameGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:522
+    #3  0x00007fffcf328c35 in SEvt::BeginOfEvent (eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1160
+    #4  0x00007fffd296d553 in U4Recorder::BeginOfEventAction (this=0xb2d310, event=0x7fff17dede50) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:212
+    #5  0x00007fffcdc8484c in U4RecorderAnaMgr::BeginOfEventAction (this=0x93f2b0, evt=0x7fff17dede50)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:31
+    #6  0x00007fffce6caa69 in MgrOfAnaElem::BeginOfEventAction (this=0x7fffce8d9b00 <MgrOfAnaElem::instance()::s_mgr>, evt=0x7fff17dede50)
+
+    (gdb) f 5
+    #5  0x00007fffcdc8484c in U4RecorderAnaMgr::BeginOfEventAction (this=0x93f2b0, evt=0x7fff17dede50)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:31
+    31	void U4RecorderAnaMgr::BeginOfEventAction(const G4Event* evt) {     m_recorder->BeginOfEventAction(evt);     }
+    (gdb) f 4
+    #4  0x00007fffd296d553 in U4Recorder::BeginOfEventAction (this=0xb2d310, event=0x7fff17dede50) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:212
+    212	    SEvt::BeginOfEvent(eventID); 
+    (gdb) f 3
+    #3  0x00007fffcf328c35 in SEvt::BeginOfEvent (eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1160
+    1160	    SEvt::AddFrameGenstep();  // needed for simtrace and input photon running
+    (gdb) f 2
+    #2  0x00007fffcf325dd6 in SEvt::AddFrameGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:522
+    522	    if(Exists(0)) Get(0)->addFrameGenstep() ; 
+    (gdb) f 1
+    #1  0x00007fffcf32630a in SEvt::addFrameGenstep (this=0x16ba5d8b0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:557
+    557	        addGenstep(MakeInputPhotonGenstep(input_photon, frame)); 
+    (gdb) p instance
+    $1 = 0
+    (gdb) p index
+    $2 = 1
+    (gdb) 
+
+
+Looks like SEvt::AddFrameGenstep needs to be more careful about which SEvt to target for opticksMode:3 
+Currently both going to instance slot zero, the first one encountered. 
+
+
+In general need to revisit the SEvt statics in the light of now sometimes having two INSTANCES
+--------------------------------------------------------------------------------------------------
+
+DONE : SEvt:: static weeding, lots of the statics are being used lazily, have removed many of them 
+---------------------------------------------------------------------------------------------------
+
+* expect opticksMode:3 validations will reveal more SEvt statics that need changing 
+
+
+::
+
+    .idx 7 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 8 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+     idx 9 event.event_number 0 wavelength_nm 440.000 wavelength      0.000 energy      0.000 energy/eV      2.818
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 0 LEVEL 5:DEBUG
+    2023-07-30 23:35:38.074 INFO  [199089] [SEvt::addGenstep@1523]  index 1 instance 1
+    Begin of Event --> 0
+    2023-07-30 23:35:38.080 INFO  [199089] [SEvt::hostside_running_resize_@1752] resizing photon 0 to evt.num_photon 10000
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:1244: static int SEvt::GetNumGenstepFromGenstep(): Assertion `n0 == n1' failed.
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf327e92 in SEvt::GetNumGenstepFromGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1244
+    #5  0x00007fffd2088e2e in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd4910, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:234
+    #6  0x00007fffd2088a15 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd4910, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:172
+    #7  0x00007fffd207bc9b in junoSD_PMT_v2::EndOfEvent (this=0x5bd4970, HCE=0x7fff17a62410) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    #8  0x00007fffd9bbac95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] ()
+
+
+
+    (gdb) f 7
+    #7  0x00007fffd207bc9b in junoSD_PMT_v2::EndOfEvent (this=0x5bd4970, HCE=0x7fff17a62410) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    1142	    m_jpmt_opticks->EndOfEvent(HCE, m_eventID );    
+    (gdb) f 6
+    #6  0x00007fffd2088a15 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd4910, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:172
+    172	        EndOfEvent_Simulate(eventID) ; 
+    (gdb) f 5
+    #5  0x00007fffd2088e2e in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd4910, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:234
+    234	    unsigned num_genstep = SEvt::GetNumGenstepFromGenstep(); 
+    (gdb) list
+    229	}
+    230	
+    231	
+    232	void junoSD_PMT_v2_Opticks::EndOfEvent_Simulate(int eventID )
+    233	{
+    234	    unsigned num_genstep = SEvt::GetNumGenstepFromGenstep(); 
+    235	    unsigned num_photon  = SEvt::GetNumPhotonFromGenstep(); 
+    236	
+    237	    G4CXOpticks::Get()->simulate(eventID) ; 
+    238	
+    (gdb) f 4
+    #4  0x00007fffcf327e92 in SEvt::GetNumGenstepFromGenstep () at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1244
+    1244	        assert( n0 == n1 );
+    (gdb) p n0
+    $1 = 0
+    (gdb) p n1
+    $2 = 1
+    (gdb) 
+
+
+
+OOM
+-----
+
+::
+
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 0 LEVEL 5:DEBUG
+    2023-07-31 01:03:40.275 INFO  [225267] [SEvt::addGenstep@1480]  index 1 instance 1
+    Begin of Event --> 0
+    2023-07-31 01:03:40.280 INFO  [225267] [SEvt::hostside_running_resize_@1709] resizing photon 0 to evt.num_photon 10000
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES
+    2023-07-31 01:03:41.039 INFO  [225267] [G4CXOpticks::simulate@480] [
+    2023-07-31 01:03:41.039 INFO  [225267] [G4CXOpticks::simulate@481] G4CXOpticks::desc sim 0x7515a90 tr 0x794e980 wd 0x59f2df0 gg 0xb32e300 fd 0x1647747e0 cx Y qs Y
+    2023-07-31 01:03:41.039 INFO  [225267] [SEvt::addGenstep@1480]  index 1 instance 0
+    2023-07-31 01:03:41.039 INFO  [225267] [SEvt::clear@1348] SEvt::clear
+    2023-07-31 01:03:41.059 ERROR [225267] [QU::_cudaMalloc@219] save salloc record to /tmp/blyth/opticks/GEOM/V1J009/ntds3
+    junotoptask.execute            ERROR: CUDA call (max_photon*max_prd*sizeof(quad2) ) failed with error: 'out of memory' (/data/blyth/junotop/opticks/qudarap/QU.cc:213)
+    salloc::desc alloc.size 9 label.size 9
+
+         [           size   num_items sizeof_item       spare]    size_GB    percent label
+         [        (bytes)                                    ]   size/1e9            
+
+         [            240           1         240           0]       0.00       0.00 QEvent::QEvent/sevent
+         [        8294400     2073600           4           0]       0.01       0.06 Frame::DeviceAllo:num_pixels
+         [       96000000     1000000          96           0]       0.10       0.68 device_alloc_genstep:quad6
+         [       12000000     3000000           4           0]       0.01       0.08 device_alloc_genstep:int seed
+         [      192000000     3000000          64           0]       0.19       1.36 max_photon*sizeof(sphoton)
+         [     6144000000    96000000          64           0]       6.14      43.47 max_photon*max_record*sizeof(sphoton)
+         [     1536000000    96000000          16           0]       1.54      10.87 max_photon*max_rec*sizeof(srec)
+         [     3072000000    96000000          32           0]       3.07      21.74 max_photon*max_seq*sizeof(sseq)
+         [     3072000000    96000000          32           0]       3.07      21.74 max_photon*max_prd*sizeof(quad2)
+
+     tot      14132294640                                           14.13
+
+    junotoptask.finalize            WARN: invalid state tranform ((Running)) => ((Finalized))
+    [2023-07-31 01:03:41,664] p225267 {/data/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:176} INFO - ]JUNOApplication.run
+    Namespace(ACU_source_weight_QC=False, CLS_source_weight_QC=False, GT_source_theta=0, K40_ACU_source_weight_QC=False, MaterialDataDir=None, OffsetInX=0, OffsetInY=0, OffsetInZ=0, additionacrylic_simplify_csg=True, anamgr_atmo=False, anamgr_config_file=None, anamgr_deposit=False, anamgr_deposit_tt=False, anamgr_edm=False, 
+
+
+
+
+::
+
+     68 QEvent::QEvent()
+     69     :
+     70     sev(SEvt::Get_EGPU()),
+     71     selector(sev ? sev->selector : nullptr),
+     72     evt(sev ? sev->evt : nullptr),
+     73     d_evt(QU::device_alloc<sevent>(1,"QEvent::QEvent/sevent")),
+     74     gs(nullptr),
+     75     input_photon(nullptr),
+     76     upload_count(0),
+
+
+
+Improve salloc collection
+---------------------------
+
+::
+
+    2023-07-31 03:03:17.853 INFO  [251673] [G4CXOpticks::simulate@480] [
+    2023-07-31 03:03:17.853 INFO  [251673] [G4CXOpticks::simulate@481] G4CXOpticks::desc sim 0x75157a0 tr 0x794e690 wd 0x59f2af0 gg 0xb32e000 fd 0x1647747e0 cx Y qs Y
+    2023-07-31 03:03:17.853 INFO  [251673] [SEvt::addGenstep@1480]  index 1 instance 0
+    2023-07-31 03:03:17.854 INFO  [251673] [SEvt::clear@1348] SEvt::clear
+    2023-07-31 03:03:17.854 INFO  [251673] [QU::device_alloc@238]  num_items    1000000 size   96000000 label QEvent::setGenstep/device_alloc_genstep:quad6
+    2023-07-31 03:03:17.855 INFO  [251673] [QU::device_alloc@238]  num_items    3000000 size   12000000 label QEvent::setGenstep/device_alloc_genstep:int seed
+    2023-07-31 03:03:17.861 INFO  [251673] [QU::device_alloc_zero@276]  num_items    3000000 size  192000000 label QEvent::device_alloc_photon/max_photon*sizeof(sphoton)
+    2023-07-31 03:03:17.862 INFO  [251673] [QU::device_alloc_zero@276]  num_items   96000000 size 6144000000 label max_photon*max_record*sizeof(sphoton)
+    2023-07-31 03:03:17.868 INFO  [251673] [QU::device_alloc_zero@276]  num_items   96000000 size 1536000000 label max_photon*max_rec*sizeof(srec)
+    2023-07-31 03:03:17.870 INFO  [251673] [QU::device_alloc_zero@276]  num_items   96000000 size 3072000000 label max_photon*max_seq*sizeof(sseq)
+    2023-07-31 03:03:17.874 INFO  [251673] [QU::device_alloc_zero@276]  num_items   96000000 size 3072000000 label max_photon*max_prd*sizeof(quad2)
+    2023-07-31 03:03:17.875 ERROR [251673] [QU::_cudaMalloc@224] save salloc record to /tmp/blyth/opticks/GEOM/V1J009/ntds3
+    junotoptask.execute            ERROR: CUDA call (max_photon*max_prd*sizeof(quad2) ) failed with error: 'out of memory' (/data/blyth/junotop/opticks/qudarap/QU.cc:218)
+    salloc::desc alloc.size 19 label.size 19
+    salloc.meta
+    evt.max_photon:3000000
+    evt.max_record:32
+    evt.max_rec:32
+    evt.max_seq:32
+    evt.max_prd:32
+    evt.max_tag:1
+    evt.max_flat:1
+    evt.num_photon:10000
+    evt.num_record:320000
+    evt.num_rec:320000
+    evt.num_seq:10000
+    evt.num_prd:320000
+    evt.num_tag:10000
+    evt.num_flat:10000
+
+
+         [           size   num_items sizeof_item       spare]    size_GB    percent label
+         [        (bytes)                                    ]   size/1e9            
+
+         [              4           1           4           0]       0.00       0.00 QBase::init/d_base
+         [      144000000     3000000          48           0]       0.14       1.01 QRng::upload/rng_states
+         [             16           1          16           0]       0.00       0.00 QRng::upload/d_qr
+         [             64           1          64           0]       0.00       0.00 QTex::uploadMeta
+         [             32           1          32           0]       0.00       0.00 QBnd::QBnd/d_qb
+         [            416           1         416           0]       0.00       0.00 QDebug::QDebug/d_dbg
+         [             64           1          64           0]       0.00       0.00 QTex::uploadMeta
+         [             24           1          24           0]       0.00       0.00 QScint::QScint/d_scint
+         [             24           1          24           0]       0.00       0.00 QCerenkov::QCerenkov/d_cerenkov.0
+         [            240           1         240           0]       0.00       0.00 QEvent::QEvent/sevent
+         [             64           1          64           0]       0.00       0.00 QSim::init.sim
+         [        8294400     2073600           4           0]       0.01       0.06 Frame::DeviceAllo:num_pixels
+         [       96000000     1000000          96           0]       0.10       0.67 QEvent::setGenstep/device_alloc_genstep:quad6
+         [       12000000     3000000           4           0]       0.01       0.08 QEvent::setGenstep/device_alloc_genstep:int seed
+         [      192000000     3000000          64           0]       0.19       1.34 QEvent::device_alloc_photon/max_photon*sizeof(sphoton)
+         [     6144000000    96000000          64           0]       6.14      43.04 max_photon*max_record*sizeof(sphoton)
+         [     1536000000    96000000          16           0]       1.54      10.76 max_photon*max_rec*sizeof(srec)
+         [     3072000000    96000000          32           0]       3.07      21.52 max_photon*max_seq*sizeof(sseq)
+         [     3072000000    96000000          32           0]       3.07      21.52 max_photon*max_prd*sizeof(quad2)
+
+     tot      14276295348                                           14.28
+
+
+
+
+
+
+    epsilon:tests blyth$ ./salloc_test.sh
+             BASH_SOURCE : ./salloc_test.sh 
+                    name : salloc_test 
+                    FOLD : /tmp/salloc_test 
+                    BASE : /tmp/blyth/opticks/GEOM/V1J009/ntds3 
+          OPTICKS_PREFIX : /usr/local/opticks 
+                    GEOM : V1J009 
+    a.desc
+    salloc::desc alloc.size 19 label.size 19
+    salloc.meta
+    evt.max_photon:3000000
+    evt.max_record:32
+    evt.max_rec:32
+    evt.max_seq:32
+    evt.max_prd:32
+    evt.max_tag:1
+    evt.max_flat:1
+    evt.num_photon:10000
+    evt.num_record:320000
+    evt.num_rec:320000
+    evt.num_seq:10000
+    evt.num_prd:320000
+    evt.num_tag:10000
+    evt.num_flat:10000
+
+
+         [           size   num_items sizeof_item       spare]    size_GB    percent label
+         [        (bytes)                                    ]   size/1e9            
+
+         [              4           1           4           0]       0.00       0.00 QBase::init/d_base
+         [      144000000     3000000          48           0]       0.14       1.01 QRng::upload/rng_states
+         [             16           1          16           0]       0.00       0.00 QRng::upload/d_qr
+         [             64           1          64           0]       0.00       0.00 QTex::uploadMeta
+         [             32           1          32           0]       0.00       0.00 QBnd::QBnd/d_qb
+         [            416           1         416           0]       0.00       0.00 QDebug::QDebug/d_dbg
+         [             64           1          64           0]       0.00       0.00 QTex::uploadMeta
+         [             24           1          24           0]       0.00       0.00 QScint::QScint/d_scint
+         [             24           1          24           0]       0.00       0.00 QCerenkov::QCerenkov/d_cerenkov.0
+         [            240           1         240           0]       0.00       0.00 QEvent::QEvent/sevent
+         [             64           1          64           0]       0.00       0.00 QSim::init.sim
+         [        8294400     2073600           4           0]       0.01       0.06 Frame::DeviceAllo:num_pixels
+         [       96000000     1000000          96           0]       0.10       0.67 QEvent::setGenstep/device_alloc_genstep:quad6
+         [       12000000     3000000           4           0]       0.01       0.08 QEvent::setGenstep/device_alloc_genstep:int seed
+         [      192000000     3000000          64           0]       0.19       1.34 QEvent::device_alloc_photon/max_photon*sizeof(sphoton)
+         [     6144000000    96000000          64           0]       6.14      43.04 max_photon*max_record*sizeof(sphoton)
+         [     1536000000    96000000          16           0]       1.54      10.76 max_photon*max_rec*sizeof(srec)
+         [     3072000000    96000000          32           0]       3.07      21.52 max_photon*max_seq*sizeof(sseq)
+         [     3072000000    96000000          32           0]       3.07      21.52 max_photon*max_prd*sizeof(quad2)
+
+     tot      14276295348                                           14.28
+    epsilon:tests blyth$ 
+
+
+
+
+HMM : ARE USING "TITAN V" WITH 12G BASED ON nvidia-smi process list::
+
+    N[blyth@localhost opticks]$ nvidia-smi
+    Mon Jul 31 03:15:17 2023       
+    +-----------------------------------------------------------------------------+
+    | NVIDIA-SMI 435.21       Driver Version: 435.21       CUDA Version: 10.1     |
+    |-------------------------------+----------------------+----------------------+
+    | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+    | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+    |===============================+======================+======================|
+    |   0  TITAN RTX           Off  | 00000000:73:00.0 Off |                  N/A |
+    | 41%   38C    P8    23W / 280W |     10MiB / 24219MiB |      0%      Default |
+    +-------------------------------+----------------------+----------------------+
+    |   1  TITAN V             Off  | 00000000:A6:00.0 Off |                  N/A |
+    | 34%   49C    P8    28W / 250W |    536MiB / 12066MiB |      0%      Default |
+    +-------------------------------+----------------------+----------------------+
+                                                                                   
+    +-----------------------------------------------------------------------------+
+    | Processes:                                                       GPU Memory |
+    |  GPU       PID   Type   Process name                             Usage      |
+    |=============================================================================|
+    |    1    252057      C   ...p/ExternalLibs/Python/3.8.12/bin/python   525MiB |
+    +-----------------------------------------------------------------------------+
+    N[blyth@localhost opticks]$ 
+
+
+
+Check with::
+
+    export OPTICKS_MAX_PHOTON=10000 
+    ntds3_noxj
+
+
+
+
+::
+
+    2023-07-31 03:15:29.983 INFO  [252057] [QU::device_alloc_zero@276]  num_items     320000 size   10240000 label max_photon*max_seq*sizeof(sseq)
+    2023-07-31 03:15:29.984 INFO  [252057] [QU::device_alloc_zero@276]  num_items     320000 size   10240000 label max_photon*max_prd*sizeof(quad2)
+    2023-07-31 03:15:29.984 INFO  [252057] [QU::device_alloc_zero@276]  num_items      10000 size     320000 label max_photon*sizeof(stag)
+    2023-07-31 03:15:29.984 INFO  [252057] [QU::device_alloc_zero@276]  num_items      10000 size    2560000 label max_photon*sizeof(sflat)
+    junotoptask.execute            ERROR: CUDA error on synchronize with error 'an illegal memory access was encountered' (/data/blyth/junotop/opticks/CSGOptiX/CSGOptiX.cc:920)
+
+    junotoptask.finalize            WARN: invalid state tranform ((Running)) => ((Finalized))
+    [2023-07-31 03:15:30,049] p252057 {/data/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:176} INFO - ]JUNOApplication.run
+    Namespace(ACU_source_weight_QC=False, CLS_source_weight_QC=False, GT_source_theta=0, K40_ACU_source_weight_QC=False, MaterialDataDir=None, OffsetInX=0, OffsetInY=0, OffsetInZ=0, additionacrylic_simplify_csg=True, anamgr_atmo=False, anamgr_config_file=None, anamgr_deposit=False, anamgr_deposit_tt=False, anamgr_edm=False, anamgr_edm_ge
+
+
+
+
+FIXED : ntds3 CUDA fail : "an illegal memory access was encountered"
+---------------------------------------------------------------------
+
+* fixed by arranging QPMT upload by moving SSim::AddExtraSubfold earlier 
+
+Fail seen when using ntds3_noxj and input photons::
+
+    RainXZ_Z230_100_f8.npy
+    RainXZ_Z230_10k_f8.npy
+
+Initially thought the ntds3 fail could be from a rare photon, eg big bouncer not truncated properly,
+but the success of below cxs_min.sh with 100k input photons makes that unlikely although still possible. 
+
+So could be a general problem at G4CXOpticks gx level ? Need to test up at that level ?
+Actually there is not much done at that level : so looks unlikely to be cause of issues. 
+
+Could be a difference between running from a live geometry vs one that has been loaded. 
+Maybe something missing in the live geometry that gets serialized by the save ? 
+Could move the save before the launch to check if that is the issue. 
+
+* problem with this is the slow development cycle 
+
+
+
+
+
+DONE : Check the cx min scripts : all working as expected
+-----------------------------------------------------------
+
+* cxr_min.sh works with expected render 
+* cxt_min.sh works with expected simtrace plot 
+* cxs_min.sh works with expected simulate positions
+
+  * OK: RainXZ_Z195_1000_f8.npy 
+  * OK: RainXZ_Z230_1000_f8.npy
+  * OK: RainXZ_Z230_10k_f8.npy 
+  * OK: RainXZ_Z230_100k_f8.npy 
+
+
+
+
+
+DONE : QSim=INFO logging comparison between ntds3_noxj and cxs_min.sh  : reveals lack of QPMT
+-----------------------------------------------------------------------------------------------
+
+ntds3_noxj::
+
+    2023-07-31 19:22:17.838 INFO  [270896] [QSim::UploadComponents@138] QDebug::desc  dbg 0x16eb2e430 d_dbg 0x7fff5fe01600
+     QState::Desc QState::Desc
+    material1 ( 1.000,1000.000,1000.000, 0.000) 
+    material2 ( 1.500,1000.000,1000.000, 0.000) 
+    m1group2  (300.000, 0.000, 0.000, 0.000) 
+    surface   ( 0.000, 0.000, 0.000, 0.000) 
+    optical   (     0,     0,     0,     0) 
+
+     dbg.p.desc  pos ( 0.000, 0.000, 0.000)  t     0.000  mom ( 1.000, 0.000, 0.000)  iindex 1065353216  pol ( 0.000, 1.000, 0.000)  wl  500.000   bn 0 fl 0 id 0 or 1 ix 0 fm 0 ab    ii 1065353216
+    2023-07-31 19:22:17.838 INFO  [270896] [QSim::UploadComponents@151]   propcom null, snam::PROPCOM propcom.npy
+    2023-07-31 19:22:17.839 INFO  [270896] [QSim::UploadComponents@164] QScint dsrc NP  dtype <f8(3, 4096, 1, ) size 12288 uifc f ebyte 8 shape.size 3 data.size 98304 meta.size 97 names.size 1 src NP  dtype <f4(3, 4096, 1, ) size 12288 uifc f ebyte 4 shape.size 3 data.size 49152 meta.size 97 names.size 1 tex QTex width 4096 height 3 texObj 2 meta 0x16ea40fd0 d_meta 0x7fff5fe01800 tex 0x16eb2e140
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::UploadComponents@173] QCerenkov fold - icdf_ - icdf - tex 0
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::UploadComponents@184]  NO QPMT instance 
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::UploadComponents@185] QPMT<float> WITH_CUSTOM4  INSTANCE:NO  
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::QSim@242] QSim.hh this 0x16eb27e40 INSTANCE 0x0 QEvent.hh:event 0x16eb27ef0 qsim.h:sim 0x0
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::init@282] QSim.hh this 0x16eb27e40 INSTANCE 0x16eb27e40 QEvent.hh:event 0x16eb27ef0 qsim.h:sim 0x16eb27b00
+    2023-07-31 19:22:17.840 INFO  [270896] [QSim::init@283] 
+     base       Y
+     event      Y
+     rng        Y
+     scint      Y
+     cerenkov   Y
+     bnd        Y
+     prop       N
+     multifilm  N
+     sim        Y
+     d_sim      Y
+     dbg        Y
+     d_dbg      Y
+
+
+
+cxs_min.sh::
+
+    2023-07-31 19:29:38.006 INFO  [271364] [QSim::UploadComponents@104] [ ssim 0x1dec6b0
+    2023-07-31 19:29:38.006 INFO  [271364] [QSim::UploadComponents@107] [ new QBase
+    2023-07-31 19:29:38.137 INFO  [271364] [QSim::UploadComponents@109] ] new QBase : latency here of about 0.3s from first device access, if latency of >1s need to start nvidia-persistenced 
+    2023-07-31 19:29:38.137 INFO  [271364] [QSim::UploadComponents@110] QBase::desc base 0x5fd81d0 d_base 0x7fa988400000 base.desc qbase::desc pidx 4294967295
+    2023-07-31 19:29:38.137 INFO  [271364] [QSim::UploadComponents@114] [ new QRng 
+    2023-07-31 19:29:38.708 INFO  [271364] [QSim::UploadComponents@116] ] new QRng 
+    2023-07-31 19:29:38.708 INFO  [271364] [QSim::UploadComponents@118] QRng path /home/blyth/.opticks/rngcache/RNG/QCurandState_3000000_0_0.bin rngmax 3000000 qr 0xa63b0d0 d_qr 0x7fa988400200
+    2023-07-31 19:29:38.708 INFO  [271364] [QSim::UploadComponents@131] QOptical optical NP  dtype <i4(52, 4, 4, ) size 832 uifc i ebyte 4 shape.size 3 data.size 3328 meta.size 0 names.size 0
+    2023-07-31 19:29:38.728 INFO  [271364] [QSim::UploadComponents@134] QBnd src NP  dtype <f4(52, 4, 2, 761, 4, ) size 1266304 uifc f ebyte 4 shape.size 5 data.size 5065216 meta.size 61 names.size 52 tex QTex width 761 height 416 texObj 1 meta 0xa6dc120 d_meta 0x7fa988401200 tex 0xa6dc230
+    2023-07-31 19:29:38.728 INFO  [271364] [QSim::UploadComponents@138] QDebug::desc  dbg 0xa727ea0 d_dbg 0x7fa988401600
+     QState::Desc QState::Desc
+    material1 ( 1.000,1000.000,1000.000, 0.000) 
+    material2 ( 1.500,1000.000,1000.000, 0.000) 
+    m1group2  (300.000, 0.000, 0.000, 0.000) 
+    surface   ( 0.000, 0.000, 0.000, 0.000) 
+    optical   (     0,     0,     0,     0) 
+
+     dbg.p.desc  pos ( 0.000, 0.000, 0.000)  t     0.000  mom ( 1.000, 0.000, 0.000)  iindex 1065353216  pol ( 0.000, 1.000, 0.000)  wl  500.000   bn 0 fl 0 id 0 or 1 ix 0 fm 0 ab    ii 1065353216
+    2023-07-31 19:29:38.729 INFO  [271364] [QSim::UploadComponents@151]   propcom null, snam::PROPCOM propcom.npy
+    2023-07-31 19:29:38.729 INFO  [271364] [QSim::UploadComponents@164] QScint dsrc NP  dtype <f8(3, 4096, 1, ) size 12288 uifc f ebyte 8 shape.size 3 data.size 98304 meta.size 97 names.size 1 src NP  dtype <f4(3, 4096, 1, ) size 12288 uifc f ebyte 4 shape.size 3 data.size 49152 meta.size 97 names.size 1 tex QTex width 4096 height 3 texObj 2 meta 0xa6d9750 d_meta 0x7fa988401800 tex 0xa65a660
+    2023-07-31 19:29:38.729 INFO  [271364] [QSim::UploadComponents@173] QCerenkov fold - icdf_ - icdf - tex 0
+    2023-07-31 19:29:38.732 INFO  [271364] [QSim::UploadComponents@185] QPMT<float> WITH_CUSTOM4  INSTANCE:YES QPMT::desc
+                           rindex (24, 15, 2, )
+                          qeshape (3, 44, 2, )
+                        thickness (3, 4, 1, )
+                             lcqs (17612, 2, )
+                  pmt.rindex_prop 0x7fa988402a00
+                 pmt.qeshape_prop 0x7fa988403200
+                    pmt.thickness 0x7fa988403400
+                         pmt.lcqs 0x7fa988403600
+                            d_pmt 0x7fa988425e00
+
+    2023-07-31 19:29:38.732 INFO  [271364] [QSim::QSim@242] QSim.hh this 0xa7594e0 INSTANCE 0x0 QEvent.hh:event 0xa65a890 qsim.h:sim 0x0
+    2023-07-31 19:29:38.732 INFO  [271364] [QSim::init@282] QSim.hh this 0xa7594e0 INSTANCE 0xa7594e0 QEvent.hh:event 0xa65a890 qsim.h:sim 0xa74f510
+    2023-07-31 19:29:38.733 INFO  [271364] [QSim::init@283] 
+     base       Y
+     event      Y
+     rng        Y
+     scint      Y
+     cerenkov   Y
+     bnd        Y
+     prop       Y
+     multifilm  N
+     sim        Y
+     d_sim      Y
+     dbg        Y
+     d_dbg      Y
+
+    2023-07-31 19:29:39.820 INFO  [271364] [QSim::simulate@310] 
+    2023-07-31 19:29:39.820 INFO  [271364] [SEvt::addGenstep@1480]  index 1 instance 0
+    2023-07-31 19:29:39.820 INFO  [271364] [QSim::simulate@318] QSim.hh this 0xa7594e0 INSTANCE 0xa7594e0 QEvent.hh:event 0xa65a890 qsim.h:sim 0xa74f510
+
+
+
+Add some QSim debug::
+
+     174     const NPFold* spmt_f = ssim->get_spmt_f() ;
+     175     QPMT<float>* qpmt = spmt_f ? new QPMT<float>(spmt_f) : nullptr ;
+     176     LOG_IF(LEVEL, qpmt == nullptr ) 
+     177         << " NO QPMT instance "
+     178         << " spmt_f " << ( spmt_f ? "YES" : "NO " )
+     179         << " qpmt " << ( qpmt ? "YES" : "NO " )
+     180         ;
+     181     
+
+
+HMM ordering issue ? The adding of jpmt needs to happen before G4CXOpticks::SetGeometry ?
+Thats because SetGeometry instanciates QSim and upload components to GPU::
+
+    SSim::AddExtraSubfold("jpmt", jpmt )
+
+jcv LSExpDetectorConstruction_Opticks::
+
+     38     NPFold* jpmt = SerializePMT(ppd, psd, pmtscan) ;
+     39 
+     40     LOG(info) << "[ WITH_G4CXOPTICKS opticksMode " << opticksMode << " sd " << sd  ;
+     41     if( opticksMode == 0 )
+     42     {
+     43         SEvt::HighLevelCreateOrReuse(SEvt::ECPU);    // U4RecorderAnaMgr not active in opticksMode:0 
+     44         SSim::Create();                              // done by G4CXOpticks::G4CXOpticks in opticksMode > 0
+     45         SSim::AddExtraSubfold("jpmt", jpmt );
+     46     }
+     47     else if( opticksMode == 1 || opticksMode == 3 || opticksMode == 2 )
+     48     {
+     49         if(opticksMode == 2) G4CXOpticks::SetNoGPU() ;
+     50         G4CXOpticks::SetGeometry(world) ;
+     51         SSim::AddExtraSubfold("jpmt", jpmt );  // needs to be before SaveGeometry 
+     52         G4CXOpticks::SaveGeometry();
+     53     }
+     54     LOG(info) << "] WITH_G4CXOPTICKS " ;
+     55 }
+
+
+
+DONE : gatherHit assert, this was due to repeated gather ?
+-----------------------------------------------------------------
+
+::
+
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    junoSD_PMT_v2::Initialize eventID 0
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 0 LEVEL 5:DEBUG
+    2023-07-31 20:49:33.425 INFO  [276821] [SEvt::addGenstep@1480]  index 1 instance 1
+    Begin of Event --> 0
+    2023-07-31 20:49:33.427 INFO  [276821] [SEvt::hostside_running_resize_@1709] resizing photon 0 to evt.num_photon 100
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES
+    2023-07-31 20:49:33.444 INFO  [276821] [G4CXOpticks::simulate@480] [
+    2023-07-31 20:49:33.444 INFO  [276821] [G4CXOpticks::simulate@481] G4CXOpticks::desc sim 0x7518cb0 tr 0x7951d00 wd 0x59f5ff0 gg 0xb331760 fd 0x164778110 cx Y qs Y
+    2023-07-31 20:49:33.444 INFO  [276821] [QSim::simulate@312] 
+    2023-07-31 20:49:33.445 INFO  [276821] [SEvt::addGenstep@1480]  index 1 instance 0
+    2023-07-31 20:49:33.445 INFO  [276821] [QSim::simulate@320] QSim::desc
+     this 0x16f074aa0 INSTANCE 0x16f074aa0 QEvent.hh:event 0x16eaf0270 qsim.h:sim 0x16f0515d0
+    2023-07-31 20:49:33.445 INFO  [276821] [SEvt::clear@1348] SEvt::clear
+    2023-07-31 20:49:33.463 INFO  [276821] [SEvt::save@3093]  dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001 index 1 instance 0
+    2023-07-31 20:49:33.468 INFO  [276821] [SEvt::clear@1348] SEvt::clear
+    python: /data/blyth/junotop/opticks/qudarap/QEvent.cc:588: NP* QEvent::gatherHit() const: Assertion `evt->num_photon' failed.
+
+    Program received signal SIGABRT, Aborted.
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf795e5a in QEvent::gatherHit (this=0x16eaf0270) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:588
+    #5  0x00007fffcf79678f in QEvent::gatherComponent_ (this=0x16eaf0270, comp=256) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:653
+    #6  0x00007fffcf796491 in QEvent::gatherComponent (this=0x16eaf0270, comp=256) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:634
+    #7  0x00007fffcf33085d in SEvt::gather (this=0x16ba60800) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2813
+    #8  0x00007fffd2e7c6b3 in G4CXOpticks::simulate (this=0x7951ca0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:495
+    #9  0x00007fffd2089d22 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd79b0, eventID=0)
+
+
+    (gdb) f 8
+    #8  0x00007fffd2e7c6b3 in G4CXOpticks::simulate (this=0x7951ca0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:495
+    495	    sev->gather();           // downloads components configured by SEventConfig::CompMask 
+    (gdb) list
+    490	    unsigned num_genstep = sev->getNumGenstepFromGenstep(); 
+    491	    unsigned num_photon  = sev->getNumPhotonCollected(); 
+    492	
+    493	    qs->simulate(eventID);   // GPU launch doing generation and simulation here 
+    494	
+    495	    sev->gather();           // downloads components configured by SEventConfig::CompMask 
+    496	    // save would gather, but need to do that anyhow even when not saving 
+    497	
+    498	    unsigned num_hit = sev->getNumHit() ; 
+    499	
+    (gdb) f 7
+    #7  0x00007fffcf33085d in SEvt::gather (this=0x16ba60800) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2813
+    2813	        NP* a = provider->gatherComponent(cmp); 
+    (gdb) p cmp
+    $1 = 256
+    (gdb) f 6
+    #6  0x00007fffcf796491 in QEvent::gatherComponent (this=0x16eaf0270, comp=256) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:634
+    634	    NP* a = proceed ? gatherComponent_(comp) : nullptr ;
+    (gdb) p comp
+    $2 = 256
+    (gdb) f 5
+    #5  0x00007fffcf79678f in QEvent::gatherComponent_ (this=0x16eaf0270, comp=256) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:653
+    653	        case SCOMP_HIT:       a = gatherHit()      ; break ;   
+    (gdb) f 4
+    #4  0x00007fffcf795e5a in QEvent::gatherHit (this=0x16eaf0270) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:588
+    588	    assert( evt->num_photon ); 
+    (gdb) p *evt
+    $3 = {static genstep_itemsize = 24, static genstep_numphoton_offset = 3, static w_lo = 60, static w_hi = 820, static w_center = 440, static w_extent = 380, 
+      center_extent = {x = 0, y = 0, z = 0, w = 1000}, time_domain = {x = 0, y = 10}, wavelength_domain = {x = 440, y = 380}, max_genstep = 1000000, max_photon = 10000, 
+      max_simtrace = 3000000, max_bounce = 31, max_record = 32, max_rec = 32, max_seq = 32, max_prd = 32, max_tag = 1, max_flat = 1, max_aux = 32, max_sup = 1, 
+      num_genstep = 1, num_seed = 100, num_hit = 32, num_photon = 0, num_record = 0, num_rec = 0, num_seq = 0, num_prd = 0, num_tag = 0, num_flat = 0, num_simtrace = 0, 
+      num_aux = 0, num_sup = 0, genstep = 0x7fff12000000, seed = 0x7fff6a258800, hit = 0x0, photon = 0x7fff6a262600, record = 0x7fff6b600000, rec = 0x7fff6ca00000, 
+      seq = 0x7fff6d000000, prd = 0x7fff6da00000, tag = 0x7fff6a2fea00, flat = 0x7fff17c00000, simtrace = 0x0, aux = 0x0, sup = 0x0}
+    (gdb) 
+
+
+
+::
+
+    0310 double QSim::simulate(int eventID)
+     311 {
+     312     LOG(LEVEL);
+     313 
+     314     LOG_IF(error, event == nullptr) << " QEvent:event null " << desc()  ;
+     315     if( event == nullptr ) std::raise(SIGINT) ;
+     316     if( event == nullptr ) return -1. ;
+     317 
+     318     sev->beginOfEvent(eventID);  // set SEvt index and tees up frame gensteps for simtrace and input photon simulate running
+     319 
+     320     LOG(LEVEL) << desc() ;
+     321     int rc = event->setGenstep() ;
+     322     LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate " ;
+     323 
+     324     double dt = rc == 0 && cx != nullptr ? cx->simulate_launch() : -1. ;
+     325 
+     326     sev->endOfEvent(eventID);
+     327 
+     328     return dt ;
+     329 }
+
+
+::
+
+    1166 void SEvt::endOfEvent(int eventID)
+    1167 {
+    1168     int index_ = 1+eventID ;
+    1169     endIndex(index_);
+    1170     save();
+    1171     clear();
+    1172 }
+
+
+
+Looks like the SEvt::clear done frm SEvt::endOfEvent sets num_photon to zero causing 
+an assert when trying to gather again::
+
+    577 NP* QEvent::gatherHit() const
+    578 {
+    579     // hasHit at this juncture is misleadingly always false, 
+    580     // because the hits array is derived by *gatherHit_* which  selects from the photons 
+    581 
+    582     bool has_photon = hasPhoton();
+    583 
+    584     LOG_IF(LEVEL, !has_photon) << " gatherHit called when there is no photon array " ;
+    585     if(!has_photon) return nullptr ;
+    586 
+    587     assert( evt->photon );
+    588     assert( evt->num_photon );
+    589     evt->num_hit = SU::count_if_sphoton( evt->photon, evt->num_photon, *selector );
+    590 
+    591     LOG(LEVEL)
+    592          << " evt.photon " << evt->photon
+    593          << " evt.num_photon " << evt->num_photon
+    594          << " evt.num_hit " << evt->num_hit
+    595          << " selector.hitmask " << selector->hitmask
+    596          << " SEventConfig::HitMask " << SEventConfig::HitMask()
+    597          << " SEventConfig::HitMaskLabel " << SEventConfig::HitMaskLabel()
+    598          ;
+    599 
+    600     NP* hit = evt->num_hit > 0 ? gatherHit_() : nullptr ;
+    601 
+    602     return hit ;
+    603 }
+
+
+
+
+jcv junoSD_PMT_v2_Opticks::
+
+    224 void junoSD_PMT_v2_Opticks::EndOfEvent_Simulate(int eventID )
+    225 {
+    226     G4CXOpticks* gx = G4CXOpticks::Get() ;
+    227     gx->simulate(eventID) ;
+    228 
+    229     unsigned num_hit = SEvt::GetNumHit_EGPU() ;
+    230 
+    231     LOG(LEVEL)
+    232         << " eventID " << eventID
+    233         << " " << gx->descSimulate()
+    234         << " num_hit " << num_hit
+    235         ;
+    236 
+    237     int merged_count(0);
+    238     int savehit_count(0);
+    239     std::stringstream ss ;
+    240 
+    241     bool way_enabled = false ;
+    242     U4Hit hit ;
+    243     U4HitExtra hit_extra ;
+    244     U4HitExtra* hit_extra_ptr = way_enabled ? &hit_extra : nullptr ;
+    245     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    246     {
+    247         U4HitGet::FromEvt_EGPU(hit, idx);
+    248         collectHit(&hit, hit_extra_ptr, merged_count, savehit_count );
+    249         if(idx < 20 && LEVEL == info) ss << descHit(idx, &hit, hit_extra_ptr ) << std::endl ;
+    250     }
+    251 
+    252     LOG_IF(LEVEL, LEVEL == info) << std::endl << ss.str() ;
+
+
+
+HMM hits are special they need to survive the SEvt::clear ?::
+
+     57 inline void U4HitGet::FromEvt(U4Hit& hit, unsigned idx, int eidx )
+     58 {
+     59     sphoton global, local  ;
+     60     SEvt* sev = SEvt::Get(eidx);
+     61     sev->getHit( global, idx);
+     62 
+     63     sphit ht ;
+     64     sev->getLocalHit( ht, local,  idx);
+     65 
+     66     ConvertFromPhoton(hit, global, local, ht );
+     67 }
+
+
+::
+
+    3271 const NP* SEvt::getHit() const {    return fold->get(SComp::HIT_) ; }
+
+    3287 void SEvt::getHit(sphoton& p, unsigned idx) const
+    3288 {
+    3289     const NP* hit = getHit();
+    3290     sphoton::Get(p, hit, idx );
+    3291 }
+
+
+gatherHit needs to copy the hit array somewhere else to avoid getting cleared at endOfEvent
+
+* add NPFold::clear_except SEvt::clear_except to preseve "hit" beyond the save 
+
+
+NOPE : git pull from bitbucket taking ages : try switch to github : but the clone gets time out 
+--------------------------------------------------------------------------------------------------
+
+Change url in je/junoenv-opticks.sh and do::
+
+    N[blyth@localhost junoenv]$ bash junoenv opticks get
+    = The junoenv is in /data/blyth/junotop/junoenv
+    ...
+    == setup-juno-basic-preq: Loading EXTLIB versions from /data/blyth/junotop/junoenv/collections/22.1.sh
+
+    == setup-juno-opticks
+    === junoenv-opticks: get
+    ==== junoenv-opticks-get: url https://github.com/simoncblyth/opticks base opticks name opticks PWD /data/blyth/junotop
+    git clone https://github.com/simoncblyth/opticks opticks
+    Cloning into 'opticks'...
+    fatal: unable to access 'https://github.com/simoncblyth/opticks/': Failed connect to github.com:443; Connection timed out
+    ==== junoenv-opticks-get: FAILED
+         
+
+
+DONE : switch to rsync push
+----------------------------
+
+::
+
+    bin/rsync_put_repo.sh
+
+
+
+FIXED : endOfEvent genstep assert
+-------------------------------------
+
+::
+
+    2023-08-01 23:23:35.491 INFO  [332711] [G4CXOpticks::simulate@450] [
+    2023-08-01 23:23:35.491 INFO  [332711] [G4CXOpticks::simulate@451] G4CXOpticks::desc sim 0x7518f00 tr 0x7951ef0 wd 0x59f6250 gg 0xc210290 fd 0x1647777e0 cx Y qs Y
+    2023-08-01 23:23:35.491 INFO  [332711] [SEvt::clear@1354] SEvt::clear
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:2837: void SEvt::gather_components(): Assertion `num == num_genstep' failed.
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf330366 in SEvt::gather_components (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2837
+    #5  0x00007fffcf3305ed in SEvt::gather (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2875
+    #6  0x00007fffcf331291 in SEvt::save (this=0x16ba5fec0, dir_=0x7fffcf41dcaa "$DefaultOutputDir") at /data/blyth/junotop/opticks/sysrap/SEvt.cc:3148
+    #7  0x00007fffcf3306aa in SEvt::save (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2978
+    #8  0x00007fffcf3282cf in SEvt::endOfEvent (this=0x16ba5fec0, eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1179
+    #9  0x00007fffcf76796e in QSim::simulate (this=0x16eb703f0, eventID=0) at /data/blyth/junotop/opticks/qudarap/QSim.cc:346
+    #10 0x00007fffd2e7d3e3 in G4CXOpticks::simulate (this=0x74d5ee0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:457
+    #11 0x00007fffd2089d22 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd7c10, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:227
+    #12 0x00007fffd20898f1 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd7c10, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:164
+    #13 0x00007fffd207cc3b in junoSD_PMT_v2::EndOfEvent (this=0x5bd7c70, HCE=0x7fff17d999c0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    #14 0x00007fffd9bbac95 in G4SDStructure::Terminate(G4HCofThisEvent*) [clone .localalias.78] ()
+       from /data/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+
+
+    (gdb) f 13
+    #13 0x00007fffd207cc3b in junoSD_PMT_v2::EndOfEvent (this=0x5bd7c70, HCE=0x7fff17d999c0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1142
+    1142	    m_jpmt_opticks->EndOfEvent(HCE, m_eventID );    
+    (gdb) f 12
+    #12 0x00007fffd20898f1 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x5bd7c10, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:164
+    164	        EndOfEvent_Simulate(eventID) ; 
+    (gdb) f 11
+    #11 0x00007fffd2089d22 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x5bd7c10, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:227
+    227	    gx->simulate(eventID) ; 
+    (gdb) f 10
+    #10 0x00007fffd2e7d3e3 in G4CXOpticks::simulate (this=0x74d5ee0, eventID=0) at /data/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:457
+    457	    qs->simulate(eventID);   // GPU launch doing generation and simulation here 
+    (gdb) f 9
+    #9  0x00007fffcf76796e in QSim::simulate (this=0x16eb703f0, eventID=0) at /data/blyth/junotop/opticks/qudarap/QSim.cc:346
+    346	    sev->endOfEvent(eventID);
+    (gdb) list
+    341	    LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate " ; 
+    342	
+    343	    double dt = rc == 0 && cx != nullptr ? cx->simulate_launch() : -1. ;
+    344	    //post_launch(); 
+    345	
+    346	    sev->endOfEvent(eventID);
+    347	 
+    348	    return dt ; 
+    349	}
+    350	
+    (gdb) f 8
+    #8  0x00007fffcf3282cf in SEvt::endOfEvent (this=0x16ba5fec0, eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1179
+    1179	    save();             
+    (gdb) list
+    1174	
+    1175	void SEvt::endOfEvent(int eventID)
+    1176	{
+    1177	    int index_ = 1+eventID ;    
+    1178	    endIndex(index_); 
+    1179	    save();             
+    1180	    clear_except("hit"); 
+    1181	}
+    1182	
+    1183	
+    (gdb) f 7
+    #7  0x00007fffcf3306aa in SEvt::save (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2978
+    2978	    save(dir); 
+    (gdb) list
+    2973	**/
+    2974	
+    2975	void SEvt::save() 
+    2976	{
+    2977	    const char* dir = DefaultDir(); 
+    2978	    save(dir); 
+    2979	}
+    2980	void SEvt::saveExtra( const char* name, const NP* a  ) const 
+    2981	{
+    2982	    const char* dir = DefaultDir(); 
+    (gdb) f 6
+    #6  0x00007fffcf331291 in SEvt::save (this=0x16ba5fec0, dir_=0x7fffcf41dcaa "$DefaultOutputDir") at /data/blyth/junotop/opticks/sysrap/SEvt.cc:3148
+    3148	    gather(); 
+    (gdb) list
+    3143	
+    3146	void SEvt::save(const char* dir_) 
+    3147	{
+    3148	    gather(); 
+    3149	
+    3150	    LOG(LEVEL) << descComponent() ; 
+    3151	    LOG(LEVEL) << descFold() ; 
+    3152	
+
+    (gdb) f 5
+    #5  0x00007fffcf3305ed in SEvt::gather (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2875
+    2875	    gather_components(); 
+    (gdb) list
+    2870	{
+    2871	    LOG_IF(fatal, gather_done) << " gather_done ALREADY : SKIPPING " ; 
+    2872	    if(gather_done) return ; 
+    2873	    gather_done = true ;   // SEvt::setNumPhoton which gets called by adding gensteps resets this to false
+    2874	
+    2875	    gather_components(); 
+    2876	}
+    2877	
+
+    (gdb) f 4
+    #4  0x00007fffcf330366 in SEvt::gather_components (this=0x16ba5fec0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2837
+    2837	            assert( num == num_genstep );   
+    (gdb) list
+    2832	
+    2833	        int num = a->shape[0] ;  
+    2834	        
+    2835	        if(SComp::IsGenstep(cmp))
+    2836	        {
+    2837	            assert( num == num_genstep );   
+    2838	        }
+    2839	        else if(SComp::IsPhoton(cmp))
+    2840	        {
+    2841	            assert( num == num_photon );   
+
+    (gdb) p num
+    $1 = 1
+    (gdb) p num_genstep
+    $2 = 0
+    (gdb) 
+
+
+
+HUH, some extra SEvt::clear before the gather ?::
+
+    export SEvt=INFO ; BP=SEvt::clear ntds3_noxj
+
+
+Probably one of those statics to weed. Interference between the two SEvt.  
+
+Nope its not that... the clear is called by QEvent::setGenstep
+
+::
+
+    (gdb) f 1
+    #1  0x00007fffcf792e95 in QEvent::setGenstep (this=0x16efeedf0) at /data/blyth/junotop/opticks/qudarap/QEvent.cc:165
+    165	    sev->clear();  // clear the quad6 vector, ready to collect more genstep
+    (gdb) list
+    160	int QEvent::setGenstep()  // onto device
+    161	{
+    162	    LOG(LEVEL); 
+    163	
+    164	    NP* gs = sev->gatherGenstep();
+    165	    sev->clear();  // clear the quad6 vector, ready to collect more genstep
+    166	
+    167	    LOG_IF(fatal, gs == nullptr ) << "Must SEvt/addGenstep before calling QEvent::setGenstep " ;
+    168	    //if(gs == nullptr) std::raise(SIGINT); 
+    169	
+    (gdb) f 2
+    #2  0x00007fffcf767846 in QSim::simulate (this=0x16f0749b0, eventID=0) at /data/blyth/junotop/opticks/qudarap/QSim.cc:340
+    340	    int rc = event->setGenstep() ; 
+    (gdb) list
+    335	    if( event == nullptr ) return -1. ; 
+    336	
+    337	    sev->beginOfEvent(eventID);  // set SEvt index and tees up frame gensteps for simtrace and input photon simulate running
+    338	
+    339	    LOG(LEVEL) << desc() ;  
+    340	    int rc = event->setGenstep() ; 
+    341	    LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate " ; 
+    342	
+    343	    double dt = rc == 0 && cx != nullptr ? cx->simulate_launch() : -1. ;
+    344	    //post_launch(); 
+    (gdb) 
+
+
+
+Rejig SEvt::gather_components to get its stats from the fold, not from the vectors
+that are already cleared. 
+
+
+FIXED : endIndex assert coming from the CPU event with its negative index
+----------------------------------------------------------------------------
+
+::
+
+    2023-08-02 00:09:01.295 INFO  [347049] [SEvt::save@3165] [ save_fold.save /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::save@3167] ] save_fold.save /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::saveLabels@3188] [ dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::saveLabels@3199] ] dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::saveFrame@3204] [ dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::saveFrame@3206] ] dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::clear_except@1378] SEvt::clear_except
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::clear_except@1380] [
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::setNumPhoton@1646]  evt->num_photon 0 evt->num_tag 0 evt->num_flat 0
+    2023-08-02 00:09:01.297 INFO  [347049] [SEvt::clear_except@1387] ]
+    2023-08-02 00:09:01.297 INFO  [347049] [G4CXOpticks::simulate@458] ]
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 44 hcMuon 0 hcOpticks 32 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:1402: void SEvt::endIndex(int): Assertion `index == index_' failed.
+
+    (gdb) bt
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf329514 in SEvt::endIndex (this=0xb56720, index_=1) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1402
+    #5  0x00007fffcf328311 in SEvt::endOfEvent (this=0xb56720, eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1179
+    #6  0x00007fffd296e62c in U4Recorder::EndOfEventAction (this=0xb2d370, event=0x7fff17d91680) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:223
+    #7  0x00007fffcdc8387a in U4RecorderAnaMgr::EndOfEventAction (this=0x93f2f0, evt=0x7fff17d91680)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:32
+    #8  0x00007fffce6c9bd1 in MgrOfAnaElem::EndOfEventAction (this=0x7fffce8d8b00 <MgrOfAnaElem::instance()::s_mgr>, evt=0x7fff17d91680)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:53
+    #9  0x00007fffcdfb20dd in LSExpEventAction::EndOfEventAction (this=0x597ccd0, evt=0x7fff17d91680)
+
+
+
+    (gdb) f 6
+    #6  0x00007fffd296e62c in U4Recorder::EndOfEventAction (this=0xb2d370, event=0x7fff17d91680) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:223
+    223	    sev->endOfEvent(eventID_);  // does save and clear
+    (gdb) list
+    218	    assert( eventID == eventID_ ); 
+    219	
+    220	    sev->add_array("U4R.npy", MakeMetaArray() ); 
+    221	    sev->addEventConfigArray(); 
+    222	
+    223	    sev->endOfEvent(eventID_);  // does save and clear
+    224	
+    225	    const char* savedir = sev->getSaveDir() ; 
+    226	    LOG(info) << " savedir " << ( savedir ? savedir : "-" );
+    227	    SaveMeta(savedir);  
+    (gdb) p eventID_
+    $1 = 0
+    (gdb) p eventID
+    $2 = 0
+    (gdb) f 5
+    #5  0x00007fffcf328311 in SEvt::endOfEvent (this=0xb56720, eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1179
+    1179	    endIndex(index_); 
+    (gdb) p index_
+    $3 = 1
+    (gdb) list
+    1174	**/
+    1175	
+    1176	void SEvt::endOfEvent(int eventID)
+    1177	{
+    1178	    int index_ = 1+eventID ;    
+    1179	    endIndex(index_); 
+    1180	    save();             
+    1181	    clear_except("hit"); 
+    1182	}
+    1183	
+    (gdb) f 4
+    #4  0x00007fffcf329514 in SEvt::endIndex (this=0xb56720, index_=1) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1402
+    1402	    assert( index == index_ );  
+    (gdb) p index
+    $4 = -1
+    (gdb) p index_
+    $5 = 1
+    (gdb) list 
+    1397	    index = index_ ; 
+    1398	    t_BeginOfEvent = stamp::Now();  // moved here from the static 
+    1399	}
+    1400	void SEvt::endIndex(int index_)
+    1401	{ 
+    1402	    assert( index == index_ );  
+    1403	    t_EndOfEvent = stamp::Now();  
+    1404	}
+    1405	
+    1406	int SEvt::getIndex() const 
+    (gdb) 
+
+
+
+
+CPU event assert from lack of hits
+-------------------------------------
+
+
+::
+
+    2023-08-02 00:22:12.934 INFO  [360361] [SEvt::saveFrame@3212] ] dir /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001
+    2023-08-02 00:22:12.934 INFO  [360361] [SEvt::clear_except@1378] SEvt::clear_except
+    2023-08-02 00:22:12.934 INFO  [360361] [SEvt::clear_except@1380] [
+    2023-08-02 00:22:12.934 INFO  [360361] [SEvt::setNumPhoton@1646]  evt->num_photon 0 evt->num_tag 0 evt->num_flat 0
+    2023-08-02 00:22:12.934 INFO  [360361] [SEvt::clear_except@1387] ]
+    2023-08-02 00:22:12.934 INFO  [360361] [G4CXOpticks::simulate@458] ]
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 44 hcMuon 0 hcOpticks 32 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    2023-08-02 00:22:12.938 INFO  [360361] [SEvt::gather_components@2852]  k         genstep a  <f4(1, 6, 4, )
+    2023-08-02 00:22:12.946 INFO  [360361] [SEvt::gather_components@2852]  k          photon a  <f4(100, 4, 4, )
+    2023-08-02 00:22:12.947 INFO  [360361] [SEvt::gather_components@2852]  k          record a  <f4(100, 32, 4, 4, )
+    2023-08-02 00:22:12.947 INFO  [360361] [SEvt::gather_components@2852]  k             seq a  <u8(100, 2, 2, )
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k             prd a  <f4(100, 32, 2, 4, )
+    2023-08-02 00:22:12.948 ERROR [360361] [SEvt::gatherHit@2529]  not yet implemented for hostside running : change CompMask with SEventConfig to avoid 
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k             hit a -
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k          domain a  <f4(2, 4, 4, )
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k        inphoton a  <f4(100, 4, 4, )
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k             tag a  <u8(100, 4, )
+    2023-08-02 00:22:12.948 INFO  [360361] [SEvt::gather_components@2852]  k            flat a  <f4(100, 64, )
+    2023-08-02 00:22:12.949 INFO  [360361] [SEvt::gather_components@2852]  k             aux a  <f4(100, 32, 4, 4, )
+    2023-08-02 00:22:12.949 INFO  [360361] [SEvt::gather_components@2852]  k             sup a  <f4(100, 6, 4, )
+    2023-08-02 00:22:12.949 INFO  [360361] [SEvt::gather_components@2869]  num_comp 12 num_genstep 1 num_photon 100 num_hit -1 gather_total 1 genstep_total 1 photon_total 100 hit_total 4294967295
+    python: /data/blyth/junotop/opticks/sysrap/SEvt.cc:2882: void SEvt::gather_components(): Assertion `num_hit > -1' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    (gdb) bt
+    #0  0x00007ffff696e387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff696fa78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff69671a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6967252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffcf3307aa in SEvt::gather_components (this=0xb568d0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2882
+    #5  0x00007fffcf330923 in SEvt::gather (this=0xb568d0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2904
+    #6  0x00007fffcf3315c7 in SEvt::save (this=0xb568d0, dir_=0x7fffcf41dfea "$DefaultOutputDir") at /data/blyth/junotop/opticks/sysrap/SEvt.cc:3154
+    #7  0x00007fffcf3309e0 in SEvt::save (this=0xb568d0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2984
+    #8  0x00007fffcf32831d in SEvt::endOfEvent (this=0xb568d0, eventID=0) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1180
+    #9  0x00007fffd296e62c in U4Recorder::EndOfEventAction (this=0xb2d520, event=0x7fff18949bc0) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:223
+    #10 0x00007fffcdc8387a in U4RecorderAnaMgr::EndOfEventAction (this=0x93f4a0, evt=0x7fff18949bc0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:32
+    #11 0x00007fffce6c9bd1 in MgrOfAnaElem::EndOfEventAction (this=0x7fffce8d8b00 <MgrOfAnaElem::instance()::s_mgr>, evt=0x7fff18949bc0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:53
 
