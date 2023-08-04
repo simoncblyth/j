@@ -1,4 +1,14 @@
 #!/bin/bash -l 
+usage(){ cat << EOU
+ntds3.sh
+==========
+
+::
+
+    MODE=2 SEL=1 ./ntds3.sh 
+
+EOU
+}
 
 name=ntds3
 defarg="info_ana"
