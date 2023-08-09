@@ -1,20 +1,19 @@
-G4CXAppTest_shakedown
+G4CXTest_shakedown
 =========================
 
 Context
 ----------
 
-
-* next :doc:`G4CXAppTest_comparison`
-
+* next :doc:`G4CXTest_comparison`
 
 
-Build and run initial issues
-------------------------------
+
+Build and run initial issues : NOTE WAS FORMERLY CALLED G4CXAppTest.sh 
+------------------------------------------------------------------------
 
 ::
 
-    epsilon:tests blyth$ BP=U::DirList ./G4CXAppTest.sh 
+    epsilon:tests blyth$ BP=U::DirList ./G4CXTest.sh 
 
     (lldb) bt
     * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1

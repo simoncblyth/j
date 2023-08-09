@@ -5,40 +5,54 @@ Context
 --------
 
 * Previous :doc:`opticksMode3-components-comparison`
-* Offshoots 
+* Offshoots :
 
   * ~/opticks/notes/issues/sphoton_iindex_identity_CPU_GPU_difference.rst
 
+* NEXT : after fixing the normalized normal ellipsoid bug, and other issues from G4CXTest.sh cycles
+
+  * ~/opticks/notes/issues/opticksMode3-2nd-wave-contents-comparison.rst 
 
 
 Standalone Comparison Workflow
 --------------------------------
 
+::
+
+    ~/opticks/g4cx/tests/G4CXTest.sh 
+
 
 Insitu Comparison Workflow
 -----------------------------
 
+After C4 updates::
+
+    jo
+    ./build_Debug.sh 
+
+* HMM: if that finds an old C4 will need to clean build
+
+
 config, run, pullback, ana, repeat::
 
-    jxv         # laptop, for example change "ntds" ipho stats to 10k 
-    jxscp       # laptop, scp jx.bash to remote 
+    jxv               # laptop, for example change "ntds" ipho stats to 10k 
+    jxscp             # laptop, scp jx.bash to remote 
 
     jxf               # workstation, pick up updated jx.bash functions 
     ntds3_noxj        # workstation, run opticksMode:3 doing both optical simulations in one invokation
     jxf ; ntds3_noxj  # workstation : generally need to do both 
 
 
-    GEOM tmpget  # laptop, pullback the paired SEvt 
-    jxn          # laptop, cd to /Users/blyth/j/ntds
-    ./ntds3.sh   # laptop, run analysis ntds3.py loading two SEvt into ipython for comparison, plotting 
-
+    GEOM              # check the GEOM setting is eg V1J009 for current full geom (not FewPMT for standalone geom)
+    GEOM tmpget       # laptop, pullback the paired SEvt 
+    jxn               # laptop, cd to /Users/blyth/j/ntds
+    ./ntds3.sh        # laptop, run analysis ntds3.py loading two SEvt into ipython for comparison, plotting 
 
 
 Nature of discrepancy
 ------------------------
 
-* A:GPU has lots more splash around back of PMT, 
-  possibly just more reflection off Pyrex///Vacuum causing lots of bounce around
+* A:GPU has lots more splash around back of PMT, possibly just more reflection off Pyrex///Vacuum causing lots of bounce around
 
 
 Ideas to pin down history discrepancies
@@ -46,11 +60,8 @@ Ideas to pin down history discrepancies
 
 BIG GUNS:
 
-* implement standalone comparison (advantage after setup is fast dev cycle)
-
-  * starting thus with g4cx/tests/G4CXAppTest.cc
- 
-* implement aux collection GPU side, straightforward once standalone revived
+* DONE : implemented standalone FewPMT/storch fast cycle comparison machinery : g4cx/tests/G4CXTest.sh
+* implement aux collection GPU side 
 * random aligned comparison, again relatively straightforward with standalone 
 
 TARGET PRACTICE:
@@ -64,23 +75,21 @@ ISOLATION OF THE ISSUE:
 
 SINGLE PHOTON FOLLOWING: 
 
-* plot single photons with discrepant histories
+* DONE : PIDX dumping and single photon plotting eg "MODE=2 PIDX=552 ~/opticks/g4cx/tests/G4CXTest.sh tra"
 
 SMALL POTATOES:
 
-* check pmtid match : are A and B using same PMT efficiency ?
-* history comparison, look for histories only in A or B 
-* general plotting of photon/record/hit with selection by history 
+* DONE : check pmtid match : are A and B using same PMT efficiency ?
+* DONE : history comparison, look for histories only in A or B 
+* DONE : general plotting of photon/record/hit 
 
 
 
-g4cx/tests/G4CXAppTest.cc
+g4cx/tests/G4CXTest.cc
 ---------------------------
 
-* complication from U4VPrimaryGenertor.h/SGenerate/MOCK_CURAND
-* WIP: workaround by making the MOCK_CURAND block smaller and using SEvt input photons 
-
-
+* FIXED : complication from U4VPrimaryGenertor.h/SGenerate/MOCK_CURAND
+* DONE : avoid by making the MOCK_CURAND block smaller and providing CPU SGenerate.h using srng.h 
 
 
 
@@ -145,11 +154,14 @@ Clearly more intersects around the rear of the PMT in A::
 
 
 
-DONE : 100k comparison
+DONE : 100k comparison 
 --------------------------
 
 100k : Looks like B is doing very little reflection, but A is doing lots of that causing 
 lots more longer histories in A.   Perhaps missing absorber surface somewhere ?
+
+* SEE SECTION BELOW FOLLOWING FIXES (FROM ~/opticks/g4cx/tests/G4CXTest.sh cycles)
+
 
 ::
 
@@ -449,8 +461,6 @@ lots more longer histories in A.   Perhaps missing absorber surface somewhere ?
 
 
 
-
-
 Examine some photons from A and B with simple history
 --------------------------------------------------------
 
@@ -517,6 +527,8 @@ Examine some photons from A and B with simple history
 
     In [6]: b.q[36]
     Out[6]: array([b'TO BT BT AB                                                                                     '], dtype='|S96')
+
+
 
 
 

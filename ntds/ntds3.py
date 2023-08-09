@@ -1,5 +1,14 @@
 #!/usr/bin/env python
+"""
+ntds3.py
+==========
 
+Use via bash script::
+
+    PICK=AB MODE=2 SEL=1 ~/j/ntds/ntds3.sh 
+    PICK=AB MODE=3 SEL=1 ~/j/ntds/ntds3.sh 
+
+"""
 import os, logging, numpy as np
 
 print("[from opticks.sysrap.sevt import SEvt, SAB")
@@ -14,16 +23,60 @@ GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
 PICK = os.environ.get("PICK","CF") 
 SEL = int(os.environ.get("SEL","0")) 
+BOX = float(os.environ.get("BOX","500")) 
+H,O,V = 0,1,2  # horizontal, other, vertical  (X,Y,Z)
 
+
+
+## HMM: should use APID, BPID ?
 AIDX = int(os.environ.get("AIDX","0")) 
 BIDX = int(os.environ.get("BIDX","0")) 
-
-
 
 if MODE in [2,3]:
     from opticks.ana.pvplt import *   
     # HMM this import overrides MODE, so need to keep defaults the same 
 pass
+
+
+
+def onephotonplot(pl, e ):
+    """
+    :param pl: MODE 2/2 plotter objects
+    :param e: SEvt instance
+    """
+    if e is None: return
+    if e.pid < 0: return
+
+    print("onephotonplot e.pid %d " % e.pid )
+
+    if not hasattr(e,'l'): return
+    if e.l is None: return
+    print("onephotonplot e.pid %d PROCEED " % e.pid )
+
+    rpos =  e.l[:,:3] + e.off
+
+    if MODE == 2:
+        fig, axs = pl
+        assert len(axs) == 1
+        ax = axs[0]
+        if True:
+            mpplt_add_contiguous_line_segments(ax, rpos, axes=(H,V), label=None )
+            #self.mp_plab(ax, f)
+        pass
+        #if "nrm" in f.opt:
+        #    self.mp_a_normal(ax, f)  
+        #pass
+    elif MODE == 3:
+        pass
+        pvplt_add_contiguous_line_segments(pl, rpos )
+    pass
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
@@ -31,9 +84,13 @@ if __name__ == '__main__':
 
     a = SEvt.Load("$AFOLD", symbol="a")
     b = SEvt.Load("$BFOLD", symbol="b")
+    #print(repr(a))
+    #print(repr(b))
 
-    print(repr(a))
-    print(repr(b))
+    ab = SAB(a,b)
+    print(repr(ab))
+
+
 
     ahit_ = a.f.hit[:,1,3].view(np.int32)   ## iindex
     bhit_ = b.f.hit[:,1,3].view(np.int32)  
@@ -53,11 +110,9 @@ if __name__ == '__main__':
     at = a.minimal_qtab(sli=sli)  
     bt = b.minimal_qtab(sli=sli)  
 
-    print("at\n",at)
-    print("bt\n",bt)
+    #print("at\n",at)
+    #print("bt\n",bt)
 
-    #ab = SAB(a,b)
-    #print(repr(ab))
 
     assert PICK in ["A","B","AB","BA", "CF"]
     if PICK == "A":
@@ -72,7 +127,7 @@ if __name__ == '__main__':
         ee = []
     pass 
 
-    context = "PICK=%s MODE=%d SEL=%d ./ntds3.sh " % (PICK, MODE, SEL )
+    context = "PICK=%s MODE=%d SEL=%d ~/j/ntds/ntds3.sh " % (PICK, MODE, SEL )
     print(context)
 
     for e in ee:
@@ -96,7 +151,6 @@ if __name__ == '__main__':
             pvplt_frame(pl, e.f.sframe, local=not GLOBAL )
         pass
 
-
         #pp = e.f.inphoton[:,0,:3]
         #pp = e.f.photon[:,0,:3]
         #pp = e.f.hit[:,0,:3]
@@ -108,10 +162,8 @@ if __name__ == '__main__':
         upos = gpos if GLOBAL else lpos
 
 
-        H,V = 0,2  # X, Z
-
         if SEL == 1:
-            sel = np.logical_and( np.abs(upos[:,H]) < 500, np.abs(upos[:,V]) < 500 )
+            sel = np.logical_and( np.logical_and( np.abs(upos[:,H]) < BOX, np.abs(upos[:,V]) < BOX ), np.abs(upos[:,O]) < BOX )
             spos = upos[sel]
         else:
             spos = upos
@@ -124,6 +176,11 @@ if __name__ == '__main__':
         else:
             pass
         pass
+
+        if e.pid > -1: 
+            onephotonplot(pl, e)
+        pass 
+
 
         if MODE == 2:
             fig.show()
