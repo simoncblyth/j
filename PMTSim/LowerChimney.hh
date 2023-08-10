@@ -43,6 +43,8 @@ public:
     G4LogicalVolume* getLV(const char* name); 
     G4PVPlacement*   getPV(const char* name);  
     G4VSolid*        getSolid(const char* name); 
+    std::string      desc() const ; 
+ 
     NP*              getValues(const char* prefix) ; 
     void dump(const char* msg) const ; 
 

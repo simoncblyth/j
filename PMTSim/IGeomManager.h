@@ -82,6 +82,7 @@ struct PMTSIM_API IGeomManager
     NP*  getValues(const char* prefix) ;             
 
 
+    virtual std::string      desc() const = 0 ; 
     virtual G4LogicalVolume* getLV() = 0 ;  
     virtual G4LogicalVolume* getLV(const char* name) = 0 ;
     virtual G4PVPlacement*   getPV(const char* name) = 0 ;

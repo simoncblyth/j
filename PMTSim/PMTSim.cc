@@ -701,11 +701,19 @@ void PMTSim::init()
         cerr_redirect err_(cerrbuf.rdbuf());
     
         m_dc = new DetectorConstruction ; 
+
         m_hama = new HamamatsuR12860PMTManager(HAMA) ; 
+        m_hama->getLV(); 
+
         m_nnvt = new NNVTMCPPMTManager(NNVT) ; 
+        m_nnvt->getLV() ; 
 
         m_hmsk = new HamamatsuMaskManager(HMSK_STR); 
+        m_hmsk->getLV(); 
+
         m_nmsk = new NNVTMaskManager(NMSK_STR) ;   
+        m_nmsk->getLV(); 
+
         m_lchi = new LowerChimney(LCHI_STR) ;   
         m_lchi->getLV(); 
 

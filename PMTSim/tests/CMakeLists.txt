@@ -14,6 +14,7 @@ set(TEST_SOURCES
     GetValuesTest.cc
     GetSolid_Test.cc
     GetPVTest.cc
+    GetLVTest.cc
 )
 
 foreach(SRC ${TEST_SOURCES})
