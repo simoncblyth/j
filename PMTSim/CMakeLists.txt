@@ -109,6 +109,10 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Hamamatsu_R12860_PMTSolid.cc
 
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Solid.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Manager.cc
+
+
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/OpticalSystem.cc

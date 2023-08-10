@@ -1,17 +1,18 @@
 #include <cassert>
 #include <cstdio>
 
-#include "SSys.hh"
+#include "ssys.h"
 #include "PMTSim.hh"
 #include "ZSolid.h"
 
 int main(int argc, char** argv)
 {
     //const char* default_geom = "maker_body_solid_zcut-183.2246" ; 
-    //const char* default_geom = "hmsk_solidMask" ; 
-    const char* default_geom = "hmsk_solidMaskTail" ; 
 
-    const char* geom = SSys::getenvvar("GEOM", default_geom );  
+    const char* default_geom = "hmskSolidMask" ; 
+    //const char* default_geom = "hmskSolidMaskTail" ; 
+
+    const char* geom = ssys::getenvvar("GEOM", default_geom );  
     const char* name = argc > 1 ? argv[1] : geom ; 
 
     printf("default_geom %s geom %s name %s \n", default_geom, geom, name ); 

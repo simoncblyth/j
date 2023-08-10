@@ -17,6 +17,7 @@ class HamamatsuMaskManager ;
 class NNVTMaskManager ; 
 
 class LowerChimney ; 
+class Tub3inchPMTV3Manager ; 
 
 struct IGeomManager ; 
 
@@ -31,22 +32,21 @@ struct PMTSIM_API PMTSim
     static NP*  ModelTrigger_Debug_Array(); 
     static void ModelTrigger_Debug_Save(const char* savedir); 
 #endif
-
     static std::string OutputMessage(const char* msg, const std::string& out, const std::string& err, bool verbose ); 
-
 
     static void SetEnvironmentSwitches(const char* name); 
 
-    static const char* HAMA ; 
-    static const char* NNVT ; 
+    static constexpr const char* HAMA = "hama" ; 
+    static constexpr const char* NNVT = "nnvt" ; 
+    static constexpr const char* HMSK = "hmsk" ; 
+    static constexpr const char* NMSK = "nmsk" ; 
+    static constexpr const char* LCHI = "lchi" ;  // lower chimney 
+    static constexpr const char* TUB3 = "tub3" ;  
 
-    static const char* HMSK ; 
-    static const char* NMSK ; 
-    static const char* LCHI ; 
-
-    static const std::string HMSK_STR ;  
-    static const std::string NMSK_STR ;  
-    static const std::string LCHI_STR ;  
+    const std::string HMSK_STR ;  
+    const std::string NMSK_STR ;  
+    const std::string LCHI_STR ;  
+    const std::string TUB3_STR ;  
 
 
     static G4VSolid* GetSolid(const char* name); 
@@ -96,6 +96,7 @@ struct PMTSIM_API PMTSim
     NNVTMaskManager*           m_nmsk ; 
 
     LowerChimney*              m_lchi ; 
+    Tub3inchPMTV3Manager*      m_tub3 ; 
 
     static bool HasManagerPrefix( const char* name ); 
     IGeomManager* getManager(const char* name); 

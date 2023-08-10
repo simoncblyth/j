@@ -91,7 +91,6 @@ if __name__ == '__main__':
     print(repr(ab))
 
 
-
     ahit_ = a.f.hit[:,1,3].view(np.int32)   ## iindex
     bhit_ = b.f.hit[:,1,3].view(np.int32)  
 
@@ -151,14 +150,35 @@ if __name__ == '__main__':
             pvplt_frame(pl, e.f.sframe, local=not GLOBAL )
         pass
 
+
+        if "NO3" in os.environ:
+            #ii = e.f.record[:,:,1,3].view(np.int32)
+            ii = e.iir
+            ii_sel = np.logical_and( ii > 0, ii <= 25600)      # (100000, 32) :  True at 3inch points  
+            ii_selmax = np.max(ii_sel,axis=1)                  # (100000,)    :  True if any of the 32 points for the photon are True
+            ii_nselmax = np.logical_not(ii_selmax)             # (100000,)    : 
+            #wii = np.unique( np.where( ii_selmax )[0] )       # selecting records with points that touch 3inch 
+            wii = np.unique( np.where( ii_nselmax )[0] )       # makes all 3-inch PMTs dissappear
+        else:
+            wii = slice(None)
+        pass
+       
+
         #pp = e.f.inphoton[:,0,:3]
         #pp = e.f.photon[:,0,:3]
         #pp = e.f.hit[:,0,:3]
-        pp = e.f.record[:,:,0,:3].reshape(-1,3)
+
+        _pp = e.f.record[wii,:,0,:3]   # eg (100000, 32, 3)
+        pp = _pp.reshape(-1,3)       # eg (3200000, 3)
 
         gpos = np.ones( [len(pp), 4 ] )
         gpos[:,:3] = pp
-        lpos = np.dot( gpos, e.f.sframe.w2m )
+        lpos = np.dot( gpos, e.f.sframe.w2m ) # hmm unfilled global zeros are transformed somewhere
+
+        # problem with selecting on gr is loss of the regular photon blocks
+        #gr = np.sqrt(np.sum(gpos[:,:3]*gpos[:,:3], axis=1))    
+        #_lpos = lpos.reshape(*e.f.record.shape[:2],4) 
+
         upos = gpos if GLOBAL else lpos
 
 

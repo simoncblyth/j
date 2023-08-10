@@ -5,13 +5,74 @@ Context
 --------
 
 * Previous :doc:`opticksMode3-contents-comparison`
+* Next :doc:`3inch_PMT_geometry`
 
 
 Overview
 -------------
 
-* WIP : investigate deviant histories
-* TODO : insitu simtrace, to give backdrop for onephotonplot
+* DONE : investigate deviant histories : most problems now involve 3inch PMT 
+
+* TODO : get plab labelling to work and mark points more clearly 
+
+* TODO : construct query to find photon indices of PMT 3inch SD where the photon comes in backwards 
+
+  * try using identity info 1st 
+
+* TODO : insitu simtrace, to give cleaner backdrop for onephotonplot
+
+* TODO : insitu A-B bi-simtrace, to give another way to find discrepant geometry
+         expect small(epsilon sized, 1e-3/4) deviations in degenerate regions of geometry 
+         (although small the deviations should be larger than float/double 1e-5/6 level) 
+
+* TODO : standalone examination of 3inch PMT (target the side especially) 
+
+
+Selecting histories with 3inch not involved
+----------------------------------------------
+
+* ~/opticks/notes/issues/sphoton_float_one_in_int32_1_3_iindex_slot.rst
+* ~/opticks/notes/issues/iindex_making_sense_of_it.rst
+
+HMM in ~/j/ntds/ntds3.py succeed to select A photons with histories that
+do not touch any 3 inch PMT using the iindex info. 
+
+But problem is cannot do the same for B (as it doesnt have the iindex yet) 
+so cannot do an ana/qcf.py QCF A/B comparison that excludes 3 inch PMTs 
+
+
+Morton Code Geomerty selection
+-------------------------------
+
+HMM : I did some morton code based geometry selection before, that 
+has the advantage of working for both A and B equally so could you that to 
+
+::
+
+    epsilon:opticks blyth$ opticks-fl morton 
+    ./dev/csg/morton.py
+    ./dev/csg/zorder.py
+    ./dev/csg/postorder.py
+    ./npy/NGrid3.cpp
+    ./npy/NFieldCache.cpp
+    ./npy/tests/CMakeLists.txt
+    ./npy/tests/NGrid3Test.cc
+    ./npy/tests/mortonlibTest.cc
+    ./npy/NOctools.cpp
+    ./npy/NGrid3.hpp
+    ./npy/mortonlib/domain2d.py
+    ./npy/mortonlib/morton3d.h
+    ./npy/mortonlib/morton2d.py
+    ./npy/mortonlib/domain2d_test.cc
+    ./npy/mortonlib/morton2d.h
+    ./npy/mortonlib/domain2d.h
+    ./npy/mortonlib/morton2d_test.sh
+    ./npy/mortonlib/domain2d_test.py
+    ./npy/mortonlib/morton2d_test.cc
+    ./g4cx/tests/G4CXSimtraceTest.py
+    epsilon:opticks blyth$ 
+
+
 
 
 Standalone Comparison Workflow
@@ -211,23 +272,27 @@ config, run, pullback, ana, repeat::
      ['24' 'TO BT BT BT BT BT BR SR SA                                                                     ' '24' '   148    164' ' 0.8205' '  9351   9255']]
 
     np.c_[siq,_quo,siq,sabo2,sc2,sabo1][bzero]  ## bzero: A histories not in B 
-    [['38' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT BT AB                                          ' '38' '    91      0' '91.0000' ' 16654     -1']
-     ['43' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT AB                                             ' '43' '    83      0' '83.0000' ' 15529     -1']
-     ['56' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SD                                             ' '56' '    56      0' '56.0000' ' 26920     -1']
+
+    [['38' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT BT AB      3 inch side degenerate              ' '38' '    91      0' '91.0000' ' 16654     -1']
+     ['43' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT AB         DITTO                               ' '43' '    83      0' '83.0000' ' 15529     -1']
+     ['56' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SD         backwards 3inch SD                  ' '56' '    56      0' '56.0000' ' 26920     -1']
 
      ['63' 'TO BT BT BT SA         EXPLAINED : APEX NEAR VIRTUAL/MASK 0.05 MM COINCIDENCE                  ' '63' '    42      0' '42.0000' ' 49820     -1']
      ['75' 'TO BT BT BT SD         EXPLAINED : APEX NEAR VIRTUAL/MASK 0.05 MM COINCIDENCE                  ' '75' '    34      0' '34.0000' ' 49823     -1']
             THIS WOULD CAUSE A SMALL DEFICIT IN "TO BT BT BT BT SA/SA" BUT STATS SO HIGH FOR THAT DO NOT NOTICE
 
-     ['81' 'TO BT BT BT BT BT BT BT BT BT BT BT AB                                                         ' '81' '    31      0' '31.0000' '  9297     -1']
-     ['93' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SA                                             ' '93' '    26      0' ' 0.0000' ' 27573     -1']
-     ['106' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT SD                                                ' '106' '    22      0' ' 0.0000' ' 26717     -1']
-     ['135' 'TO BT BT BT BT BR BT BT BT BT DR BT DR AB                                                      ' '135' '    13      0' ' 0.0000' '   162     -1']]
+     ['81' 'TO BT BT BT BT BT BT BT BT BT BT BT AB                 LOOKS LIKE B-ONLY 77 with AB not SA     ' '81' '    31      0' '31.0000' '  9297     -1']
+     ['93' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SA    onto 3inch backwards : dont see degen    ' '93' '    26      0' ' 0.0000' ' 27573     -1']
+     ['106' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT SD    onto 3inch backwards : no degen            ' '106' '    22      0' ' 0.0000' ' 26717     -1']
+     ['135' 'TO BT BT BT BT BR BT BT BT BT DR BT DR AB          NOT 3INCH                                  ' '135' '    13      0' ' 0.0000' '   162     -1']]
 
     np.c_[siq,_quo,siq,sabo2,sc2,sabo1][azero]  ## azero: B histories not in A 
-    [['18' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT SA                                             ' '18' '     0    197' '197.0000' '    -1  15508']
-     ['26' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT SA                                                   ' '26' '     0    161' '161.0000' '    -1  26558']
-     ['77' 'TO BT BT BT BT BT BT BT BT BT BT BT SA                                                         ' '77' '     0     33' '33.0000' '    -1   9210']]
+    [['18' 'TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT SA        EXPLAINED DEGENERATE 3inch SIDE      ' '18' '     0    197' '197.0000' '    -1  15508']
+     ['26' 'TO BT BT BT BT BT SR SR BT BT BT BT BT BT SA              DITTO                                ' '26' '     0    161' '161.0000' '    -1  26558']
+     ['77' 'TO BT BT BT BT BT BT BT BT BT BT BT SA       NICE SYMMETRY : AGAIN DEGENERACY ONTO 3inch       ' '77' '     0     33' '33.0000' '    -1   9210']]
+              [-------------][-------------][     ]
+                 5BT in          5BT out      
+
     key                            :       a :       b :     a/b :     b/a : (a-b)^2/(a+b) 
     PICK=AB MODE=2 SEL=1 ~/j/ntds/ntds3.sh 
     suptitle:PICK=AB MODE=2 SEL=1 ~/j/ntds/ntds3.sh  ## A : /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/p001  
@@ -237,10 +302,187 @@ config, run, pullback, ana, repeat::
 
 
 
+* most of the "only" involve the 3inch PMT, especially its side 
+* apex issue from virtual/mask coincidence
+
+
+A only : 135 : TO BT BT BT BT BR BT BT BT BT DR BT DR AB  : in, BR at vac border, DR off backing, AB at back of LPMT
+------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    In [4]: a.q_startswith("TO BT BT BT BT BR BT BT BT BT DR BT DR AB")
+    Out[4]: array([  162,   165,   225,   285,   295,   392,   403,   552,   712, 99752, 99882, 99917, 99995])
+
+    PICK=A MODE=2 APID=162  ~/j/ntds/ntds3.sh 
+
+
+
+
+A only : 106 : TO [BT BT BT BT BT] SR SR [BT BT BT BT BT] BT BT SD 
+-----------------------------------------------------------------------
+
+::
+
+    In [1]: a.q_startswith('TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT SD')
+    Out[1]: array([26717, 26771, 26804, 26877, 72519, 72521, 72522, 72523, 72526, 72562, 72563, 72604, 72605, 72630, 72634, 72701, 72722, 72726, 72736, 72741, 72790, 72857])
+
+    PICK=A MODE=2 APID=26717  ~/j/ntds/ntds3.sh   # in/bounce/out/onto 3inch backwards, no degen
+
+
+
+A only : 93 : TO [BT BT BT BT BT] SR SR [BT BT BT BT BT] BT BT BT SA  : onto 3inch backwards
+----------------------------------------------------------------------------------------------
+
+::
+
+    In [1]: a.q_startswith("TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SA")
+    Out[1]: array([27573, 27578, 27600, 27627, 27630, 27636, 27641, 27645, 27647, 27665, 27682, 27690, 27729, 71602, 71658, 71660, 71671, 71673, 71706, 71714, 71743, 71746, 71784, 71785, 71808, 71810])
+
+    PICK=A MODE=2 APID=27573  ~/j/ntds/ntds3.sh   # in/bounce/out/onto 3inch backwards, no degen
+    PICK=A MODE=2 APID=71810  ~/j/ntds/ntds3.sh   # in/bounce/out/onto 3inch backwards, no degen
+
+
+
+A only : 81 : TO [BT BT BT BT BT] [BT BT BT BT BT] BT AB
+--------------------------------------------------------
+
+* AHHA : THIS HISTORY IS VERY MUCH LIKE 77 in the B onlys, except this ends in "AB" and that ends "SA" 
+
+  * TODO : check whats happening with the 3inch PMT side, how come AB in one and SA in another 
+    (HMM: this might be missing implicit ?) 
+
+
+::
+
+    In [1]: a.q_startswith("TO BT BT BT BT BT BT BT BT BT BT BT AB")
+    Out[1]: 
+    array([ 9297,  9620,  9758,  9829,  9911,  9954, 10015, 10047, 10207, 10307, 89331, 89372, 89383, 89384, 89387, 89406, 89490, 89545, 89549, 89715, 89740, 89787, 89842, 89935, 89968, 90103, 90104,
+           90126, 90305, 90420, 90515])
+
+    PICK=A MODE=2 APID=9297  ~/j/ntds/ntds3.sh 
+        
+
+
+
+A only : 56 : TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SD : 3inch PMT backwards SD 
+----------------------------------------------------------------------------------------------
+
+::
+
+    In [3]: a.q_startswith("TO BT BT BT BT BT SR SR BT BT BT BT BT BT BT BT SD")
+    Out[3]: 
+    array([26920, 26951, 27000, 27078, 27103, 27110, 27114, 27130, 27139, 27178, 27180, 27182, 27221, 27237, 27288, 27317, 27332, 27333, 27342, 27364, 27366, 27368, 27412, 27454, 27470, 27512, 27533,
+           71822, 71879, 71896, 71909, 71914, 71926, 71928, 71966, 72004, 72010, 72032, 72137, 72158, 72169, 72170, 72216, 72227, 72293, 72297, 72301, 72334, 72344, 72358, 72376, 72391, 72395, 72418,
+           72433, 72487])
+
+    PICK=A MODE=2 APID=26920  ~/j/ntds/ntds3.sh    ## HMM : 3inch SD with photon coming in from the back after exiting LPMT 
+    PICK=A MODE=2 APID=27533  ~/j/ntds/ntds3.sh    ## HMM these are 3inch SD  
+
+
+* TODO: construct query to find photon indices of PMT 3inch SD where the photon comes in backwards 
+
+
+A only : TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT AB  : IMMEDIATE BULK_ABSORB INTO SIDE OF 3inch 
+----------------------------------------------------------------------------------------------------------
+
+::
+
+    In [1]: a.q_startswith("TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT AB")
+    Out[1]: 
+    array([15529, 15556, 15567, 15578, 15639, 15648, 15650, 15880, 15913, 16073, 16234, 16299, 16398, 16588, 20206, 20298, 20326, 20381, 20401, 20444, 20476, 20485, 20487, 20507, 20546, 20552, 20557,
+           20651, 20656, 20676, 20681, 20697, 20709, 20724, 20729, 20807, 79184, 79220, 79226, 79228, 79259, 79261, 79364, 79501, 79553, 79562, 79587, 79639, 79695, 79727, 79728, 79757, 79841, 79954,
+           80019, 80033, 80034, 80044, 80060, 80070, 83345, 83441, 83442, 83452, 83509, 83518, 83546, 83658, 83761, 83785, 83801, 83856, 83859, 83879, 83936, 83983, 84010, 84105, 84252, 84429, 84530,
+           84614, 84624])
+
+    PICK=A MODE=2 APID=15529 ~/j/ntds/ntds3.sh  
+
+    In [2]: np.diff(a.l,axis=0)       
+    Out[2]: 
+    array([[   0.   ,    0.   ,  -60.511,    0.   ],
+           [  -0.   ,    0.   ,  -17.991,    0.   ],
+           [   0.581,    0.   ,   -9.134,    0.   ],
+           [  -0.007,   -0.   ,   -2.403,    0.   ],
+           [   0.327,   -0.   ,   -5.804,    0.   ],
+           [ -60.947,    0.   , -205.575,    0.   ],
+           [ 137.399,   -0.001,  -46.619,    0.   ],
+           [ -71.756,    0.   ,  -24.347,    0.   ],
+           [ -16.878,   -0.   ,  267.327,    0.   ],
+           [ 432.546,   -0.001, -120.009,    0.   ],
+           [   5.032,    0.   ,   -0.859,    0.   ],
+           [   2.009,    0.001,   -0.383,    0.   ],
+           [   8.029,    0.   ,   -1.352,    0.   ],
+           [   0.069,   -0.   ,   -0.013,    0.   ],
+           [  19.839,   -0.   ,   -3.757,    0.   ],
+           [   0.   ,    0.   ,    0.   ,    0.   ]])   ## BULK_ABSORB IMMEDIATELY INTO 3inch PMT SIDE
+
+
+    In [2]: np.diff(a.l, axis=0)
+    Out[2]: 
+    array([[  -0.   ,    0.   ,  -43.742,    0.   ],
+           [  -0.   ,   -0.   ,  -21.795,    0.   ],
+           [  -0.45 ,   -0.   ,   -8.753,    0.   ],
+           [   0.004,   -0.001,   -2.259,    0.   ],
+           [  -0.251,   -0.   ,   -5.522,    0.   ],
+           [  56.273,   -0.   , -257.072,    0.   ],
+           [-110.8  ,    0.001,   14.333,    0.   ],
+           [ 134.106,    0.   ,   17.349,    0.   ],
+           [-100.081,    0.001,  235.687,    0.   ],
+           [-374.057,    0.001, -125.333,    0.   ],
+           [  -5.293,   -0.   ,   -0.687,    0.   ],
+           [  -2.127,    0.   ,   -0.353,    0.   ],
+           [  -8.399,    0.   ,   -1.054,    0.   ],
+           [  -3.199,    0.   ,   -0.524,    0.   ],
+           [ -34.747,    0.   ,   -5.697,    0.   ],
+           [  -0.003,    0.   ,   -0.   ,    0.   ]])
+
+
+
+
+
+A only : TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT BT AB
+-----------------------------------------------------------------
+
+::
+
+    In [1]: a.q_startswith("TO BT BT BT BT BT SR SR SR BR BT BT BT BT BT BT BT AB")
+    Out[1]: 
+    array([16654, 16713, 16718, 16763, 16807, 16812, 16915, 17054, 17189, 17196, 17227, 17250, 17287, 17321, 17412, 18878, 18951, 19076, 19096, 19149, 19199, 19215, 19318, 19359, 19361, 19394, 19433,
+           19482, 19485, 19546, 19586, 19593, 19607, 19676, 19704, 19708, 19750, 19756, 19763, 19769, 19777, 19807, 19829, 19852, 19926, 19948, 19979, 20017, 20040, 80170, 80186, 80442, 80466, 80489,
+           80503, 80653, 80663, 80702, 80731, 80742, 80762, 80810, 80863, 80993, 81016, 81072, 81073, 81126, 81219, 81329, 81472, 81563, 82125, 82212, 82279, 82298, 82311, 82355, 82414, 82563, 82631,
+           82725, 82754, 82808, 82871, 82882, 83030, 83093, 83106, 83107, 83163])
+
+    PICK=A MODE=2 APID=16654 ~/j/ntds/ntds3.sh  
+
+    In [2]: np.diff(a.l,axis=0)
+    Out[2]: 
+    array([[   0.   ,    0.   ,  -56.249,    0.   ],
+           [   0.   ,    0.   ,  -18.685,    0.   ],
+           [   0.543,    0.   ,   -9.022,    0.   ],
+           [  -0.006,   -0.001,   -2.357,    0.   ],
+           [   0.306,   -0.   ,   -5.721,    0.   ],
+           [ -60.154,   -0.   , -220.561,    0.   ],
+           [ 131.04 ,    0.001,  -25.453,    0.   ],
+           [ -93.184,   -0.   ,  -18.1  ,    0.   ],
+           [   9.878,   -0.001,  255.28 ,    0.   ],
+           [ 424.   ,    0.002,  -99.086,    0.   ],
+           [   5.198,   -0.   ,   -0.408,    0.   ],
+           [   2.087,    0.   ,   -0.223,    0.   ],
+           [   8.272,   -0.   ,   -0.621,    0.   ],
+           [   2.8  ,    0.   ,   -0.295,    0.   ],
+           [  18.559,    0.   ,   -1.952,    0.   ],
+           [   0.833,    0.   ,   -0.088,    0.   ],
+           [   0.003,    0.   ,   -0.001,    0.   ]])
+
+
+
+
+
 Investigate B only history
 ------------------------------
 
 ::
+
 
     In [1]: b
     Out[1]: SEvt symbol b pid -1 opt  off [0. 0. 0.] b.f.base /tmp/blyth/opticks/GEOM/V1J009/ntds3/ALL1/n001
@@ -264,6 +506,28 @@ bounce around, escape, absorbed onto 3inch side::
     PICK=B MODE=2 BPID=15597 ~/j/ntds/ntds3.sh 
     PICK=B MODE=2 BPID=15634 ~/j/ntds/ntds3.sh 
 
+    PICK=B MODE=2 BPID=84584 ~/j/ntds/ntds3.sh    ## 
+
+
+    In [2]: np.diff(b.l, axis=0 )   ## PICK=B MODE=2 BPID=84584 ~/j/ntds/ntds3.sh 
+    Out[2]: 
+    array([[   0.   ,   -0.   ,  -60.944,    0.   ],
+           [  -0.   ,    0.001,  -17.933,    0.   ],
+           [  -0.584,   -0.001,   -9.148,    0.   ],
+           [   0.007,    0.001,   -2.406,    0.   ],
+           [  -0.33 ,   -0.   ,   -5.812,    0.   ],
+           [  61.004,    0.   , -203.963,    0.   ],
+           [-138.02 ,   -0.   ,  -49.108,    0.   ],
+           [  69.34 ,    0.   ,  -24.671,    0.   ],
+           [  19.492,   -0.   ,  268.765,    0.   ],
+           [-432.826,    0.001, -123.368,    0.   ],
+           [  -5.007,    0.   ,   -0.924,    0.   ],
+           [  -2.   ,    0.   ,   -0.406,    0.   ],
+           [  -8.   ,    0.   ,   -1.459,    0.   ],
+           [  -0.05 ,    0.   ,   -0.01 ,    0.   ],
+           [ -35.309,   -0.001,   -7.176,    0.   ],
+           [  -0.002,   -0.   ,   -0.   ,    0.   ]])   ## degeneracy onto -X side 3inch PMT 
+
 ::
 
     In [5]: b.qpid
@@ -272,24 +536,11 @@ bounce around, escape, absorbed onto 3inch side::
     In [4]: b.g   # looks like the issue is coincident layers at side of 3inch PMT 
     Out[4]: 
     array([[-12015.394,   9480.969,  11600.203,      1.   ],
-           [-12052.747,   9510.443,  11636.94 ,      1.   ],
-           [-12063.962,   9519.292,  11647.971,      1.   ],
-           [-12069.354,   9523.548,  11654.003,      1.   ],
-           [-12070.847,   9524.726,  11655.463,      1.   ],
-           [-12074.292,   9527.443,  11659.262,      1.   ],
-           [-12232.155,   9652.009,  11737.595,      1.   ],
-           [-12194.1  ,   9621.98 ,  11873.028,      1.   ],
-           [-12244.479,   9661.733,  11829.167,      1.   ],
-           [-12086.099,   9536.76 ,  11655.136,      1.   ],
-           [-11951.555,   9430.596,  12068.791,      1.   ],
-           [-11949.63 ,   9429.077,  12073.28 ,      1.   ],
-           [-11948.887,   9428.491,  12075.1  ,      1.   ],
-           [-11945.804,   9426.058,  12082.249,      1.   ],
-           [-11945.747,   9426.014,  12082.387,      1.   ],
+           ...
            [-11938.449,   9420.255,  12100.203,      1.   ],    ## suspicious degenerates 
            [-11938.448,   9420.254,  12100.205,      1.   ]])   ## at side of 3inch PMT 
 
-    In [1]: b.l                                                                                                                                                                   
+    In [1]: b.l
     Out[1]: 
     array([[-171.83 ,    0.   ,  229.999,    1.   ],
            [-171.83 ,    0.   ,  169.885,    1.   ],
@@ -306,11 +557,11 @@ bounce around, escape, absorbed onto 3inch side::
            [ 255.838,   -0.001,    6.83 ,    1.   ],
            [ 263.897,    0.   ,    5.57 ,    1.   ],
            [ 264.05 ,   -0.   ,    5.542,    1.   ],
-           [ 283.833,   -0.   ,    2.012,    1.   ],
-           [ 283.836,   -0.   ,    2.012,    1.   ]])
+           [ 283.833,   -0.   ,    2.012,    1.   ],   ##
+           [ 283.836,   -0.   ,    2.012,    1.   ]])  ##
 
 
-    In [4]: np.diff(b.l,axis=0)                                                                                                                                                   
+    In [4]: np.diff(b.l,axis=0)
     Out[4]: 
     array([[  -0.   ,   -0.   ,  -60.114,    0.   ],
            [   0.001,    0.001,  -18.048,    0.   ],
@@ -331,12 +582,120 @@ bounce around, escape, absorbed onto 3inch side::
 
 
 
+B Only : TO BT BT BT BT BT BT BT BT BT BT BT SA  : In/out oblique Vacuum skimmers 
+-----------------------------------------------------------------------------------
+
+* nice pure BT symmetrical history : 5BT to get in 5BT to get out, then ending in very close BT/SA 
+
+
+
+::
+
+    In [4]: b.q_startswith("TO BT BT BT BT BT BT BT BT BT BT BT SA")
+    Out[4]: 
+    array([ 9210,  9296,  9320,  9382,  9443,  9472,  9776,  9826,  9836,  9963, 10133, 10183, 10260, 89376, 89415, 89424, 89486, 89494, 89495, 89533, 89602, 89607, 89610, 89680, 89876, 89915, 89925,
+           89979, 90083, 90269, 90279, 90539, 90544])
+
+
+* expect A would have that with one less BT : dont see it 
+
+::
+
+    In [2]: a.q_startswith("TO BT BT BT BT BT BT BT BT BT BT SA")
+    Out[2]: array([10332, 10377, 10384, 10527, 10614, 89186, 89192])
+
+    PICK=A MODE=2 APID=10332 ~/j/ntds/ntds3.sh   ## HMM those miss the 3inch 
+
+
+
+Something funny with the first.  But a sampling of the rest have familiar 3inch PMT side degeneracy issue. 
+
+::
+
+    PICK=B MODE=2 BPID=9210 ~/j/ntds/ntds3.sh
+
+
+    In [2]: np.diff(b.l, axis=0)
+    Out[2]: 
+    array([[  0.   ,   0.   , -84.455,   0.   ],
+           [ -0.   ,   0.   , -18.551,   0.   ],
+           [  0.888,  -0.   , -10.075,   0.   ],
+           [ -0.017,   0.   ,  -2.796,   0.   ],
+           [  0.514,   0.   ,  -6.536,   0.   ],
+           [-35.36 ,   0.   , -53.023,   0.   ],
+           [ -6.212,   0.   ,  -2.125,   0.   ],
+           [ -2.548,  -0.   ,  -1.115,   0.   ],
+           [ -9.551,   0.   ,  -3.174,   0.   ],
+           [ -7.815,   0.   ,  -3.351,   0.   ],
+           [-30.183,   0.   , -12.942,   0.   ],
+           [ -4.476,  -0.   ,  -1.919,   0.   ]])   ## DONT SEE DEGENERACY ?
+
+
+
+    PICK=B MODE=2 BPID=9296 ~/j/ntds/ntds3.sh
+
+    In [3]: np.diff(b.l, axis=0)
+    Out[3]: 
+    array([[ -0.   ,  -0.   , -84.13 ,   0.   ],
+           [  0.   ,   0.   , -18.482,   0.   ],
+           [  0.882,   0.   , -10.057,   0.   ],
+           [ -0.016,  -0.001,  -2.787,   0.   ],
+           [  0.511,  -0.   ,  -6.521,   0.   ],
+           [-37.552,  -0.   , -57.921,   0.   ],
+           [ -6.134,  -0.   ,  -2.294,   0.   ],
+           [ -2.508,   0.   ,  -1.182,   0.   ],
+           [ -9.434,   0.   ,  -3.436,   0.   ],
+           [ -6.28 ,  -0.   ,  -2.901,   0.   ],
+           [-34.753,  -0.   , -16.055,   0.   ],
+           [ -0.002,  -0.   ,  -0.   ,   0.   ]])   ## THIS ONE HAS DEGENERCY 
 
 
 
 
-    PICK=B MODE=2 BPID=9210 ~/j/ntds/ntds3.sh 
 
+B Only : "TO BT BT BT BT BT SR SR BT BT BT BT BT BT SA"
+---------------------------------------------------------
+
+::
+
+    In [1]: w = b.q_startswith("TO BT BT BT BT BT SR SR BT BT BT BT BT BT SA")
+
+    In [2]: w
+    Out[2]: 
+    array([26558, 26570, 26572, 26577, 26593, 26597, 26604, 26610, 26613, 26640, 26644, 26647, 26683, 26808, 26864, 26870, 26922, 26926, 26973, 26986, 27004, 27013, 27017, 27034, 27048, 27059, 27117,
+           27142, 27144, 27182, 27184, 27277, 27293, 27295, 27304, 27330, 27384, 27391, 27416, 27436, 27465, 27466, 27469, 27487, 27489, 27512, 27535, 27539, 27558, 27582, 27590, 27600, 27666, 27701,
+           27706, 27713, 27715, 27733, 27746, 27754, 71554, 71575, 71583, 71603, 71617, 71626, 71629, 71642, 71647, 71658, 71666, 71680, 71685, 71727, 71752, 71759, 71782, 71828, 71830, 71886, 71899,
+           71901, 71910, 71926, 71955, 71983, 71989, 72014, 72018, 72057, 72080, 72105, 72115, 72120, 72133, 72156, 72159, 72228, 72229, 72231, 72239, 72267, 72281, 72322, 72396, 72398, 72420, 72423,
+           72425, 72429, 72443, 72472, 72496, 72503, 72514, 72617, 72625, 72666, 72690, 72692, 72738, 72744, 72762, 72782, 72789, 72794, 72818, 72835, 72840, 72851, 72887, 72893, 72913, 72930, 72938,
+           72962, 72990, 73020, 73033, 73034, 73084, 73086, 73096, 73108, 73137, 73149, 73181, 73195, 73201, 73249, 73251, 73262, 73299, 73302, 73327, 73335, 73336, 73343, 73364, 73380, 73392])
+
+
+
+
+::
+
+    PICK=B MODE=2 BPID=26558 ~/j/ntds/ntds3.sh
+
+    In [4]: np.diff(b.l, axis=0) 
+    Out[4]: 
+    array([[   0.   ,    0.   ,  -29.95 ,    0.   ],
+            ..
+           [  -0.168,   -0.   ,    0.075,    0.   ],
+           [ -34.802,    0.001,   15.291,    0.   ],
+           [  -0.002,   -0.001,    0.001,    0.   ]])   ##  NEAR DEGENERACY IN LAST TWO POINTS AT -X 3inch PMT SIDE : ZOOMING CAN SEE KINK 
+
+
+    PICK=B MODE=2 BPID=73033 ~/j/ntds/ntds3.sh
+
+    In [2]: np.diff(b.l, axis=0)
+    Out[2]: 
+    array([[   0.   ,    0.   ,  -29.95 ,    0.   ],
+           ..
+           [  19.502,    0.   ,    9.144,    0.   ],
+           [   0.002,   -0.   ,    0.001,    0.   ]])   ## DITTO AT +X 3inch PMT 
+
+
+* TODO: standalone examination of 3inch PMT 
 
 
 
@@ -473,6 +832,7 @@ Zooming in on the MODE=2 plot shows near coincidence (0.05mm) near apex
          ----------------------     185     SA/SD  
 
                Vacuum 
+
 
 
 

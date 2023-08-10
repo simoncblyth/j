@@ -20,6 +20,7 @@
 #include "junoPMTOpticalModel.hh"
 
 #include "LowerChimney.hh"
+#include "Tub3inchPMTV3Manager.hh"
 
 
 #include "G4LogicalVolume.hh"
@@ -642,6 +643,7 @@ PMTSim::GetPV
 
 G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std::vector<G4VSolid*>* solids ) // static
 {
+    if(LEVEL > 0 ) std::cout << "PMTSim::GetPV with transforms : name [" << ( name ? name : "-" ) << "]" << std::endl ; 
     PMTSim::SetEnvironmentSwitches(name);  
 
     PMTSim* ps = new PMTSim ; 
@@ -663,11 +665,17 @@ G4VPhysicalVolume* PMTSim::GetPV(const char* name, std::vector<double>* tr, std:
 PMTSim::PMTSim()
     :
     verbose(getenv("VERBOSE")!=nullptr),
+    HMSK_STR(HMSK),  
+    NMSK_STR(NMSK),   
+    LCHI_STR(LCHI),   
+    TUB3_STR(TUB3),  
     m_dc(nullptr),
     m_hama(nullptr),
     m_nnvt(nullptr),
     m_hmsk(nullptr),
-    m_nmsk(nullptr)
+    m_nmsk(nullptr),
+    m_lchi(nullptr),
+    m_tub3(nullptr)
 {
     init(); 
 }
@@ -701,6 +709,10 @@ void PMTSim::init()
         m_lchi = new LowerChimney(LCHI_STR) ;   
         m_lchi->getLV(); 
 
+        m_tub3 = new Tub3inchPMTV3Manager(TUB3_STR) ;   
+        m_tub3->getLV(); 
+
+
         // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
@@ -720,18 +732,6 @@ void PMTSim::init()
 
 }
 
-
-const char* PMTSim::HAMA   = "hama" ; 
-const char* PMTSim::NNVT   = "nnvt" ; 
-const char* PMTSim::HMSK   = "hmsk" ; 
-const char* PMTSim::NMSK   = "nmsk" ; 
-const char* PMTSim::LCHI   = "lchi" ;   // lower chimney  
-
-const std::string PMTSim::HMSK_STR = "hmsk" ; 
-const std::string PMTSim::NMSK_STR = "nmsk" ; 
-const std::string PMTSim::LCHI_STR = "lchi" ; 
-
-
 bool PMTSim::HasManagerPrefix( const char* name ) // static
 {
     bool hama = StartsWithPrefix(name, HAMA ); 
@@ -739,8 +739,9 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     bool hmsk = StartsWithPrefix(name, HMSK ); 
     bool nmsk = StartsWithPrefix(name, NMSK ); 
     bool lchi = StartsWithPrefix(name, LCHI ); 
+    bool tub3 = StartsWithPrefix(name, TUB3 ); 
 
-    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) + int(lchi) ; 
+    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) + int(lchi) + int(tub3) ; 
     assert( check == 0 || check == 1 ) ;  
     return check == 1 ; 
 }
@@ -772,12 +773,14 @@ IGeomManager* PMTSim::getManager(const char* geom)
     bool hmsk = StartsWithPrefix(geom, HMSK ); 
     bool nmsk = StartsWithPrefix(geom, NMSK ); 
     bool lchi = StartsWithPrefix(geom, LCHI ); 
+    bool tub3 = StartsWithPrefix(geom, TUB3 ); 
 
     if(hama) mgr = m_hama ; 
     if(nnvt) mgr = m_nnvt ; 
     if(hmsk) mgr = m_hmsk ; 
     if(nmsk) mgr = m_nmsk ; 
     if(lchi) mgr = m_lchi ; 
+    if(tub3) mgr = m_tub3 ; 
 
     if(mgr == nullptr)
     {
@@ -798,6 +801,7 @@ IGeomManager* PMTSim::getManager(const char* geom)
             << " hmsk " << hmsk
             << " nmsk " << nmsk
             << " lchi " << lchi
+            << " tub3 " << tub3
             << std::endl 
             ;
  
@@ -865,10 +869,16 @@ G4VSolid* PMTSim::getSolid(const char* geom)
     IGeomManager* mgr = getManager(geom) ; 
     const char* head = mgr->getHead() ; 
 
+    if(LEVEL > 0) std::cout 
+         << "[ PMTSim::getSolid " 
+         << " geom " << ( geom ? geom : "-" )  
+         << " mgr " << ( mgr ? "YES" : "NO " )  
+         << " head " << ( head ? head : "-" )  
+         << std::endl 
+         ; 
+
 
     G4VSolid* solid = nullptr ; 
-
-    if(LEVEL > 0) std::cout << "[ PMTSim::getSolid " << geom << std::endl ; 
 
     std::stringstream coutbuf;
     std::stringstream cerrbuf;

@@ -14,6 +14,7 @@ are IGeomManager when they are compiled with the PMTSIM_STANDALONE switch::
     NNVTMCPPMTManager.hh
     HamamatsuR12860PMTManager.hh
     LowerChimney.hh
+    Tub3inchPMTV3Manager.hh
 
 The methods cannot easily be const as the underlying Manager 
 use lazy instanciation. 

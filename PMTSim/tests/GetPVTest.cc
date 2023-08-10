@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "ssys.h"
 #include "SPath.hh"
 #include "PMTSim.hh"
 #include "SVolume.h"
@@ -16,7 +17,12 @@ int main(int argc, char** argv)
     setenv("JUNO_PMT20INCH_NOT_USE_REAL_SURFACE", "ENABLED", 1); 
     setenv("JUNO_PMT20INCH_PLUS_DYNODE", "ENABLED", 1); 
 
-    const char* name = argc > 1 ? argv[1] : "body_phys" ;  
+ 
+    //const char* geom_default = "nnvtBodyPhys" ; // THIS NOW NULL 
+    //const char* geom_default = "nnvtInnerPhys" ; 
+    const char* geom_default = "tub3BodyPhys" ; 
+    const char* geom = ssys::getenvvar("GEOM", geom_default );
+
 
     typedef std::vector<double> VD ; 
     typedef std::vector<G4VSolid*> VS ; 
@@ -24,7 +30,7 @@ int main(int argc, char** argv)
     VD* tr = new VD ; 
     VS* so = new VS ; 
 
-    G4VPhysicalVolume* pv = PMTSim::GetPV(name, tr, so );
+    G4VPhysicalVolume* pv = PMTSim::GetPV(geom, tr, so );
     assert(pv); 
 
     SVolume::DumpTransforms(tr, so, "PMTSim::DumpTransforms"); 
