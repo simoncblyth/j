@@ -11,10 +11,14 @@ Context
 Overview
 -------------
 
-* DONE : investigate deviant histories : most problems now involve 3inch PMT 
+* DONE : investigate deviant histories : most problems now from photons ending on 3inch PMT 
+* DONE : tub3 Manager incorporated into "jps" j/PMTSim PMTSIM_STANDALONE 
+
+  * MODE=2 FOCUS=0,0,80 ~/opticks/u4/tests/U4SimtraceTest.sh ana 
+
+* TODO : gxt G4CXTest.sh standalone examination of 3inch PMT (target the side especially) 
 
 * TODO : get plab labelling to work and mark points more clearly 
-
 * TODO : construct query to find photon indices of PMT 3inch SD where the photon comes in backwards 
 
   * try using identity info 1st 
@@ -25,7 +29,6 @@ Overview
          expect small(epsilon sized, 1e-3/4) deviations in degenerate regions of geometry 
          (although small the deviations should be larger than float/double 1e-5/6 level) 
 
-* TODO : standalone examination of 3inch PMT (target the side especially) 
 
 
 Selecting histories with 3inch not involved

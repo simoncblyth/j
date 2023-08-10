@@ -5,8 +5,8 @@
 
 int main(int argc, char** argv)
 {
-    const char* geom_default = "nnvtLogicalPmt" ; 
-    //const char* geom_default = "tub3LogicalPmt" ; 
+    const char* geom_default = "nnvtLogicalPMT" ; 
+    //const char* geom_default = "tub3LogicalPMT" ; 
     const char* geom = ssys::getenvvar("GEOM", geom_default );
 
     G4LogicalVolume* lv = PMTSim::GetLV(geom);

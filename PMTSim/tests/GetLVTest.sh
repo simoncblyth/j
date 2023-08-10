@@ -10,7 +10,9 @@ EOU
 export PMTSim=1 
 
 
-geom=tub3LogicalPmt
+geom=nnvtLogicalPMT
+#geom=tub3LogicalPMT
+
 export GEOM=${GEOM:-$geom}
 
 bin=GetLVTest

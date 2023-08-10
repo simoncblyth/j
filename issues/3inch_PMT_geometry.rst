@@ -9,7 +9,23 @@ Most A/B comparison issues invoke photons ending at 3inch PMTs
 * :doc:`opticksMode3-2nd-wave-contents-comparison`
 
 
-WIP : Standalone 3inch into ~/j/PMTSim/CMakeLists.txt
+
+DONE : Simtrace plotting with tub3
+-------------------------------------
+
+* u4/tests/U4SimtraceTest.sh FewPMT now works with tub3 Manager 
+
+u4/tests/FewPMT.sh::
+
+    export FewPMT_GEOMList=tub3LogicalPMT
+
+::
+
+    MODE=2 FOCUS=0,0,80 ~/opticks/u4/tests/U4SimtraceTest.sh ana
+
+
+
+DONE : Standalone 3inch into  ~/j/PMTSim/CMakeLists.txt
 --------------------------------------------------------
 
 * PMTSim is "virtual" package that incorporates parts of junosw for standalone investigation 
