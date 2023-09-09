@@ -683,18 +683,54 @@ ntds_noxj()
 
    export EVTMAX=1
 
+   export U4Tree__DISABLE_OSUR_IMPLICIT=1   
+   ## currently disabling OSUR implicit is needed to avoid scrambling CSGNode border 
+
    NOXJ=1 GEOM=${GPFX}1J009 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds
 
    ## HMM: INPUT PHOTONS WILL NOT WORK IN OPTICKS MODE 0 HOW AND WHERE TO RAISE AN ERROR FOR THAT ?
 }
+
+ntds_noxjsjfa()
+{
+   #local gpfx=R           # R:Release builds of junosw+custom4   
+   local gpfx=V          # V:Debug builds of junosw+custom4  
+   GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
+
+   export EVTMAX=1
+
+   
+   ## export U4Tree__DISABLE_OSUR_IMPLICIT=1   
+   unset U4Tree__DISABLE_OSUR_IMPLICIT
+   ## WHEN REMOVING AN ENVVAR MUST REMEMBER TO unset
+   ## disabling OSUR implicit was needed previously to avoid scrambling CSGNode border 
+   ## but the move to the new workflow should avoid that issue 
+
+   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=1
+   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.1  # 0.05 C++ default
+
+   #local oipf=Hama:0:1000
+   local oipf=NNVT:0:1000
+   export OPTICKS_INPUT_PHOTON_FRAME=$oipf   ## UNTESTED
+
+
+   NOXJ=1 NOSJ=1 NOFA=1 GEOM=${GPFX}1J011 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds
+
+   # this will fail for lack of input photon for OPTICKS_INTEGRATION_MODE=0 
+}
+
+
+
 
 ntds0_noxj(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxj ; }
 ntds1_noxj(){ OPTICKS_INTEGRATION_MODE=1 ntds_noxj ; }
 ntds2_noxj(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxj ; }
 ntds3_noxj(){ OPTICKS_INTEGRATION_MODE=3 ntds_noxj ; }
 
-ntds2_noxj_getgeom(){ source $OPTICKS_HOME/bin/rsync.sh .opticks/GEOM/${GEOM:-V1J009} ; : j/jx.bash ; }   # USE "GEOM get" not this
-
+ntds0_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxjsjfa ; }
+ntds1_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=1 ntds_noxjsjfa ; }
+ntds2_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxjsjfa ; }
+ntds3_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=3 ntds_noxjsjfa ; }
 
 
 
@@ -877,7 +913,7 @@ EOL
    export TDS_LOG_COPYDIR=/tmp/$USER/opticks/GEOM/$GEOM/$SCRIPT/ALL$VERSION
 
    
-   vars="NOXJ NOSJ POM N VERSION LAYOUT TDS_LOG_COPYDIR"
+   vars="NOXJ NOSJ NOFA POM N VERSION LAYOUT TDS_LOG_COPYDIR"
    for var in $vars ; do printf "%30s : %s \n" "$var" "${!var}" ; done 
 
 
@@ -947,6 +983,14 @@ EOL
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-sj" ;; 
    esac
+
+   case ${NOFA:-0} in 
+      0) opts="$opts" ;; 
+      1) opts="$opts --debug-disable-fa" ;; 
+   esac
+
+
+
 
    opts="$opts --evtmax $evtmax"
 

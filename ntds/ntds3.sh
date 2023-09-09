@@ -36,5 +36,28 @@ if [ "${arg/ana}" != "$arg" ]; then
    [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 1 
 fi
 
+if [ "$arg" == "pvcap" -o "$arg" == "pvpub" -o "$arg" == "mpcap" -o "$arg" == "mppub" ]; then
+    case $PICK in
+      A) cap_base=$AFOLD/figs ; cap_stem=ntds3_${GEOM}_A${APID} ;;
+      B) cap_base=$BFOLD/figs ; cap_stem=ntds3_${GEOM}_B${BPID} ;;
+    esac
+    if [ -z "$cap_base" -o -z "$cap_stem" ]; then 
+       echo $BASH_SOURCE : ERROR :  pvcap/pvpub/mpcap/mppub require PICK=A or PICK=B : AB OR BA are not allowed 
+       exit 2 
+    fi
+    export CAP_STEM=$cap_stem   # stem of the .png screencapture
+    export CAP_BASE=$cap_base
+    export CAP_REL=ntds3
+    case $arg in  
+       pvcap) source pvcap.sh cap  ;;  
+       mpcap) source mpcap.sh cap  ;;  
+       pvpub) source pvcap.sh env  ;;  
+       mppub) source mpcap.sh env  ;;  
+    esac
+    if [ "$arg" == "pvpub" -o "$arg" == "mppub" ]; then 
+        source epub.sh 
+    fi  
+fi 
+
 exit 0 
 

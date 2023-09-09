@@ -16,12 +16,15 @@ Overview
 
   * MODE=2 FOCUS=0,0,80 ~/opticks/u4/tests/U4SimtraceTest.sh ana 
 
-* TODO : gxt G4CXTest.sh standalone examination of 3inch PMT (target the side especially) 
+* DONE : gxt G4CXTest.sh standalone examination of 3inch PMT (target the side especially) 
+
+  * found virtual Water wrapper 1e-3mm from the Pyrex, increased to 1mm 
+  * found that Water///Steel border not absorbing, enabled U4Tree osur implicits to get it to work 
+
 
 * TODO : get plab labelling to work and mark points more clearly 
-* TODO : construct query to find photon indices of PMT 3inch SD where the photon comes in backwards 
+* TODO : construct query to find photon indices of PMT 3inch SD where the photon comes in backwards, lack of identity in B problematic  
 
-  * try using identity info 1st 
 
 * TODO : insitu simtrace, to give cleaner backdrop for onephotonplot
 
@@ -29,6 +32,39 @@ Overview
          expect small(epsilon sized, 1e-3/4) deviations in degenerate regions of geometry 
          (although small the deviations should be larger than float/double 1e-5/6 level) 
 
+
+
+Insitu Comparison Workflow
+-----------------------------
+
+After C4 updates::
+
+    jo
+    ./build_Debug.sh    ## when change directories, needs fully clean rebuild
+
+config, run, pullback, ana, repeat::
+
+    jxv               # laptop, for example change "ntds" ipho stats to 10k 
+    jxscp             # laptop, scp jx.bash to remote 
+
+    jxf               # workstation, pick up updated jx.bash functions 
+    ntds3_noxj        # workstation, run opticksMode:3 doing both optical simulations in one invokation
+    jxf ; ntds3_noxj  # workstation : generally need to do both 
+
+
+    GEOM              # check the GEOM setting is eg V1J009 for current full geom (not FewPMT for standalone geom)
+    GEOM tmpget       # laptop, pullback the paired SEvt 
+    jxn               # laptop, cd to /Users/blyth/j/ntds
+    ./ntds3.sh        # laptop, run analysis ntds3.py loading two SEvt into ipython for comparison, plotting
+
+
+
+3inch targetting
+------------------
+
+::
+
+    PICK=AB MODE=2 FOCUS=0,0,100 APID=0 BPID=0 ~/opticks/g4cx/tests/G4CXTest.sh ana
 
 
 Selecting histories with 3inch not involved
@@ -49,33 +85,6 @@ Morton Code Geomerty selection
 
 HMM : I did some morton code based geometry selection before, that 
 has the advantage of working for both A and B equally so could you that to 
-
-::
-
-    epsilon:opticks blyth$ opticks-fl morton 
-    ./dev/csg/morton.py
-    ./dev/csg/zorder.py
-    ./dev/csg/postorder.py
-    ./npy/NGrid3.cpp
-    ./npy/NFieldCache.cpp
-    ./npy/tests/CMakeLists.txt
-    ./npy/tests/NGrid3Test.cc
-    ./npy/tests/mortonlibTest.cc
-    ./npy/NOctools.cpp
-    ./npy/NGrid3.hpp
-    ./npy/mortonlib/domain2d.py
-    ./npy/mortonlib/morton3d.h
-    ./npy/mortonlib/morton2d.py
-    ./npy/mortonlib/domain2d_test.cc
-    ./npy/mortonlib/morton2d.h
-    ./npy/mortonlib/domain2d.h
-    ./npy/mortonlib/morton2d_test.sh
-    ./npy/mortonlib/domain2d_test.py
-    ./npy/mortonlib/morton2d_test.cc
-    ./g4cx/tests/G4CXSimtraceTest.py
-    epsilon:opticks blyth$ 
-
-
 
 
 Standalone Comparison Workflow

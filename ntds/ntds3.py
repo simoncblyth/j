@@ -5,8 +5,8 @@ ntds3.py
 
 Use via bash script::
 
-    PICK=AB MODE=2 SEL=1 ~/j/ntds/ntds3.sh 
-    PICK=AB MODE=3 SEL=1 ~/j/ntds/ntds3.sh 
+    PICK=AB MODE=2 SEL=BOX ~/j/ntds/ntds3.sh 
+    PICK=AB MODE=3 SEL=BOX ~/j/ntds/ntds3.sh 
 
 """
 import os, logging, numpy as np
@@ -22,15 +22,13 @@ log = logging.getLogger(__name__)
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
 PICK = os.environ.get("PICK","CF") 
-SEL = int(os.environ.get("SEL","0")) 
+SEL = os.environ.get("SEL","") 
 BOX = float(os.environ.get("BOX","500")) 
 H,O,V = 0,1,2  # horizontal, other, vertical  (X,Y,Z)
 
 
-
-## HMM: should use APID, BPID ?
-AIDX = int(os.environ.get("AIDX","0")) 
-BIDX = int(os.environ.get("BIDX","0")) 
+APID = int(os.environ.get("APID","0")) 
+BPID = int(os.environ.get("BPID","0")) 
 
 if MODE in [2,3]:
     from opticks.ana.pvplt import *   
@@ -73,14 +71,9 @@ def onephotonplot(pl, e ):
 
 
 
-
-
-
-
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    print("GLOBAL:%d MODE:%d SEL:%d" % (GLOBAL,MODE, SEL))
+    print("GLOBAL:%d MODE:%d SEL:%s" % (GLOBAL,MODE, SEL))
 
     a = SEvt.Load("$AFOLD", symbol="a")
     b = SEvt.Load("$BFOLD", symbol="b")
@@ -126,7 +119,10 @@ if __name__ == '__main__':
         ee = []
     pass 
 
-    context = "PICK=%s MODE=%d SEL=%d ~/j/ntds/ntds3.sh " % (PICK, MODE, SEL )
+
+
+
+    context = "PICK=%s MODE=%d SEL=%s ~/j/ntds/ntds3.sh " % (PICK, MODE, SEL )
     print(context)
 
     for e in ee:
@@ -169,7 +165,7 @@ if __name__ == '__main__':
         #pp = e.f.hit[:,0,:3]
 
         _pp = e.f.record[wii,:,0,:3]   # eg (100000, 32, 3)
-        pp = _pp.reshape(-1,3)       # eg (3200000, 3)
+        pp = _pp.reshape(-1,3)         # eg (3200000, 3)
 
         gpos = np.ones( [len(pp), 4 ] )
         gpos[:,:3] = pp
@@ -181,18 +177,32 @@ if __name__ == '__main__':
 
         upos = gpos if GLOBAL else lpos
 
+        _upos = upos.reshape(-1,32,4) 
+        # HMM need to reshape upos.reshape(-1,32,4).shape before can apply photon level selections
 
-        if SEL == 1:
+        if SEL == "BOX":
             sel = np.logical_and( np.logical_and( np.abs(upos[:,H]) < BOX, np.abs(upos[:,V]) < BOX ), np.abs(upos[:,O]) < BOX )
             spos = upos[sel]
+        elif SEL == "TO BT BT BT SA,TO BT BT BT SD":
+            sel = e.q_startswith_or_(SEL) 
+            spos = _upos[sel].reshape(-1,4) 
         else:
-            spos = upos
+            spos = None
         pass
 
         if MODE == 2:
-            ax.scatter( spos[:,H], spos[:,V], s=0.1 )
+            ax.scatter( upos[:,H], upos[:,V], s=0.1 )
+            if not spos is None:
+                print("ax.scatter spos " )
+                ax.scatter( spos[:,H], spos[:,V], s=0.1, c="r" )
+            else:
+                print("NOT:ax.scatter spos " )
+            pass
         elif MODE == 3:
-            pl.add_points(spos[:,:3])
+            pl.add_points(upos[:,:3])
+            if not spos is None:
+                ax.add_points( spos[:,H], spos[:,V], s=0.1, color="red" )
+            pass
         else:
             pass
         pass
