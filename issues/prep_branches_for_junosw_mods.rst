@@ -330,3 +330,25 @@ TODO : Review changes as load into the branch blyth-122
 
 
 
+These commits adds envvar controls that enable changing of 
+the virtual wrapper offset thicknesses of the LPMT and SPMT
+`
+HamamatsuMaskManager__MAGIC_virtual_thickness_MM
+NNVTMaskManager__MAGIC_virtual_thickness_MM
+Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM
+`
+Also the defaults offsets are increased, 
+LPMT increased from 0.05->0.10 mm and SPMT increased from 1.e-3->0.10 mm 
+
+These changes avoid low level near degeneracy that prevent the Opticks 
+simulation from matching Detsim.
+
+Also the python option --debug-disable-fa is added to disable FastenerAcrylic
+
+
+Geant4 vs Opticks simulations have been compared whilst making these changes, 
+and the impact has been all positive with no known issues.  In case any problems
+arise in future the code can be retained almost asis with just 
+the default values of the offsets changed. 
+
+

@@ -713,11 +713,10 @@ ntds_noxjsjfa()
    ## but the move to the new workflow should avoid that issue 
    ##
    ##
-   ## C++ DEFAULTS IN THE blyth-122 BRANCH ARE NOW SET AS SHOWN  
-   ## export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.1
-   ## export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.1 
-   ## export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.1
-   ##   
+   ## C++ DEFAULTS IN THE blyth-122 BRANCH ARE CONSER
+   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
+   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
+   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
    ##
    # NB setting OPTICKS_INPUT_PHOTON_FRAME or OPTICKS_INPUT_PHOTON here is ignored
    # as its unset then set in ntds
