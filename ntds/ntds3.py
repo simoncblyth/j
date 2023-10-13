@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
-PICK = os.environ.get("PICK","CF") 
+PICK = os.environ.get("PICK","A") 
 SEL = os.environ.get("SEL","") 
 BOX = float(os.environ.get("BOX","500")) 
 H,O,V = 0,1,2  # horizontal, other, vertical  (X,Y,Z)
@@ -180,10 +180,12 @@ if __name__ == '__main__':
         _upos = upos.reshape(-1,32,4) 
         # HMM need to reshape upos.reshape(-1,32,4).shape before can apply photon level selections
 
-        if SEL == "BOX":
+        if len(SEL) == 0:
+            spos = None
+        elif SEL == "BOX": 
             sel = np.logical_and( np.logical_and( np.abs(upos[:,H]) < BOX, np.abs(upos[:,V]) < BOX ), np.abs(upos[:,O]) < BOX )
             spos = upos[sel]
-        elif SEL == "TO BT BT BT SA,TO BT BT BT SD":
+        elif len(SEL) > 0:
             sel = e.q_startswith_or_(SEL) 
             spos = _upos[sel].reshape(-1,4) 
         else:

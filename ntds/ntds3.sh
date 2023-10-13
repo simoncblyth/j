@@ -10,6 +10,23 @@ ntds3.sh
     PICK=AB MODE=2 SEL=1 ~/j/ntds/ntds3.sh 
     PICK=AB MODE=3 SEL=1 ~/j/ntds/ntds3.sh 
 
+NB to grab::
+
+    GEOM tmpget 
+
+
+BASE and TMPBASE
+-----------------
+
+Normally evt files are kept in folders BASE beneath /tmp
+But when using for live demos it is better to use more permanant directory. 
+So using $HOME/.opticks/TMP for that.  
+
+To copy from normal base use the tmpbase command after setting::
+
+    export BASE=/tmp/$USER/opticks/GEOM/$GEOM/ntds3/ALL1
+    export TMPBASE=$HOME/.opticks/TMP/$GEOM/ntds3/ALL1
+
 
 EOU
 }
@@ -20,7 +37,12 @@ arg=${1:-$defarg}
 name=ntds3
 SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
+
 export BASE=/tmp/$USER/opticks/GEOM/$GEOM/ntds3/ALL1
+#export TMPBASE=$HOME/.opticks/TMP/$GEOM/ntds3/ALL1
+#export BASE=$HOME/.opticks/TMP/$GEOM/ntds3/ALL1
+
+
 export AFOLD=$BASE/p001
 export BFOLD=$BASE/n001
 script=$SDIR/$name.py 
@@ -30,6 +52,18 @@ vars="BASH_SOURCE arg name SDIR GEOM BASE AFOLD BFOLD script"
 if [ "${arg/info}" != "$arg" ]; then
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 fi 
+
+
+if [ "${arg/tmpbase}" != "$arg" ]; then
+   if [ -n "$TMPBASE" ]; then 
+       mkdir -p $TMPBASE
+       echo rsync -zarv $BASE/ $TMPBASE
+       rsync -zarv $BASE/ $TMPBASE
+   else
+       echo $BASH_SOURCE : TMPBASE is not defined : nothing to do 
+   fi 
+fi 
+
 
 if [ "${arg/ana}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $script 

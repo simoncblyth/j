@@ -159,6 +159,9 @@ jx-sub()
 jt(){ cd $JUNOTOP ; pwd ; } 
 je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
 jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
+jd(){ cd $JUNOTOP/junosw_dirty && pwd && git status ; } 
+
+
 
 
 # -false to end sequence of ors 
@@ -677,6 +680,8 @@ ntds0_cf()
 
 ntds_noxj()
 {
+   [ -z "$OPTICKS_INTEGRATION_MODE" ] && echo $BASH_SOURCE : FATAL : ABORT AS OPTICKS_INTEGRATION_MODE IS NOT DEFINED && return 1 
+
    #local gpfx=R           # R:Release builds of junosw+custom4   
    local gpfx=V          # V:Debug builds of junosw+custom4  
    GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
@@ -693,26 +698,29 @@ ntds_noxj()
 
 ntds_noxjsjfa()
 {
+   [ -z "$OPTICKS_INTEGRATION_MODE" ] && echo $BASH_SOURCE : FATAL : ABORT AS OPTICKS_INTEGRATION_MODE IS NOT DEFINED && return 1 
+
    #local gpfx=R           # R:Release builds of junosw+custom4   
    local gpfx=V          # V:Debug builds of junosw+custom4  
    GPFX=${GPFX:-$gpfx}    # need to match with j/ntds/ntds.sh  AGEOM, BGEOM
 
    export EVTMAX=1
-
    
    ## export U4Tree__DISABLE_OSUR_IMPLICIT=1   
-   unset U4Tree__DISABLE_OSUR_IMPLICIT
+   ## unset U4Tree__DISABLE_OSUR_IMPLICIT
    ## WHEN REMOVING AN ENVVAR MUST REMEMBER TO unset
    ## disabling OSUR implicit was needed previously to avoid scrambling CSGNode border 
    ## but the move to the new workflow should avoid that issue 
-
-   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=1
-   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.1  # 0.05 C++ default
-
-   #local oipf=Hama:0:1000
-   local oipf=NNVT:0:1000
-   export OPTICKS_INPUT_PHOTON_FRAME=$oipf   ## UNTESTED
-
+   ##
+   ##
+   ## C++ DEFAULTS IN THE blyth-122 BRANCH ARE NOW SET AS SHOWN  
+   ## export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.1
+   ## export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.1 
+   ## export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.1
+   ##   
+   ##
+   # NB setting OPTICKS_INPUT_PHOTON_FRAME or OPTICKS_INPUT_PHOTON here is ignored
+   # as its unset then set in ntds
 
    NOXJ=1 NOSJ=1 NOFA=1 GEOM=${GPFX}1J011 OPTICKS_INTEGRATION_MODE=${OPTICKS_INTEGRATION_MODE:-0} ntds
 
@@ -731,7 +739,6 @@ ntds0_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=0 ntds_noxjsjfa ; }
 ntds1_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=1 ntds_noxjsjfa ; }
 ntds2_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=2 ntds_noxjsjfa ; }
 ntds3_noxjsjfa(){ OPTICKS_INTEGRATION_MODE=3 ntds_noxjsjfa ; }
-
 
 
 ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks optical propagation
@@ -876,14 +883,14 @@ EOL
        #ipho=GridXY_X700_Z230_10k_f8.npy 
        #ipho=GridXY_X1000_Z1000_40k_f8.npy
 
-       export OPTICKS_INPUT_PHOTON=${OPTICKS_INPUT_PHOTON:-$ipho}
+       export OPTICKS_INPUT_PHOTON=$ipho
 
-       oipf=Hama:0:1000
+       #oipf=Hama:0:1000
        #oipf=Hama:0:0
-       #oipf=NNVT:0:1000 
+       oipf=NNVT:0:1000 
        #oipf=PMT_20inch_veto:0:1000
 
-       export OPTICKS_INPUT_PHOTON_FRAME=${OPTICKS_INPUT_PHOTON_FRAME:-$oipf}
+       export OPTICKS_INPUT_PHOTON_FRAME=$oipf
 
        layout="OIPF_$OPTICKS_INPUT_PHOTON_FRAME"
 

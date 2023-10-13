@@ -22,7 +22,6 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
-
 Gallery
 --------
 
@@ -408,6 +407,12 @@ having to deal with merge issues.
 
 
 
+Add Branch Using Web Interface
+---------------------------------
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches/new
+
+
 
 Bring branch uptodate with master
 -----------------------------------
@@ -498,6 +503,49 @@ https://www.atlassian.com/git/tutorials/using-branches/git-merge
 
 JUNOSW Workflow for getting local changes into main 
 -----------------------------------------------------
+
+
+::
+
+    N[blyth@localhost junosw]$ branch=blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
+ 
+    N[blyth@localhost junosw]$ branch=blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy
+    N[blyth@localhost junosw]$ git branch 
+    * main
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch
+    Branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' set up to track remote branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' from 'origin'.
+    Switched to a new branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy'
+    N[blyth@localhost junosw]$ 
+
+
+
+
+
+
+
+
+
+On workstation switch to a new branch created in web interface code.ihep.ac.cn repo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    N[blyth@localhost junosw]$ branch=blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
+    Branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy' set up to track remote branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy' from 'origin'.
+    Switched to a new branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy'
+    N[blyth@localhost junosw]$ 
+
+* HMM : NOT THAT ONE : DO THE LESS IMPACTFUL ONE FIRST 
+
+
+    N[blyth@localhost junosw]$ branch=blyth-PMT-serialization-fully-standalone-and-add-tests
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
+    Branch blyth-PMT-serialization-fully-standalone-and-add-tests set up to track remote branch blyth-PMT-serialization-fully-standalone-and-add-tests from origin.
+    Switched to a new branch 'blyth-PMT-serialization-fully-standalone-and-add-tests'
+        
+* CHECKING THAT COMPILES
 
 
 Getting laptop to follow an upstream branch
@@ -1092,6 +1140,52 @@ The changes remaining are all related to logging changes::
 
 
 
+Alt : Following merge update and tidy workstation repo
+--------------------------------------------------------
+
+::
+
+    git fetch origin    # bring local update without changing working copy 
+    git checkout main   # comment says are behind and can be fast forwarded
+    git pull            # message lists the changes 
+    git branch          # list the branches to get precise name of obsolete branch 
+    git branch -d name-of-obsolete-branch       
+
+::
+
+    N[blyth@localhost junosw]$ git branch -d blyth-PMT-serialization-fully-standalone-and-add-tests
+    warning: deleting branch 'blyth-PMT-serialization-fully-standalone-and-add-tests' that has been merged to
+             'refs/remotes/origin/blyth-PMT-serialization-fully-standalone-and-add-tests', but not yet merged to HEAD.
+    Deleted branch blyth-PMT-serialization-fully-standalone-and-add-tests (was 7ffe0c4).
+    N[blyth@localhost junosw]$ 
+
+
+HMM : Need to update that branch to latest main
+
+
+
+Instead of git gymnastics delete the branch and make a new one
+----------------------------------------------------------------
+
+Delete the branch and make new one with web interface::
+
+    blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy 
+    blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy
+
+::
+
+    N[blyth@localhost junosw]$ git branch -d blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
+    Deleted branch blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy (was 27d86b9).
+    N[blyth@localhost junosw]$ 
+
+
+* MORAL : ONLY CREATE BRANCH OFF MAIN WHEN PRIOR IS MERGED
+
+
+    
+
+
+
 Following a merge tidy up the obsolete branch
 -------------------------------------------------
 
@@ -1286,6 +1380,37 @@ Another
      create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
     N[blyth@localhost junosw]$ 
     N[blyth@localhost junosw]$ 
+
+
+
+Another : maybe to avoid the warning should "git fetch origin" before the delete
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
+
+    N[blyth@localhost junosw]$ jo
+    /data/blyth/junotop/junosw
+    # On branch blyth-Opticks-integration-updates-for-current-API
+    nothing to commit, working directory clean
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git checkout main  
+    Switched to branch 'main'
+    N[blyth@localhost junosw]$ git branch 
+      blyth-Opticks-integration-updates-for-current-API
+    * main
+    N[blyth@localhost junosw]$ git branch -d blyth-Opticks-integration-updates-for-current-API
+    warning: deleting branch 'blyth-Opticks-integration-updates-for-current-API' that has been merged to
+             'refs/remotes/origin/blyth-Opticks-integration-updates-for-current-API', but not yet merged to HEAD.
+    Deleted branch blyth-Opticks-integration-updates-for-current-API (was f8f1715).
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$ git branch 
+    * main
+    N[blyth@localhost junosw]$ 
+
+
 
 
 
