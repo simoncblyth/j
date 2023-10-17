@@ -6,7 +6,7 @@
 #include <array>
 
 #include "NP.hh"
-#include "SSys.hh"
+#include "ssys.h"
 
 #include "G4String.hh"
 #include "HamamatsuR12860PMTManager.hh"
@@ -20,7 +20,18 @@
 #include "junoPMTOpticalModel.hh"
 
 #include "LowerChimney.hh"
+
 #include "Tub3inchPMTV3Manager.hh"
+
+#include "XJanchorConstruction.hh"
+#include "XJfixtureConstruction.hh"
+
+#include "SJCLSanchorConstruction.hh"
+#include "SJFixtureConstruction.hh"
+#include "SJReceiverConstruction.hh"
+#include "SJReceiverFasternConstruction.hh"
+
+#include "FastenerAcrylicConstruction.hh"
 
 
 #include "G4LogicalVolume.hh"
@@ -144,7 +155,7 @@ double getenvdouble(const char* key, double fallback)
 }
 
 
-int PMTSim::LEVEL = SSys::getenvint("PMTSim", 0) ;   // using PLOG across packages needs investigation 
+int PMTSim::LEVEL = ssys::getenvint("PMTSim", 0) ;   // using PLOG across packages needs investigation 
 
 
 /**
@@ -196,6 +207,13 @@ void PMTSim::SetEnvironmentSwitches(const char* name)  // static
             unsetenv(key); 
         }
     }
+}
+
+
+G4VSolid* PMTSim::GetSolid() // static
+{
+    const char* geom = ssys::getenvvar("GEOM");
+    return geom ? GetSolid(geom) : nullptr ; 
 }
 
 /**
@@ -609,8 +627,15 @@ NP* PMTSim::GetManagerValues(const char* name) // static
     return vv ; 
 }
 
-
-
+std::string PMTSim::Desc(const char* name) // static
+{
+    std::cout << "[ PMTSim::Desc [" << name << "]" << std::endl ; 
+    PMTSim::SetEnvironmentSwitches(name);  
+    PMTSim* ps = new PMTSim ; 
+    std::string msg = ps->desc(name); 
+    std::cout << "] PMTSim::Desc [" << name << "]" << std::endl ; 
+    return msg ; 
+}
 G4LogicalVolume* PMTSim::GetLV(const char* name) // static
 {
     std::cout << "[ PMTSim::GetLV [" << name << "]" << std::endl ; 
@@ -669,13 +694,27 @@ PMTSim::PMTSim()
     NMSK_STR(NMSK),   
     LCHI_STR(LCHI),   
     TUB3_STR(TUB3),  
+    XJAC_STR(XJAC),
+    XJFC_STR(XJFC),
+    SJCL_STR(SJCL),
+    SJFX_STR(SJFX),
+    SJRC_STR(SJRC),  
+    SJRF_STR(SJRF),  
+    FACR_STR(FACR),
     m_dc(nullptr),
     m_hama(nullptr),
     m_nnvt(nullptr),
     m_hmsk(nullptr),
     m_nmsk(nullptr),
     m_lchi(nullptr),
-    m_tub3(nullptr)
+    m_tub3(nullptr),
+    m_xjac(nullptr),
+    m_xjfc(nullptr),
+    m_sjcl(nullptr),
+    m_sjfx(nullptr),
+    m_sjrc(nullptr),
+    m_sjrf(nullptr),
+    m_facr(nullptr)
 {
     init(); 
 }
@@ -720,6 +759,26 @@ void PMTSim::init()
         m_tub3 = new Tub3inchPMTV3Manager(TUB3_STR) ;   
         m_tub3->getLV(); 
 
+        m_xjac = new XJanchorConstruction(XJAC_STR) ; 
+        m_xjac->getLV(); 
+
+        m_xjfc = new XJfixtureConstruction(XJFC_STR) ; 
+        m_xjfc->getLV() ; 
+
+        m_sjcl = new SJCLSanchorConstruction(SJCL_STR) ; 
+        m_sjcl->getLV(); 
+
+        m_sjfx = new SJFixtureConstruction(SJFX_STR) ; 
+        m_sjfx->getLV(); 
+
+        m_sjrc = new SJReceiverConstruction(SJRC_STR) ;
+        m_sjrc->getLV(); 
+
+        m_sjrf = new SJReceiverFasternConstruction(SJRF_STR) ; 
+        m_sjrf->getLV(); 
+
+        m_facr = new FastenerAcrylicConstruction(FACR_STR) ; 
+        m_facr->getLV(); 
 
         // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
@@ -748,8 +807,30 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     bool nmsk = StartsWithPrefix(name, NMSK ); 
     bool lchi = StartsWithPrefix(name, LCHI ); 
     bool tub3 = StartsWithPrefix(name, TUB3 ); 
+    bool xjac = StartsWithPrefix(name, XJAC ); 
+    bool xjfc = StartsWithPrefix(name, XJFC ); 
+    bool sjcl = StartsWithPrefix(name, SJCL ); 
+    bool sjfx = StartsWithPrefix(name, SJFX ); 
+    bool sjrc = StartsWithPrefix(name, SJRC ); 
+    bool sjrf = StartsWithPrefix(name, SJRF ); 
+    bool facr = StartsWithPrefix(name, FACR ); 
 
-    int check = int(hama) + int(nnvt) + int(hmsk) + int(nmsk) + int(lchi) + int(tub3) ; 
+    int check = 0 ; 
+    if(hama) check += 1 ; 
+    if(nnvt) check += 1 ; 
+    if(hmsk) check += 1 ; 
+    if(nmsk) check += 1 ; 
+    if(lchi) check += 1 ; 
+
+    if(tub3) check += 1 ; 
+    if(xjac) check += 1 ; 
+    if(xjfc) check += 1 ; 
+    if(sjcl) check += 1 ; 
+    if(sjfx) check += 1 ; 
+    if(sjrc) check += 1 ; 
+    if(sjrf) check += 1 ; 
+    if(facr) check += 1 ; 
+
     assert( check == 0 || check == 1 ) ;  
     return check == 1 ; 
 }
@@ -782,6 +863,13 @@ IGeomManager* PMTSim::getManager(const char* geom)
     bool nmsk = StartsWithPrefix(geom, NMSK ); 
     bool lchi = StartsWithPrefix(geom, LCHI ); 
     bool tub3 = StartsWithPrefix(geom, TUB3 ); 
+    bool xjac = StartsWithPrefix(geom, XJAC ); 
+    bool xjfc = StartsWithPrefix(geom, XJFC ); 
+    bool sjcl = StartsWithPrefix(geom, SJCL ); 
+    bool sjfx = StartsWithPrefix(geom, SJFX ); 
+    bool sjrc = StartsWithPrefix(geom, SJRC ); 
+    bool sjrf = StartsWithPrefix(geom, SJRF ); 
+    bool facr = StartsWithPrefix(geom, FACR ); 
 
     if(hama) mgr = m_hama ; 
     if(nnvt) mgr = m_nnvt ; 
@@ -789,6 +877,13 @@ IGeomManager* PMTSim::getManager(const char* geom)
     if(nmsk) mgr = m_nmsk ; 
     if(lchi) mgr = m_lchi ; 
     if(tub3) mgr = m_tub3 ; 
+    if(xjac) mgr = m_xjac ; 
+    if(xjfc) mgr = m_xjfc ; 
+    if(sjcl) mgr = m_sjcl ; 
+    if(sjfx) mgr = m_sjfx ; 
+    if(sjrc) mgr = m_sjrc ; 
+    if(sjrf) mgr = m_sjrf ; 
+    if(facr) mgr = m_facr ; 
 
     if(mgr == nullptr)
     {
@@ -810,6 +905,13 @@ IGeomManager* PMTSim::getManager(const char* geom)
             << " nmsk " << nmsk
             << " lchi " << lchi
             << " tub3 " << tub3
+            << " xjac " << xjac
+            << " xjfc " << xjfc
+            << " sjcl " << sjcl
+            << " sjfx " << sjfx
+            << " sjrc " << sjrc
+            << " sjrf " << sjrf
+            << " facr " << facr
             << std::endl 
             ;
  
@@ -819,6 +921,20 @@ IGeomManager* PMTSim::getManager(const char* geom)
     return mgr ; 
 }
 
+
+/**
+PMTSim::desc
+-------------
+
+Just need the manager prefix, eg "xjac"
+
+**/
+
+std::string PMTSim::desc(const char* mgr_prefix)
+{
+    IGeomManager* mgr = getManager(mgr_prefix) ; 
+    return mgr ? mgr->desc() : "no-manager" ; 
+}
 
 
 /**
@@ -842,10 +958,17 @@ G4LogicalVolume* PMTSim::getLV(const char* geom)
         << " mgr " << ( mgr ? "Y" : "N" ) 
         << " head [" << ( head ? head : "-" ) << "]"
         << std::endl
+        << " mgr.desc "
+        << std::endl
+        << ( mgr ? mgr->desc() : "-" )
+        << std::endl
         ; 
+
 
     return mgr->getLV(head) ;  // name at this point much have mgr prefix and any option suffix removed 
 }
+
+
 
 NP* PMTSim::getValues(const char* geom)
 {

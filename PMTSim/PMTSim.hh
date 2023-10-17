@@ -19,6 +19,16 @@ class NNVTMaskManager ;
 class LowerChimney ; 
 class Tub3inchPMTV3Manager ; 
 
+class XJanchorConstruction ; 
+class XJfixtureConstruction ; 
+
+class SJCLSanchorConstruction ; 
+class SJFixtureConstruction ;
+class SJReceiverConstruction ;
+class SJReceiverFasternConstruction ;
+
+class FastenerAcrylicConstruction ;
+
 struct IGeomManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
@@ -43,12 +53,32 @@ struct PMTSIM_API PMTSim
     static constexpr const char* LCHI = "lchi" ;  // lower chimney 
     static constexpr const char* TUB3 = "tub3" ;  
 
+    static constexpr const char* XJAC = "xjac" ;  
+    static constexpr const char* XJFC = "xjfc" ;  
+
+    static constexpr const char* SJCL = "sjcl" ;  
+    static constexpr const char* SJFX = "sjfx" ;  
+    static constexpr const char* SJRC = "sjrc" ;  
+    static constexpr const char* SJRF = "sjrf" ;  
+
+    static constexpr const char* FACR = "facr" ; 
+
     const std::string HMSK_STR ;  
     const std::string NMSK_STR ;  
     const std::string LCHI_STR ;  
     const std::string TUB3_STR ;  
 
+    const std::string XJAC_STR ;  
+    const std::string XJFC_STR ;  
 
+    const std::string SJCL_STR ;  
+    const std::string SJFX_STR ;  
+    const std::string SJRC_STR ;  
+    const std::string SJRF_STR ;  
+
+    const std::string FACR_STR ;  
+
+    static G4VSolid* GetSolid();  // arg from GEOM envvar  
     static G4VSolid* GetSolid(const char* name); 
     static NP*       GetValues(const char* name); 
 
@@ -83,6 +113,7 @@ struct PMTSIM_API PMTSim
     static bool StartsWithPrefix(const char* name, const char* prefix) ; 
     static bool Contains(        const char* name, const char* sub) ; 
 
+    static std::string        Desc(const char* name); 
     static G4LogicalVolume*   GetLV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name); 
     static G4VPhysicalVolume* GetPV(const char* name,  std::vector<double>* tr, std::vector<G4VSolid*>* solids); 
@@ -98,6 +129,17 @@ struct PMTSIM_API PMTSim
     LowerChimney*              m_lchi ; 
     Tub3inchPMTV3Manager*      m_tub3 ; 
 
+    XJanchorConstruction*      m_xjac ; 
+    XJfixtureConstruction*     m_xjfc ; 
+
+    SJCLSanchorConstruction*        m_sjcl ; 
+    SJFixtureConstruction*          m_sjfx ; 
+    SJReceiverConstruction*         m_sjrc ; 
+    SJReceiverFasternConstruction*  m_sjrf ; 
+
+    FastenerAcrylicConstruction*    m_facr ; 
+
+
     static bool HasManagerPrefix( const char* name ); 
     IGeomManager* getManager(const char* name); 
 
@@ -105,12 +147,12 @@ struct PMTSIM_API PMTSim
     void init(); 
 
     static const int NAME_OFFSET ; 
+
+    std::string         desc(const char* name); 
     G4LogicalVolume*    getLV(const char* name)  ; 
     G4VPhysicalVolume*  getPV(const char* name) ;
     G4VSolid*           getSolid(const char* name) ;
     NP*                 getValues(const char* name)  ; 
-
-
 
     static const char* Name(const char* prefix, int nx, int ny, int nz, const char* suffix); 
     static G4VPhysicalVolume*   WrapLVGrid( G4LogicalVolume* lv, int nx, int ny, int nz  ); 

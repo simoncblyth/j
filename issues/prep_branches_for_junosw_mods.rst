@@ -13,6 +13,107 @@ Git mechanics of getting working copy changes into multiple branches
 * forced to do jsw+ok integration changes first, as those needed to compile with latest opticks
 
 
+Remainder of mods from laptop to get into main repo
+------------------------------------------------------
+
+::
+
+    epsilon:local blyth$ jo
+    /Users/blyth/junotop/junosw
+    On branch blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping
+    Your branch is up-to-date with 'origin/blyth-add-options-to-skip-expensive-stick-geom-and-toptask-json-dumping'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/FastenerAcrylicConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJCLSanchorConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJCLSanchorConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface, some added G4VSolid members
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJFixtureConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc
+        * NOT SO STRAIGHTFORWARD DUE TO BUGS IN ORIGINAL 
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJReceiverConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJReceiverConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface, some added G4VSolid members
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJReceiverFasternConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJReceiverFasternConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface, some added G4VSolid members
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/XJanchorConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/XJanchorConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface, some added G4VSolid members
+       
+        modified:   Simulation/DetSimV2/CentralDetector/include/XJfixtureConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
+        * straightforward addition of PMTSIM_STANDALONE interface
+
+
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+
+        scp.sh
+
+
+
+Git Mechanics
+---------------
+
+Do the below on both laptop and workstation::
+
+    get fetch origin  # pick up the web interface added branch off main 
+    branch=blyth-add-standalone-debug-interface-to-seven-fixture-solids
+    git checkout -b $branch origin/$branch
+
+On laptop apply the stash into the branch::
+
+    epsilon:junosw blyth$ git stash apply 
+    Auto-merging Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc
+    CONFLICT (content): Merge conflict in Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$ git status
+    On branch blyth-add-standalone-debug-interface-to-seven-fixture-solids
+    Your branch is up-to-date with 'origin/blyth-add-standalone-debug-interface-to-seven-fixture-solids'.
+
+    Changes to be committed:
+      (use "git reset HEAD <file>..." to unstage)
+
+        modified:   Simulation/DetSimV2/CentralDetector/include/FastenerAcrylicConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJCLSanchorConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJFixtureConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJReceiverConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/SJReceiverFasternConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/XJanchorConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/include/XJfixtureConstruction.hh
+        modified:   Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJCLSanchorConstruction.cc
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJReceiverConstruction.cc
+        modified:   Simulation/DetSimV2/CentralDetector/src/SJReceiverFasternConstruction.cc
+        modified:   Simulation/DetSimV2/CentralDetector/src/XJanchorConstruction.cc
+        modified:   Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
+
+    Unmerged paths:
+      (use "git reset HEAD <file>..." to unstage)
+      (use "git add <file>..." to mark resolution)
+
+        both modified:   Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc
+
+    epsilon:junosw blyth$ 
+             
+
+
+
+
 Noddy Approach : AS TOO MANY OLD CHANGES TO INCORPORATE
 ----------------------------------------------------------
 
@@ -285,9 +386,8 @@ Geometry envvar controls and changes to defaults that avoid degenerate PMT surfa
 
 
 
-
-TODO : Review changes as load into the branch blyth-122
-------------------------------------------------------------
+MERGED : Review changes as load into the branch blyth-122 : CONSERVATIVE NO CHANGE
+------------------------------------------------------------------------------------
 
 
 ::

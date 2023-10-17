@@ -520,8 +520,14 @@ JUNOSW Workflow for getting local changes into main
 
 
 
+Get started on bugfix branch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+::
 
+    get fetch origin   # pull down the branch created off main via web interface
+    branch=blyth-123-SJFixtureConstruction-bugfix-use-of-uninitialized
+    git checkout -b $branch origin/$branch   # checkout the branch to put the fix into 
 
 
 

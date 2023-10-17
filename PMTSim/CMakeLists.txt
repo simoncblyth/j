@@ -53,6 +53,8 @@ A successful find of Custom4 sets WITH_CUSTOM4::
 
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/include)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/include)
+
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/SimUtil)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/MCParamsSvc/MCParamsSvc)  # for IMCParamsSvc.hh
 include_directories($ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc)   
@@ -99,6 +101,7 @@ list(APPEND HEADERS_SimUtil
 set(SOURCES)
 set(HEADERS)
 
+
 list(APPEND SOURCES
 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc
@@ -112,6 +115,14 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Solid.cc
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Manager.cc
 
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/SJReceiverFasternConstruction.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/XJanchorConstruction.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/SJCLSanchorConstruction.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/SJReceiverConstruction.cc
 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/junoPMTOpticalModel.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/MultiFilmModel.cc
@@ -134,9 +145,16 @@ list(APPEND SOURCES
      DetectorConstruction.cc
 )
 
+#[=[
+#]=]
+
+
+
+
 set(FORMER_SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
 )
+
 
 
 
@@ -183,6 +201,7 @@ target_compile_definitions( ${name} PRIVATE
        WITH_NP
        POM_DEBUG 
        G4USE_STD11 
+       SJFixtureConstruction_ORIGINAL_WITH_COMPILATION_WARNINGS_AND_BUG 
 )
 # G4USE_STD11 avoids missing symbol G4MTHepRandom::getTheEngine() 
 
