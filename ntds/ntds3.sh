@@ -38,7 +38,7 @@ name=ntds3
 SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
 
-export BASE=/tmp/$USER/opticks/GEOM/$GEOM/ntds3/ALL1
+export BASE=/data/$USER/opticks/GEOM/$GEOM/ntds3/ALL1
 #export BASE=$HOME/.opticks/TMP/$GEOM/ntds3/ALL1
 
 

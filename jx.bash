@@ -871,6 +871,7 @@ EOL
    unset OPTICKS_INPUT_PHOTON
    unset OPTICKS_INPUT_PHOTON_FRAME
 
+
    layout=""
    if [ "$GUN" == "0" ]; then 
 
@@ -878,7 +879,7 @@ EOL
        #ipho=RainXZ_Z230_1000_f8.npy
        #ipho=RainXZ_Z230_10k_f8.npy        
        #ipho=RainXZ_Z230_100k_f8.npy
-       ipho=RainXZ_Z230_1M_f8.npy
+       ipho=RainXZ_Z230_1M_f8.npy  
 
        #ipho=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
        #ipho=GridXY_X700_Z230_10k_f8.npy 
@@ -907,9 +908,10 @@ EOL
 
 
 
-   vars="BASH_SOURCE FUNCNAME OPTICKS_PREFIX IPHO OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME MOI trgs"
+   vars="BASH_SOURCE TMP FUNCNAME OPTICKS_PREFIX IPHO OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME MOI trgs"
    for var in $vars ; do printf " %30s : %s \n" "$var" "${!var}" ; done 
 
+   export TMP=/data/blyth/opticks
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
    #export OPTICKS_MAX_PHOTON=10000

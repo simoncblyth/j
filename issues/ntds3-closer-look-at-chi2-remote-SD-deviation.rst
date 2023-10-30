@@ -490,7 +490,11 @@ Can I find the transform from 26601 ? YEP the inst index is saved with the recor
 
 
 
-SEL=
+28/1M LEVEL ISSUE::
+
+    C2CUT=100 SEL="TO BT BT BT BT BR BT BT BT BT BT BT BT BT BT SD" ~/j/ntds/ntds3.sh 
+                      [---------]   [----------][------------??]
+
 
 
 ::
@@ -512,6 +516,7 @@ SEL=
     APID=134671 PICK=A NOGRID=1 INST_FRAME=28998 ~/j/ntds/ntds3.sh 
     APID=138938 PICK=A NOGRID=1 INST_FRAME=29285 ~/j/ntds/ntds3.sh 
     APID=140473 PICK=A NOGRID=1 INST_FRAME=29403 ~/j/ntds/ntds3.sh 
+    APID=142808 PICK=A NOGRID=1 INST_FRAME=29586 ~/j/ntds/ntds3.sh 
 
 
 HMM : tis awkward navigating to the remote PMT after the bounce, how to jump to a different frame ? 
@@ -540,5 +545,10 @@ Need to find the correct remote instance for the photon::
            [26601,     1,     9],
            [29403,    10,     6]])
 
+    In [7]: np.c_[np.unique( a.f.record[142808,:,1,3].view(np.int32), return_index=True, return_counts=True )]                                   
+    Out[7]: 
+    array([[    0,     0,    17],
+           [26601,     1,     9],
+           [29586,    10,     6]])
 
 
