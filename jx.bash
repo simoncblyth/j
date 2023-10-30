@@ -913,7 +913,8 @@ EOL
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
    #export OPTICKS_MAX_PHOTON=10000
-   export OPTICKS_MAX_PHOTON=100000
+   #export OPTICKS_MAX_PHOTON=100000
+   export OPTICKS_MAX_PHOTON=1000000
 
    export POM=${POM:-1}
    export VERSION=${N:-1}

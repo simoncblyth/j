@@ -76,8 +76,20 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     print("GLOBAL:%d MODE:%d SEL:%s" % (GLOBAL,MODE, SEL))
 
-    a = SEvt.Load("$AFOLD", symbol="a")
-    b = SEvt.Load("$BFOLD", symbol="b")
+    INST_FRAME = int(os.environ.get("INST_FRAME","-1"))
+    if INST_FRAME == -1:
+        print("using default sframe saved with the sevt")
+        M2W_OVERRIDE = None 
+        W2M_OVERRIDE = None 
+    else: 
+        print("W2M_OVERRIDE obtained from cf.inst controlled by envvar INST_FRAME %d " % INST_FRAME )
+        M2W_OVERRIDE = np.eye(4)  
+        M2W_OVERRIDE[:,:3] = cf.inst[INST_FRAME][:,:3]  
+        W2M_OVERRIDE = np.linalg.inv(M2W_OVERRIDE)
+    pass
+
+    a = SEvt.Load("$AFOLD", symbol="a", W2M=W2M_OVERRIDE)
+    b = SEvt.Load("$BFOLD", symbol="b", W2M=W2M_OVERRIDE)
     #print(repr(a))
     #print(repr(b))
 
@@ -138,9 +150,6 @@ if __name__ == '__main__':
         ee = []
     pass 
 
-
-
-
     context = "PICK=%s MODE=%d SEL=%s ~/j/ntds/ntds3.sh " % (PICK, MODE, SEL )
     print(context)
 
@@ -162,7 +171,12 @@ if __name__ == '__main__':
         elif MODE == 3:
             pl = pvplt_plotter(label)
             pvplt_viewpoint(pl)   # sensitive to EYE, LOOK, UP envvars
-            pvplt_frame(pl, e.f.sframe, local=not GLOBAL )
+
+            if not "NOFRAME" in os.environ:
+                pvplt_frame(pl, e.f.sframe, local=not GLOBAL )
+            else:
+                print(" ntds3.py NOFRAME ")
+            pass
         pass
 
 
@@ -177,6 +191,8 @@ if __name__ == '__main__':
         else:
             wii = slice(None)
         pass
+
+        #wii = slice(0,10000)  # reduce stats for debug 
        
 
         #pp = e.f.inphoton[:,0,:3]
@@ -188,7 +204,18 @@ if __name__ == '__main__':
 
         gpos = np.ones( [len(pp), 4 ] )
         gpos[:,:3] = pp
-        lpos = np.dot( gpos, e.f.sframe.w2m ) # hmm unfilled global zeros are transformed somewhere
+
+        # INST_FRAME enables seeing the photon history 
+        # points in a remote PMT 
+        if W2M_OVERRIDE is None:
+            print("get presentation frames m2w w2m from e.f.sframe " )
+            W2M = e.f.sframe.w2m
+        else:
+            W2M = W2M_OVERRIDE
+        pass
+        print("W2M\n",W2M)
+
+        lpos = np.dot( gpos, W2M )   # hmm unfilled global zeros getting transformed somewhere
 
         # problem with selecting on gr is loss of the regular photon blocks
         #gr = np.sqrt(np.sum(gpos[:,:3]*gpos[:,:3], axis=1))    
