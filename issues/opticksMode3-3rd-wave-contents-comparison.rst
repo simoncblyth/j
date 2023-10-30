@@ -37,6 +37,8 @@ There are two possible ways to fix this
 1. implement OSUR implicits in the old workflow within X4PhysicalVolume::convertImplicitSurfaces_r
 2. drop the old workflow X4/GGeo/.. by leaping to using CSGFoundry::CreateFromSim 
    which does CSGFoundry::importSim using SSim+stree imputs
+
+   * DID THIS : DROPPING THE OLD WORKFLOW
     
 While the first is easier in the shortterm it is not the best in the longterm.
 As really need to drop the old code to avoid similar such problems in future. 

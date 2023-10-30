@@ -1,5 +1,10 @@
-prep_branches_for_junosw_mods
-================================
+prep_branches_for_junosw_mods 
+======================================
+
+TODO : update junoenv Custom4 version
+-------------------------------------------
+
+
 
 Git mechanics of getting working copy changes into multiple branches
 ----------------------------------------------------------------------
@@ -225,9 +230,6 @@ Progress
      This change has no impact on the simulation : it just allows these 4 or 5 solids 
      to be easily tested standalone.  
 
-
-TODO : update junoenv Custom4 version
--------------------------------------------
 
 
 DONE : Review Custom4 : Oct 7 2023 : added tag 

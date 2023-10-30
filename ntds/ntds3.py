@@ -23,6 +23,7 @@ GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
 PICK = os.environ.get("PICK","A") 
 SEL = os.environ.get("SEL","") 
+SEL_SPECIAL = [None,"BOX",]
 BOX = float(os.environ.get("BOX","500")) 
 H,O,V = 0,1,2  # horizontal, other, vertical  (X,Y,Z)
 
@@ -80,8 +81,24 @@ if __name__ == '__main__':
     #print(repr(a))
     #print(repr(b))
 
+    if not SEL in SEL_SPECIAL:
+        wa = a.q_startswith(SEL) 
+        wb = b.q_startswith(SEL)
+        print("SEL:%s len(wa):%d len(wb):%d " % ( SEL, len(wa), len(wb) )) 
+    else:
+        print("none or special SEL : use eg SEL=\"TO BT BT SA\" to select wa and wb indices ") 
+        wa = None
+        wb = None
+    pass
+
+
+    print("[--- ab = SAB(a,b) ----")
     ab = SAB(a,b)
+    print("]--- ab = SAB(a,b) ----")
+
+    print("[----- repr(ab) ")
     print(repr(ab))
+    print("]----- repr(ab) ")
 
 
     ahit_ = a.f.hit[:,1,3].view(np.int32)   ## iindex
@@ -98,7 +115,9 @@ if __name__ == '__main__':
 
 
     #sli="[:]"  allowing everything makes for big tables of low stat histories
-    sli="[:15]"
+    #sli="[:15]"
+    #sli="[:25]"
+    sli="[:50]"
     at = a.minimal_qtab(sli=sli)  
     bt = b.minimal_qtab(sli=sli)  
 
@@ -193,7 +212,9 @@ if __name__ == '__main__':
         pass
 
         if MODE == 2:
-            ax.scatter( upos[:,H], upos[:,V], s=0.1 )
+            if not "ONLYSEL" in os.environ:
+                ax.scatter( upos[:,H], upos[:,V], s=0.1 )
+            pass
             if not spos is None:
                 print("ax.scatter spos " )
                 ax.scatter( spos[:,H], spos[:,V], s=0.1, c="r" )
@@ -201,9 +222,11 @@ if __name__ == '__main__':
                 print("NOT:ax.scatter spos " )
             pass
         elif MODE == 3:
-            pl.add_points(upos[:,:3])
+            if not "ONLYSEL" in os.environ:
+                pl.add_points(upos[:,:3])
+            pass
             if not spos is None:
-                ax.add_points( spos[:,H], spos[:,V], s=0.1, color="red" )
+                pl.add_points( spos[:,:3], color="red" )
             pass
         else:
             pass

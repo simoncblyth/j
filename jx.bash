@@ -877,7 +877,9 @@ EOL
        #ipho=RainXZ_Z230_100_f8.npy        
        #ipho=RainXZ_Z230_1000_f8.npy
        #ipho=RainXZ_Z230_10k_f8.npy        
-       ipho=RainXZ_Z230_100k_f8.npy
+       #ipho=RainXZ_Z230_100k_f8.npy
+       ipho=RainXZ_Z230_1M_f8.npy
+
        #ipho=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
        #ipho=GridXY_X700_Z230_10k_f8.npy 
        #ipho=GridXY_X1000_Z1000_40k_f8.npy
