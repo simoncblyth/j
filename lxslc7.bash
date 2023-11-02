@@ -8,10 +8,26 @@ usage(){ cat << EOU
 j/lxslc7.bash
 ===============
 
-After login use afs function to AFS authenticate 
+0. Login with L7 or L708 
+1. Use "afs" function to AFS authenticate : giving node pw
+2. cd j ; git pull : giving rsa pw 
 
-This contains bash functions for 
-slurm job submission 
+g 
+   cd to \$G $G  
+job
+   path to the \$(job) $(job) 
+so
+   cd to outputs directory 
+sj
+   edit the job script
+sr
+   srun : interactively run the job script
+sb 
+   sbatch : submit job script
+sq
+   squeue
+
+
 
 EOU
 }
