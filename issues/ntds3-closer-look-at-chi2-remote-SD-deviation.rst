@@ -132,42 +132,6 @@ Try to increase photon stats from 100k to 1M with RainXZ_Z230_1M_f8.npy
         at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:31
 
 
-
-That will probably run out of GPU memory with full recording enabled::
-
-    N[blyth@localhost ~]$ nvidia-smi
-    Mon Oct 30 12:34:37 2023       
-    +-----------------------------------------------------------------------------+
-    | NVIDIA-SMI 435.21       Driver Version: 435.21       CUDA Version: 10.1     |
-    |-------------------------------+----------------------+----------------------+
-    | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-    | Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-    |===============================+======================+======================|
-    |   0  TITAN RTX           Off  | 00000000:73:00.0  On |                  N/A |
-    | 40%   32C    P8    15W / 280W |    421MiB / 24219MiB |      0%      Default |
-    +-------------------------------+----------------------+----------------------+
-    |   1  TITAN V             Off  | 00000000:A6:00.0 Off |                  N/A |
-    | 35%   51C    P8    29W / 250W |    545MiB / 12066MiB |      0%      Default |
-    +-------------------------------+----------------------+----------------------+
-                                                                                   
-    +-----------------------------------------------------------------------------+
-    | Processes:                                                       GPU Memory |
-    |  GPU       PID   Type   Process name                             Usage      |
-    |=============================================================================|
-    |    0     20865      G   /usr/bin/X                                    24MiB |
-    |    0     21503      G   /usr/bin/gnome-shell                         102MiB |
-    |    0     22134      G   /usr/bin/X                                   122MiB |
-    |    0     22918      G   /usr/bin/gnome-shell                         159MiB |
-    |    1      9854      C   ...p/ExternalLibs/Python/3.8.12/bin/python   533MiB |
-    +-----------------------------------------------------------------------------+
-    N[blyth@localhost ~]$ 
-
-
-Looks like currently using GPU 1 (TITAN V) with only 12G.  
-How to switch to GPU 0 (TITAL RTX) with 24G ?
-
-First access to GPU probably the uploads done in CSGOptiX::Create 
-
 ::
 
     epsilon:n001 blyth$ i

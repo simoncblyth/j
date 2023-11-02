@@ -69,6 +69,7 @@ NP* PMTSim::ModelTrigger_Debug_Array()   // static
     const char* IMPL = junoPMTOpticalModel::ModelTrigger_IMPL_Name() ; 
     assert(IMPL); 
     mtda->set_meta<std::string>("IMPL", IMPL); 
+    mtda->set_meta<std::string>("NAME", ModelTrigger_Debug::NAME ); 
     return mtda ; 
 }
 

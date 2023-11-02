@@ -53,7 +53,7 @@ tds-(){
     cd $iwd
 }
 
-gpujob-setup()
+gpujob-setup-old()
 {
    local msg="=== $FUNCNAME:"
    echo $msg $USER
@@ -80,6 +80,14 @@ gpujob-setup()
    env | grep TMP
 }
 
+gpujob-setup()
+{
+   echo $FUNCNAME
+   export HOME=/hpcfs/juno/junogpu/$USER   # avoid /afs and control where to put .opticks/rngcache/RNG/
+
+}
+
+
 gpujob-head(){ 
    hostname 
    nvidia-smi   
@@ -93,7 +101,7 @@ gpujob-body()
    #opticks-full-prepare  # create rngcache files
    #tds0
    #tds
-   opticks-t
+   #opticks-t
    #ls -alst /tmp/blyth/opticks/
  
    ls -l /tmp | grep blyth
