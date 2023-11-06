@@ -1936,8 +1936,6 @@ CVMFS setup
 
 * https://juno.ihep.ac.cn/trac/browser/offline/trunk/installation/junoenv/docker/Dockerfile-cvmfs
 
-
-
 Install Link
 ---------------
 
