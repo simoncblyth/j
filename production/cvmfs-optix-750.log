@@ -1,0 +1,50 @@
+
+
+Using target directory: /cvmfs/opticks.ihep.ac.cn/external/NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64
+Extracting, please wait...
+
+Unpacking finished successfully
+[optickspub@cvmfs-stratum-zero-b external]$ ls -l 
+total 56496
+drwxrwxr-x 5 optickspub optickspub       59 Nov 12 16:24 NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64
+-rw-r--r-- 1 optickspub optickspub 57849566 Nov 12 16:21 NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64.sh
+[optickspub@cvmfs-stratum-zero-b external]$ rm NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64.sh
+[optickspub@cvmfs-stratum-zero-b external]$ ln -s NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64 OptiX_750
+[optickspub@cvmfs-stratum-zero-b external]$ ls -l 
+total 0
+drwxrwxr-x 5 optickspub optickspub 59 Nov 12 16:24 NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64
+lrwxrwxrwx 1 optickspub optickspub 37 Nov 12 16:25 OptiX_750 -> NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64
+[optickspub@cvmfs-stratum-zero-b external]$ cd /cvmfs
+[optickspub@cvmfs-stratum-zero-b cvmfs]$ cvmfs_server publish -m "NVIDIA OptiX 7.5.0 distribution extracted with sh NVIDIA-OptiX-SDK-7.5.0-linux64-x86_64.sh" opticks.ihep.ac.cn
+Using auto tag 'generic-2023-11-12T08:27:00Z'
+WARNING: cannot apply pathspec /software/*/*
+WARNING: cannot apply pathspec /software/*/*/*
+Processing changes...
+......
+Waiting for upload of files before committing...
+Committing file catalogs...
+Wait for all uploads to finish
+Exporting repository manifest
+Statistics stored at: /var/spool/cvmfs/opticks.ihep.ac.cn/stats.db
+Tagging opticks.ihep.ac.cn
+Flushing file system buffers
+Signing new manifest
+Remounting newly created repository revision
+[optickspub@cvmfs-stratum-zero-b cvmfs]$ 
+[optickspub@cvmfs-stratum-zero-b cvmfs]$ 
+[optickspub@cvmfs-stratum-zero-b cvmfs]$ 
+[optickspub@cvmfs-stratum-zero-b cvmfs]$ exit
+logout
+Connection to cvmfs-stratum-zero.ihep.ac.cn closed.
+L7[blyth@lxslc701 external]$ cd /cvmfs/opticks.ihep.ac.cn/external/
+L7[blyth@lxslc701 external]$ ls -l 
+total 0
+L7[blyth@lxslc701 external]$ l
+
+
+HOW LONG DOES THIS TAKE 
+
+L7[blyth@lxslc701 external]$ ls -l /cvmfs/opticks.ihep.ac.cn/external/
+total 0
+
+
