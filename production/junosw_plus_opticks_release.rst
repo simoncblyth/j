@@ -291,8 +291,8 @@ Old bashrc : hooks up the opticks- functions from source tree ?
 
 
 
-HOW TO PROCEED : "bash junoenv opticks tar" ?
-------------------------------------------------
+HOW TO PROCEED : "bash junoenv opticks tar" ? NO : just use /cvmfs release
+------------------------------------------------------------------------------
 
 ::
 
@@ -368,8 +368,8 @@ Next step : try to get "jo ; ./build_Debug.sh " to build against that binary opt
    is defined correctly 
 
 
-Issue 1 : CMAKE_MODULE_PATH
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Issue 1 : FindOpticks.cmake FAIL : fixed by changing cmake/legacy/JUNODependencies.cmake to use OPTICKS_PREFIX
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -380,52 +380,12 @@ Issue 1 : CMAKE_MODULE_PATH
       cmake/legacy.cmake:28 (include)
       CMakeLists.txt:53 (include)
 
-
     CMake Warning (dev) at cmake/legacy/JUNODependencies.cmake:171 (find_package):
       FindOpticks.cmake must either be part of this project itself, in this case
       adjust CMAKE_MODULE_PATH so that it points to the correct location inside
       its source tree.
 
-      Or it must be installed by a package which has already been found via
-      find_package().  In this case make sure that package has indeed been found
-      and adjust CMAKE_MODULE_PATH to contain the location where that package has
-      installed FindOpticks.cmake.  This must be a location provided by that
-      package.  This error in general means that the buildsystem of this project
-      is relying on a Find-module without ensuring that it is actually available.
-
-    Call Stack (most recent call first):
-      cmake/legacy.cmake:28 (include)
-      CMakeLists.txt:53 (include)
-    This warning is for project developers.  Use -Wno-dev to suppress it.
-
-
-Check ~/opticks/examples/UseRelease/build.sh then try to kludge it it JUNOTOP/bashrc.sh::
-
-     47 source /cvmfs/opticks.ihep.ac.cn/ok/releases/Opticks-v0.2.1/x86_64-CentOS7-gcc1120-geant4_10_04_p02-dbg/bashrc
-     48 export CMAKE_MODULE_PATH=$OPTICKS_PREFIX/cmake/Modules
-     49 
-     50 export JUNOTOP=$(cd $(dirname $BASH_SOURCE) && pwd)
-
-
-Setting the envvar not enough need to pass it to CMake::
-
-    160 ## Pass CMAKE_MODULE_PATH into a CMake variable when corresponding envvar defined
-    161 function var-CMakeModulePath-envvar(){ echo JUNO_CMAKE_MODULE_PATH ; }
-    162 function var-CMakeModulePath-value(){ echo -DCMAKE_MODULE_PATH=$CMAKE_MODULE_PATH ; }
-    163 function var-CMakeModulePath-value-if-disabled(){ echo -n ; }
-
-
-cmake/legacy/JUNODependencies.cmake is assuming source tree::
-
-    167 ## Opticks
-    168 if(DEFINED ENV{OPTICKS_PREFIX})
-    169    set(Opticks_VERBOSE YES)
-    170    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{JUNOTOP}/opticks/cmake/Modules")
-    171    find_package(Opticks MODULE)
-    172    message(STATUS "${CMAKE_CURRENT_LIST_FILE} : Opticks_FOUND:${Opticks_FOUND}" )
-    173 endif()
-
-Fixing that, then maybe the other changes above not needed::
+cmake/legacy/JUNODependencies.cmake was assuming source tree, fixed that::
 
     ## Opticks
     if(DEFINED ENV{OPTICKS_PREFIX})
@@ -435,7 +395,6 @@ Fixing that, then maybe the other changes above not needed::
        find_package(Opticks MODULE)
        message(STATUS "${CMAKE_CURRENT_LIST_FILE} : Opticks_FOUND:${Opticks_FOUND}" )
     endif()
-
 
 
 TODO : switch to config finding for opticks not module finding ? 
