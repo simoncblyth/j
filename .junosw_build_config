@@ -1,23 +1,36 @@
-# ~/.bash_profile > ~/.bashrc > ~/.junosw_build_config
+# ~/.bash_profile > ~/.bashrc > ~/j/.junosw_build_config
 
+jre_notes(){ cat << EON
+
+# export JUNO_EXTLIB_COLLECTION=$JUNOTOP/junoenv/collections/22.1.sh   ## config old set of versions for junoenv to use
+# export PREVIOUS_JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs
+# export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs
+
+EON
+}
 
 jre(){ 
     : ~/j/.junosw_build_config
+
     : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont;
 
     export JUNOTOP=$HOME/junotop
-    source $JUNOTOP/bashrc.sh;
-    source $JUNOTOP/sniper/InstallArea/bashrc;
-    source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh;
-    source $JUNOTOP/mt.sniper/InstallArea/bashrc;
 
-    local setup=$JUNOTOP/junosw/InstallArea/setup.sh;
-    [ -s "$setup" ] && source $setup
+    _source(){ [ -s "$1" ] && source "$1" ; }
+    _source $JUNOTOP/bashrc.sh;
+    _source $JUNOTOP/sniper/InstallArea/bashrc;
+    _source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh;
+    _source $JUNOTOP/mt.sniper/InstallArea/bashrc;
+    _source $JUNOTOP/junosw/InstallArea/setup.sh
 
-    jt(){ cd $JUNOTOP && pwd ; }
-    je(){ cd $JUNOTOP/junoenv && pwd && git status ; }
-    jo(){ cd $JUNOTOP/junosw  && pwd && git status ; }
+    jt(){ cd $JUNOTOP && pwd ; } 
+    je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
+    jo(){ cd $JUNOTOP/junosw  && pwd && git status ; } 
+
 }
+
+
+
 
 
 

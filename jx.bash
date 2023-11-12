@@ -222,7 +222,7 @@ jx-runtime-env()
    fi
 }
 
-jre(){  
+old_jre(){  
    jx-runtime-env 
    jo 
    if [ -n "$OPTICKS_PREFIX" ]; then
