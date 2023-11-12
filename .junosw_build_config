@@ -1,0 +1,23 @@
+# ~/.bash_profile > ~/.bashrc > ~/.junosw_build_config
+
+
+jre(){ 
+    : ~/j/.junosw_build_config
+    : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont;
+
+    export JUNOTOP=$HOME/junotop
+    source $JUNOTOP/bashrc.sh;
+    source $JUNOTOP/sniper/InstallArea/bashrc;
+    source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh;
+    source $JUNOTOP/mt.sniper/InstallArea/bashrc;
+
+    local setup=$JUNOTOP/junosw/InstallArea/setup.sh;
+    [ -s "$setup" ] && source $setup
+
+    jt(){ cd $JUNOTOP && pwd ; }
+    je(){ cd $JUNOTOP/junoenv && pwd && git status ; }
+    jo(){ cd $JUNOTOP/junosw  && pwd && git status ; }
+}
+
+
+

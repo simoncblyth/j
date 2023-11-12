@@ -33,26 +33,30 @@ EOU
 }
 afs(){ type $FUNCNAME && kinit $USER && aklog -d ; }
 
-
-
 ipy(){ HOME=$G PYTHONPATH= /cvmfs/juno.ihep.ac.cn/sw/anaconda/Anaconda3-2020.11-Linux-x86_64/envs/root622/bin/ipython $* ; }
 
 g(){ cd $G ; }
-job(){ echo $G/j/gpujob.sh ; }
+#job(){ echo $G/j/gpujob.sh ; }
+job(){ echo $G/j/okjob.sh ; }
 
-so(){ cd $G/gpujob ; }
-sj(){ vim $(job) ; }
-sc(){ cat $(job) ; }
+#so(){ cd $G/gpujob ; }
+so(){ cd $G/okjob ; }
+sj(){ vim $(job) ; : ~/j/lxslc7.bash ; }
+sc(){ cat $(job) ; : ~/j/lxslc7.bash ; }
 sr(){ srun --partition=gpu --account=junogpu --gres=gpu:v100:1 $(job) ; }
 sb(){ sbatch $(job) ; squeue  ; }
 sq(){ squeue ; }
+squ(){ squeue -u $USER ; }
+sqw(){ watch squeue -u $USER ; }
 sf(){
-   type so
-   type sj
-   type sc
-   type sr
-   type sb
-   type sq
+   typeset -f so
+   typeset -f sj
+   typeset -f sc
+   typeset -f sr
+   typeset -f sb
+   typeset -f sq
+   typeset -f squ
+   typeset -f sqw
 }
 
 rmcore(){ rm core.* ; }
