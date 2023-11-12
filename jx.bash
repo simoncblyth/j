@@ -540,8 +540,6 @@ tds0(){
    tds- $opts gun $*
 }
 
-
-
 anamgr(){ cat << EOU
 --opticks-anamgr
 --no-anamgr-normal
@@ -554,6 +552,7 @@ anamgr(){ cat << EOU
 --no-anamgr-optical-parameter
 --no-anamgr-timer
 EOU
+   : opticks-anamgr is used by the U4Recorder
 }
 
 anamgr-normal(){ cat << EOU
