@@ -32,7 +32,7 @@ jok-tds(){
 
    export OPTICKS_SCRIPT=$FUNCNAME  # avoid default sproc::_ExecutableName of python3.9 
    export OPTICKS_INTEGRATION_MODE=$mode
-   export GEOM=J23.1.0-rc3-ok0     # geometry label used for SEvt and CSGFoundry output directories 
+   export GEOM=J23_1_0_rc3_ok0   # replace . and - with _ to make valid bash identifier
 
    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
@@ -70,7 +70,7 @@ jok-tds(){
       1) opts="$opts --debug-disable-fa" ;; 
    esac
 
-   opts="$opts $(ok-anamgr) "
+   opts="$opts $(jok-anamgr) "
 
 
 
@@ -114,6 +114,17 @@ jok-anamgr(){ cat << EOU
 --no-anamgr-timer
 EOU
    : opticks-anamgr is used by the U4Recorder
+}
+
+jok-grab(){
+   : ~/j/jok.bash  
+   source $HOME/.opticks/GEOM/GEOM.sh 
+   local tmp=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds
+
+   local vars="BASH_SOURCE FUNCNAME tmp TMP GEOM OPTICKS_HOME"
+   for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
+
+   source $OPTICKS_HOME/bin/rsync.sh $tmp 
 }
 
 
