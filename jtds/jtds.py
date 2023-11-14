@@ -4,6 +4,7 @@ import os, logging, numpy as np
 from opticks.sysrap.sevt import SEvt, SAB
 from opticks.ana.p import cf  
 
+GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
 PICK = os.environ.get("PICK","A") 
 
@@ -39,5 +40,57 @@ if __name__ == '__main__':
     print("[----- repr(ab) ")
     print(repr(ab))
     print("]----- repr(ab) ")
+
+
+    assert PICK in ["A","B","AB","BA", "CF"]
+    if PICK == "A":
+        ee = [a,]
+    elif PICK == "B":
+        ee = [b,]
+    elif PICK == "AB":
+        ee = [a,b,]
+    elif PICK == "BA":
+        ee = [b,a,]
+    elif PICK == "CF":
+        ee = []
+    pass
+
+    context = "PICK=%s MODE=%d  ~/j/jtds/jtds.sh " % (PICK, MODE )
+    print(context)
+
+
+    for e in ee: 
+        if e is None:continue
+        pos = e.f.photon[:,0,:3]
+        sel = np.where(e.f.record[:,:,2,3] > 0) # select on wavelength to avoid unfilled zeros
+        poi = e.f.record[:,:,0,:3][sel]
+
+        W2M = e.f.sframe.w2m if W2M_OVERRIDE is None else W2M_OVERRIDE
+        print("W2M\n",W2M)
+
+        gpos = np.ones( [len(pos), 4 ] ) 
+        gpos[:,:3] = pos
+        lpos = np.dot( gpos, W2M )   # hmm unfilled global zeros getting transformed somewhere
+        upos = gpos if GLOBAL else lpos
+
+        gpoi = np.ones( [len(poi), 4 ] ) 
+        gpoi[:,:3] = poi
+        lpoi = np.dot( gpoi, W2M )
+        upoi = gpoi if GLOBAL else lpoi
+
+
+
+        elabel = "%s : %s " % ( e.symbol.upper(), e.f.base )
+        label = context + " ## " + elabel
+
+        if MODE == 3 and not pv is None:
+            pl = pvplt_plotter(label)
+            pvplt_viewpoint(pl) # sensitive EYE, LOOK, UP, ZOOM envvars eg EYE=0,-3,0 
+            pl.add_points( upoi[:,:3], color="green", point_size=3.0 )
+            pl.add_points( upos[:,:3], color="red", point_size=3.0 )
+            pl.show_grid()
+            cp = pl.show()
+        pass
+    pass
 
  
