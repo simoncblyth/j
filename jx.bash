@@ -838,7 +838,6 @@ ntds()  # see j.bash for ntds3_old  #0b11   Running with both Geant4 and Opticks
    if [ -n "$GEOM" ]; then 
        #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
-       export G4CXOpticks__saveGeometry_saveGGeo=1 
        export G4CXOpticks=INFO   # to see the directory 
    else
        echo $msg GEOM not defined : set GEOM to save the geometry to $HOME/.opticks/GEOM/$GEOM

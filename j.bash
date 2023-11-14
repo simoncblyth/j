@@ -8,6 +8,7 @@ Common source for JUNO high level bash functions
 
 
 * https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/releases/J23.1.0-rc3
 
 
 * https://login.ihep.ac.cn

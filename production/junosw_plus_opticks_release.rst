@@ -401,7 +401,79 @@ TODO : switch to config finding for opticks not module finding ?
 -------------------------------------------------------------------
   
 
-TODO : create minimal script to run with opticks
+WIP : create minimal script to run with opticks
 -------------------------------------------------
+
+* j/ok.bash:ok-tds 
+
+
+
+N : hookup old style source opticks build for faster cycle than making releases
+---------------------------------------------------------------------------------
+
+Comment the opticks release hookup in bashrc.sh::
+
+     42 source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J23.1.0-rc3/ExternalLibs/libonnxruntime/1.11.1/bashrc
+     43 
+     44 # hookup opticks release 
+     45 # source /cvmfs/opticks.ihep.ac.cn/ok/releases/Opticks-v0.2.1/x86_64-CentOS7-gcc1120-geant4_10_04_p02-dbg/bashrc
+     46 
+     47 # hookup opticks source build prefix dir
+     48 # source /home/blyth/junotop/ExternalLibs/opticks/head/bashrc
+     49 
+     50 export JUNOTOP=$(cd $(dirname $BASH_SOURCE) && pwd)
+     51 
+
+
+To ~/j/.junosw_build_config jre add func::
+
+    _jre_opticks_workstation_source_build_env()
+    {
+        : ~/j/.junosw_build_config
+        : this setup enables opticks-full source build ... so its bootstrapping 
+        : mostly NOT needed for release running
+
+        export OPTICKS_DOWNLOAD_CACHE=/data/opticks_download_cache
+        export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
+        export OPTICKS_OPTIX_PREFIX=/home/blyth/local/opticks/externals/OptiX_750
+        export OPTICKS_COMPUTE_CAPABILITY=70
+
+        export OPTICKS_PREFIX=/data/blyth/junotop/ExternalLibs/opticks/head
+        export OPTICKS_HOME=/data/blyth/junotop/opticks
+        export TMP=/data/blyth/opticks
+
+        o(){  cd $JUNOTOP/opticks && pwd && git status ; } 
+        opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; } 
+        opticks-
+
+        oo(){ opticks- ; cd $(opticks-home) ; om- ; om-- ;  }   
+
+        : env setup used by om- oe- needs the opticks-setup.sh 
+        : generated as part of opticks-full : so "oo" only works
+        : for rebuilding after small changes, not initial building
+    }
+
+
+This enables first time build using junosw base externals::
+
+    N
+    opticks-full 
+
+
+
+Hmm the spath.h changes are insufficient need to handle DefaultOutputDir resolution::
+
+    2023-11-14 14:04:32.864 INFO  [353885] [SEvt::getOutputDir@3162] 
+     base_  $DefaultOutputDir
+     reldir   ALLVERSION
+     sidx   p001
+     path   UNRESOLVED_TOKEN_DefaultOutputDir/ALLVERSION/p001
+
+    2023-11-14 14:04:32.864 INFO  [353885] [SEvt::save@3331]  dir UNRESOLVED_TOKEN_DefaultOutputDir/ALLVERSION/p001 index 1 instance 0 OPTICKS_SAVE_COMP  genstep,photon,hit,domain,inphoton
+    [ sframe::save  dir : UNRESOLVED_TOKEN_DefaultOutputDir/ALLVERSION/p001 name: sframe
+    ] sframe::save 
+    2023-11-14 14:04:32.920 INFO  [353885] [SEvt::clear_except@1445] SEvt::clear_except
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 352923 hcMuon 0 hcOpticks 925 GP
+
 
 
