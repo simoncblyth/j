@@ -1,9 +1,11 @@
 #!/bin/bash -l
-# ~/j/ok.bash 
-# ~/.bash_profile > ~/.bashrc > ~/j/ok.bash
-
-ok-notes(){ cat << EON
-~/j/ok.bash
+# ~/j/jok.bash 
+# ~/.bash_profile > ~/.bashrc > ~/j/jok.bash
+jok-source(){ echo $BASH_SOURCE ; }
+jok-vi(){ vi $BASH_SOURCE ; }
+jok-(){ source $BASH_SOURCE ; }
+jok-notes(){ cat << EON
+~/j/jok.bash
 ============
 
 Aim is for minimal bash functions to test junosw+opticks
@@ -11,24 +13,38 @@ as the jx.bash funcs have grown into monsters.
 
 Usage::
 
-   source ~/j/ok.bash 
-   ok-tds 
+   source ~/j/jok.bash 
+   jok-tds 
 
 EON
 }
 
 
-ok-tds-(){
+jok-tds-(){
    local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
    python $script $*
 }
 
-ok-tds(){
+jok-tds(){
 
    local mode=3 
    local evtmax=1
 
+   export OPTICKS_SCRIPT=$FUNCNAME  # avoid default sproc::_ExecutableName of python3.9 
    export OPTICKS_INTEGRATION_MODE=$mode
+   export GEOM=J23.1.0-rc3-ok0     # geometry label used for SEvt and CSGFoundry output directories 
+
+   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
+   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
+   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
+
+   export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+
+   export OPTICKS_EVENT_MODE=StandardFullDebug
+   export OPTICKS_MAX_BOUNCE=31
+   export OPTICKS_MAX_PHOTON=1000000
+
+
    local opts="" 
    opts="$opts --evtmax $evtmax"
    opts="$opts --opticks-mode $mode"   
@@ -36,17 +52,20 @@ ok-tds(){
    opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --no-toptask-show"
 
-   case ${NOXJ:-1} in 
+   NOXJ=${NOXJ:-1}
+   case $NOXJ in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-xj" ;; 
    esac
 
-   case ${NOSJ:-1} in 
+   NOSJ=${NOSJ:-1}
+   case $NOSJ in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-sj" ;; 
    esac
 
-   case ${NOFA:-1} in 
+   NOFA=${NOFA:-1}
+   case $NOFA in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-fa" ;; 
    esac
@@ -54,12 +73,14 @@ ok-tds(){
    opts="$opts $(ok-anamgr) "
 
 
+
    local gun_default="gun"
    local gun_wangyg="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   case ${GUN:-0} in  
+   GUN=${GUN:-0}
+   case $GUN in  
      0) trgs="$trgs opticks"  ;;
      1) trgs="$trgs $gun_default" ;;
      2) trgs="$trgs $gun_wangyg" ;;
@@ -70,12 +91,17 @@ ok-tds(){
        export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
    fi
 
-   ok-tds- $opts $trgs 
+   local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs"
+   for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
+
+   env | grep OPTICKS
+
+   jok-tds- $opts $trgs 
 }
 
 
 
-ok-anamgr(){ cat << EOU
+jok-anamgr(){ cat << EOU
 --opticks-anamgr
 --no-anamgr-normal
 --no-anamgr-genevt

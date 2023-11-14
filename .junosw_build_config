@@ -2,19 +2,46 @@
 
 jre_notes(){ cat << EON
 
-# export JUNO_EXTLIB_COLLECTION=$JUNOTOP/junoenv/collections/22.1.sh   ## config old set of versions for junoenv to use
-# export PREVIOUS_JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs
-# export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J22.1.x/ExternalLibs
-
 EON
+}
+
+_jre(){
+    export JUNOTOP=$HOME/junotop
+    jt(){ cd $JUNOTOP && pwd ; } 
+    je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
+    jo(){ cd $JUNOTOP/junosw  && pwd && git status ; } 
+}
+
+_jre_opticks_workstation_source_build_env()
+{
+    : ~/j/.junosw_build_config
+    : this setup enables opticks-full source build ... so its bootstrapping 
+    : mostly NOT needed for release running
+
+    export OPTICKS_DOWNLOAD_CACHE=/data/opticks_download_cache
+    export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
+    export OPTICKS_OPTIX_PREFIX=/home/blyth/local/opticks/externals/OptiX_750
+    export OPTICKS_COMPUTE_CAPABILITY=70
+
+    export OPTICKS_PREFIX=/data/blyth/junotop/ExternalLibs/opticks/head
+    export OPTICKS_HOME=/data/blyth/junotop/opticks
+    export TMP=/data/blyth/opticks
+
+    o(){  cd $JUNOTOP/opticks && pwd && git status ; }
+    opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }
+    opticks-
+
+    oo(){ opticks- ; cd $(opticks-home) ; om- ; om-- ;  } 
+
+    : env setup used by om- oe- needs the opticks-setup.sh 
+    : generated as part of opticks-full : so "oo" only works
+    : for rebuilding after small changes, not initial building
+    : initial building requires opticks-full 
 }
 
 jre(){ 
     : ~/j/.junosw_build_config
-
-    : note that CMAKE_PREFIX_PATH and MANPATH keep appending on repeated running but the others dont;
-
-    export JUNOTOP=$HOME/junotop
+    _jre 
 
     _source(){ [ -s "$1" ] && source "$1" ; }
     _source $JUNOTOP/bashrc.sh;
@@ -23,14 +50,6 @@ jre(){
     _source $JUNOTOP/mt.sniper/InstallArea/bashrc;
     _source $JUNOTOP/junosw/InstallArea/setup.sh
 
-    jt(){ cd $JUNOTOP && pwd ; } 
-    je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
-    jo(){ cd $JUNOTOP/junosw  && pwd && git status ; } 
-
+    echo === $FUNCNAME : to enable opticks-full source build comment release hookup, start new session, jre, _jre_opticks_workstation_source_build_env 
 }
-
-
-
-
-
 
