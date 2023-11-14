@@ -10,6 +10,8 @@ _jre(){
     jt(){ cd $JUNOTOP && pwd ; } 
     je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
     jo(){ cd $JUNOTOP/junosw  && pwd && git status ; } 
+
+    export TMP=/data/blyth/opticks  ## needed for runtime 
 }
 
 _jre_opticks_workstation_source_build_env()
@@ -25,7 +27,6 @@ _jre_opticks_workstation_source_build_env()
 
     export OPTICKS_PREFIX=/data/blyth/junotop/ExternalLibs/opticks/head
     export OPTICKS_HOME=/data/blyth/junotop/opticks
-    export TMP=/data/blyth/opticks
 
     o(){  cd $JUNOTOP/opticks && pwd && git status ; }
     opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }

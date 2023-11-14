@@ -116,15 +116,6 @@ EOU
    : opticks-anamgr is used by the U4Recorder
 }
 
-jok-grab(){
-   : ~/j/jok.bash  
-   source $HOME/.opticks/GEOM/GEOM.sh 
-   local tmp=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds
 
-   local vars="BASH_SOURCE FUNCNAME tmp TMP GEOM OPTICKS_HOME"
-   for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
-
-   source $OPTICKS_HOME/bin/rsync.sh $tmp 
-}
-
+jok-ana(){ ~/j/jtds/jtds.sh $* ; }
 

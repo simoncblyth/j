@@ -87,8 +87,10 @@ Making it sensitive to envvar allows config of a shared location, eg on /cvmfs/o
 
     ${OPTICKS_RNGDir:-$HOME/.opticks/rngcache/RNG}
 
+
 Shared InputPhotons ?
 ------------------------
+
 
 ::
 
@@ -97,26 +99,50 @@ Shared InputPhotons ?
     ./ana/input_photons.sh:ls -alst ~/.opticks/InputPhotons
     ./ana/input_photons.py:    DEFAULT_BASE = os.path.expanduser("~/.opticks/InputPhotons")
     ./bin/OPTICKS_INPUT_PHOTON_.sh:        abspath=$HOME/.opticks/InputPhotons/$path
-    ./g4ok/tests/G4OKTest.sh:path=$HOME/.opticks/InputPhotons/$name.npy
     ./sysrap/tests/storch_test.sh:odir=$HOME/.opticks/InputPhotons/storch
     ./sysrap/tests/stranTest.cc:     const char* path = SPath::Resolve("$HOME/.opticks/InputPhotons" , name, NOOP ); 
     ./sysrap/SEvt.cc:const char* SEvt::INPUT_PHOTON_DIR = ssys::getenvvar("SEvt__INPUT_PHOTON_DIR", "$HOME/.opticks/InputPhotons") ; 
     ./sysrap/SEvt.cc:   of $HOME/.opticks/InputPhotons. 
+
+
+    ./g4ok/tests/G4OKTest.sh:path=$HOME/.opticks/InputPhotons/$name.npy
     ./npy/tests/NPY7Test.cc:   NPY<float>* ip = NPY<float>::load("$HOME/.opticks/InputPhotons/InwardsCubeCorners1.npy"); 
     epsilon:opticks blyth$ 
 
 
-
-
-NEXT : ok-tds config debug SEvt and compare them 
+WIP : ok-tds config debug SEvt and compare them 
 --------------------------------------------------
 
+HMM: cannot use /tmp on N as far too tight::
+
+    epsilon:GEOM blyth$ du -hs J23_1_0_rc3_ok0
+    5.1G	J23_1_0_rc3_ok0
+
+
+Spaced out history issue::
+
+    QCF qcf :  
+    a.q 1000000 b.q 1000000 lim slice(None, None, None) 
+    c2sum : 1772472.8750 c2n :  2113.0000 c2per:   838.8419  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  1772472.88/2113:838.842 (30) pv[0.00,< 0.05 : NOT:null-hyp ] 
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT SD                                                                              ' ' 0' '     0 331327' '331327.0000' '    -1      1']
+     [' 1' 'TO BT BT BT BT SA                                                                              ' ' 1' '     0 281937' '281937.0000' '    -1      2']
+     [' 2' 'TO BT BT BT BT    SA                                                                           ' ' 2' '187448      0' '187448.0000' '     4     -1']
+     [' 3' 'TO BT BT BT BT    SR SA                                                                        ' ' 3' ' 75719      0' '75719.0000' '    20     -1']
+     [' 4' 'TO BT BT BT BT BT SR SA                                                                        ' ' 4' '     0  62886' '62886.0000' '    -1 103703']
+     [' 5' 'TO BT BT BT BT    SR    BT BT BT BT BT BT AB                                                   ' ' 5' ' 62442      0' '62442.0000' '120824     -1']
+     [' 6' 'TO BT BT BT BT BT SA                                                                           ' ' 6' '     0  46679' '46679.0039' '    -1  84186']
+     [' 7' 'TO BT BT BT BT    SR    BT BT BT BT AB                                                         ' ' 7' ' 22410      0' '22410.0000' '121428     -1']
+     [' 8' 'TO BT BT BT BT    SR    BT BT BT BT BT BT SC AB                                                ' ' 8' ' 19747      0' '19747.0000' '139242     -1']
+     [' 9' 'TO BT BT BT BT    SR SR SA                                                                     ' ' 9' ' 15680      0' '15680.0000' '     6     -1']
+     ['10' 'TO BT BT BT BT BT SR BR SR SA                                                                  ' '10' '     0  11901' '11901.0010' '    -1 209894']
 
 
 
 TODO : setup source build environment on L : check ok-tds on GPU cluster
 ----------------------------------------------------------------------------
-
 
 
 
