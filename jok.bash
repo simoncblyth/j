@@ -19,8 +19,7 @@ Usage::
 EON
 }
 
-
-jok-tds-(){ python $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py $* ; }
+jok-script(){ echo $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py ; }
 jok-tds(){
    export OPTICKS_SCRIPT=$FUNCNAME     # avoid default sproc::_ExecutableName of python3.9 
    export OPTICKS_INTEGRATION_MODE=3   # both geant4 and opticks optical simulation   
@@ -83,14 +82,22 @@ jok-tds(){
    mkdir -p $jokdir
    cd $jokdir     # log files are dropped in invoking directory 
 
-   local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD"
+   local runline
+   if [ -z "$GDB" ]; then 
+       runline="python $(jok-script) $opts $trgs"
+   else
+       runline="gdb -ex r --args python $(jok-script) $opts $trgs"  
+   fi 
+
+   local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
    for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
    env | grep OPTICKS
    env | grep __
 
-   jok-tds- $opts $trgs 
+   echo $runline
+   eval $runline 
 }
-
+jok-tds-gdb(){ GDB=1 jok-tds ; }
 
 
 jok-anamgr(){ cat << EOU
