@@ -12,25 +12,23 @@ setup some symbolic links in $HOME
 | $HOME/opticks_download_cache |  /data/opticks_download_cache  |                           |
 +------------------------------+--------------------------------+---------------------------+
 
-
-
 Use symbolic links to make this work on both N(workstation) and L(lxslc7) 
 EON
 }
 
 _jre(){
-    : settings that can be run all the time without causing env confusion
-    export TMP=$HOME/tmp     ## needed for runtime 
+    : settings that can run anytime without causing env confusion
+    export TMP=$HOME/tmp             ## needed for runtime 
     export JUNOTOP=$HOME/junotop
     jt(){ cd $JUNOTOP && pwd ; } 
     je(){ cd $JUNOTOP/junoenv && pwd && git status ; } 
     jo(){ cd $JUNOTOP/junosw  && pwd && git status ; } 
     o(){  cd $JUNOTOP/opticks && pwd && git status ; }
-    j(){  cd $HOME/j  && pwd && git status ; } 
+    j(){  cd $HOME/j          && pwd && git status ; } 
 }
 _jre
 
-_jre_opticks_source_build_env()
+_jre_opticks_build_env()
 {
     : ~/j/.junosw_build_config
     : this setup enables opticks-full source build ... so its bootstrapping 
@@ -41,9 +39,7 @@ _jre_opticks_source_build_env()
     export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_750
     export OPTICKS_COMPUTE_CAPABILITY=70
 
-    export OPTICKS_PREFIX=$JUNOTOP/ExternalLibs/opticks/head
-    export OPTICKS_HOME=$JUNOTOP/opticks
-    export PYTHONPATH=$(dirname $OPTICKS_HOME):$PYTHONPATH
+    _jre_opticks_usage_env
 
     opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }
     opticks-
@@ -56,19 +52,35 @@ _jre_opticks_source_build_env()
     : initial building requires opticks-full 
 }
 
+_jre_opticks_usage_env()
+{
+    : this setup is needed for building junosw with opticks as external 
+    : HMM: OPTICKS_PREFIX already exported in the bashrc : after first build 
+    : HMM: OPTICKS_HOME kinda dirty use of the source tree, not available in binary releases
+
+    export OPTICKS_PREFIX=$JUNOTOP/ExternalLibs/opticks/head
+    export OPTICKS_HOME=$JUNOTOP/opticks
+    export PYTHONPATH=$(dirname $OPTICKS_HOME):$PYTHONPATH
+
+    #source /cvmfs/opticks.ihep.ac.cn/ok/releases/Opticks-v0.2.1/x86_64-CentOS7-gcc1120-geant4_10_04_p02-dbg/bashrc
+    source $HOME/junotop/ExternalLibs/opticks/head/bashrc
+}
+
 jre(){ 
     : ~/j/.junosw_build_config
     _jre 
 
+    source $JUNOTOP/bashrc.sh  ## opticks sourcing is commented in here for clarity 
+
+    _jre_opticks_usage_env  
+    _jre_opticks_build_env  ## uncomment for opticks-full, oo  building
+    : NB after any changes, for clarity start a new session and redo jre
+
+    source $JUNOTOP/sniper/InstallArea/bashrc;
+    source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh;
+    source $JUNOTOP/mt.sniper/InstallArea/bashrc;
+
     _source(){ [ -s "$1" ] && source "$1" ; }
-    _source $JUNOTOP/bashrc.sh;
-    _source $JUNOTOP/sniper/InstallArea/bashrc;
-    _source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh;
-    _source $JUNOTOP/mt.sniper/InstallArea/bashrc;
     _source $JUNOTOP/junosw/InstallArea/setup.sh
-
-    #echo === $FUNCNAME : to enable opticks-full source build comment release hookup, start new session, jre, _jre_opticks_source_build_env 
-    _jre_opticks_source_build_env  
-
 }
 

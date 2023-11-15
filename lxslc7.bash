@@ -62,6 +62,15 @@ sf(){
 rmcore(){ rm core.* ; }
 rmlog(){  rm *.log ; }
 
+bes3_conda(){
+  type $FUNCNAME 
+  eval "$(/cvmfs/bes3.ihep.ac.cn/bes3sw/ExternalLib/contrib/anaconda/2023.07/bin/conda shell.bash hook)"
+}
 
+dumb(){
+  : tamagotchi tokens
+  type $FUNCNAME 
+  kinit $USER && aklog -d
+}
 
 [ "$DBG" == "1" ] && dbg_tail $BASH_SOURCE
