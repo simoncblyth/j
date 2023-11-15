@@ -40,6 +40,7 @@ jok-tds(){
 
    export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
 
+
    export OPTICKS_EVENT_MODE=StandardFullDebug
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
@@ -87,7 +88,8 @@ jok-tds(){
    esac
 
    if [ "$GUN" == "0" ]; then 
-       export OPTICKS_INPUT_PHOTON=RainXZ_Z230_1M_f8.npy 
+       #export OPTICKS_INPUT_PHOTON=RainXZ_Z230_1M_f8.npy 
+       export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
        export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
    fi
 
