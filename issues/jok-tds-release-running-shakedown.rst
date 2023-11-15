@@ -126,33 +126,12 @@ FIXED : Thrust warning : unexpected as should be using c++17
 * CUDA flags were set in CSGOptiX when should be using the common ones
 
 
+
+
 TODO : setup source build environment on L : check jok-tds on GPU cluster
 ----------------------------------------------------------------------------
 
-Generalize : ~/j/.junosw_build_config so it can work on both N and L 
-
-Missing data ?::
-
-    junotoptask:PMTSimParamSvc.helper_pmt_mpt ERROR: empty material property: PMTProperty.NNVTMCP_HiQE.ARC_KINDEX
-    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /hpcfs/juno/junogpu/blyth/junotop/data/Simulation/DetSim
-    junotoptask:PMTSimParamSvc.helper_pmt_mpt ERROR: empty material property: PMTProperty.NNVTMCP_HiQE.PHC_RINDEX
-    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /hpcfs/juno/junogpu/blyth/junotop/data/Simulation/DetSim
-    junotoptask:PMTSimParamSvc.helper_pmt_mpt ERROR: empty material property: PMTProperty.NNVTMCP_HiQE.PHC_KINDEX
-    junotoptask:MCParamsSvc.GetPath  INFO: Optical parameters will be used from: /hpcfs/juno/junogpu/blyth/junotop/data/Simulation/DetSim
 
 
-::
-
- 90/201 Test  #90: SysRapTest.SEvtTest ......................................Subprocess aborted***Exception:   0.05 sec 
-    terminate called after throwing an instance of 'std::logic_error'
-      what():  basic_string::_M_construct null not valid
-
-
-
-
-
-
-TODO : put download cache on /cvmfs so only have one to look after
------------------------------------------------------------------------
 
 
