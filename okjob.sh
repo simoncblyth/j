@@ -30,6 +30,19 @@ Around 15 tests should fail from lack of GPU
 EON
 }
 
+okjob-paths()
+{
+    local vars="BASH_SOURCE FUNCNAME CMAKE_PREFIX_PATH PKG_CONFIG_PATH PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH PYTHONPATH MANPATH CPATH";
+    local var;
+    for var in $vars;
+    do
+        echo $var;
+        echo ${!var} | tr ":" "\n";
+        echo;
+    done
+}
+
+
 okjob-setup-standalone-opticks()
 {
     export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
@@ -62,10 +75,12 @@ okjob-setup-junosw-opticks()
 
 okjob-setup()
 {
-    export HOME=/hpcfs/juno/junogpu/$USER
+    #export HOME=/hpcfs/juno/junogpu/$USER
 
     #okjob-setup-standalone-opticks
     okjob-setup-junosw-opticks
+    okjob-paths 
+
 
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
     mkdir -p $TMP          ## whether override or not, need to create 
@@ -112,9 +127,12 @@ okjob-tail(){
    date  
    
    ## /tmp on gpu cluster is a black hole 
-   ## any tests still writing need to be changed to use $TMP
-   ls -alst /tmp | grep blyth
-   [ -d /tmp/blyth ] && find /tmp/blyth -type f 
+   ## any tests still writing there need to be changed to use $TMP
+
+   echo $FUNCNAME : /tmp files belonging to $USER
+   ls -alst /tmp | grep $USER
+   [ -d /tmp/$USER ] && echo "find /tmp/$USER -type f" && find /tmp/$USER -type f 
+
 }
 
 okjob-setup
