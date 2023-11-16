@@ -35,7 +35,7 @@ jok-tds(){
    export OPTICKS_MAX_PHOTON=1000000
 
    local opts="" 
-   opts="$opts --evtmax 1"
+   opts="$opts --evtmax 10"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
