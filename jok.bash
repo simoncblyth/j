@@ -81,6 +81,17 @@ jok-tds(){
    local jokdir=$HOME/tmp/$FUNCNAME 
    mkdir -p $jokdir
    cd $jokdir     # log files are dropped in invoking directory 
+   pwd
+   ls -alst
+
+   local root="sample_detsim_user.root"
+   if [ -f "$root" ]; then
+       echo === $BASH_SOURCE : deleting $root from PWD $PWD HOME $HOME
+       rm -f $root
+   else
+       echo === $BASH_SOURCE : no $root in PWD $PWD
+   fi 
+
 
    local runline
    if [ -z "$GDB" ]; then 

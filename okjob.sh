@@ -85,16 +85,22 @@ okjob-head(){
    date 
 }
 
+okjob-ctest()
+{
+   cd $OPTICKS_PREFIX/tests
+   pwd
+   echo === $BASH_SOURCE $FUNCNAME $PWD
+   which ctest 
+   ctest -N 
+   ctest --output-on-failure
+}
+
 okjob-body()
 {
    local msg="=== $FUNCNAME:"
    echo $msg TMP $TMP
 
-   cd $OPTICKS_PREFIX/tests
-
-   which ctest 
-   ctest -N 
-   ctest --output-on-failure
+   #okjob-ctest
 
    source $HOME/j/jok.bash 
    jok-tds
