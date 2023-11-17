@@ -35,7 +35,7 @@ jok-tds(){
    export OPTICKS_MAX_PHOTON=1000000
 
    local opts="" 
-   opts="$opts --evtmax 1"
+   opts="$opts --evtmax 10"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
@@ -81,6 +81,17 @@ jok-tds(){
    local jokdir=$HOME/tmp/$FUNCNAME 
    mkdir -p $jokdir
    cd $jokdir     # log files are dropped in invoking directory 
+   pwd
+   ls -alst
+
+   local root="sample_detsim_user.root"
+   if [ -f "$root" ]; then
+       echo === $BASH_SOURCE : deleting $root from PWD $PWD HOME $HOME
+       rm -f $root
+   else
+       echo === $BASH_SOURCE : no $root in PWD $PWD
+   fi 
+
 
    local runline
    if [ -z "$GDB" ]; then 

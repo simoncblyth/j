@@ -39,7 +39,6 @@ _jre_opticks_build_env()
     export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_750
     export OPTICKS_COMPUTE_CAPABILITY=70
 
-    _jre_opticks_usage_env
 
     opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }
     opticks-
@@ -71,9 +70,8 @@ jre(){
     _jre 
 
     source $JUNOTOP/bashrc.sh  ## opticks sourcing is commented in here for clarity 
-
     _jre_opticks_usage_env  
-    _jre_opticks_build_env  ## uncomment for opticks-full, oo  building
+    _jre_opticks_build_env    
     : NB after any changes, for clarity start a new session and redo jre
 
     source $JUNOTOP/sniper/InstallArea/bashrc;
