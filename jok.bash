@@ -34,7 +34,7 @@ jok-tds(){
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
 
-   export U4Recorder=INFO   ## for SEvt::setFoldVerbose NPFold::set_verbose 
+   export U4Recorder__SEvt_NPFold_VERBOSE=1  ## for SEvt::setFoldVerbose NPFold::set_verbose 
 
    local opts="" 
    opts="$opts --evtmax 10"
