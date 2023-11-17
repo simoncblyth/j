@@ -16,11 +16,13 @@ export TMP=${!TMPVAR}
 
 export BASE=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0
 
-export AFOLD=$BASE/p001
-export BFOLD=$BASE/n001
+EVT=${EVT:-1}
+evt=$(printf "%0.3d" $EVT)
+export AFOLD=$BASE/p$evt
+export BFOLD=$BASE/n$evt
 script=$SDIR/$name.py 
 
-vars="BASH_SOURCE REMOTE L_TMP P_TMP TMPVAR TMP arg name SDIR GEOM BASE AFOLD BFOLD script"
+vars="BASH_SOURCE REMOTE L_TMP P_TMP TMPVAR TMP arg name SDIR GEOM BASE EVT evt AFOLD BFOLD script"
 
 if [ "${arg/info}" != "$arg" ]; then
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 

@@ -284,8 +284,11 @@ HUH : a clean build and it works::
 
 
 
-setInputPhoton crash at eventID 1 (eventID 0 ok)
----------------------------------------------------
+FIXED : setInputPhoton crash at eventID 1 (eventID 0 ok)
+----------------------------------------------------------
+
+* fixed by developing qudarap/tests/QEvent_Lifecycle_Test.cc and rationalizing 
+  input photon handling 
 
 L::
 
@@ -332,6 +335,211 @@ Looks like input photon garbled at 2nd event, was it cleared::
     (gdb) 
 
 
+
+
+WIP : change stderr to stdout for slurm : junosw remains
+-----------------------------------------------------------
+
+Changed the optickd std::cerr writing, what remains is from junosw including tut_detsim.py 
+logging.::
+
+    [2023-11-17 13:51:16,911] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:106} INFO - end of init_yaml_conf
+    [2023-11-17 13:51:16,913] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:59} INFO - end of __init__
+    [2023-11-17 13:51:16,913] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:70} INFO - end of register
+    [2023-11-17 13:51:16,913] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/Examples/Tutorial/share/tut_detsim.py:20} INFO - after juno_application.register(detsim_module) 
+    [2023-11-17 13:51:16,913] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:130} INFO - [JUNOApplication.run
+    [2023-11-17 13:51:18,734] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1627} INFO - setup_generator_opticks : objName:[ok]
+    [2023-11-17 13:51:19,200] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1748} INFO - PMTName PMTMask --pmt20inch-name 
+    [2023-11-17 13:51:19,200] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1749} INFO - LPMTExtra TWO-mask --pmt20inch-extra 
+    [2023-11-17 13:51:19,200] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1992} INFO - init_SWITCH_envvars : parsing 36 SWITCH lines
+    [2023-11-17 13:51:19,200] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:2004} INFO - init_SWITCH_envvars : setting key JUNO_ADDITIONACRYLIC_SIMPLIFY_CSG from args.additionacrylic_simplify_csg  
+    [2023-11-17 13:51:19,200] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:2004} INFO - init_SWITCH_envvars : setting key JUNO_DEBUG_DISABLE_XJ from args.debug_disable_xj  
+    [2023-11-17 13:51:19,201] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:2004} INFO - init_SWITCH_envvars : setting key JUNO_DEBUG_DISABLE_SJ from args.debug_disable_sj  
+    [2023-11-17 13:51:19,201] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:2004} INFO - init_SWITCH_envvars : setting key JUNO_DEBUG_DISABLE_FA from args.debug_disable_fa  
+    [2023-11-17 13:51:19,201] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1825} INFO - TWO-mask . args.pmt20inch_extra TWO-mask 
+    [2023-11-17 13:51:19,201] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1901} INFO - end of init_detsim_optical
+    [2023-11-17 13:51:19,202] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:1701} INFO - end of init_detector_simulation
+    [2023-11-17 13:51:19,202] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNODetSimModule.py:162} INFO - end of init
+    [2023-11-17 13:51:19,210] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:181} INFO - JUNOApplication.run --no-toptask-show skipping toptask.show
+    [2023-11-17 13:51:19,211] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:183} INFO - JUNOApplication.run toptask.run
+    Tub3inchPMTV3Manager::helper_make_solid Tub3inchPMTV3Manager::desc 
+    Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM : 1.000000e-01
+     VIRTUAL_DELTA_MM_DEFAULT*mm : 1.000000e-03
+     VIRTUAL_DELTA_MM*mm : 1.000000e-01
+     mm : 1.000000e+00
+
+    GtOpticksTool::mutate event_number 0 deferred SEvt::GetInputPhoton  SEvt::Brief  SEvt::Exists(0) Y SEvt::Exists(1) Y
+     SEvt::Get(0)->brief() SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed Y
+     SEvt::Get(1)->brief() SEvt::brief  getIndex 2147483647 hasInputPhoton Y hasInputPhotonTransformed Y
+     m_input_photon (10000, 4, 4, )
+    GtOpticksTool::mutate event_number 0 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 0 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 1 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 1 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 1 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 2 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 2 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 2 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 3 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 3 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 3 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 4 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 4 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 4 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 5 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 5 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 5 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 6 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 6 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 6 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 7 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 7 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 7 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 8 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 8 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 8 opticksMode 3 with m_jpmt_dbg YES 
+    GtOpticksTool::mutate event_number 9 numPhotons 10000
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 9 LEVEL 5:DEBUG
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 9 opticksMode 3 with m_jpmt_dbg YES 
+    [2023-11-17 13:54:27,686] p177454 {/hpcfs/juno/junogpu/blyth/junotop/junosw/InstallArea/python/Tutorial/JUNOApplication.py:185} INFO - ]JUNOApplication.run
+
+
+
+
+Why the size difference ? A is 20MB less than B : aux.npy mostly 
+-------------------------------------------------------------------
+
+::
+
+    epsilon:ALL0 blyth$ du -hs * 
+
+     34M	p001
+     34M	p002
+     34M	p003
+     34M	p004
+     34M	p005
+     34M	p006
+     34M	p007
+     34M	p008
+     34M	p009
+     34M	p010
+
+     55M	n001
+     55M	n002
+     55M	n003
+     55M	n004
+     55M	n005
+     55M	n006
+     55M	n007
+     55M	n008
+     55M	n009
+     55M	n010
+
+    4.0K	run.npy
+    4.0K	run_meta.txt
+    epsilon:ALL0 blyth$ 
+
+20 MB extra on B side, mostly from aux.npy::
+
+    epsilon:jtds blyth$ cd /hpcfs/juno/junogpu/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/p001 
+    epsilon:p001 blyth$ du -hs *
+    4.0K	NPFold_index.txt
+    4.0K	NPFold_meta.txt
+    4.0K	domain.npy
+    4.0K	domain_meta.txt
+    2.4M	flat.npy
+    4.0K	genstep.npy
+    240K	hit.npy
+    628K	inphoton.npy
+    628K	photon.npy
+    9.8M	prd.npy
+     20M	record.npy
+    4.0K	record_meta.txt
+    316K	seq.npy
+    4.0K	sframe.npy
+    4.0K	sframe_meta.txt
+    316K	tag.npy
+
+    epsilon:p001 blyth$ cd /hpcfs/juno/junogpu/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/n001
+    epsilon:n001 blyth$ du -hs *
+    4.0K	NPFold_index.txt
+    4.0K	NPFold_meta.txt
+    4.0K	domain.npy
+    4.0K	domain_meta.txt
+    2.4M	flat.npy
+    4.0K	genstep.npy
+    248K	hit.npy
+    628K	inphoton.npy
+    628K	photon.npy
+    9.8M	prd.npy
+     20M	record.npy
+    4.0K	record_meta.txt
+    316K	seq.npy
+    4.0K	sframe.npy
+    4.0K	sframe_meta.txt
+    316K	tag.npy
+
+    ## 20M	aux.npy
+    ## 4.0K	gs.npy
+    ## 160K	pho.npy
+    ## 160K	pho0.npy
+    ## 940K	sup.npy
+
+
+
+TODO : U4Recorder/SEvt/NPFold managing to yield duplicate hit.npy keys, revealed which implementing nodata mode for fast metadata access
+------------------------------------------------------------------------------------------------------------------------------------------
+
+
+::
+
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (1) 
+    junoSD_PMT_v2::Initialize eventID 1
+    junoSD_PMT_v2_Opticks::Initialize opticksMode 3 eventID 1 LEVEL 5:DEBUG
+    2023-11-17 18:57:20.402 INFO  [299890] [U4Recorder::BeginOfEventAction@284]  eventID 1
+    Begin of Event --> 1
+    2023-11-17 18:57:20.404 INFO  [299890] [SEvt::hostside_running_resize_@1820] resizing photon 0 to evt.num_photon 10000
+    2023-11-17 18:57:21.311 INFO  [299890] [U4Recorder::PreUserTrackingAction_Optical@374]  modulo 100000 : ulabel.id 0
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 1 opticksMode 3 with m_jpmt_dbg YES
+    2023-11-17 18:57:21.423 INFO  [299890] [SEvt::save@3349]  dir /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/p002 index 2 instance 0 OPTICKS_SAVE_COMP  genstep,photon,record,seq,prd,hit,domain,inphoton,tag,flat,aux,sup
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 3 hitCollection 3518 hcMuon 0 hcOpticks 3812 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    2023-11-17 18:57:21.502 INFO  [299890] [U4Recorder::MakeMetaArray@672] U4Recorder::DescFakes  
+    U4Recorder::FAKES_SKIP NO 
+    U4Recorder::FAKES      YES
+    FAKES.size             0
+
+    NPFold::add_ FATAL : have_key_already hit.npy
+    python: /data/blyth/junotop/opticks/sysrap/NPFold.h:754: void NPFold::add_(const char*, const NP*): Assertion `!have_key_already' failed.
+
+    Thread 1 "python" received signal SIGABRT, Aborted.
+    0x00007ffff6b34387 in raise () from /lib64/libc.so.6
+    (gdb) bt
+    #0  0x00007ffff6b34387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff6b35a78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff6b2d1a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff6b2d252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007fffc7e8efbf in NPFold::add_ (this=0x5e19ef0, k=0x7ffffffeb4b0 "hit.npy", a=0xd838eee0) at /data/blyth/junotop/opticks/sysrap/NPFold.h:754
+    #5  0x00007fffc7e8eeac in NPFold::add (this=0x5e19ef0, k=0x7fffc7fbf0b9 "hit", a=0xd838eee0) at /data/blyth/junotop/opticks/sysrap/NPFold.h:740
+    #6  0x00007fffc7ebf58c in SEvt::gather_components (this=0x5e19680) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2922
+    #7  0x00007fffc7ebfc47 in SEvt::gather (this=0x5e19680) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:2983
+    #8  0x00007fffc7ec10b7 in SEvt::save (this=0x5e19680, dir_=0x7fffc7fbb65a "$DefaultOutputDir") at /data/blyth/junotop/opticks/sysrap/SEvt.cc:3336
+    #9  0x00007fffc7ebfd14 in SEvt::save (this=0x5e19680) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:3064
+    #10 0x00007fffc7eb767e in SEvt::endOfEvent (this=0x5e19680, eventID=1) at /data/blyth/junotop/opticks/sysrap/SEvt.cc:1271
+    #11 0x00007fffc8c5ad88 in U4Recorder::EndOfEventAction (this=0x5df08f0, event=0xd3f5b370) at /data/blyth/junotop/opticks/u4/U4Recorder.cc:307
+    #12 0x00007fffc7c29e94 in U4RecorderAnaMgr::EndOfEventAction (this=0x5e193b0, evt=0xd3f5b370)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:32
+    #13 0x00007fffc7540c38 in MgrOfAnaElem::EndOfEventAction (this=0x7fffc754f8c0 <MgrOfAnaElem::instance()::s_mgr>, evt=0xd3f5b370)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:53
+    #14 0x00007fffc7d5aefd in LSExpEventAction::EndOfEventAction (this=0x8b400c0, evt=0xd3f5b370)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpEventAction.cc:76
+    #15 0x00007fffcf355242 in G4EventManager::DoProcessing(G4Event*) ()
+
+
+
+Big difference between U4Recorder and QEvent is the QEvent::setGenstep which calls SEvt::clear 
+just before the launch. 
 
 
 TODO : put download cache on /cvmfs so only have one to look after
