@@ -7,9 +7,9 @@ name=jtds
 SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
 
-export REMOTE=${REMOTE:-L}
+export REMOTE=${REMOTE:-P}
 export L_TMP=/hpcfs/juno/junogpu/blyth/tmp
-export P_TMP=/data/blyth/opticks 
+export P_TMP=/data/blyth/opticks    # HOME/tmp on P is symbolic link to /data/blyth/opticks 
 
 TMPVAR=${REMOTE}_TMP
 export TMP=${!TMPVAR}
