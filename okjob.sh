@@ -81,6 +81,8 @@ okjob-setup()
     okjob-setup-junosw-opticks
     okjob-paths 
 
+    ## HMM: WHERE ELSE TO PUT ? 
+    export CUDA_VISIBLE_DEVICES=1  
 
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
     mkdir -p $TMP          ## whether override or not, need to create 
@@ -92,11 +94,6 @@ okjob-head(){
    nvidia-smi   
    local vars="0 HOSTNAME USER BASH_SOURCE HOME OPTICKS_PREFIX CUDA_VISIBLE_DEVICES"
    for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
-
-   unset CUDA_VISIBLE_DEVICES
-   echo " CUDA_VISIBLE_DEVICES : $CUDA_VISIBLE_DEVICES : AFTER UNSET " 
-   nvidia-smi   
-
    date 
 }
 
