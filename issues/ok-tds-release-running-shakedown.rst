@@ -546,3 +546,185 @@ TODO : put download cache on /cvmfs so only have one to look after
 -----------------------------------------------------------------------
 
 
+
+TODO : get PRODUCTION macro to work 
+-------------------------------------
+
+Before doing that switch off debug
+
+
+Profile shake
+---------------
+
+::
+
+    PICK:CF
+    A:ProfileWithinEvent stampFmt:2023-11-20T16:53:25.315104  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V prefix://p creator:jok-tds
+    A.t
+    array([[    0,   115, 35662],
+           [    0,   104, 14592],
+           [    0,   105, 14456],
+           [    0,    95, 14453],
+           [    0,   122, 15026],
+           [    0,    89, 14522],
+           [    0,   101, 14493],
+           [    0,    99, 14453],
+           [    0,    98, 14682],
+           [    0,   112, 14473]])
+    B:ProfileWithinEvent stampFmt:2023-11-20T16:53:07.719859  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    B.t
+    array([[      0,    1651, 1153925],
+           [      0,     109, 1102947],
+           [      0,     204, 1182319],
+           [      0,     199, 1101756],
+           [      0,     123, 1316343],
+           [      0,      94, 1122567],
+           [      0,      98, 1095478],
+           [      0,      99, 1337383],
+           [      0,     124, 1333284],
+           [      0,     149, 1072843]])
+    Profile.ABPlot
+    A:ProfileWithinEvent stampFmt:2023-11-20T16:53:25.315104  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V prefix://p creator:jok-tds
+    B:ProfileWithinEvent stampFmt:2023-11-20T16:53:07.719859  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    BOA : 32.4 75.6 81.8 76.2 87.6 77.3 75.6 92.5 90.8 74.1   avg(BOA[1:]) 81.3  
+
+
+
+
+TITAN V
+---------
+
+::
+
+    PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_profile_test.sh run_ana
+
+
+    PICK:CF
+    A:ProfileWithinEvent stampFmt:2023-11-20T16:53:25.315104  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V prefix://p creator:jok-tds
+    A.t
+    array([[    0,   115, 35662],
+           [    0,   104, 14592],
+           [    0,   105, 14456],
+           [    0,    95, 14453],
+           [    0,   122, 15026],
+           [    0,    89, 14522],
+           [    0,   101, 14493],
+           [    0,    99, 14453],
+           [    0,    98, 14682],
+           [    0,   112, 14473]])
+    B:ProfileWithinEvent stampFmt:2023-11-20T16:53:07.719859  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    B.t
+    array([[      0,    1651, 1153925],
+           [      0,     109, 1102947],
+           [      0,     204, 1182319],
+           [      0,     199, 1101756],
+           [      0,     123, 1316343],
+           [      0,      94, 1122567],
+           [      0,      98, 1095478],
+           [      0,      99, 1337383],
+           [      0,     124, 1333284],
+           [      0,     149, 1072843]])
+    Profile.ABPlot
+    A:ProfileWithinEvent stampFmt:2023-11-20T16:53:25.315104  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V prefix://p creator:jok-tds
+    B:ProfileWithinEvent stampFmt:2023-11-20T16:53:07.719859  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    BOA : 32.4 75.6 81.8 76.2 87.6 77.3 75.6 92.5 90.8 74.1   avg(BOA[1:]) 81.3  
+
+
+
+
+
+PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh::
+
+    MODE:2
+    A:Stamps stampFmt:2023-11-19T20:24:20.917690  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V 1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+              tBOE   tsG0   tsG1   tsG2   tsG3   tsG4   tsG5   tsG6   tsG7   tsG8   tPrL   tPoL   tEOE 
+    array([[    0,    60,    74,    84,    85,    86,   166,   193,   376,  2364,  2364, 14550, 14614],
+           [    0,    58,    73,    84,    85,    86,   123,   148,   314,  2225,  2225, 14412, 14470],
+           [    0,    60,    81,    91,    91,   108,   146,   168,   334,  2314,  2315, 14505, 14569],
+           [    0,    64,    79,    90,    91,    92,   169,   207,   503,  2616,  2617, 14843, 14910],
+           [    0,    59,    73,    83,    84,    85,   122,   144,   310,  2265,  2265, 14438, 14498],
+           [    0,    60,    75,    86,    86,    87,   125,   146,   310,  2274,  2275, 14452, 14512],
+           [    0,    58,    72,    82,    82,    83,   122,   144,   308,  2231,  2231, 14643, 14703],
+           [    0,    59,    73,    84,    84,    85,   123,   144,   311,  2248,  2248, 14410, 14470],
+           [    0,    60,    75,    87,    87,    89,   124,   146,   311,  2259,  2259, 14423, 14483]])
+    B:Stamps stampFmt:2023-11-19T20:24:03.859933  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+              tBOE   tEOE 
+    array([[      0, 1101852],
+           [      0, 1064596],
+           [      0, 1049256],
+           [      0, 1073432],
+           [      0, 1053079],
+           [      0, 1045362],
+           [      0, 1062443],
+           [      0, 1059465],
+           [      0, 1051069]])
+
+
+
+
+
+
+
+Switch to TITAN RTX
+---------------------
+
+::
+
+    N[blyth@localhost j]$ PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_profile_test.sh run_ana
+    /home/blyth/tmp/NPFold_profile_test.build/NPFold_profile_test
+    NPFold::Load("@/data/blyth/opticks/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0")
+    NPFold::subprofile_ab created and saved subprofile symmary NPFold to $FOLD 
+    Python 3.7.7 (default, May  7 2020, 21:25:33) 
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 7.18.1 -- An enhanced Interactive Python. Type '?' for help.
+    ab
+
+    CMDLINE:/home/blyth/np/tests/NPFold_profile_test.py
+    ab.base:/home/blyth/tmp/NPFold_profile_test
+
+      : ab.NPFold_index                                    :                 (2,) : 0:00:00.524550 
+      : ab.a                                               :                 None : 1:13:43.927552 
+      : ab.b                                               :                 None : 1:13:43.926552 
+
+     min_stamp : 2023-11-20 16:02:26.964313 
+     max_stamp : 2023-11-20 17:16:10.367315 
+     dif_stamp : 1:13:43.403002 
+     age_stamp : 0:00:00.524550 
+    PICK:CF
+    A:ProfileWithinEvent stampFmt:2023-11-20T17:10:36.521941  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+    A.t
+    array([[    0,   110, 42045],
+           [    0,   103,  9778],
+           [    0,   106,  9371],
+           [    0,   111,  9308],
+           [    0,   100,  9304],
+           [    0,    99,  9367],
+           [    0,   114,  9410],
+           [    0,    99,  9417],
+           [    0,   103,  9619],
+           [    0,    96,  9356]])
+    B:ProfileWithinEvent stampFmt:2023-11-20T17:10:18.913541  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    B.t
+    array([[      0,     132, 1161460],
+           [      0,     959, 1062014],
+           [      0,     157, 1108391],
+           [      0,     163, 1044401],
+           [      0,     830, 1070616],
+           [      0,     104, 1094539],
+           [      0,      95, 1064913],
+           [      0,      96, 1115427],
+           [      0,     807, 1263878],
+           [      0,     102, 1095688]])
+    Profile.ABPlot
+    A:ProfileWithinEvent stampFmt:2023-11-20T17:10:36.521941  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+    B:ProfileWithinEvent stampFmt:2023-11-20T17:10:18.913541  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    BOA : 27.6 108.6 118.3 112.2 115.1 116.9 113.2 118.4 131.4 117.1   avg(BOA[1:]) 116.8  
+
+
+
+
+
+
+
+
+

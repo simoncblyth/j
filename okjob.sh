@@ -22,10 +22,13 @@ Before submitting this job with "sb" check the script
 on gateway lxslc7 with::
 
    /hpcfs/juno/junogpu/blyth/j/okjob.sh
-   
-Around 15 tests should fail from lack of GPU    
+   ## around 20 ctest will fail from lack of GPU 
 
-* HMM: should OPTICKS_CUDA_PREFIX be captured by the build and hardcoded into the bashrc ? 
+And on workstation::
+
+    ~/j/okjob.sh 
+    GDB=1 ~/j/okjob.sh 
+
 
 EON
 }

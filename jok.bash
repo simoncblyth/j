@@ -30,7 +30,10 @@ jok-tds(){
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
 
-   export OPTICKS_EVENT_MODE=StandardFullDebug  ## see SEventConfig::Initialize SEventConfig::EventMode
+   ##local mode=StandardFullDebug
+   local mode=Minimal
+   export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
+
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
 
