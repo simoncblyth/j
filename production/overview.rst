@@ -35,8 +35,8 @@ DONE : created and tested binary release standalone opticks distribution
 DONE : more release GPU job tests : output checks beyond just ctest
 ---------------------------------------------------------------------
 
-TODO : upload binary opticks distrib to /cvmfs/opticks.ihep.ac.cn 
----------------------------------------------------------------------
+DONE : upload binary opticks distrib to /cvmfs/opticks.ihep.ac.cn  : just a mechanics test
+-------------------------------------------------------------------------------------------
 
 DONE :  generalized oktar.py for packing .opticks GEOM, curandState ...
 -------------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ photons it needs to be big::
     /hpcfs/juno/junogpu/opticks/  ?   
 
 
-TODO : .opticks location flexibility without changing HOME ?  
+DONE : .opticks location flexibility without changing HOME ?  
 -------------------------------------------------------------
 
 Split relatively "fixed" .opticks which make sense to be shared
@@ -70,7 +70,7 @@ from more transient .opticksrc that makes less sense to share.
   scontext 
 
 
-TODO : scontest_test investigate scontext/sdevice.bin of zero length 
+DONE : scontest_test investigate scontext/sdevice.bin of zero length 
 -----------------------------------------------------------------------
 
 DONE : building against the binary release : in examples/UseRelease
@@ -87,8 +87,8 @@ TODO : check using opticks python functionality from the release
 Convert G4CXTest_raindrop.sh into a "user example" 
 
 
-TODO : does it make sense to include custom4 and optix7.5 into the opticks binary release ? 
------------------------------------------------------------------------------------------------
+DONE : consider if it make sense to include custom4 and optix7.5 into the opticks binary release ? 
+----------------------------------------------------------------------------------------------------
 
 custom4
    NO : it should not be included because junosw depends on that too, hence
@@ -96,12 +96,11 @@ custom4
    to keep it separate so it gets configured once only  
 
 optix7.5
-   MAYBE : just two directories with ~16 headers, this could be included 
+   NO : just two directories with ~16 headers, this could be included 
    because the expectation is that only opticks depends on it 
+   
+   * BUT IT IS CLEARER TO JUST TO REFER TO SEPARATE /cvmfs WITH OPTIX  
  
-
-* study the config on N as its kinda related 
-
 
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 
 ------------------------------------------------------------------------------------
@@ -120,6 +119,31 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
    in principal the opticks build could be done via normal junoenv
    but thats not convenient while opticks needs frequent changes,
    so start with it separate 
+
+
+
+
+
+WIP : junosw + opticks : profile iteration
+-------------------------------------------
+
+* mode:3 iterating with input photons giving factor of only 100x so far 
+* iteration is hampered by 2-3min delay to initialize junosw
+
+* TODO: central source instead of input photons
+* TODO: mode 1 vs 2 vs 3 comparison
+
+
+TODO : get G4CXTest operational with JUNO geometry for fast cycle 
+---------------------------------------------------------------------
+
+Follow approach of g4cx/tests/G4CXTest_raindrop.sh with g4cx/tests/G4CXTest_GEOM.sh
+
+* :doc:`G4CXTest_GEOM`
+
+
+
+
 
 
 

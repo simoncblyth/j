@@ -179,11 +179,6 @@ same again::
 
 Running on N, does not have the exception::
 
-      45608 sid    32396
-      45609 sid    32397
-      45610 sid    32398
-      45611 sid    32399
-    ]]stree::postcreate
     2023-11-16 09:37:57.555 INFO  [323477] [G4CXOpticks::setGeometry@254] CSGOptiX::Desc Version 7 PTXNAME CSGOptiX7 GEO_PTXNAME - WITH_CUSTOM4 
     2023-11-16 09:37:57.555 INFO  [323477] [G4CXOpticks::SaveGeometry@581]  save to dir /home/blyth/.opticks/GEOM/J23_1_0_rc3_ok0 configured via envvar G4CXOpticks__SaveGeometry_DIR
     2023-11-16 09:37:57.555 INFO  [323477] [G4CXOpticks::saveGeometry@538] [ /home/blyth/.opticks/GEOM/J23_1_0_rc3_ok0
@@ -488,7 +483,7 @@ Why the size difference ? A is 20MB less than B : aux.npy mostly
 
 
 
-TODO : U4Recorder/SEvt/NPFold managing to yield duplicate hit.npy keys, revealed which implementing nodata mode for fast metadata access
+FIXED : U4Recorder/SEvt/NPFold managing to yield duplicate hit.npy keys, revealed which implementing nodata mode for fast metadata access
 ------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -540,11 +535,6 @@ TODO : U4Recorder/SEvt/NPFold managing to yield duplicate hit.npy keys, revealed
 
 Big difference between U4Recorder and QEvent is the QEvent::setGenstep which calls SEvt::clear 
 just before the launch. 
-
-
-TODO : put download cache on /cvmfs so only have one to look after
------------------------------------------------------------------------
-
 
 
 TODO : get PRODUCTION macro to work 
@@ -631,9 +621,7 @@ TITAN V
 
 
 
-
-
-PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh::
+PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh run_ana::
 
     MODE:2
     A:Stamps stampFmt:2023-11-19T20:24:20.917690  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:0:NVIDIA_TITAN_V 1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
@@ -647,6 +635,7 @@ PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh::
            [    0,    58,    72,    82,    82,    83,   122,   144,   308,  2231,  2231, 14643, 14703],
            [    0,    59,    73,    84,    84,    85,   123,   144,   311,  2248,  2248, 14410, 14470],
            [    0,    60,    75,    87,    87,    89,   124,   146,   311,  2259,  2259, 14423, 14483]])
+
     B:Stamps stampFmt:2023-11-19T20:24:03.859933  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
               tBOE   tEOE 
     array([[      0, 1101852],
@@ -658,9 +647,6 @@ PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh::
            [      0, 1062443],
            [      0, 1059465],
            [      0, 1051069]])
-
-
-
 
 
 
@@ -722,8 +708,111 @@ Switch to TITAN RTX
 
 
 
+::
 
 
+    PICK:CF
+    A:ProfileWithinEvent stampFmt:2023-11-20T20:10:17.034371  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+    A.t
+    array([[    0,   107, 26143],
+           [    0,   119,  8865],
+           [    0,   109,  8667],
+           [    0,   104,  8665],
+           [    0,   104,  8668],
+           [    0,   113,  8675],
+           [    0,   113,  8635],
+           [    0,   108,  8603],
+           [    0,   136,  8895],
+           [    0,   111,  9078]])
+    B:ProfileWithinEvent stampFmt:2023-11-20T20:09:59.710368  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    B.t
+    array([[     0,    140, 953060],
+           [     0,     74, 929931],
+           [     0,    169, 896197],
+           [     0,     72, 883669],
+           [     0,     73, 905663],
+           [     0,     74, 891380],
+           [     0,     75, 877029],
+           [     0,     72, 891590],
+           [     0,     72, 885622],
+           [     0,     77, 885482]])
+    Profile.ABPlot
+    A:ProfileWithinEvent stampFmt:2023-11-20T20:10:17.034371  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+    B:ProfileWithinEvent stampFmt:2023-11-20T20:09:59.710368  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+    BOA : 36.5 104.9 103.4 102.0 104.5 102.8 101.6 103.6 99.6 97.5   avg(BOA[1:]) 102.2  
+
+
+
+
+~/np/tests/NPFold_stamps_test.sh run_ana::
+
+    MODE:2
+    A:Stamps stampFmt:2023-11-20T20:10:17.034371  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+             tBOE  tsG0  tsG1  tsG2  tsG3  tsG4  tsG5  tsG6  tsG7  tsG8  tPrL  tPoL  tEOE 
+    A.dss
+    array([[   0,   85,  102,  114,  114,  115,  162,  183,  343, 2264, 2265, 8789, 8850],
+           [   0,   62,   79,   91,   91,   93,  125,  142,  332, 2097, 2097, 8580, 8639],
+           [   0,   62,   78,   91,   91,   92,  126,  143,  287, 2099, 2099, 8583, 8640],
+           [   0,   62,   79,   92,   92,   94,  126,  144,  288, 2073, 2074, 8586, 8642],
+           [   0,   66,   83,   95,   96,   97,  151,  169,  314, 2085, 2085, 8588, 8647],
+           [   0,   74,   91,  103,  103,  105,  139,  156,  301, 2090, 2091, 8545, 8603],
+           [   0,   63,   79,   92,   92,   94,  127,  144,  288, 2048, 2048, 8518, 8574],
+           [   0,   90,  107,  120,  120,  121,  155,  173,  318, 2110, 2110, 8809, 8870],
+           [   0,   65,   82,   95,   96,   97,  171,  203,  482, 2481, 2482, 8991, 9049]])
+
+    B:Stamps stampFmt:2023-11-20T20:09:59.710368  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+             tBOE  tEOE 
+    B.dss
+    array([[     0, 929934],
+           [     0, 896187],
+           [     0, 883665],
+           [     0, 905660],
+           [     0, 891376],
+           [     0, 877026],
+           [     0, 891586],
+           [     0, 885619],
+           [     0, 885476]])
+
+
+PRODUCTION macro : HUH: not much diff
+---------------------------------------
+
+::
+
+    ~/np/tests/NPFold_stamps_test.sh run_ana
+    PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_stamps_test.sh run_ana
+    PYTHONPATH=$HOME MODE=0 ~/np/tests/NPFold_profile_test.sh run_ana
+    ~/j/jtds/jtds.sh grab 
+
+
+    MODE:0
+    A:Stamps stampFmt:2023-11-20T21:52:45.325569  J23_1_0_rc3_ok0/jok-tds/ALL0 GPUMeta:1:NVIDIA_TITAN_RTX prefix://p creator:jok-tds
+              tBOE   tPrL   tPoL  tEOET 
+    array([[   0, 2095, 8412, 8412],
+           [   0, 2631, 8921, 8922],
+           [   0, 2077, 8362, 8362],
+           [   0, 2117, 8410, 8410],
+           [   0, 2065, 8334, 8335],
+           [   0, 2074, 8314, 8314],
+           [   0, 2091, 8343, 8344],
+           [   0, 2159, 8683, 8685],
+           [   0, 2078, 8414, 8415]])
+    B:Stamps stampFmt:2023-11-20T21:52:27.692022  J23_1_0_rc3_ok0/jok-tds/ALL0 prefix://n creator:jok-tds
+              tBOE   tEOE 
+    array([[     0, 883719],
+           [     0, 922105],
+           [     0, 855139],
+           [     0, 878761],
+           [     0, 862350],
+           [     0, 846799],
+           [     0, 858702],
+           [     0, 858369],
+           [     0, 853864]])
+
+
+
+TODO : opticksMode 1 vs 2 vs 3 
+--------------------------------
 
 
 
