@@ -24,9 +24,8 @@ Below shows the ordering is::
     G4VSensitiveDetector::EndOfEvent          junoSD_PMT_v2_Opticks::EndOfEvent
     G4UserEventAction::EndOfEventAction ...   U4Recorder::EndOfEventAction
 
-* tracking and stepping have to handled in the Actions
+* tracking and stepping have to be handled in the Actions
 * hits are needed in SensitiveDetector EndOfEvent
-
 
 That causes complications as SEvt mechanics has 
 to be split across both::
@@ -55,11 +54,58 @@ a pair of new SensitiveDetector methods in G4CXOpticks::
  
 
 
+Fragile ugly "kick sibling" kludge that kinda worked
+--------------------------------------------------------
+
+::
+
+    void SEvt::beginOfEvent(int eventID)
+    {
+        setStage(SEvt__beginOfEvent); 
+        sprof::Stamp(p_SEvt__beginOfEvent_0);  
+        int index_ = 1+eventID ;  
+        LOG(LEVEL) << " index_ " << index_ ; 
+        setIndex(index_);      // also sets t_BeginOfEvent stamp 
+
+
+        /*   
+        // kicking the sibling is a kludge that 
+        // G4CXOpticks::SensitiveDetector_EndOfEvent 
+        //should avoid
+
+        if(isEGPU()) 
+        {
+            SEvt* ecpu = getSibling() ; 
+            if(ecpu->getIndex() == index_ )
+            {
+                LOG_IF(info, LIFECYCLE) << id() << " KICK ECPU SIBLING : " << ecpu->id() ; 
+                ecpu->endOfEvent(eventID) ; 
+            }
+            else
+            {
+                LOG_IF(info, LIFECYCLE) << id() << " ECPU SIBLING NOT SAME INDEX : " << ecpu->id() ; 
+            }
+        }
+        */
+
+        LOG_IF(info, LIFECYCLE) << id() ; 
+
+        clear(); 
+
+        addFrameGenstep();     // needed for simtrace and input photon running
+        sprof::Stamp(p_SEvt__beginOfEvent_1);  
+    }
+
+
+
+
+
+
 
 U4RecorderAnaMgr
 ------------------
 
-May be down to U4Recorder::EndOfRunAction not happening before 
+May be down to U4Recorder::EndOfEventAction not happening before 
 simulate gets called.::
 
     010 U4RecorderAnaMgr::U4RecorderAnaMgr(const std::string& name)
