@@ -38,10 +38,6 @@ jok-tds(){
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
 
-   ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
-   export QEvent__SEvt_NPFold_VERBOSE=1  
-   export U4Recorder__SEvt_NPFold_VERBOSE=1  
-
    local opts="" 
    opts="$opts --evtmax 10"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
@@ -74,11 +70,12 @@ jok-tds(){
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   GUN=${GUN:-0}
+   gun=1 
+   GUN=${GUN:-$gun}
    case $GUN in  
-     0) trgs="$trgs opticks"  ;;
+     0) trgs="$trgs opticks"      ;;
      1) trgs="$trgs $gun_default" ;;
-     2) trgs="$trgs $gun_wangyg" ;;
+     2) trgs="$trgs $gun_wangyg"  ;;
    esac
 
    if [ "$GUN" == "0" ]; then 
@@ -86,6 +83,15 @@ jok-tds(){
        export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
        export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
    fi
+
+   logging()
+   {
+       ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
+       export QEvent__SEvt_NPFold_VERBOSE=1  
+       export U4Recorder__SEvt_NPFold_VERBOSE=1  
+   }
+   #logging
+
    local jokdir=$HOME/tmp/$FUNCNAME 
    mkdir -p $jokdir
    cd $jokdir     # log files are dropped in invoking directory 

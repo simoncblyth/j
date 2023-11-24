@@ -1,35 +1,301 @@
 G4CXTest_GEOM
 ==============
 
-Start on laptop with g4cx/tests/G4CXTest_GEOM.sh by changing 
-the name GEOM folder name, to avoid special geometry creation::
 
-    epsilon:GEOM blyth$ pwd
-    /Users/blyth/.opticks/GEOM
-    epsilon:GEOM blyth$ mv RaindropRockAirWater RaindropRockAirWaterReloaded
+Overview
+-------------
 
 HMM: when just cycling on Opticks could start from CFBase with CSGOptiXSMTest
 avoiding the translation but when using both Geant4 and Opticks need to start from GDML.
 See :doc:`cxs_min_shakedown` for that. 
 
 
-Overview
------------
+Workflow
+----------
 
-Issue 1 
-~~~~~~~~~~
+Workstation::
 
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh info
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+   LOG=1 ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+Laptop::
+
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh info
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh grab
+   PICK=A ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
+   PICK=B ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
+   PICK=AB ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
+
+
+FIXED : Issue 1 : missing real PMTAccessor 
+----------------------------------------------
+
+Placeholder accessor give qe 1 and::
+
+    2023-11-21 11:21:08.669 INFO  [382763] [SEvt::hostside_running_resize_@1866] resizing photon 0 to evt.num_photon 1000
+    C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
+    C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.6525 _qe 1 stack.art.A (aka An) 0.605144
+    C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
+    C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
+    C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
+ 
 * missing real PMTAccessor when operating without j/PMTSim 
 
   * looks like no alternative to use j/PMTSim with G4CXTest 
     in order to use the parts of junosw that can furnish the PMT info needed
 
-Issue 2 
-~~~~~~~~~
+  * HMM: but already access this info on GPU via SPMT/QPMT
+  * YES but SPMT/QPMT they get their info from the PMTAccessor 
+  * maybe if could persist at SPMT stage could avoid j/PMTSIM
+
+Implemented SPMTAccessor.h to provide the C4IPMTAccessor interface 
+on top of SPMT.h 
+
+FIXED : Issue 1.1  : energy units in SPMTAccessor API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The added SPMTAccessor.h  avoids the error message from "theEfficiency > 1."
+but are getting very few "SD" on the B side. So something wrong with 
+what the SPMTAccessor is providing ?::
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT BT BT BT SA      ' ' 0' '    79    184' '41.9202' '     5      2']
+     [' 1' 'TO AB                        ' ' 1' '    99    133' ' 4.9828' '     2      9']
+     [' 2' 'TO BT BT BT BT BT BT SD      ' ' 2' '   118      0' '118.0000' '    13     -1']
+     [' 3' 'TO SC BT BT BT BT BT BT SA   ' ' 3' '    27     69' '18.3750' '    39      1']
+     [' 4' 'TO SC AB                     ' ' 4' '    31     43' ' 1.9459' '    17     19']
+     [' 5' 'TO SC BT BT BT BT BT BT SD   ' ' 5' '    35      2' '29.4324' '    20    365']
+     [' 6' 'TO SC SC BT BT BT BT BT BT SA' ' 6' '     9     26' ' 8.2571' '    82      3']
+
+
+* HMM: using debug C4 is the surest way for find the issue, but before doing 
+  try just dumping from the SPMTAccessor side
+
+
+FIXED BY INCREASING STATS TO 1M : Issue 1.2 : poor A/B chi2 from low stats 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    QCF qcf :  
+    a.q 1000 b.q 1000 lim slice(None, None, None) 
+    c2sum :    20.7502 c2n :     9.0000 c2per:     2.3056  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  20.75/9:2.306 (30) pv[1.00,> 0.05 : null-hyp ] 
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO AB                        ' ' 0' '    99    133' ' 4.9828' '     2      9']
+     [' 1' 'TO BT BT BT BT BT BT SD      ' ' 1' '   118    111' ' 0.2140' '    13     26']
+     [' 2' 'TO BT BT BT BT BT BT SA      ' ' 2' '    79     73' ' 0.2368' '     5      2']
+     [' 3' 'TO SC AB                     ' ' 3' '    31     43' ' 1.9459' '    17     19']
+     [' 4' 'TO SC BT BT BT BT BT BT SA   ' ' 4' '    27     36' ' 1.2857' '    39     12']
+     [' 5' 'TO SC BT BT BT BT BT BT SD   ' ' 5' '    35     35' ' 0.0000' '    20      1']
+     [' 6' 'TO SC SC SC BT BT BT BT BT BT' ' 6' '    26      8' ' 9.5294' '     1     29']
+     [' 7' 'TO BT BT BT BT BT BT BR BT BT' ' 7' '    25     20' ' 0.5556' '    38      8']
+     [' 8' 'TO SC SC BT BT BT BT BT BT BT' ' 8' '    20     12' ' 2.0000' '    68     84']
+
+::
+
+    QCF qcf :  
+    a.q 1000000 b.q 1000000 lim slice(None, None, None) 
+    c2sum :  2273.9155 c2n :  2121.0000 c2per:     1.0721  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  2273.92/2121:1.072 (30) pv[1.00,> 0.05 : null-hyp ] 
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO AB                                                 0' '127200 127884' ' 1.8341' '     2      5']
+     [' 1' 'TO BT BT BT BT BT BT SD                               1' ' 92833  92195' ' 2.1999' '    13      0']
+     [' 2' 'TO BT BT BT BT BT BT SA                               2' ' 89528  89253' ' 0.4230' '     5      6']
+     [' 3' 'TO SC AB                                              3' ' 51873  51498' ' 1.3604' '    17     54']
+     [' 4' 'TO SC BT BT BT BT BT BT SD                            4' ' 36363  36639' ' 1.0435' '    20     17']
+     [' 5' 'TO SC BT BT BT BT BT BT SA                            5' ' 30106  30371' ' 1.1612' '    39    106']
+     [' 6' 'TO SC SC AB                                           6' ' 19904  20118' ' 1.1443' '   137      2']
+     [' 7' 'TO RE AB                                              7' ' 18402  18096' ' 2.5655' '     9     32']
+     [' 8' 'TO SC SC BT BT BT BT BT BT SD                         8' ' 15674  15451' ' 1.5977' '    19     11']
+     [' 9' 'TO SC SC BT BT BT BT BT BT SA                         9' ' 12991  12881' ' 0.4677' '    82     36']
+     ['10' 'TO BT BT AB                                          10' ' 11611  11786' ' 1.3089' '    55      8']
+     ['11' 'TO BT BT SA                                          11' ' 10072  10313' ' 2.8492' '   203    140']
+     ['12' 'TO BT AB                                             12' '  9410   9351' ' 0.1855' '    36     80']
+     ['13' 'TO SC SC SC AB                                       13' '  7706   7375' ' 7.2648' '   107    192']
+     ['14' 'TO RE BT BT BT BT BT BT SD                           14' '  7557   7503' ' 0.1936' '    25     14']
+     ['15' 'TO RE BT BT BT BT BT BT SA                           15' '  7268   7140' ' 1.1371' '    48     75']
+     ['16' 'TO SC RE AB                                          16' '  7129   7154' ' 0.0438' '   110    268']
+     ['17' 'TO SC BT BT AB                                       17' '  6614   6704' ' 0.6082' '   153    123']
+     ['18' 'TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SD   18' '  6671   6674' ' 0.0007' '    38    230']
+     ['19' 'TO SC SC SC BT BT BT BT BT BT SD                     19' '  6087   6271' ' 2.7396' '   114     51']
+     ['20' 'TO SC BT BT SA                                       20' '  5720   5928' ' 3.7143' '   169    155']
+     ['21' 'TO SC BT AB                                          21' '  5509   5833' ' 9.2555' '     8    288']
+     ['22' 'TO RE RE AB                                          22' '  5585   5588' ' 0.0008' '   267     19']
+     ['23' 'TO SC SC SC BT BT BT BT BT BT SA                     23' '  5239   5148' ' 0.7972' '     1    143']
+     ['24' 'TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SA   24' '  4946   4903' ' 0.1877' '    53    575']
+     ['25' 'TO SC BT BT BT BT BT BT BT SA                        25' '  4581   4569' ' 0.0157' '   279    529']
+     ['26' 'TO BT BT DR BT SA                                    26' '  4565   4519' ' 0.2329' '     0    373']
+     ['27' 'TO BT BT BT BT AB                                    27' '  3957   3966' ' 0.0102' '   225      3']
+
+
+
+Issue 3 : SAB(a,b) python history comparison taking long time with many different histories
+---------------------------------------------------------------------------------------------
+
+
+
+
+FIXED : Issue 4 : NPFold hit assert on 2nd event
+---------------------------------------------------
+
+::
+
+    2023-11-23 17:28:23.367 INFO  [45616] [SEvt::save@3404]  dir /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/G4CXTest/ALL0/n001 index 1 instance 1 OPTICKS_SAVE_COMP  genstep,photon,record,seq,prd,hit,domain,inphoton,tag,flat,aux,sup
+    2023-11-23 17:28:26.720 INFO  [45616] [U4Recorder::EndOfEventAction@314]  savedir -
+    2023-11-23 17:28:27.879 INFO  [45616] [SEvt::save@3404]  dir /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/G4CXTest/ALL0/p001 index 1 instance 0 OPTICKS_SAVE_COMP  genstep,photon,record,seq,prd,hit,domain,inphoton,tag,flat,aux,sup
+    2023-11-23 17:28:29.494 INFO  [45616] [G4CXApp::GeneratePrimaries@238] [ fPrimaryMode T
+    2023-11-23 17:28:29.495 INFO  [45616] [SEvent::MakeGensteps@65] num_ph 100000 dump 0
+    U4VPrimaryGenerator::GeneratePrimaries ph (100000, 4, 4, )
+    2023-11-23 17:28:29.571 INFO  [45616] [G4CXApp::GeneratePrimaries@252] ]
+    2023-11-23 17:28:29.571 INFO  [45616] [U4Recorder::BeginOfEventAction@288]  eventID 1
+    2023-11-23 17:28:29.596 INFO  [45616] [SEvt::hostside_running_resize_@1866] resizing photon 0 to evt.num_photon 100000
+    2023-11-23 17:28:36.958 INFO  [45616] [U4Recorder::PreUserTrackingAction_Optical@378]  modulo 100000 : ulabel.id 0
+    2023-11-23 17:28:36.958 INFO  [45616] [U4Recorder::MakeMetaArray@676] U4Recorder::DescFakes  
+    U4Recorder::FAKES_SKIP NO 
+    U4Recorder::FAKES      YES
+    FAKES.size             0
+
+    NPFold::add_ FATAL : have_key_already hit.npy
+    G4CXTest: /home/blyth/junotop/opticks/sysrap/NPFold.h:853: void NPFold::add_(const char*, const NP*): Assertion `!have_key_already' failed.
+    /home/blyth/opticks/g4cx/tests/G4CXTest_GEOM.sh: line 138: 45616 Aborted                 (core dumped) $bin
+    /home/blyth/opticks/g4cx/tests/G4CXTest_GEOM.sh : run error
+    N[blyth@localhost opticks]$ 
+     
+
+::
+
+     840 /**
+     841 NPFold::add_
+     842 --------------
+     843 
+     844 This lower level method does not add DOT_NPY to keys
+     845 
+     846 **/
+     847 inline void NPFold::add_(const char* k, const NP* a)
+     848 {
+     849     if(verbose_) std::cerr << "NPFold::add_ [" << k  << "]" <<  std::endl ;
+     850 
+     851     bool have_key_already = std::find( kk.begin(), kk.end(), k ) != kk.end() ;
+     852     if(have_key_already) std::cerr << "NPFold::add_ FATAL : have_key_already " << k << std::endl ;
+     853     assert( !have_key_already );
+     854 
+     855     kk.push_back(k);
+     856     aa.push_back(a);
+     857 }
+
+
+::
+
+    (gdb) bt
+    #0  0x00007ffff2766387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff2767a78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff275f1a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff275f252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007ffff3e0ee8e in NPFold::add_ (this=0x6c6510, k=0x7ffffffefc80 "hit.npy", a=0x4820ade0) at /home/blyth/junotop/opticks/sysrap/NPFold.h:853
+    #5  0x00007ffff3e0ed1a in NPFold::add (this=0x6c6510, k=0x7ffff3f51f69 "hit", a=0x4820ade0) at /home/blyth/junotop/opticks/sysrap/NPFold.h:837
+    #6  0x00007ffff3e5014e in SEvt::gather_components (this=0x6c5cd0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:2986
+    #7  0x00007ffff3e5079d in SEvt::gather (this=0x6c5cd0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:3038
+    #8  0x00007ffff3e51c0d in SEvt::save (this=0x6c5cd0, dir_=0x7ffff3f4de62 "$DefaultOutputDir") at /home/blyth/junotop/opticks/sysrap/SEvt.cc:3391
+    #9  0x00007ffff3e5086a in SEvt::save (this=0x6c5cd0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:3119
+    #10 0x00007ffff3e47ee3 in SEvt::endOfEvent (this=0x6c5cd0, eventID=1) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:1282
+    #11 0x00007ffff7cfc8f6 in U4Recorder::EndOfEventAction (this=0x6c5b30, event=0x359643b0) at /home/blyth/junotop/opticks/u4/U4Recorder.cc:311
+    #12 0x000000000040a189 in G4CXApp::EndOfEventAction (this=0x6c5a20, event=0x359643b0) at /home/blyth/junotop/opticks/g4cx/tests/G4CXApp.h:266
+    #13 0x00007ffff7037242 in G4EventManager::DoProcessing(G4Event*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #14 0x00007ffff70d6a9f in G4RunManager::DoEventLoop(int, char const*, int) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #15 0x00007ffff70d44de in G4RunManager::BeamOn(int, char const*, int) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #16 0x000000000040a7a1 in G4CXApp::BeamOn (this=0x6c5a20) at /home/blyth/junotop/opticks/g4cx/tests/G4CXApp.h:317
+    #17 0x000000000040a8ad in G4CXApp::Main () at /home/blyth/junotop/opticks/g4cx/tests/G4CXApp.h:324
+    #18 0x000000000040aa37 in main (argc=1, argv=0x7fffffff2188) at /home/blyth/junotop/opticks/g4cx/tests/G4CXTest.cc:16
+    (gdb) 
+
+::
+
+    epsilon:opticks blyth$ opticks-f ADHOC
+    ./sysrap/SEvt.cc:        fold->clear(); // ADHOC
+    ./sysrap/SEvt.cc:        fold->clear();  // ADHOC : TRY TO HANDLE U4Recorder DUPLICATE KEY ISSUE
+    epsilon:opticks blyth$ 
+
+
+::
+
+Looks like should move genstep tee up to lower level in SEvt::addFrameGenstep, 
+instead of up in CSGOptiX::SimulateMain::
+
+     169 void CSGOptiX::SimulateMain() // static
+     170 {
+     171     SEventConfig::SetRGModeSimulate();
+     172     CSGFoundry* fd = CSGFoundry::Load();
+     173     CSGOptiX* cx = CSGOptiX::Create(fd) ;
+     174 
+     175     LOG(info)
+     176         << " " << SEventConfig::kNumEvent    << "=" << SEventConfig::NumEvent()
+     177         << " " << SEventConfig::kRunningMode << "=" << SEventConfig::RunningModeLabel()
+     178         << " SEventConfig::IsRunningModeTorch() " << ( SEventConfig::IsRunningModeTorch() ? "YES" : "NO " )
+     179         ;
+     180 
+     181     for(int i=0 ; i < SEventConfig::NumEvent() ; i++)
+     182     {
+     183         if(SEventConfig::IsRunningModeTorch()) SEvt::AddTorchGenstep();
+     184         cx->simulate(i);
+     185     }
+     186 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Review the PMT info journey : PMTSimParamSvc/Data -> SPMT -> QPMT 
+---------------------------------------------------------------------
+
+Methods needed::
+
+    305     int pmtid = C4Touchable::VolumeIdentifier(&aTrack, true );
+    306     int pmtcat = accessor->get_pmtcat( pmtid ) ;
+    307     double _qe = minus_cos_theta > 0. ? 0.0 : accessor->get_pmtid_qe( pmtid, energy ) ;  // energy_eV ?
+    308     // following the old junoPMTOpticalModel with "backwards" _qe always zero 
+    309 
+    310     std::array<double,16> a_spec ;
+    311     accessor->get_stackspec(a_spec, pmtcat, energy_eV );
+
+
+
+
+    
+FIXED : Issue 2 : standalone optical starting from GDML lacks sensor association
+----------------------------------------------------------------------------------
+
+Fix avoids:: 
+
+    2023-11-21 11:21:08.800 INFO  [382763] [U4Recorder::EndOfEventAction@314]  savedir -
+    //qsim::propagate_at_surface_CustomART idx     515 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+    //qsim::propagate_at_surface_CustomART idx     522 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+    //qsim::propagate_at_surface_CustomART idx     526 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+    //qsim::propagate_at_surface_CustomART idx     527 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+    //qsim::propagate_at_surface_CustomART idx     528 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+    //qsim::propagate_at_surface_CustomART idx     610 lpmtid -1 : ERROR NOT-A-SENSOR : NAN_ABORT 
+
 
 * operating from GDML means that sensor info lost  
 
   * maybe this is because a geometry import from GDML is happening ? 
+    NOPE, its a creation from GDML : not an import from SSim/stree
+
   * grabbing the GEOM from the CSGFoundry written live should avoid this issue ?
 
     * that will only work for the A side, not the B side : unless fixup 
@@ -39,6 +305,13 @@ Issue 2
     instead of creating the CSGFoundry again ? 
 
     * need to find a way to get the GDML to carry the sensor info : using GDML aux for example  
+
+
+
+
+
+Review SensitiveDetector association and GDMLAux
+---------------------------------------------------
 
 
 ::
@@ -85,20 +358,6 @@ Could do the same with INSTANCED : but still that will not fix Geant4 lacking se
     ./Simulation/DetSimV2/PMTSim/src/R12860TorusPMTManager.cc:    body_log->SetSensitiveDetector(m_detector);
     ./Simulation/DetSimV2/PMTSim/src/R12860TorusPMTManager.cc:    inner1_log->SetSensitiveDetector(m_detector);
     ./Simulation/DetSimV2/PMTSim/src/MCP20inchPMTManager.cc:    body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/MCP20inchPMTManager.cc:    inner1_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV2Manager.cc:    body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV2Manager.cc:    inner1_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/R12860PMTManager.cc:    body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/R12860PMTManager.cc:    inner1_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:        body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:        inner1_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:        pmt_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HamamatsuR12860PMTManager.cc:        inner_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/Ham8inchPMTManager.cc:    body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/Ham8inchPMTManager.cc:    inner1_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HZC9inchPMTManager.cc:    body_log->SetSensitiveDetector(m_detector);
-    ./Simulation/DetSimV2/PMTSim/src/HZC9inchPMTManager.cc:    inner1_log->SetSensitiveDetector(m_detector);
-
 
 jcv HamamatsuR12860PMTManager::
 
@@ -211,6 +470,10 @@ g4-cls G4GDMLWriteStructure::
 
 
 
+Confirm creation
+-------------------
+
+
 ::
 
     LOG=1 BP=sn::increase_zmax_  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh dbg
@@ -252,26 +515,6 @@ g4-cls G4GDMLWriteStructure::
        from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
     #30 0x00007ffff70e3c5c in G4RunManager::Initialize() ()
 
-
-
-
-
-Workflow
-----------
-
-Workstation::
-
-   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh info
-   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
-   LOG=1 ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
-
-Laptop::
-
-   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh info
-   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh grab
-   PICK=A ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
-   PICK=B ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
-   PICK=AB ~/opticks/g4cx/tests/G4CXTest_GEOM.sh ana
 
 
 
@@ -405,11 +648,7 @@ HMM : TODO trace the _qe::
     C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
 
 
-But first a clean build, as update builds have some phlogiston in them. 
-
-
-
-
+But first a clean build, as update builds have some phlogiston in them.::
 
     2023-11-21 11:21:08.797 INFO  [382763] [U4Recorder::PreUserTrackingAction_Optical@378]  modulo 100000 : ulabel.id 0
     C4CustomART::doIt FATAL  ERR: theEfficiency > 1. : 1.56671 _qe 1 stack.art.A (aka An) 0.638281
@@ -604,24 +843,8 @@ But first a clean build, as update builds have some phlogiston in them.
 
 
 
-CMake separate Debug and Release build tree ?
-----------------------------------------------
 
-* https://cmake.org/cmake/help/latest/guide/tutorial/Packaging%20Debug%20and%20Release.html
-
-::
-
-    cd debug
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
-    cmake --build .
-    cd ../release
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    cmake --build .
-
-
-
-
-TODO: standalone QPMT/SPMT shakedown 
+DONE : standalone QPMT/SPMT shakedown 
 ---------------------------------------
 
 ::
@@ -690,8 +913,8 @@ Hmm QPMT looks to be there::
 Maybe the old sensor labelling chestnut ? 
 
 
-Chase the C4 accessor
-------------------------
+DONE : Chase the C4 accessor
+-------------------------------
 
 ::
 
@@ -917,8 +1140,8 @@ Bingo : its the mock standin accessor : as no PMTSim
 
 
 
-Could be the GDML sensor chestnut again
------------------------------------------
+Could be the GDML sensor chestnut again : YES, it was that too
+-------------------------------------------------------------------
 
 ::
 

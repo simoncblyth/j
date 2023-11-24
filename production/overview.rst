@@ -1,21 +1,21 @@
 overview
 =========
 
+Current Scripts
+-----------------
+
+::
+
+   ~/opticks/CSGOptiX/cxs_min.sh
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+
 
 DONE : revisit opticks-t
 --------------------------
 
 DONE : okdist updates
 ------------------------
-
-TODO : workaround the github fork into same organization limitation 
-----------------------------------------------------------------------
-
-* simply add opticks_ancient and push ? 
-
-TODO : tidy up opticks inactive packages 
----------------------------------------------
-
 
 DONE : forked opticks to opticks_ancient on bitbucket
 --------------------------------------------------------
@@ -81,11 +81,6 @@ Expt in R:BuildAgainstRelease and examples/UseRelease
 HMM : maybe should include some source examples with the binary release ? 
 
 
-TODO : check using opticks python functionality from the release
-------------------------------------------------------------------
-
-Convert G4CXTest_raindrop.sh into a "user example" 
-
 
 DONE : consider if it make sense to include custom4 and optix7.5 into the opticks binary release ? 
 ----------------------------------------------------------------------------------------------------
@@ -100,7 +95,44 @@ optix7.5
    because the expectation is that only opticks depends on it 
    
    * BUT IT IS CLEARER TO JUST TO REFER TO SEPARATE /cvmfs WITH OPTIX  
- 
+
+
+DONE : switch from disc beam to surface of sphere radial generation
+----------------------------------------------------------------------
+
+* OLD:~/opticks/optixrap/cu/torchstep.h 
+* ~/opticks/sysrap/tests/storch_test.sh 
+
+
+DONE : get G4CXTest_GEOM operational with JUNO geometry for fast cycle 
+------------------------------------------------------------------------
+
+Follow approach of g4cx/tests/G4CXTest_raindrop.sh with g4cx/tests/G4CXTest_GEOM.sh
+
+* :doc:`G4CXTest_GEOM`
+
+* ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+
+
+
+
+
+
+TODO : workaround the github fork into same organization limitation 
+----------------------------------------------------------------------
+
+* simply add opticks_ancient and push ? 
+
+TODO : tidy up opticks inactive packages 
+---------------------------------------------
+
+
+TODO : check using opticks python functionality from the release
+------------------------------------------------------------------
+
+Convert G4CXTest_raindrop.sh into a "user example" 
+
 
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 
 ------------------------------------------------------------------------------------
@@ -122,6 +154,9 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
 
 
 
+WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++ ?
+--------------------------------------------------------------------------------------
+
 
 
 WIP : junosw + opticks : profile iteration
@@ -130,17 +165,38 @@ WIP : junosw + opticks : profile iteration
 * mode:3 iterating with input photons giving factor of only 100x so far 
 * iteration is hampered by 2-3min delay to initialize junosw
 
-* TODO: central source instead of input photons
-* TODO: mode 1 vs 2 vs 3 comparison
+* DONE : central source instead of input photons
+* TODO : mode 1 vs 2 vs 3 comparison
 
 
-TODO : get G4CXTest operational with JUNO geometry for fast cycle 
----------------------------------------------------------------------
 
-Follow approach of g4cx/tests/G4CXTest_raindrop.sh with g4cx/tests/G4CXTest_GEOM.sh
+DONE : get cxs_min.sh to do the same as the A side of G4CXTest_GEOM.sh : check match
+---------------------------------------------------------------------------------------
 
-* :doc:`G4CXTest_GEOM`
+Currently using input photons. Need to switch it to same torch as G4CXTest_GEOM. 
+Hmm factor off the torch setup ?::
 
+   ~/opticks/CSGOptiX/cxs_min.sh
+   ~/opticks/CSGOptiX/cxs_min.sh ana 
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+
+See :doc:`cxs_min_shakedown`
+
+
+TODO : CMake separate Debug and Release build tree ?
+------------------------------------------------------
+
+* https://cmake.org/cmake/help/latest/guide/tutorial/Packaging%20Debug%20and%20Release.html
+
+::
+
+    cd debug
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cmake --build .
+    cd ../release
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build .
 
 
 
