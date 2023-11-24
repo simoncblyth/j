@@ -10,6 +10,13 @@ Current Scripts
    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
    ~/j/jok.bash 
 
+   ~/j/okjob.sh 
+
+
+::
+
+     jcv junoSD_PMT_v2_Opticks
+
 
 DONE : revisit opticks-t
 --------------------------
@@ -247,4 +254,9 @@ TODO : use NPFold profile and stamp summary in job scripts ?
 
 
 
- 
+Lifecycle Issue
+-----------------
+
+* :doc:`EventAction_SensitiveDetector_SEvt_Lifecycle_issue`
+
+

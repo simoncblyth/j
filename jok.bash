@@ -91,7 +91,8 @@ jok-tds(){
        export U4Recorder__SEvt_NPFold_VERBOSE=1  
        export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
    }
-   #logging
+   logging
+
 
    local jokdir=$HOME/tmp/$FUNCNAME 
    mkdir -p $jokdir
@@ -108,20 +109,21 @@ jok-tds(){
    fi 
 
 
-   local runline
-   if [ -z "$GDB" ]; then 
-       runline="python $(jok-script) $opts $trgs"
-   else
-       runline="gdb -ex r --args python $(jok-script) $opts $trgs"  
+   local runline="python $(jok-script) $opts $trgs"
+
+   if [ -n "$GDB" -o -n "$BP" ]; then
+       #export SEvt__CLEAR_SIGINT=1 ## debug  
+       runline="jok-gdb $runline"
    fi 
+   #runline="gdb -ex r --args python $(jok-script) $opts $trgs"  
 
    local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
    for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
    env | grep OPTICKS
    env | grep __
 
-   echo $runline
    eval $runline 
+
 }
 jok-tds-gdb(){ GDB=1 jok-tds ; }
 
@@ -142,4 +144,30 @@ EOU
 }
 
 jok-ana(){ ~/j/jtds/jtds.sh $* ; }
+
+
+jok-gdb() 
+{ 
+    : ~/j/jok.bash :  invokes gdb - sets up breakpoints based on BP envvar containing space delimited symbols;
+    if [ -z "$BP" ]; then
+        H="";
+        B="";
+        T="-ex r";
+    else
+        H="-ex \"set breakpoint pending on\"";
+        B="";
+        for bp in $BP;
+        do
+            B="$B -ex \"break $bp\" ";
+        done;
+        T="-ex \"info break\" -ex r";
+    fi;
+    local runline="gdb $H $B $T --args $* ";
+    echo $runline;
+    date;
+    eval $runline;
+    date
+}
+
+
 
