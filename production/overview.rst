@@ -8,7 +8,7 @@ Current Scripts
 
    ~/opticks/CSGOptiX/cxs_min.sh
    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
-
+   ~/j/jok.bash 
 
 
 DONE : revisit opticks-t
@@ -200,6 +200,51 @@ TODO : CMake separate Debug and Release build tree ?
 
 
 
+TODO : use NPFold profile and stamp summary in job scripts ?
+-------------------------------------------------------------------
+
+::
+
+    ~/np/tests/NPFold_profile_test.sh 
+    ~/np/tests/NPFold_stamps_test.sh 
+
+
+~/np/tests/NPFold_stamps_test.cc::
+
+    int main(int argc, char** argv)
+    {
+        const char* path = argc > 1 ? argv[1] : nullptr ;   
+        if(path == nullptr) return 0 ; 
+
+        NPFold* f = NPFold::Load(path); 
+        //std::cout << " path " << path << std::endl << f->desc() << std::endl ; 
+
+        NPFold* ab = f->subfold_summary('S', "a://p", "b://n"); 
+        ab->save("$FOLD"); 
+
+        return 0 ; 
+    } 
+
+
+    #include "NPFold.h"
+
+    int main(int argc, char** argv)
+    {
+        std::cout << argv[0] << std::endl ; 
+        const char* path = argc > 1 ? argv[1] : nullptr ;   
+        if(path == nullptr) return 0 ; 
+
+        NPFold* f = NPFold::Load(path);
+        std::cout << "NPFold::Load(\"" << path << "\")" << std::endl ;
+
+        NPFold* ab = f->subfold_summary('P', "a://p", "b://n");
+        ab->save("$FOLD");
+        std::cout << "NPFold::subprofile_summary.P created and saved subprofile symmary NPFold to $FOLD " << std::endl ;
+
+        return 0 ; 
+    }
 
 
 
+
+ 

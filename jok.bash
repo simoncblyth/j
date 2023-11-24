@@ -89,6 +89,7 @@ jok-tds(){
        ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
        export QEvent__SEvt_NPFold_VERBOSE=1  
        export U4Recorder__SEvt_NPFold_VERBOSE=1  
+       export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
    }
    #logging
 
