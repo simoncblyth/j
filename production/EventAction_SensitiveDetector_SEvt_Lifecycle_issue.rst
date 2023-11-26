@@ -324,3 +324,46 @@ g4-cls G4VSensitiveDetector::
 
 
 
+
+
+And again while cutting the ECPU EGPU coupling
+---------------------------------------------------
+
+
+* looks like EGPU gets cleared just before need to use it 
+
+::
+
+    NPFold::add_ [sup.npy]
+    2023-11-26 20:29:11.316 INFO  [268086] [SEvt::save@3642]  dir /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/n001 index 1 instance 1 OPTICKS_SAVE_COMP  genstep,photon,record,seq,prd,hit,domain,inphoton,tag,flat,aux,sup
+    2023-11-26 20:29:11.356 INFO  [268086] [SEvt::clear@1652] SEvt::id ECPU (1)  GSV YES SEvt__OTHER BEFORE clear_vectors 
+    NPFold::clear ALL
+    2023-11-26 20:29:11.356 INFO  [268086] [SEvt::clear@1660] SEvt::id ECPU (1)  GSV NO  SEvt__OTHER AFTER clear_vectors 
+    2023-11-26 20:29:11.356 INFO  [268086] [U4Recorder::EndOfEventAction_@335]  savedir -
+    junoSD_PMT_v2_Opticks::EndOfEvent_Debug eventID 0 opticksMode 3 with m_jpmt_dbg YES
+    NPFold::add_ [junoSD_PMT_v2_Opticks.npy]
+    2023-11-26 20:29:11.356 INFO  [268086] [QSim::simulate@351] [ eventID 0
+    2023-11-26 20:29:11.357 INFO  [268086] [SEvt::beginOfEvent@1404] SEvt::id EGPU (1)  GSV YES SEvt__beginOfEvent
+    2023-11-26 20:29:11.357 INFO  [268086] [SEvt::clear@1652] SEvt::id EGPU (1)  GSV YES SEvt__OTHER BEFORE clear_vectors 
+    NPFold::clear ALL
+    2023-11-26 20:29:11.357 INFO  [268086] [SEvt::clear@1660] SEvt::id EGPU (1)  GSV NO  SEvt__OTHER AFTER clear_vectors 
+    2023-11-26 20:29:11.357 INFO  [268086] [SEvt::addFrameGenstep@599] SEvt::id EGPU (1)  GSV NO  SEvt__OTHER
+    2023-11-26 20:29:11.357 INFO  [268086] [QEvent::setGenstep@162] [
+    2023-11-26 20:29:11.357 FATAL [268086] [QEvent::setGenstep@178] Must add gensteps to SEvt::EGPU instance before calling QEvent::setGenstep 
+
+    Thread 1 "python" received signal SIGINT, Interrupt.
+    0x00007ffff75e44fb in raise () from /lib64/libpthread.so.0
+    (gdb) bt
+    #0  0x00007ffff75e44fb in raise () from /lib64/libpthread.so.0
+    #1  0x00007fffc80f43bb in QEvent::setGenstep (this=0x1c455d40) at /home/blyth/junotop/opticks/qudarap/QEvent.cc:183
+    #2  0x00007fffc80bf5d0 in QSim::simulate (this=0x1c455c90, eventID=0) at /home/blyth/junotop/opticks/qudarap/QSim.cc:359
+    #3  0x00007fffc8d75928 in G4CXOpticks::simulate (this=0xa596360, eventID=0) at /home/blyth/junotop/opticks/g4cx/G4CXOpticks.cc:460
+    #4  0x00007fffc78bc572 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x8c1f490, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:246
+    #5  0x00007fffc78bc105 in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x8c1f490, eventID=0)
+
+
+
+
+
+

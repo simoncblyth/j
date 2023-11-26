@@ -94,7 +94,8 @@ jok-tds(){
    logging
 
 
-   local jokdir=$HOME/tmp/$FUNCNAME 
+   #local jokdir=$HOME/tmp/$FUNCNAME 
+   local jokdir=$HOME/tmp/GEOM/$GEOM/$FUNCNAME/ALL0 
    mkdir -p $jokdir
    cd $jokdir     # log files are dropped in invoking directory 
    pwd
@@ -122,7 +123,13 @@ jok-tds(){
    env | grep OPTICKS
    env | grep __
 
-   eval $runline 
+   eval $runline
+
+
+   local postline="sstampfold_report"
+   echo $postline
+   eval $postline
+ 
 
 }
 jok-tds-gdb(){ GDB=1 jok-tds ; }
@@ -168,6 +175,5 @@ jok-gdb()
     eval $runline;
     date
 }
-
 
 
