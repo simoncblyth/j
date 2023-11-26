@@ -326,8 +326,8 @@ g4-cls G4VSensitiveDetector::
 
 
 
-And again while cutting the ECPU EGPU coupling
----------------------------------------------------
+And again while cutting the ECPU EGPU coupling : FIXED
+-------------------------------------------------------
 
 
 * looks like EGPU gets cleared just before need to use it 

@@ -124,14 +124,20 @@ jok-tds(){
    env | grep __
 
    eval $runline
-
-
-   local postline="sstampfold_report"
-   echo $postline
-   eval $postline
- 
-
+   
+   jok-reports
 }
+
+jok-reports(){
+   : ~/j/jok.bash summarize+present SEvt/NPFold timestamp and memory profile metadata 
+   local reports="sstampfold_report sprof_fold_report"
+   for report in $reports ; do printf "%s\n" "$report" ; done 
+   for report in $reports ; do
+       printf "%s\n" "$report"
+       $report 
+   done 
+}
+
 jok-tds-gdb(){ GDB=1 jok-tds ; }
 
 

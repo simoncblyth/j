@@ -9,6 +9,7 @@ usage(){ cat << EOU
 
    REMOTE=P ~/j/jtds/jtds.sh grab
    REMOTE=L ~/j/jtds/jtds.sh grab
+   ~/j/jtds/jtds.sh grab
 
    ~/j/jtds/jtds.sh ana
    EVT=2 ~/j/jtds/jtds.sh ana

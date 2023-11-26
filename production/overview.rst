@@ -9,9 +9,7 @@ Current Scripts
    ~/opticks/CSGOptiX/cxs_min.sh
    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
    ~/j/jok.bash 
-
    ~/j/okjob.sh 
-
 
 ::
 
@@ -125,20 +123,85 @@ Follow approach of g4cx/tests/G4CXTest_raindrop.sh with g4cx/tests/G4CXTest_GEOM
 
 
 
+FIXED : Lifecycle Issue in tds3 gun running with jok-tds
+-----------------------------------------------------------
 
-TODO : workaround the github fork into same organization limitation 
-----------------------------------------------------------------------
-
-* simply add opticks_ancient and push ? 
-
-TODO : tidy up opticks inactive packages 
----------------------------------------------
+* :doc:`EventAction_SensitiveDetector_SEvt_Lifecycle_issue`
 
 
-TODO : check using opticks python functionality from the release
-------------------------------------------------------------------
 
-Convert G4CXTest_raindrop.sh into a "user example" 
+
+DONE : get cxs_min.sh to do the same as the A side of G4CXTest_GEOM.sh : check match
+---------------------------------------------------------------------------------------
+
+Currently using input photons. Need to switch it to same torch as G4CXTest_GEOM. 
+Hmm factor off the torch setup ?::
+
+   ~/opticks/CSGOptiX/cxs_min.sh
+   ~/opticks/CSGOptiX/cxs_min.sh ana 
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+
+See :doc:`cxs_min_shakedown`
+
+
+
+DONE : use NPFold stamp summary : sstampfold_report in jok.bash jobscript
+-----------------------------------------------------------------------------
+
+TODO : use NPFold profile summary : sprof_fold_report in jok.bash jobscript 
+-----------------------------------------------------------------------------
+
+* develop memory profile event-to-event presentation 
+* look for leaks 
+
+
+TODO : ~/j/issues/jok_tds_discrepant_cerenkov.rst
+-----------------------------------------------------
+
+
+
+WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++ ?
+--------------------------------------------------------------------------------------
+
+* thrustrap/TSparse : already have GPU impl of part of the task 
+
+
+TODO : revisit opticksMode 0,1,2 following lifecycle changes
+--------------------------------------------------------------
+
+* comparing 1 and 2 will give overall speedup, 
+  compare that with speedup from opticksMode 3 
+
+
+TODO : revisit G4CXApp_GEOM and cxs_min.sh following lifecycle changes
+-------------------------------------------------------------------------
+
+* switch to sphere source for both 
+
+
+TODO : junosw + opticks : profile iteration
+-------------------------------------------
+
+* mode:3 iterating with input photons giving factor of only 100x so far 
+* iteration is hampered by 2-3min delay to initialize junosw
+
+* DONE : central source instead of input photons
+
+
+TODO : CMake separate Debug and Release build tree ? Debug "release" ? 
+-----------------------------------------------------------------------------
+
+* https://cmake.org/cmake/help/latest/guide/tutorial/Packaging%20Debug%20and%20Release.html
+
+::
+
+    cd debug
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cmake --build .
+    cd ../release
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build .
 
 
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 
@@ -161,102 +224,19 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
 
 
 
-WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++ ?
---------------------------------------------------------------------------------------
+
+TODO : workaround the github fork into same organization limitation 
+----------------------------------------------------------------------
+
+* simply add opticks_ancient and push ? 
+
+TODO : tidy up opticks inactive packages 
+---------------------------------------------
 
 
+TODO : check using opticks python functionality from the release
+------------------------------------------------------------------
 
-WIP : junosw + opticks : profile iteration
--------------------------------------------
-
-* mode:3 iterating with input photons giving factor of only 100x so far 
-* iteration is hampered by 2-3min delay to initialize junosw
-
-* DONE : central source instead of input photons
-* TODO : mode 1 vs 2 vs 3 comparison
-
-
-
-DONE : get cxs_min.sh to do the same as the A side of G4CXTest_GEOM.sh : check match
----------------------------------------------------------------------------------------
-
-Currently using input photons. Need to switch it to same torch as G4CXTest_GEOM. 
-Hmm factor off the torch setup ?::
-
-   ~/opticks/CSGOptiX/cxs_min.sh
-   ~/opticks/CSGOptiX/cxs_min.sh ana 
-   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
-
-
-See :doc:`cxs_min_shakedown`
-
-
-TODO : CMake separate Debug and Release build tree ?
-------------------------------------------------------
-
-* https://cmake.org/cmake/help/latest/guide/tutorial/Packaging%20Debug%20and%20Release.html
-
-::
-
-    cd debug
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
-    cmake --build .
-    cd ../release
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    cmake --build .
-
-
-
-TODO : use NPFold profile and stamp summary in job scripts ?
--------------------------------------------------------------------
-
-::
-
-    ~/np/tests/NPFold_profile_test.sh 
-    ~/np/tests/NPFold_stamps_test.sh 
-
-
-~/np/tests/NPFold_stamps_test.cc::
-
-    int main(int argc, char** argv)
-    {
-        const char* path = argc > 1 ? argv[1] : nullptr ;   
-        if(path == nullptr) return 0 ; 
-
-        NPFold* f = NPFold::Load(path); 
-        //std::cout << " path " << path << std::endl << f->desc() << std::endl ; 
-
-        NPFold* ab = f->subfold_summary('S', "a://p", "b://n"); 
-        ab->save("$FOLD"); 
-
-        return 0 ; 
-    } 
-
-
-    #include "NPFold.h"
-
-    int main(int argc, char** argv)
-    {
-        std::cout << argv[0] << std::endl ; 
-        const char* path = argc > 1 ? argv[1] : nullptr ;   
-        if(path == nullptr) return 0 ; 
-
-        NPFold* f = NPFold::Load(path);
-        std::cout << "NPFold::Load(\"" << path << "\")" << std::endl ;
-
-        NPFold* ab = f->subfold_summary('P', "a://p", "b://n");
-        ab->save("$FOLD");
-        std::cout << "NPFold::subprofile_summary.P created and saved subprofile symmary NPFold to $FOLD " << std::endl ;
-
-        return 0 ; 
-    }
-
-
-
-
-Lifecycle Issue
------------------
-
-* :doc:`EventAction_SensitiveDetector_SEvt_Lifecycle_issue`
+Convert G4CXTest_raindrop.sh into a "user example" 
 
 
