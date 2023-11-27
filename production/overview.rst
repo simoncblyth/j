@@ -119,16 +119,10 @@ Follow approach of g4cx/tests/G4CXTest_raindrop.sh with g4cx/tests/G4CXTest_GEOM
 * ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
 
 
-
-
-
-
 FIXED : Lifecycle Issue in tds3 gun running with jok-tds
 -----------------------------------------------------------
 
 * :doc:`EventAction_SensitiveDetector_SEvt_Lifecycle_issue`
-
-
 
 
 DONE : get cxs_min.sh to do the same as the A side of G4CXTest_GEOM.sh : check match
@@ -214,7 +208,8 @@ Whats missing:
 * BOA:B/A listing  
 * photon counts summary 
 * switches like PRODUCTION 
-
+* improve plotting 
+* summary grabbing 
 * develop memory profile event-to-event presentation 
 * look for leaks 
 
@@ -228,6 +223,7 @@ TODO : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
 
     ~/j/okjob.sh grab 
     ~/j/okjob.sh ana
+    ~/j/okjob.sh init
     ~/j/okjob.sh report
 
 
@@ -248,9 +244,9 @@ TODO : cross comparison of the A times
 |  3   |  ~/opticks/CSGOptiX/cxs_min.sh           |  ~1 sec |  
 +------+------------------------------------------+---------+
 
-Establishing correspondence between 1.A <=> 3.A is important because of the fast turnaround of 3.
+Establishing correspondence between 1A and 3A is important because of the fast turnaround of 3
 
-* use gensteps from (1) as OPTICKS_INPUT_GENSTEP to (3) 
+* use gensteps from 1 as OPTICKS_INPUT_GENSTEP to 3
  
 
 
@@ -310,6 +306,10 @@ TODO : try nvidia profiling machinery
 -------------------------------------------
 
 
+TODO : junosw minor MR, custom4 update again (for C4Version.h) 
+-----------------------------------------------------------------
+
+
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 
 ------------------------------------------------------------------------------------
 
@@ -327,6 +327,8 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
    in principal the opticks build could be done via normal junoenv
    but thats not convenient while opticks needs frequent changes,
    so start with it separate 
+
+
 
 
 

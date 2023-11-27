@@ -20,10 +20,23 @@ EON
 }
 
 jok-script(){ echo $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py ; }
+
+
+jok-init()
+{
+   export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
+   local jokdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
+   mkdir -p $jokdir
+   cd $jokdir     # log files are dropped in invoking directory 
+   pwd
+   ls -alst
+}
+
 jok-tds(){
+   jok-init
+
    export OPTICKS_SCRIPT=$FUNCNAME     # avoid default sproc::_ExecutableName of python3.9 
    export OPTICKS_INTEGRATION_MODE=3   # both geant4 and opticks optical simulation   
-   export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
    export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
 
    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
@@ -94,12 +107,7 @@ jok-tds(){
    logging
 
 
-   #local jokdir=$HOME/tmp/$FUNCNAME 
-   local jokdir=$HOME/tmp/GEOM/$GEOM/$FUNCNAME/ALL0 
-   mkdir -p $jokdir
-   cd $jokdir     # log files are dropped in invoking directory 
-   pwd
-   ls -alst
+
 
    local root="sample_detsim_user.root"
    if [ -f "$root" ]; then
@@ -125,11 +133,14 @@ jok-tds(){
 
    eval $runline
    
-   jok-reports
+   jok-report
 }
 
-jok-reports(){
+jok-report(){
    : ~/j/jok.bash summarize+present SEvt/NPFold timestamp and memory profile metadata 
+
+   jok-init
+
    local reports="sstampfold_report sprof_fold_report"
    for report in $reports ; do printf "%s\n" "$report" ; done 
    for report in $reports ; do

@@ -117,7 +117,6 @@ okjob-body()
 
    #okjob-ctest
 
-   source $HOME/j/jok.bash 
    jok-tds
 }
 
@@ -142,26 +141,20 @@ okjob-main(){
    okjob-tail
 }
 
-okjob-grab(){
-   echo $FUNCNAME 
-   source $HOME/j/jok.bash 
-   jok-grab
-}
-
-okjob-ana(){
-   echo $FUNCNAME 
-   source $HOME/j/jok.bash 
-   jok-ana
-}
 
 
+defarg="main"
+arg=${1:-$defarg}
 
-arg=${1:-$main}
+source $HOME/j/jok.bash 
 
 case $arg in 
    main) okjob-main ;; 
-   grab) okjob-grab ;;
-   ana)  okjob-ana ;;
+   init) jok-init ;; 
+   grab) jok-grab ;;
+   ana)  jok-ana ;;
+report)  jok-report ;;
+     *)  echo $BASH_SOURCE : arg $arg unhandled ;;
 esac
 
 
