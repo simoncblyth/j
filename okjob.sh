@@ -135,8 +135,33 @@ okjob-tail(){
 
 }
 
-okjob-setup
-okjob-head
-okjob-body
-okjob-tail
+okjob-main(){
+   okjob-setup
+   okjob-head
+   okjob-body
+   okjob-tail
+}
+
+okjob-grab(){
+   echo $FUNCNAME 
+   source $HOME/j/jok.bash 
+   jok-grab
+}
+
+okjob-ana(){
+   echo $FUNCNAME 
+   source $HOME/j/jok.bash 
+   jok-ana
+}
+
+
+
+arg=${1:-$main}
+
+case $arg in 
+   main) okjob-main ;; 
+   grab) okjob-grab ;;
+   ana)  okjob-ana ;;
+esac
+
 

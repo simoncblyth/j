@@ -156,7 +156,9 @@ EOU
    : opticks-anamgr is used by the U4Recorder
 }
 
-jok-ana(){ ~/j/jtds/jtds.sh $* ; }
+
+jok-grab(){ ~/j/jtds/jtds.sh grab ; }
+jok-ana(){  ~/j/jtds/jtds.sh $* ; }
 
 
 jok-gdb() 

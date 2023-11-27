@@ -209,7 +209,12 @@ DONE : revisit opticks-t following lifecycle changes : 0/208 FAIL
 TODO : enhance sstampfold_report and sprof_fold_report 
 ---------------------------------------------------------------------------
 
+Whats missing:
+
 * BOA:B/A listing  
+* photon counts summary 
+* switches like PRODUCTION 
+
 * develop memory profile event-to-event presentation 
 * look for leaks 
 
@@ -221,10 +226,13 @@ TODO : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
 
     GUN=2 ~/j/okjob.sh 
 
+    ~/j/okjob.sh grab 
+    ~/j/okjob.sh ana
+    ~/j/okjob.sh report
+
 
 * comparing 1 and 2 will give overall speedup, 
   compare that with speedup from opticksMode 3 
-
 
 
 TODO : cross comparison of the A times 
@@ -244,6 +252,28 @@ Establishing correspondence between 1.A <=> 3.A is important because of the fast
 
 * use gensteps from (1) as OPTICKS_INPUT_GENSTEP to (3) 
  
+
+
+TODO : check cost of the anamgr 
+---------------------------------
+
+Switching off the anamgr bound to speed up Geant4 running::
+
+    jok-anamgr(){ cat << EOU
+    --opticks-anamgr
+    --no-anamgr-normal
+    --no-anamgr-genevt
+    --no-anamgr-edm-v2
+    --no-anamgr-grdm
+    --no-anamgr-deposit
+    --no-anamgr-deposit-tt
+    --no-anamgr-interesting-process
+    --no-anamgr-optical-parameter
+    --no-anamgr-timer
+    EOU
+       : opticks-anamgr is used by the U4Recorder
+    }
+
 
 
 
