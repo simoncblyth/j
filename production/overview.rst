@@ -149,44 +149,102 @@ See :doc:`cxs_min_shakedown`
 DONE : use NPFold stamp summary : sstampfold_report in jok.bash jobscript
 -----------------------------------------------------------------------------
 
-TODO : use NPFold profile summary : sprof_fold_report in jok.bash jobscript 
------------------------------------------------------------------------------
 
+FIXED : ~/j/issues/jok_tds_discrepant_cerenkov.rst
+-----------------------------------------------------
+
+Needed to change the mtline mapping to creation not loading
+
+
+DONE : revisit cxs_min.sh following lifecycle changes
+-------------------------------------------------------------------------
+
+::
+
+    ~/opticks/CSGOptiX/cxs_min.sh 
+    ~/opticks/CSGOptiX/cxs_min.sh report
+
+
+* uses CSGOptiX::SimulateMain
+* it stays working as using standard-ish genstep machinery 
+
+::
+
+    ~/opticks/CSGOptiX/cxs_min.sh 
+
+    0169 void CSGOptiX::SimulateMain() // static
+     170 {
+     171     SEventConfig::SetRGModeSimulate();
+     172     CSGFoundry* fd = CSGFoundry::Load();
+     173     CSGOptiX* cx = CSGOptiX::Create(fd) ;
+     ...
+     180     for(int i=0 ; i < SEventConfig::NumEvent() ; i++)
+     181     {
+     182         cx->simulate(i); 
+     183     }   
+     184 }   
+
+
+DONE : revisit G4CXTest_GEOM following lifecycle changes
+-------------------------------------------------------------------------
+
+::
+
+    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh 
+    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh report 
+
+
+    ~/opticks/notes/issues/G4CXTest_GEOM_num_photon_assert.rst
+
+
+DONE : revisit opticks-t following lifecycle changes : 0/208 FAIL
+-------------------------------------------------------------------
+
+::
+
+    opticks-t
+
+
+
+TODO : enhance sstampfold_report and sprof_fold_report 
+---------------------------------------------------------------------------
+
+* BOA:B/A listing  
 * develop memory profile event-to-event presentation 
 * look for leaks 
 
 
-TODO : ~/j/issues/jok_tds_discrepant_cerenkov.rst
------------------------------------------------------
+TODO : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
+----------------------------------------------------------------------------------
 
+::
 
+    GUN=2 ~/j/okjob.sh 
 
-WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++ ?
---------------------------------------------------------------------------------------
-
-* thrustrap/TSparse : already have GPU impl of part of the task 
-
-
-TODO : revisit opticksMode 0,1,2 following lifecycle changes
---------------------------------------------------------------
 
 * comparing 1 and 2 will give overall speedup, 
   compare that with speedup from opticksMode 3 
 
 
-TODO : revisit G4CXApp_GEOM and cxs_min.sh following lifecycle changes
--------------------------------------------------------------------------
 
-* switch to sphere source for both 
+TODO : cross comparison of the A times 
+-----------------------------------------
 
++------+------------------------------------------+---------+
+|  idx |  script                                  | init    |
++======+==========================================+=========+
+|  1   |  ~/j/okjob.sh                            | ~3-4min | 
++------+------------------------------------------+---------+
+|  2   |  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh   |  ~3 min | 
++------+------------------------------------------+---------+
+|  3   |  ~/opticks/CSGOptiX/cxs_min.sh           |  ~1 sec |  
++------+------------------------------------------+---------+
 
-TODO : junosw + opticks : profile iteration
--------------------------------------------
+Establishing correspondence between 1.A <=> 3.A is important because of the fast turnaround of 3.
 
-* mode:3 iterating with input photons giving factor of only 100x so far 
-* iteration is hampered by 2-3min delay to initialize junosw
+* use gensteps from (1) as OPTICKS_INPUT_GENSTEP to (3) 
+ 
 
-* DONE : central source instead of input photons
 
 
 TODO : CMake separate Debug and Release build tree ? Debug "release" ? 
@@ -202,6 +260,24 @@ TODO : CMake separate Debug and Release build tree ? Debug "release" ?
     cd ../release
     cmake -DCMAKE_BUILD_TYPE=Release ..
     cmake --build .
+
+
+
+WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++ ?
+--------------------------------------------------------------------------------------
+
+* ~/opticks/thrustrap/TSparse_.cu : already have GPU impl of part of the task 
+
+
+TODO : junosw + opticks : profile iteration
+-------------------------------------------
+
+* mode:3 iterating with input photons giving factor of only 100x so far 
+* iteration is hampered by 2-3min delay to initialize junosw
+
+
+TODO : try nvidia profiling machinery
+-------------------------------------------
 
 
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 

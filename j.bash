@@ -2249,6 +2249,15 @@ j1(){ ji ; vi $(ls -1t | head -1) ; }
 j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; } 
 jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
+jp(){ j-cd ; cd production ; ls -lt | head -30 ;  }
+jp1(){ jp ; vi $(ls -1t | head -1) ; } 
+jp2(){ jp ; vi $(ls -1t | head -2 | tail -1) ; } 
+jprst(){ jp-cd ; vi $(ls -1t *.rst| head -1) ;  }
+
+
+
+
+
 
 j-scp(){  
     local target=${1:-L7} 
