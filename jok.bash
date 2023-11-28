@@ -51,14 +51,14 @@ jok-tds(){
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
+   export OPTICKS_NUM_EVENT=10
 
    if [ "$OPTICKS_EVENT_MODE" == "StandardFullDebug" ]; then
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
    fi 
 
-
    local opts="" 
-   opts="$opts --evtmax 10"
+   opts="$opts --evtmax $OPTICKS_NUM_EVENT"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
@@ -110,7 +110,7 @@ jok-tds(){
        export U4Recorder__SEvt_NPFold_VERBOSE=1  
        export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
    }
-   logging
+   [ -n "$LOG" ] && logging
 
 
    local root="sample_detsim_user.root"

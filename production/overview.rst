@@ -207,6 +207,10 @@ TODO : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
 
 ::
 
+    OIM=1 ~/j/okjob.sh 
+    OIM=2 ~/j/okjob.sh 
+    OIM=3 ~/j/okjob.sh 
+
     GUN=2 ~/j/okjob.sh 
 
     ~/j/okjob.sh grab 
@@ -235,11 +239,60 @@ TODO : cross comparison of the A times
 Establishing correspondence between 1A and 3A is important because of the fast turnaround of 3
 
 * use gensteps from 1 as OPTICKS_INPUT_GENSTEP to 3
- 
+
+
+
+TODO : RunMeta recording of initialization, total time
+---------------------------------------------------------
+
+* run level (initialization, total time) stamps 
+* HMM: how/where to get initialization times into runmeta ? 
+
+
+::
+
+     263 void U4Recorder::EndOfRunAction(const G4Run*)
+     264 {
+     265     SEvt::EndOfRun();  // just sets static stamp
+     266 
+     267     SEvt::SetRunMeta<int>("FAKES_SKIP", int(FAKES_SKIP) );
+     268     SEvt::SaveRunMeta();
+     269 
+
+::
+
+    0229     static NP* RUN_META ;
+
+    0071 NP* SEvt::RUN_META = NP::Make<float>(1) ;
+
+
+    1328 template<typename T>
+    1329 void SEvt::SetRunMeta(const char* k, T v )
+    1330 {
+    1331     RUN_META->set_meta<T>(k, v );
+    1332 }
+
+    1351 void SEvt::SaveRunMeta(const char* base)
+    1352 {
+    1353     SetRunMeta<uint64_t>("T_BeginOfRun", T_BeginOfRun );
+    1354     SetRunMeta<uint64_t>("T_EndOfRun",   T_EndOfRun );
+    1355 
+    1356     // SetRunMeta<std::string>("GPUMeta",  SSim::GetGPUMeta() );  
+    1357     // HMM: BETTER TO KEEP GPUMeta IN SEvt NPFold_meta.txt 
+    1358     // AS OTHER SUCH INFO IS THERE AND ITS ONLY APPROPRIATE FOR EGPU SEvt 
+    1359 
+    1360     const char* dir = RunDir(base);
+    1361     RUN_META->save(dir, "run.npy") ;
+    1362 }
+
+
 
 
 TODO : all three running types via okjob.sh ? 
 -----------------------------------------------
+
+
+
 
 TODO : L test
 ----------------

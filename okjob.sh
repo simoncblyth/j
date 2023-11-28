@@ -82,7 +82,8 @@ okjob-setup()
 
     #okjob-setup-standalone-opticks
     okjob-setup-junosw-opticks
-    okjob-paths 
+
+    #okjob-paths 
 
     ## HMM: WHERE ELSE TO PUT ? 
     export CUDA_VISIBLE_DEVICES=1  
