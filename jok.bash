@@ -37,7 +37,7 @@ jok-tds(){
 
    local oim=3 
    local OIM=${OIM:-$oim}
-   export OPTICKS_INTEGRATION_MODE=$oim   # both geant4 and opticks optical simulation   
+   export OPTICKS_INTEGRATION_MODE=$OIM   # both geant4 and opticks optical simulation   
    export OPTICKS_SCRIPT=$FUNCNAME        # avoid default sproc::_ExecutableName of python3.9 
 
    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
@@ -112,6 +112,7 @@ jok-tds(){
    }
    [ -n "$LOG" ] && logging
 
+   export junoSD_PMT_v2_Opticks=1 
 
    local root="sample_detsim_user.root"
    if [ -f "$root" ]; then
