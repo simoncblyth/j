@@ -200,18 +200,6 @@ DONE : revisit opticks-t following lifecycle changes : 0/208 FAIL
 
 
 
-TODO : enhance sstampfold_report and sprof_fold_report 
----------------------------------------------------------------------------
-
-Whats missing:
-
-* BOA:B/A listing  
-* photon counts summary 
-* switches like PRODUCTION 
-* improve plotting 
-* summary grabbing 
-* develop memory profile event-to-event presentation 
-* look for leaks 
 
 
 TODO : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
@@ -248,6 +236,38 @@ Establishing correspondence between 1A and 3A is important because of the fast t
 
 * use gensteps from 1 as OPTICKS_INPUT_GENSTEP to 3
  
+
+
+TODO : all three running types via okjob.sh ? 
+-----------------------------------------------
+
+TODO : L test
+----------------
+
+
+TODO : enhance sstampfold_report and sprof_fold_report 
+---------------------------------------------------------------------------
+
+Whats missing:
+
+* BOA:B/A listing  
+* photon counts summary 
+* switches like PRODUCTION 
+* improve plotting 
+* summary grabbing 
+* develop memory profile event-to-event presentation 
+* look for leaks 
+
+
+
+TODO : pump up the statistics while looking for leaks
+--------------------------------------------------------
+
+
+TODO : InputGensteps and InputPhotons different for a sequence of events, by folder config ?
+-----------------------------------------------------------------------------------------------
+
+
 
 
 TODO : check cost of the anamgr 
@@ -294,6 +314,8 @@ WIP : investigate slow sevt.py SAB chi2 comparison, maybe need to do that in C++
 
 * ~/opticks/thrustrap/TSparse_.cu : already have GPU impl of part of the task 
 
+* check old OpIndexer 
+
 
 TODO : junosw + opticks : profile iteration
 -------------------------------------------
@@ -304,7 +326,6 @@ TODO : junosw + opticks : profile iteration
 
 TODO : try nvidia profiling machinery
 -------------------------------------------
-
 
 TODO : junosw minor MR, custom4 update again (for C4Version.h) 
 -----------------------------------------------------------------
@@ -327,9 +348,6 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
    in principal the opticks build could be done via normal junoenv
    but thats not convenient while opticks needs frequent changes,
    so start with it separate 
-
-
-
 
 
 

@@ -35,9 +35,10 @@ jok-init()
 jok-tds(){
    jok-init
 
-   export OPTICKS_SCRIPT=$FUNCNAME     # avoid default sproc::_ExecutableName of python3.9 
-   export OPTICKS_INTEGRATION_MODE=3   # both geant4 and opticks optical simulation   
-   export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+   local oim=3 
+   local OIM=${OIM:-$oim}
+   export OPTICKS_INTEGRATION_MODE=$oim   # both geant4 and opticks optical simulation   
+   export OPTICKS_SCRIPT=$FUNCNAME        # avoid default sproc::_ExecutableName of python3.9 
 
    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
@@ -46,10 +47,15 @@ jok-tds(){
    local mode=StandardFullDebug
    #local mode=HitOnly
    #local mode=Minimal
-   export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
 
+   export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=1000000
+
+   if [ "$OPTICKS_EVENT_MODE" == "StandardFullDebug" ]; then
+       export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+   fi 
+
 
    local opts="" 
    opts="$opts --evtmax 10"
@@ -83,8 +89,8 @@ jok-tds(){
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   gun=1 
-   GUN=${GUN:-$gun}
+   local gun=1 
+   local GUN=${GUN:-$gun}
    case $GUN in  
      0) trgs="$trgs opticks"      ;;
      1) trgs="$trgs $gun_default" ;;
@@ -105,8 +111,6 @@ jok-tds(){
        export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
    }
    logging
-
-
 
 
    local root="sample_detsim_user.root"
