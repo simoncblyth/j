@@ -32,6 +32,71 @@ jok-init()
    ls -alst
 }
 
+jok-info()
+{
+   jok-init 
+   local vars="0 BASH_SOURCE FUNCNAME GEOM PWD"  
+   local var
+   for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
+}
+
+jok-srm-to-be-completed()
+{
+    : input photons within embedded running has worked previously 
+    : torch running within embedded needs development
+
+    local srm
+    #srm=SRM_DEFAULT
+    srm=SRM_TORCH
+    #srm=SRM_INPUT_PHOTON
+    #srm=SRM_INPUT_GENSTEP    ## NOT IMPLEMENTED FOR GEANT4
+    #srm=SRM_GUN
+    export OPTICKS_RUNNING_MODE=$srm
+
+    echo $BASH_SOURCE OPTICKS_RUNNING_MODE $OPTICKS_RUNNING_MODE
+
+    if [ "$OPTICKS_RUNNING_MODE" == "SRM_TORCH" ]; then 
+        export SEvent_MakeGenstep_num_ph=$NUM
+        #src="rectangle"
+        #src="disc"
+        src="sphere"
+
+        if [ "$src" == "rectangle" ]; then
+            export storch_FillGenstep_pos=0,0,0
+            export storch_FillGenstep_type=rectangle
+            export storch_FillGenstep_zenith=-20,20
+            export storch_FillGenstep_azimuth=-20,20
+        elif [ "$src" == "disc" ]; then
+            export storch_FillGenstep_type=disc
+            export storch_FillGenstep_radius=50      
+            export storch_FillGenstep_zenith=0,1       # radial range scale
+            export storch_FillGenstep_azimuth=0,1      # phi segment twopi fraction 
+            export storch_FillGenstep_mom=1,0,0
+            export storch_FillGenstep_pos=-80,0,0
+        elif [ "$src" == "sphere" ]; then
+            export storch_FillGenstep_type=sphere
+            export storch_FillGenstep_radius=100    # +ve for outwards    
+            export storch_FillGenstep_pos=0,0,0
+            export storch_FillGenstep_distance=1.00 # frac_twopi control of polarization phase(tangent direction)
+        fi 
+
+    elif [ "$OPTICKS_RUNNING_MODE" == "SRM_INPUT_PHOTON" ]; then 
+        echo -n 
+        #export OPTICKS_INPUT_PHOTON=RainXZ_Z230_1M_f8.npy 
+        export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
+        export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
+
+    elif [ "$OPTICKS_RUNNING_MODE" == "SRM_INPUT_GENSTEP" ]; then 
+        echo -n 
+
+    elif [ "$OPTICKS_RUNNING_MODE" == "SRM_GUN" ]; then 
+        echo -n 
+    fi 
+}
+
+
+
+
 jok-tds(){
    jok-init
 
@@ -84,24 +149,21 @@ jok-tds(){
 
    opts="$opts $(jok-anamgr) "
 
-   local gun_default="gun"
-   local gun_wangyg="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
+   local gun1="gun"
+   local gun2="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
+   local gun3="gun --particles gamma --momentums 22.23 --momentums-interp KineticEnergy --positions 0 0 0"
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   local gun=1 
+   local gun=2 
    local GUN=${GUN:-$gun}
    case $GUN in  
-     0) trgs="$trgs opticks"      ;;
-     1) trgs="$trgs $gun_default" ;;
-     2) trgs="$trgs $gun_wangyg"  ;;
+     0) trgs="$trgs opticks" ;;
+     1) trgs="$trgs $gun1" ;;
+     2) trgs="$trgs $gun2"  ;;
+     3) trgs="$trgs $gun3"  ;;
    esac
 
-   if [ "$GUN" == "0" ]; then 
-       #export OPTICKS_INPUT_PHOTON=RainXZ_Z230_1M_f8.npy 
-       export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
-       export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
-   fi
 
    logging()
    {

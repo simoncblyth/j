@@ -199,6 +199,18 @@ DONE : revisit opticks-t following lifecycle changes : 0/208 FAIL
     opticks-t
 
 
+DONE : RunMeta recording of initialization, total time
+---------------------------------------------------------
+
+* run level (initialization, total time) stamps 
+* HMM: how/where to get initialization times into runmeta ? 
+
+::
+
+   BP=SEvt::EndOfRun ~/j/okjob.sh 
+
+
+
 WIP : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
 ----------------------------------------------------------------------------------
 
@@ -219,63 +231,133 @@ WIP : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
   compare that with speedup from opticksMode 3 
 
 
-TODO : cross comparison of the A times, run profile stamps to measure gross timings 
-----------------------------------------------------------------------------------------
+OIM:1::
+
+    NPFold::LoadNoData("/home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0")
+    [sstampfold_report.run (1, )
+     sstampfold_report.run.descMetaKV 
+    NP::descMetaKV
+               SEvt__Init_RUN_META :                               1701169873098353,880244,304188 :            0 : 2023-11-28T19:11:13.098353
+                  SEvt__BeginOfRun :                            1701170021294552,10966808,4116388 :  148,196,199 : 2023-11-28T19:13:41.294552
+     SEvt__beginOfEvent_FIRST_ECPU :                            1701170021294667,10966808,4116392 :  148,196,314 : 2023-11-28T19:13:41.294667
+     SEvt__beginOfEvent_FIRST_EGPU :                            1701170021555760,11099780,4231124 :  148,457,407 : 2023-11-28T19:13:41.555760
+        SEvt__endOfEvent_LAST_ECPU :                            1701170028403990,15950472,4237252 :  155,305,637 : 2023-11-28T19:13:48.403990
+        SEvt__endOfEvent_LAST_EGPU :                            1701170028741358,15950472,4237252 :  155,643,005 : 2023-11-28T19:13:48.741358
+                    SEvt__EndOfRun :                            1701170028741703,15950472,4237252 :  155,643,350 : 2023-11-28T19:13:48.741703
+
+     sstampfold_report.run.descMetaKVS 
+    NP::descMetaKVS
+               SEvt__Init_RUN_META :      1701169873098353,880244,304188    2023-11-28T19:11:13.098353           0            
+                  SEvt__BeginOfRun :   1701170021294552,10966808,4116388    2023-11-28T19:13:41.294552 148,196,199 148,196,199
+     SEvt__beginOfEvent_FIRST_ECPU :   1701170021294667,10966808,4116392    2023-11-28T19:13:41.294667 148,196,314         115
+     SEvt__beginOfEvent_FIRST_EGPU :   1701170021555760,11099780,4231124    2023-11-28T19:13:41.555760 148,457,407     261,093
+        SEvt__endOfEvent_LAST_ECPU :   1701170028403990,15950472,4237252    2023-11-28T19:13:48.403990 155,305,637   6,848,230
+        SEvt__endOfEvent_LAST_EGPU :   1701170028741358,15950472,4237252    2023-11-28T19:13:48.741358 155,643,005     337,368
+                    SEvt__EndOfRun :   1701170028741703,15950472,4237252    2023-11-28T19:13:48.741703 155,643,350         345
+    ]sstampfold_report.run 
+
+
+OIM:3::
+
+    sstampfold_report.run.descMetaKVS 
+    NP::descMetaKVS
+               SEvt__Init_RUN_META :      1701170623369659,880244,304216    2023-11-28T19:23:43.369659           0            
+                  SEvt__BeginOfRun :   1701170772822060,10966924,4116380    2023-11-28T19:26:12.822060 149,452,401 149,452,401
+     SEvt__beginOfEvent_FIRST_ECPU :   1701170772822156,10966924,4116384    2023-11-28T19:26:12.822156 149,452,497          96
+     SEvt__beginOfEvent_FIRST_EGPU :   1701170773988756,11100632,4239468    2023-11-28T19:26:13.988756 150,619,097   1,166,600
+        SEvt__endOfEvent_LAST_ECPU :   1701170786703766,15951820,4246988    2023-11-28T19:26:26.703766 163,334,107  12,715,010
+        SEvt__endOfEvent_LAST_EGPU :   1701170786831256,15951820,4246988    2023-11-28T19:26:26.831256 163,461,597     127,490
+                    SEvt__EndOfRun :   1701170786831408,15951820,4246988    2023-11-28T19:26:26.831408 163,461,749         152
+    ]sstampfold_report.run 
+
+
+
+
+DONE : compare initialization times, and A simulate times
+-----------------------------------------------------------
 
 +------+------------------------------------------+---------+--------------------------------------------------------------------+ 
 |  idx |  script                                  | init(s) |                                                                    |
 +======+==========================================+=========+====================================================================+
 |  1   |  ~/j/okjob.sh                            |   149   |                                                                    |
 +------+------------------------------------------+---------+--------------------------------------------------------------------+
-|  2   |  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh   |   127   |  NOT SO USEFUL AS DID NOT IMPL GEANT4 BOOT FROM GENERAL GENSTEPS   |
+|  2   |  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh   |   127   |  CAN USE FOR TORCH COMPARISON, NOT GENERAL GENSTEP                 |
 +------+------------------------------------------+---------+--------------------------------------------------------------------+
-|  3   |  ~/opticks/CSGOptiX/cxs_min.sh           |     2   |                                                                    |
+|  3   |  ~/opticks/CSGOptiX/cxs_min.sh           |     2   |  OPTICKS_INPUT_GENSTEP from okjob.sh                               |
 +------+------------------------------------------+---------+--------------------------------------------------------------------+
 
 Establishing correspondence between 1A and 3A is important because of the fast turnaround of 3A
 
-* use gensteps from 1 as OPTICKS_INPUT_GENSTEP to 3
+* now getting perfect photon + hit match between 1A and 3A  
+* A timings are close between 1 and 3 
 
 
-TODO : integratin hit check and clean up
--------------------------------------------
+FIXED : BY CLEAN JUNOSW BUILD : investigate difference in hit counts between 1 and 3 
+------------------------------------------------------------------------------------------
+
+* presumably this was due to NP.hh version shear
+
+Workstation::
+
+    ~/j/okjob.sh
+    ~/opticks/CSGOptiX/cxs_min.sh
+
+Laptop::
+
+    ~/j/okjob.sh grab
+    ~/opticks/CSGOptiX/cxs_min.sh grab
+
+    ~/opticks/CSGOptiX/cxs_min.sh ana
+    ~/opticks/CSGOptiX/cxs_min.sh report
+
+    ~/j/okjob.sh ana
+    ~/j/okjob.sh report
+
+
+
+
+TODO : integration hit check and clean up : following lifecycle changes
+--------------------------------------------------------------------------
 
 ::
 
    jcv junoSD_PMT_v2_Opticks
 
 
-TODO : RunMeta recording of initialization, total time
----------------------------------------------------------
 
-* run level (initialization, total time) stamps 
-* HMM: how/where to get initialization times into runmeta ? 
+TODO : all three running types via okjob.sh ? to enable testing on L
+--------------------------------------------------------------------------
 
 
 
-
-TODO : all three running types via okjob.sh ? 
------------------------------------------------
-
-
-
-
-TODO : L test
-----------------
-
-
-TODO : enhance sstampfold_report and sprof_fold_report 
+WIP : enhance sstampfold_report and sprof_fold_report 
 ---------------------------------------------------------------------------
 
 Whats missing:
 
 * BOA:B/A listing  
-* photon counts summary 
 * switches like PRODUCTION 
 * improve plotting 
 * summary grabbing 
 * develop memory profile event-to-event presentation 
 * look for leaks 
+
+* DONE : photon counts summary 
+
+
+
+
+TODO : subcounts table broken for G4CXTest_GEOM.sh because Geant4 side has no hit.npy
+---------------------------------------------------------------------------------------
+
+* :doc:`lack-of-B-side-hit`
+
+
+::
+
+    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh report 
+    JOB=N2 ~/opticks/sysrap/tests/sstampfold_report.sh 
+
 
 
 

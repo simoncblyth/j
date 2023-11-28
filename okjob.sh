@@ -152,6 +152,7 @@ source $HOME/j/jok.bash
 case $arg in 
    main) okjob-main ;; 
    init) jok-init ;; 
+  info)  jok-info ;;
    grab) jok-grab ;;
    ana)  jok-ana ;;
 report)  jok-report ;;
