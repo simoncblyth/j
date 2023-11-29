@@ -315,7 +315,6 @@ Laptop::
 
 
 
-
 TODO : integration hit check and clean up : following lifecycle changes
 --------------------------------------------------------------------------
 
@@ -324,9 +323,23 @@ TODO : integration hit check and clean up : following lifecycle changes
    jcv junoSD_PMT_v2_Opticks
 
 
-
 TODO : all three running types via okjob.sh ? to enable testing on L
 --------------------------------------------------------------------------
+
+
+
+FIXED : subcounts table broken for G4CXTest_GEOM.sh because Geant4 side has no hit.npy
+---------------------------------------------------------------------------------------
+
+* :doc:`lack-of-B-side-hit`
+
+Appears to be limitation B side needs photons, so switch to HitAndPhoton mode::
+
+    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh report 
+    JOB=N1 ~/opticks/sysrap/tests/sstampfold_report.sh 
+    JOB=N2 ~/opticks/sysrap/tests/sstampfold_report.sh 
+
+    JOB=N1 ~/opticks/sysrap/tests/sstampfold_report.sh build_runo
 
 
 
@@ -335,40 +348,66 @@ WIP : enhance sstampfold_report and sprof_fold_report
 
 Whats missing:
 
-* BOA:B/A listing  
 * switches like PRODUCTION 
 * improve plotting 
 * summary grabbing 
 * develop memory profile event-to-event presentation 
 * look for leaks 
 
-* DONE : photon counts summary 
+* DONE : photon/hit/record/... counts summary table 
+* DONE : BOA:B/A listing  
 
 
+DONE : event-by-event changing photon count in  ~/opticks/CSGOptiX/cxs_min.sh torch running 
+----------------------------------------------------------------------------------------------
 
+* aiming for time/memory vs photon count plots 
 
-TODO : subcounts table broken for G4CXTest_GEOM.sh because Geant4 side has no hit.npy
----------------------------------------------------------------------------------------
-
-* :doc:`lack-of-B-side-hit`
-
+* DONE sstr::ParseIntSpecList
+* DONE SEventConfig::NumPhoton(0)   OPTICKS_NUM_PHOTON=M1,2 SEventConfigTest 
+* DONE SEvent::MakeGenstep using above  
 
 ::
 
-    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh report 
-    JOB=N2 ~/opticks/sysrap/tests/sstampfold_report.sh 
+   ~/opticks/CSGOptiX/cxs_min.sh
+   ~/opticks/CSGOptiX/cxs_min.sh ana
 
 
+DONE : compare cxs_min.sh StandardFullDebug and Minimal 
+---------------------------------------------------------
+
+::
+
+   VERSION=0 ~/opticks/CSGOptiX/cxs_min.sh   ## Minimal
+   VERSION=1 ~/opticks/CSGOptiX/cxs_min.sh   ## HitOnly
+   VERSION=2 ~/opticks/CSGOptiX/cxs_min.sh   ## HitAndPhoton
+   VERSION=99 ~/opticks/CSGOptiX/cxs_min.sh  ## StandardFullDebug 
+
+* changing the SEvt arrays that are gathered and saved has minimal effect on the measured event times
+  so pick VERSION=2 HitAndPhoton for now : as one that doesnt write GB and yet still has some counts to check `
 
 
-TODO : pump up the statistics while looking for leaks
---------------------------------------------------------
+WIP : cxs_min.sh bump up to 3M and make photon vs time plots 
+--------------------------------------------------------------------
+
+TODO : cxs_min.sh bump up to 100M whilst working on subprofile reporting to look for leaks
+---------------------------------------------------------------------------------------------
+
+TODO : repeat cxs_min.sh exercise with  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh for A and B plots 
+--------------------------------------------------------------------------------------------------
 
 
-TODO : InputGensteps and InputPhotons different for a sequence of events, by folder config ?
------------------------------------------------------------------------------------------------
+TODO : event-by-event changing photon count in ~/j/okjob.sh torch running ??
+-------------------------------------------------------------------------------
+
+* bit more tricky (mock curand) : but its works with input photons so it should be possible 
+* maybe more hassle that its worth : as  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh  should be straightforward
 
 
+TODO : impl InputGensteps and InputPhotons for a sequence of events, by folder config
+---------------------------------------------------------------------------------------
+
+* just need to load genstep/inphotons with the event index, quite similar to photon scanning of torch running 
 
 
 TODO : check cost of the anamgr 
@@ -431,7 +470,6 @@ TODO : try nvidia profiling machinery
 TODO : junosw minor MR, custom4 update again (for C4Version.h) 
 -----------------------------------------------------------------
 
-
 TODO : junosw+opticks release : using opticks from /cvmfs/opticks.ihep.ac.cn 
 ------------------------------------------------------------------------------------
 
@@ -451,7 +489,6 @@ on /cvmfs/opticks.ihep.ac.cn instead of getting from tarball or git clone
    so start with it separate 
 
 
-
 TODO : workaround the github fork into same organization limitation 
 ----------------------------------------------------------------------
 
@@ -459,7 +496,6 @@ TODO : workaround the github fork into same organization limitation
 
 TODO : tidy up opticks inactive packages 
 ---------------------------------------------
-
 
 TODO : check using opticks python functionality from the release
 ------------------------------------------------------------------

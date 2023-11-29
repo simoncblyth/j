@@ -1,6 +1,15 @@
 lack-of-B-side-hit
 ====================
 
+
+HMM : looks like thats a limitation
+---------------------------------------
+
+B side gatherHit needs photon array to select from : so currently need to select photon,hit 
+selecting hit only will not work on the B side (it does on A side)
+
+
+
 ::
 
      306 void U4Recorder::EndOfEventAction_(int eventID_)

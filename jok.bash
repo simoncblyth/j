@@ -208,7 +208,7 @@ jok-report(){
 
    jok-init
 
-   local reports="sstampfold_report sprof_fold_report"
+   local reports="sreport sprof_fold_report"
    for report in $reports ; do printf "%s\n" "$report" ; done 
    for report in $reports ; do
        printf "%s\n" "$report"
