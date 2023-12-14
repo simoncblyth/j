@@ -6,8 +6,13 @@ Current Scripts
 
 ::
 
+   ~/opticks/sysrap/tests/sreport.sh 
+
    ~/opticks/CSGOptiX/cxs_min.sh
    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
+   LIFECYCLE=1 ~/opticks/g4cx/tests/G4CXTest_GEOM.sh
+
    ~/j/jok.bash 
    ~/j/okjob.sh 
 
@@ -162,22 +167,6 @@ DONE : revisit cxs_min.sh following lifecycle changes
 * uses CSGOptiX::SimulateMain
 * it stays working as using standard-ish genstep machinery 
 
-::
-
-    ~/opticks/CSGOptiX/cxs_min.sh 
-
-    0169 void CSGOptiX::SimulateMain() // static
-     170 {
-     171     SEventConfig::SetRGModeSimulate();
-     172     CSGFoundry* fd = CSGFoundry::Load();
-     173     CSGOptiX* cx = CSGOptiX::Create(fd) ;
-     ...
-     180     for(int i=0 ; i < SEventConfig::NumEvent() ; i++)
-     181     {
-     182         cx->simulate(i); 
-     183     }   
-     184 }   
-
 
 DONE : revisit G4CXTest_GEOM following lifecycle changes
 -------------------------------------------------------------------------
@@ -211,7 +200,7 @@ DONE : RunMeta recording of initialization, total time
 
 
 
-WIP : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
+PAUSE : revisit ~/j/okjob.sh with opticksMode 0,1,2 following lifecycle changes
 ----------------------------------------------------------------------------------
 
 ::
@@ -343,21 +332,6 @@ Appears to be limitation B side needs photons, so switch to HitAndPhoton mode::
 
 
 
-WIP : enhance sstampfold_report and sprof_fold_report 
----------------------------------------------------------------------------
-
-Whats missing:
-
-* switches like PRODUCTION 
-* improve plotting 
-* summary grabbing 
-* develop memory profile event-to-event presentation 
-* look for leaks 
-
-* DONE : photon/hit/record/... counts summary table 
-* DONE : BOA:B/A listing  
-
-
 DONE : event-by-event changing photon count in  ~/opticks/CSGOptiX/cxs_min.sh torch running 
 ----------------------------------------------------------------------------------------------
 
@@ -387,14 +361,403 @@ DONE : compare cxs_min.sh StandardFullDebug and Minimal
   so pick VERSION=2 HitAndPhoton for now : as one that doesnt write GB and yet still has some counts to check `
 
 
-WIP : cxs_min.sh bump up to 3M and make photon vs time plots 
+DONE : cxs_min.sh bump up to 3M and make photon vs time plots 
 --------------------------------------------------------------------
 
-TODO : cxs_min.sh bump up to 100M whilst working on subprofile reporting to look for leaks
+::
+
+    ~/opticks/CSGOptiX/cxs_min.sh report
+
+    ~/opticks/sysrap/tests/sreport.sh 
+
+    JOB=N3 ~/opticks/sysrap/tests/sreport.sh ana
+        ## HMM: looking rather linear in the up to 3M range 
+
+
+DONE : make plotting work from the _sreport folder alone
+-----------------------------------------------------------
+
+* seems thats working already : by design 
+
+::
+
+    ~/opticks/sysrap/tests/sreport.sh grab 
+    ~/opticks/sysrap/tests/sreport.sh ana
+
+
+DONE : cxs_min.sh bump up to 100M whilst working on subprofile reporting to look for leaks
 ---------------------------------------------------------------------------------------------
 
-TODO : repeat cxs_min.sh exercise with  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh for A and B plots 
+* leak plotting : see no sign of uptrend, but it is large  : normal CUDA large VM, RSS flat  
+
+::
+
+    ~/opticks/sysrap/tests/sreport.sh grab 
+    ~/opticks/sysrap/tests/sreport.sh ana
+
+
+DONE : repeat scan with  ~/opticks/g4cx/tests/G4CXTest_GEOM.sh for A and B plots 
 --------------------------------------------------------------------------------------------------
+
+* only reached 80M due to memory leak apparent in ~/opticks/g4cx/tests/G4CXTest_GEOM.sh (not in cxs_min.sh)
+
+::
+
+    ~/opticks/g4cx/tests/G4CXTest_GEOM.sh report
+
+
+
+DONE : consolidated sstampfold_report and sprof_fold_report into sreport
+---------------------------------------------------------------------------
+
+Whats missing:
+
+* DONE : improve plotting 
+* DONE : summary grabbing 
+* DONE : develop memory profile event-to-event presentation 
+
+* DONE : photon/hit/record/... counts summary table 
+* DONE : BOA:B/A listing  
+* DONE : reposition context metadata to run, not each evt fold 
+* DONE : include switches like PRODUCTION and other metadata like the GPU name in context metadata, not event fold 
+
+* DONE : include collected counts in SEvt/NPFold metadata, as do not want to allways gather the large photons array
+         (actually I added to gensteps metadata, but could be elsewhere too)
+
+
+
+
+DONE : improve plots+report using context metadata
+--------------------------------------------------------
+
+* context metadata into titles
+* add screenshot/saving 
+* make reference set for presentation before any optimization attempts
+
+
+
+TODO : G4CXTest prone to memory error : need to write run meta at end of every event
+---------------------------------------------------------------------------------------
+
+
+TODO : recheck EGPU event time match between the two scripts
+--------------------------------------------------------------
+
+::
+
+   ~/opticks/CSGOptiX/cxs_min.sh info_env
+   ~/opticks/g4cx/tests/G4CXTest_GEOM.sh info_env
+
+
+::
+
+    143
+    529
+
+    ~400
+
+
+
+WIP : find G4CXTest leaks
+-----------------------------
+
+* :doc:`G4CXTest_find_the_leak`
+
+
+WIP : QEvent/SEvent Lifecycle simplify : can ECPU/EGPU beginOfEvent vs setGenstep be made the save : to avoid confusion
+---------------------------------------------------------------------------------------------------------------------------
+
+1. QEvent::setGenstep : get direct from vecs, no intermediate NP, no clear
+1. QSim::simulate  : move QEvent::setGenstep before SEvt::beginOfEvent
+
+Split clearing::
+
+    clear_genstep
+    clear_output 
+
+::
+
+     ECPU.begin
+
+
+
+     ECPU.end
+     EGPU.begin
+
+
+     EGPU.end
+
+
+TODO: get rainbow going for fast cycle lifecycle shakedown 
+-------------------------------------------------------------
+
+
+DONE : OPTICKS_MAX_BOUNCE scanning
+------------------------------------
+
+* ~/opticks/notes/issues/OPTICKS_MAX_BOUNCE_scanning.rst
+
+
+TODO : WITH_CUSTOM4 PRODUCTION SWITCH IMPACT
+-----------------------------------------------
+
+
+DONE : total time accounting + overall speedup machinery
+----------------------------------------------------------
+
+* collect+present launch times : relate those to total times : DO MORE THAN THAT:
+* use cxs_min.sh for fast dev 
+
+Get per event and total times into categories::
+
+    init 
+    
+    upload
+    kernel
+    download
+    save        ## thats a debugging activity 
+
+    other       ## rest of event, will be small with cxs_min.sh 
+
+
+* did this in::
+
+   NP::MakeMetaKVS_ranges
+   sysrap/tests/sreport.cc 
+   ~/o/sreport.sh ana
+
+
+TODO : Check perf with POM disabled NOT WITH_CUSTOM4
+-------------------------------------------------------
+
+* shorter photon histories, plus less resource kernel could easily give factor 3-4
+
+
+TODO : NOT WITH_CUSTOM4 BUILD INTO SEPARATE FOLDER
+----------------------------------------------------
+
+
+* HUH: SLIGHTLY SLOWER NOT WITH_CUSTOM4
+* TODO: compare seq between these 
+
+
+TODO : compare Ctx log between Debug and Release
+----------------------------------------------------
+
+DONE : write the Ctx log to file
+-----------------------------------
+
+
+::
+
+    N[blyth@localhost ALL1]$ cat CSGOptiX__Ctx.log
+    [Ctx::GetLOG
+    [ 4][       KNOBS]: All knobs on default.
+
+    [ 4][  DISK CACHE]: Opened database: "/var/tmp/OptixCache_blyth/optix7cache.db"
+    [ 4][  DISK CACHE]:     Cache data size: "44.0 MiB"
+    [ 4][   DISKCACHE]: Cache hit for key: ptx-2347081-keydc3d249e4661531304a3dc0bc6f7eb89-sm_75-rtc1-drv515.43.04
+    [ 4][COMPILE FEEDBACK]: 
+    [ 4][COMPILE FEEDBACK]: Info: Pipeline has 1 module(s), 4 entry function(s), 3 trace call(s), 0 continuation callable call(s), 0 direct callable call(s), 3546 basic block(s) in entry functions, 41354 instruction(s) in entry functions, 7 non-entry function(s), 53 basic block(s) in non-entry functions, 627 instruction(s) in non-entry functions, no debug information
+
+    ]Ctx::GetLOG
+    N[blyth@localhost ALL1]$ 
+
+
+
+WIP : HUNT FOR f64 IN PTX
+----------------------------
+
+* see ~/opticks/notes/issues/oxrap-hunt-for-f64-in-ptx.rst
+
+::
+
+    epsilon:opticks blyth$ opticks-ptx
+                       BASH_SOURCE : /Users/blyth/opticks/opticks.bash 
+                          FUNCNAME : opticks-ptx 
+                               ptx : /tmp/CSGOptiX_generated_CSGOptiX7.cu.ptx 
+                  num_printf_lines :       95 
+                     num_f64_lines :      518 
+    epsilon:opticks blyth$ 
+
+
+
+TODO: OPTICKS_BUILDTYPE=Release into separate OPTICKS_PREFIX
+------------------------------------------------------------------------
+
+S:.opticks_build_config::
+
+     export OPTICKS_BUILDTYPE=Release
+     #export OPTICKS_BUILDTYPE=Debug
+     export OPTICKS_PREFIX=/data/simon/local/opticks_${OPTICKS_BUILDTYPE}
+
+S:.opticks_usage_config::
+
+    #source /data/simon/local/opticks_Debug/bashrc
+    source /data/simon/local/opticks_Release/bashrc     
+
+
+      
+Compare Release and Debug on S
+---------------------------------
+
+::
+
+    JOB=N7 PLOT=Substamp_ALL_Etime_vs_Photon ~/o/sreport.sh
+    JOB=S7 PLOT=Substamp_ALL_Etime_vs_Photon ~/o/sreport.sh
+
+
+::
+
+    [simon@localhost ~]$ opticks-ptx
+                       BASH_SOURCE : /home/simon/opticks/opticks.bash 
+                          FUNCNAME : opticks-ptx 
+                               ptx : /data/simon/local/opticks_Release/ptx/CSGOptiX_generated_CSGOptiX7.cu.ptx 
+                  num_printf_lines : 4 
+                     num_f64_lines : 8 
+    [simon@localhost ~]$ 
+
+
+    [simon@localhost ~]$ opticks-ptx
+                       BASH_SOURCE : /home/simon/opticks/opticks.bash 
+                          FUNCNAME : opticks-ptx 
+                               ptx : /data/simon/local/opticks_Debug/ptx/CSGOptiX_generated_CSGOptiX7.cu.ptx 
+                  num_printf_lines : 95 
+                     num_f64_lines : 518 
+    [simon@localhost ~]$ 
+
+
+TODO : sevent.h sctx.h need some production thinning 
+
+
+   
+
+DONE : Release build on S 
+-----------------------------
+
+* lots of warnings took ages to fix
+
+runtime issue with sreport::
+
+    export sreport_Creator__VERBOSE=1
+
+
+::
+
+    2023-12-08 22:20:53.731  731475385 : ]/home/simon/o/cxs_min.sh 
+    [sreport.main  argv0 sreport dirp /data/simon/opticks/GEOM/J23_1_0_rc3_ok0/CSGOptiXSMTest/ALL1 is_executable_sibling_path NO 
+    [sreport.main : CREATING REPORT 
+    [sreport_Creator::sreport_Creator
+    -sreport_Creator::init.0
+    -sreport_Creator::init.1
+    -sreport_Creator::init.2
+    -sreport_Creator::init.3
+    NPFold::SubCommonKV MISSING KEY  num_sub 20 num_ukey 25t_setGenstep_0-
+    /home/simon/o/cxs_min.sh sreport error
+    [simon@localhost ~]$ 
+
+HMM: the Release outputs missing the t_setGenstep keys, because of::
+
+     185 int QEvent::setGenstep()  // onto device
+     186 {   
+     187     LOG_IF(info, SEvt::LIFECYCLE) << "[" ;
+     188 
+     189 #ifndef PRODUCTION 
+     190     sev->t_setGenstep_0 = sstamp::Now();
+     191 #endif
+
+BUT sreport must have been reading metadata from a mix
+of SEvt from Release and Debug runs leading to the 
+inconsistency and key error. 
+
+So the problem is fixed by cleaning up the output directories and
+running again.
+
+
+DONE : presentation of total time accounting in Ranges_SPAN 
+-----------------------------------------------------------------------
+
+::
+
+   PLOT=Ranges_SPAN ~/o/sreport.sh
+
+
+TODO : validation comparison : need seq.npy for histories
+-------------------------------------------------------------
+
+
+WIP : extend total time accounting to B with G4CXTest_GEOM.sh
+----------------------------------------------------------------
+
+* need SProf::Add on the B side 
+
+
+
+
+DONE : ~/o/ana/amdahl.sh plot
+---------------------------------
+
+DONE : pure and simple times versus num TORCH photon all that way to 100M
+----------------------------------------------------------------------------
+
+
+
+
+TODO : check --optix-ir performance : see p42 of optix7-pdf
+-------------------------------------------------------------
+
+p43
+
+To profile your code with Nsight Compute,11 enable --generate-line-info and set
+debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MODERATE in both the
+OptixModuleCompileOptions and OptixPipelineLinkOptions in your application host
+code.
+
+TODO : vary PIP compile options
+--------------------------------
+
+* forum optimization search 
+
+* https://forums.developer.nvidia.com/t/optix-7-5-payload-type-mismatch-errors-when-using-optix-ir/218138
+
+
+
+
+DONE : Illustrative hit plot
+-----------------------------
+
+DONE : hit time for large seqnib
+----------------------------------
+
+::
+
+    ~/o/cxs_min.sh 
+
+    VERSION=3  
+    OPTICKS_EVENT_MODE=HitPhotonSeq
+    OPTICKS_NUM_EVENT=10
+    OPTICKS_NUM_PHOTON=H1:10
+    OPTICKS_MAX_PHOTON=M1 
+
+    ~/o/cxs_min.sh 
+    ~/o/cxs_min.sh grab 
+
+    PLOT=thit MODE=2 ~/o/cxs_min.sh 
+    PLOT=thit MODE=2 EVT=A009 ~/o/cxs_min.sh
+
+
+
+
+TODO : RTX 8000 test : it has 48G (so can extend to 400M, TITAN RTX limited to 200M)
+--------------------------------------------------------------------------------------
+
+* repeat cxs_min.sh and extend up to 400M (also compare to TITAN RTX)  
+
+
+TODO : GPU cluster test
+-------------------------
+
+
 
 
 TODO : event-by-event changing photon count in ~/j/okjob.sh torch running ??
@@ -413,7 +776,11 @@ TODO : impl InputGensteps and InputPhotons for a sequence of events, by folder c
 TODO : check cost of the anamgr 
 ---------------------------------
 
-Switching off the anamgr bound to speed up Geant4 running::
+Switching off the anamgr bound to speed up Geant4 running
+
+* so to some extent the comparison is currently unfair 
+
+::
 
     jok-anamgr(){ cat << EOU
     --opticks-anamgr

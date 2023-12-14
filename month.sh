@@ -11,6 +11,9 @@ month.sh
     ./month.sh -12    # Dec last year
     ./month.sh -11    # Nov last year
 
+
+    LOG=l ./month.sh 11
+
 EOU
 }
 

@@ -109,7 +109,7 @@ jok-tds(){
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
 
-   local mode=StandardFullDebug
+   local mode=DebugLite
    #local mode=HitOnly
    #local mode=Minimal
 
