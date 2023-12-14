@@ -16,6 +16,23 @@ Usage::
    source ~/j/jok.bash 
    jok-tds 
 
+TODO: test the modes
+--------------------------
+
+OPTICKS_INTEGRATION_MODE=0
+    Do nothing mode
+
+OPTICKS_INTEGRATION_MODE=1 
+    Opticks only : check writing hits
+
+OPTICKS_INTEGRATION_MODE=3
+    A:Opticks vs B:Geant4 : comparison in different running modes
+
+OPTICKS_INTEGRATION_MODE=2
+    Instrumented B:Geant4 only 
+
+
+
 EON
 }
 
@@ -25,9 +42,9 @@ jok-script(){ echo $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py ; }
 jok-init()
 {
    export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
-   local jokdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
-   mkdir -p $jokdir
-   cd $jokdir     # log files are dropped in invoking directory 
+   local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
+   mkdir -p $logdir
+   cd $logdir     # log files are dropped in invoking directory 
    pwd
    ls -alst
 }
@@ -40,7 +57,7 @@ jok-info()
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 }
 
-jok-srm-to-be-completed()
+jok-srm-unused-so-far()
 {
     : input photons within embedded running has worked previously 
     : torch running within embedded needs development
@@ -115,10 +132,10 @@ jok-tds(){
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
-   export OPTICKS_MAX_PHOTON=1000000
+   export OPTICKS_MAX_PHOTON=M1
    export OPTICKS_NUM_EVENT=10
 
-   if [ "$OPTICKS_EVENT_MODE" == "StandardFullDebug" ]; then
+   if [ "$OPTICKS_EVENT_MODE" == "DebugLite" ]; then
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
    fi 
 
@@ -155,7 +172,7 @@ jok-tds(){
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   local gun=2 
+   local gun=1 
    local GUN=${GUN:-$gun}
    case $GUN in  
      0) trgs="$trgs opticks" ;;
@@ -188,10 +205,8 @@ jok-tds(){
    local runline="python $(jok-script) $opts $trgs"
 
    if [ -n "$GDB" -o -n "$BP" ]; then
-       #export SEvt__CLEAR_SIGINT=1 ## debug  
        runline="jok-gdb $runline"
    fi 
-   #runline="gdb -ex r --args python $(jok-script) $opts $trgs"  
 
    local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
    for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
@@ -208,12 +223,9 @@ jok-report(){
 
    jok-init
 
-   local reports="sreport sprof_fold_report"
-   for report in $reports ; do printf "%s\n" "$report" ; done 
-   for report in $reports ; do
-       printf "%s\n" "$report"
-       $report 
-   done 
+   which sreport
+   sreport 
+
 }
 
 jok-tds-gdb(){ GDB=1 jok-tds ; }
@@ -261,5 +273,4 @@ jok-gdb()
     eval $runline;
     date
 }
-
 

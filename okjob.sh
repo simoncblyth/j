@@ -85,7 +85,7 @@ okjob-setup()
 
     #okjob-paths 
 
-    ## HMM: WHERE ELSE TO PUT ? 
+    ## HMM: WHERE ELSE TO PUT ? ## PROBLEMATIC BECAUSE THIS IS WORKSTATION SPECIFIC
     export CUDA_VISIBLE_DEVICES=1  
 
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
@@ -116,8 +116,7 @@ okjob-body()
    local msg="=== $FUNCNAME:"
    echo $msg TMP $TMP
 
-   #okjob-ctest
-
+   okjob-ctest
    jok-tds
 }
 
