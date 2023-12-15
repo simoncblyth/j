@@ -5,15 +5,69 @@ small_diffs_between_array_counts_and_hitCollection_counts
 Overview
 ----------
 
-* not all in the same direction so cannot be merges ? 
+* getting same or more in the hitCollection so its not merge reduction
 * 0/1/2/3 more in hitCollection that in the array ? hows that possible ? 
 * looked at the Merger anyhow, dont see any problem.
 
 * dumping hitCollection entries before and after adding the Opticks hits 
-  shows are starting with a small number 0->3 hits in the hitCollection 
+  shows are starting with a small number 0->3 hits in the hitCollection
 
-Check entries before and after
---------------------------------
+  * should not be any ordinary hits  
+
+
+
+TODO : see where the few start hits come from
+------------------------------------------------
+
+
+::
+
+    LOG=1 BP=junoSD_PMT_v2::ProcessHits ~/j/okjob.sh   
+
+    LOG=1 BP=junoSD_PMT_v2::SaveNormHit ~/j/okjob.sh 
+
+
+::
+
+    2023-12-15 20:01:52.553 INFO  [147860] [junoSD_PMT_v2_Opticks::Initialize@104]  opticksMode 1 eventID 0 LEVEL 4:INFO
+    Begin of Event --> 0
+
+    Thread 1 "python" hit Breakpoint 1, junoSD_PMT_v2::ProcessHits (this=0x8c198e0, step=0x5dbdbe0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:388
+    388	    G4bool is_hit = ProcessHits_(step, nullptr) ; 
+    (gdb) bt
+    #0  junoSD_PMT_v2::ProcessHits (this=0x8c198e0, step=0x5dbdbe0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:388
+    #1  0x00007fffd0d552dc in G4SteppingManager::Stepping() ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #2  0x00007fffd0d60aaf in G4TrackingManager::ProcessOneTrack(G4Track*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #3  0x00007fffd0d9bd0d in G4EventManager::DoProcessing(G4Event*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #4  0x00007fffc7e1d68e in G4SvcRunManager::SimulateEvent (this=0x58cba40, i_event=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+    #5  0x00007fffc7601d3e in DetSimAlg::execute (this=0x5e06740) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+    #6  0x00007fffd4e05511 in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+    #7  0x00007fffd4e09c1d in TaskWatchDog::run() () from /home/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+
+::
+
+    Thread 1 "python" hit Breakpoint 4, junoSD_PMT_v2::SaveNormHit (this=0x8c198e0, pmtID=489, local_pos=..., global_pos=..., hittime=251.55561584166097, track=0xc7804740, edep=2.9476464653232259e-06) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:940
+    940	      m_jpmt_dbg->SaveNormHit_count += 1 ; 
+    (gdb) p global_pos
+    $1 = {dx = -6873.9171829242223, dy = 176.27110541857093, dz = 18075.375036135811}
+    (gdb) p wavelength
+    $2 = 6.953355803940186e-310
+    (gdb) p pmtID
+    $3 = 489
+    (gdb) 
+
+
+
+
+
+Check entries before and after + dump the few hits from before
+------------------------------------------------------------------
 
 ::
 
@@ -37,19 +91,7 @@ Check entries before and after
     148     
     149     LOG(LEVEL) << "] " << m_jpmt->desc() ;
     150 }
-
-
-
-
-TODO : dump those few hits
-----------------------------
-
-::
-
-    144 // junoHit_PMT_Collection is a vector of hits
-    145 typedef G4THitsCollection<junoHit_PMT> junoHit_PMT_Collection;
-    146
-
+    151 
 
 
 
