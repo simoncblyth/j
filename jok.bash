@@ -191,6 +191,7 @@ jok-tds(){
 
        export QEvent=INFO
        export junoSD_PMT_v2_Opticks=INFO
+       export SEvt__GATHER=1   ## gather_component debug 
    }
    [ -n "$LOG" ] && logging
 
