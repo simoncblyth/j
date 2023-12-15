@@ -103,6 +103,8 @@ okjob-head(){
 
 okjob-ctest()
 {
+   : okjob.sh : caution this runs ctests installed by opticks-full which 
+   : can become outdated vs actual tests during development 
    cd $OPTICKS_PREFIX/tests
    pwd
    echo === $BASH_SOURCE $FUNCNAME $PWD
@@ -116,7 +118,7 @@ okjob-body()
    local msg="=== $FUNCNAME:"
    echo $msg TMP $TMP
 
-   okjob-ctest
+   #okjob-ctest
    jok-tds
 }
 

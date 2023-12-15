@@ -117,9 +117,10 @@ jok-srm-unused-so-far()
 jok-tds(){
    jok-init
 
-   local oim=3 
+   local oim=1     # 1:opticks optical simulation only
+   #local oim=3    # 3:both geant4 and opticks optical simulation 
    local OIM=${OIM:-$oim}
-   export OPTICKS_INTEGRATION_MODE=$OIM   # both geant4 and opticks optical simulation   
+   export OPTICKS_INTEGRATION_MODE=$OIM   
    export OPTICKS_SCRIPT=$FUNCNAME        # avoid default sproc::_ExecutableName of python3.9 
 
    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
@@ -184,17 +185,23 @@ jok-tds(){
 
    logging()
    {
+       : jok.bash 
+       type $FUNCNAME 
        ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
        ##export QEvent__SEvt_NPFold_VERBOSE=1  
        ##export U4Recorder__SEvt_NPFold_VERBOSE=1  
        ##export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
 
-       export QEvent=INFO
+       #export QEvent=INFO
        export junoSD_PMT_v2_Opticks=INFO
-       export SEvt__GATHER=1   ## gather_component debug 
+       #export SEvt__GATHER=1   ## gather_component debug 
    }
-   [ -n "$LOG" ] && logging
-
+   if [ -n "$LOG" ]; then 
+       echo $BASH_SOURCE - $FUNCNAME - logging enabled
+       logging
+   else
+       echo $BASH_SOURCE - $FUNCNAME - logging NOT enabled
+   fi   
 
    local root="sample_detsim_user.root"
    if [ -f "$root" ]; then
@@ -246,7 +253,7 @@ jok-anamgr(){ cat << EOU
 --no-anamgr-optical-parameter
 --no-anamgr-timer
 EOU
-   : opticks-anamgr is used by the U4Recorder
+   : --opticks-anamgr attempts to switch on U4RecorderAnaMgr - BUT THAT NEEDS opticksMode 2 or 3 
 }
 
 

@@ -1,5 +1,82 @@
-lack_hits_at_j_level_but_are_there_at_SEvt_level
-==================================================
+FIXED : lack_hits_at_j_level_but_are_there_at_SEvt_level
+==========================================================
+
+Overview
+---------
+
+FIX was to reposition the SEvt::gather invokation up to QSim::simulate 
+immediately after the launch : so the hits are available for 
+copying prior to QSim::simulate_end is called. 
+
+
+HMM : tis a when to gather issue
+-----------------------------------
+
+Inbetween the QSim::simulate and QSim::simulate_end calls 
+the arrays need to have been gathered. 
+So need to split the gather from the save. 
+
+
+::
+
+    void SEvt::save(const char* dir_)
+    {
+        LOG_IF(info, LIFECYCLE) << id() ;
+        gather();
+
+
+    void SEvt::endOfEvent(int eventID)
+    {
+        LOG_IF(error, gather_done) << " gather_done SKIP eventID " << eventID ; 
+        if(gather_done) return ; 
+
+        setStage(SEvt__endOfEvent); 
+        LOG_IF(info, LIFECYCLE) << id() ; 
+        sprof::Stamp(p_SEvt__endOfEvent_0);  
+
+        endIndex(eventID);   // eventID is 0-based 
+        endMeta(); 
+
+        save();              // gather and save SEventConfig configured arrays
+        clear_output(); 
+        clear_genstep(); 
+
+
+::
+
+     348 double QSim::simulate(int eventID, bool end)
+     349 {   
+     350     SProf::Add("QSim__simulate_HEAD");
+     351     
+     352     LOG_IF(info, SEvt::LIFECYCLE) << "[ eventID " << eventID ;
+     353     if( event == nullptr ) return -1. ;
+     354     
+     355     sev->beginOfEvent(eventID);  // set SEvt index and tees up frame gensteps for simtrace and input photon simulate running
+     356     
+     357     int rc = event->setGenstep() ;    // QEvent 
+     358     LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : have event but no gensteps collected : will skip cx.simulate " ;
+     359     
+     360     SProf::Add("QSim__simulate_PREL");
+     361     
+     362     sev->t_PreLaunch = sstamp::Now() ; 
+     363     double dt = rc == 0 && cx != nullptr ? cx->simulate_launch() : -1. ;  //SCSGOptiX protocol
+     364     sev->t_PostLaunch = sstamp::Now() ;
+     365     sev->t_Launch = dt ;
+     366     
+     367     SProf::Add("QSim__simulate_POST");
+     368     
+     369     sev->gather();
+     370     
+     371     SProf::Add("QSim__simulate_TAIL");
+
+
+
+
+
+
+
+Issue
+--------
 
 
 ::
