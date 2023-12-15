@@ -185,13 +185,15 @@ jok-tds(){
    logging()
    {
        ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
-       export QEvent__SEvt_NPFold_VERBOSE=1  
-       export U4Recorder__SEvt_NPFold_VERBOSE=1  
-       export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
+       ##export QEvent__SEvt_NPFold_VERBOSE=1  
+       ##export U4Recorder__SEvt_NPFold_VERBOSE=1  
+       ##export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
+
+       export QEvent=INFO
+       export junoSD_PMT_v2_Opticks=INFO
    }
    [ -n "$LOG" ] && logging
 
-   export junoSD_PMT_v2_Opticks=1 
 
    local root="sample_detsim_user.root"
    if [ -f "$root" ]; then

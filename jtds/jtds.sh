@@ -35,10 +35,9 @@ export TMP=${!TMPVAR}
 
 export BASE=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0
 
-EVT=${EVT:-1}
-evt=$(printf "%0.3d" $EVT)
-export AFOLD=$BASE/p$evt
-export BFOLD=$BASE/n$evt
+EVT=${EVT:-000}
+export AFOLD=$BASE/A$EVT
+export BFOLD=$BASE/B$EVT
 script=$SDIR/$name.py 
 
 vars="BASH_SOURCE REMOTE L_TMP P_TMP TMPVAR TMP arg name SDIR GEOM BASE EVT evt AFOLD BFOLD script"
