@@ -128,9 +128,9 @@ jok-tds(){
    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
 
    #local mode=DebugLite
-   local mode=Nothing     # GPU leak debug 
+   #local mode=Nothing     # GPU leak debug 
    #local mode=Minimal
-   #local mode=Hit
+   local mode=Hit
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
@@ -194,9 +194,11 @@ jok-tds(){
        ##export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
 
        #export QEvent=INFO
-       export junoSD_PMT_v2_Opticks=INFO
-       export junoSD_PMT_v2=INFO
+       #export junoSD_PMT_v2_Opticks=INFO
+       #export junoSD_PMT_v2=INFO
        #export SEvt__GATHER=1   ## gather_component debug 
+
+       export QEvent__LIFECYCLE=1 
    }
    if [ -n "$LOG" ]; then 
        echo $BASH_SOURCE - $FUNCNAME - logging enabled
