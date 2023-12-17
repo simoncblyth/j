@@ -1,23 +1,101 @@
 small_diffs_between_array_counts_and_hitCollection_counts
 ============================================================
 
-
 Overview
 ----------
 
 * getting same or more in the hitCollection so its not merge reduction
-* 0/1/2/3 more in hitCollection that in the array ? hows that possible ? 
+* 0/1/2/3 more in hitCollection than in the array ? hows that possible ? 
 * looked at the Merger anyhow, dont see any problem.
 
 * dumping hitCollection entries before and after adding the Opticks hits 
   shows are starting with a small number 0->3 hits in the hitCollection
 
-  * should not be any ordinary hits  
+* checking squashing, looks like have omitted to squash CK : that looks highly 
+  likely to explain the few hits
 
 
 
-TODO : see where the few start hits come from
-------------------------------------------------
+Are squashing scint, jcv DsG4Scintillation::
+
+     590 
+     591         G4int NumPhoton =  NumVec[scnt] ;
+     592 
+     593 #ifdef WITH_G4CXOPTICKS
+     594         if(flagReemission) assert( NumPhoton == 0 || NumPhoton == 1);   // expecting only 0 or 1 remission photons
+     595         bool is_opticks_genstep = NumPhoton > 0 && !flagReemission ;
+     596         if(is_opticks_genstep && (m_opticksMode > 0))
+     597         {
+     598             U4::CollectGenstep_DsG4Scintillation_r4695( &aTrack, &aStep, NumPhoton, scnt, ScintillationTime);
+     599         }
+     600 #endif
+     601 
+     602          if( m_opticksMode != 1 )
+     603          {
+     604 
+     605          for(G4int i = 0 ; i < NumPhoton ; i++) {
+     606 #ifdef WITH_G4CXOPTICKS
+     607            U4::GenPhotonBegin(i);
+     608 #endif
+     609            G4double sampledEnergy;
+     610            if ( !flagReemission ) {
+     611                 // normal scintillation
+     612                G4double CIIvalue = G4UniformRand()*
+     613                     ScintillationIntegral->GetMaxValue();
+     614                sampledEnergy=
+     615                     ScintillationIntegral->GetEnergy(CIIvalue);
+     616 
+     617                if (verboseLevel>1)
+     618                     {
+
+
+HUH: are not squashing CK, jcv G4Cerenkov_modified::
+
+     342 #ifdef WITH_G4CXOPTICKS
+     343   bool is_opticks_genstep = fNumPhotons > 0 ;
+     344   G4VUserTrackInformation* a_ui = aTrack.GetUserInformation() ;
+     345   assert( a_ui == nullptr );  // should always be null, as process C is not applicable to RE-photons
+     346 
+     347   if(is_opticks_genstep && (m_opticksMode & 1 ))
+     348   {
+     349       U4::CollectGenstep_G4Cerenkov_modified(
+     350           &aTrack,
+     351           &aStep,
+     352           fNumPhotons,
+     353           BetaInverse,
+     354           Pmin,
+     355           Pmax,
+     356           maxCos,
+     357           maxSin2,
+     358           MeanNumberOfPhotons1,
+     359           MeanNumberOfPhotons2
+     360       );
+     361   }
+     362 #endif
+     363 #ifdef WITH_G4CXOPTICKS_DEBUG
+     364   dbg.BetaInverse = BetaInverse ;
+     365   dbg.step_length = step_length ;
+     366   dbg.MeanNumberOfPhotons = MeanNumberOfPhotons ;
+     367   dbg.fNumPhotons = fNumPhotons ;
+     368   dbg.add();
+     369 #endif
+     370 
+     371   for (G4int i = 0; i < fNumPhotons; i++) {
+     372 
+     373 
+     374 #ifdef WITH_G4CXOPTICKS
+     375       U4::GenPhotonBegin(i);
+     376 #endif
+     377 
+     378       // Determine photon energy
+     379 
+     380       G4double rand;
+
+
+
+
+NOT NEEDED I HOPE : see where the few start hits come from
+-------------------------------------------------------------
 
 
 ::
@@ -25,6 +103,9 @@ TODO : see where the few start hits come from
     LOG=1 BP=junoSD_PMT_v2::ProcessHits ~/j/okjob.sh   
 
     LOG=1 BP=junoSD_PMT_v2::SaveNormHit ~/j/okjob.sh 
+
+    LOG=1 ~/j/okjob.sh 
+
 
 
 ::

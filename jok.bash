@@ -127,14 +127,15 @@ jok-tds(){
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
 
-   local mode=DebugLite
-   #local mode=HitOnly
+   #local mode=DebugLite
+   local mode=Nothing     # GPU leak debug 
    #local mode=Minimal
+   #local mode=Hit
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=M1
-   export OPTICKS_NUM_EVENT=10
+   export OPTICKS_NUM_EVENT=1000
 
    if [ "$OPTICKS_EVENT_MODE" == "DebugLite" ]; then
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM

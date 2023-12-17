@@ -4,6 +4,36 @@ opticksMode_1_U4Recorder_trying_to_read_from_nowhere
 
 Of course in opticksMode 1 need to disable the U4Recorder
 
+* not too hasty : there are some residual hits to debug 
+
+
+
+
+
+where SEvt instanciated
+-------------------------
+
+::
+
+    etup_calib_unit exit as not enabled
+    appending U4RecorderAnaMgr to AnaMgrList in opticks_mode 1 
+    SEvt::HighLevelCreate g4state_rerun_id -1 alldir ALL0 alldir0 ALL0 seldir SEL0 rerun 0
+
+    Breakpoint 1, 0x00007fffc7e71010 in SEvt::SEvt()@plt () from /home/blyth/junotop/ExternalLibs/opticks/head/lib64/libSysRap.so
+    (gdb) bt
+    #0  0x00007fffc7e71010 in SEvt::SEvt()@plt () from /home/blyth/junotop/ExternalLibs/opticks/head/lib64/libSysRap.so
+    #1  0x00007fffc7f30446 in SEvt::Create (idx=1) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:1031
+    #2  0x00007fffc7f311a6 in SEvt::HighLevelCreate (idx=1) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:1218
+    #3  0x00007fffc8d7a5a6 in U4Recorder::U4Recorder (this=0x5e06630) at /home/blyth/junotop/opticks/u4/U4Recorder.cc:215
+    #4  0x00007fffc7c57ce9 in U4RecorderAnaMgr::U4RecorderAnaMgr (this=0x442320, name=...)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:14
+    #5  0x00007fffc7c59a45 in SniperCreateDLE_T<U4RecorderAnaMgr> (name=...) at /home/blyth/
+
+
+
+opticksMode 1 with U4Recorder crash : only 1 SEvt probably
+-----------------------------------------------------------
+
 * hmm : its kinda user error to enable the recorder 
 
 
