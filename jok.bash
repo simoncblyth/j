@@ -220,6 +220,8 @@ jok-tds(){
 
    if [ -n "$GDB" -o -n "$BP" ]; then
        runline="jok-gdb $runline"
+   elif [ -n "$CUDA_MEMCHECK" ]; then 
+       runline="cuda-memcheck --leak-check full $runline"
    fi 
 
    local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
