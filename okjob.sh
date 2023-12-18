@@ -46,7 +46,12 @@ okjob-paths()
 }
 
 
-okjob-setup-standalone-opticks()
+okjob-setup-junosw-opticks-pre-release()
+{
+    source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/setup.sh
+}
+
+okjob-setup-standalone-opticks_manual()
 {
     export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
 
@@ -63,6 +68,8 @@ okjob-setup-standalone-opticks()
     source /hpcfs/juno/junogpu/blyth/local/opticks/bashrc                 ## local build 
 }
 
+
+
 okjob-setup-junosw-opticks()
 {
     source $JUNOTOP/bashrc.sh;
@@ -78,15 +85,16 @@ okjob-setup-junosw-opticks()
 
 okjob-setup()
 {
-    #export HOME=/hpcfs/juno/junogpu/$USER
+    export HOME=/hpcfs/juno/junogpu/$USER
 
+    okjob-setup-junosw-opticks-pre-release
     #okjob-setup-standalone-opticks
-    okjob-setup-junosw-opticks
+    #okjob-setup-junosw-opticks
 
     #okjob-paths 
 
     ## HMM: WHERE ELSE TO PUT ? ## PROBLEMATIC BECAUSE THIS IS WORKSTATION SPECIFIC
-    export CUDA_VISIBLE_DEVICES=1  
+    #export CUDA_VISIBLE_DEVICES=1  
 
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
     mkdir -p $TMP          ## whether override or not, need to create 
