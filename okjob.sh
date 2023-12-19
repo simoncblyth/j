@@ -39,7 +39,8 @@ okjob-setup-junosw-opticks-pre-release()
 
 okjob-setup()
 {
-    export HOME=/hpcfs/juno/junogpu/$USER
+    local home=/hpcfs/juno/junogpu/$USER
+    [ -d "$home" ] && export HOME=$home   
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
     mkdir -p $TMP          ## whether override or not, need to create 
     mkdir -p $HOME/okjob
@@ -73,7 +74,7 @@ okjob-body()
    echo $msg TMP $TMP
 
    #okjob-ctest
-   opticks-t
+   #opticks-t
 
    jok-tds
 }

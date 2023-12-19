@@ -46,7 +46,6 @@ _jre_opticks_build_env()
     : mostly NOT needed for release running
 
     export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
-    #export OPTICKS_DOWNLOAD_CACHE=$HOME/opticks_download_cache
     export OPTICKS_DOWNLOAD_CACHE=/cvmfs/opticks.ihep.ac.cn/opticks_download_cache
     export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_750
     export OPTICKS_COMPUTE_CAPABILITY=70
@@ -54,7 +53,11 @@ _jre_opticks_build_env()
     opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }
     opticks-
 
-    oo(){ opticks- ; cd $(opticks-home) ; om- ; om-- ;  } 
+    oo(){ opticks- ; cd $(opticks-home) ; om- ; om-- ;  }  
+    : running oo needs OPTICKS_PREFIX to find bin/opticks-setup.sh
+
+    export OPTICKS_PREFIX=$JUNOTOP/ExternalLibs/opticks/head
+    export OPTICKS_HOME=$JUNOTOP/opticks
 
     : env setup used by om- oe- needs the opticks-setup.sh 
     : generated as part of opticks-full : so "oo" only works
@@ -82,9 +85,9 @@ jre(){
 
     source $JUNOTOP/bashrc.sh  ## opticks sourcing is commented in here for clarity 
 
-    _jre_opticks_build_minimal_env
+    #_jre_opticks_build_minimal_env
     #_jre_opticks_build_env    
-    #_jre_opticks_usage_env  
+    _jre_opticks_usage_env  
     : NB after any changes, for clarity start a new session and redo jre
 
     source $JUNOTOP/sniper/InstallArea/bashrc;
@@ -94,4 +97,3 @@ jre(){
     _source(){ [ -s "$1" ] && source "$1" ; }
     _source $JUNOTOP/junosw/InstallArea/setup.sh
 }
-
