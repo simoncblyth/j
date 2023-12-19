@@ -32,7 +32,6 @@ OPTICKS_INTEGRATION_MODE=2
     Instrumented B:Geant4 only 
 
 
-
 EON
 }
 
@@ -204,7 +203,7 @@ jok-tds(){
        echo $BASH_SOURCE - $FUNCNAME - logging enabled
        logging
    else
-       echo $BASH_SOURCE - $FUNCNAME - logging NOT enabled
+       echo $BASH_SOURCE - $FUNCNAME - logging NOT enabled - use LOG=1 to enable 
    fi   
 
    local root="sample_detsim_user.root"
@@ -251,7 +250,8 @@ jok-anamgr(){ cat << EOU
 $(: --opticks-anamgr)
 --no-anamgr-normal
 --no-anamgr-genevt
---anamgr-edm-v2
+--no-anamgr-edm-v2
+$(: --anamgr-edm-v2)
 --no-anamgr-grdm
 --no-anamgr-deposit
 --no-anamgr-deposit-tt

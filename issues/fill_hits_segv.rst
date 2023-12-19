@@ -150,3 +150,75 @@ jcv DataModelWriterWithSplit::
     $2 = 325600
     (gdb) 
 
+
+
+sensor_identifier OFF BY ONE ? 
+---------------------------------
+
+::
+
+    375     /**
+    376     sqat4::setIdentity
+    377     -------------------
+    378 
+    379     Canonical usage from CSGFoundry::addInstance  where sensor_identifier gets +1 
+    380     with 0 meaning not a sensor. 
+    381     **/
+    382 
+    383     QAT4_METHOD void setIdentity(int ins_idx, int gas_idx, int sensor_identifier_1, int sensor_index )
+    384     {
+    385         assert( sensor_identifier_1 >= 0 );
+    386 
+    387         q0.i.w = ins_idx ;             // formerly unsigned and "+ 1"
+    388         q1.i.w = gas_idx ;
+    389         q2.i.w = sensor_identifier_1 ;   // now +1 with 0 meaning not-a-sensor 
+    390         q3.i.w = sensor_index ;
+    391     }
+
+
+::
+
+    1888 /**
+    1889 CSGFoundry::addInstance
+    1890 ------------------------
+    1891 
+    1892 Used from CSGCopy::copy/CSGCopy::copySolidInstances 
+    1893 when copying a loaded CSGFoundry to apply a selection
+    1894 
+    1895 stree.h/snode.h uses sensor_identifier -1 to indicate not-a-sensor, but 
+    1896 that is not convenient on GPU due to OptixInstance.instanceId limits.
+    1897 Hence here make transition by adding 1 and treating 0 as not-a-sensor. 
+    1898 
+    1899 **/
+    1900 
+    1901 void CSGFoundry::addInstance(const float* tr16, int gas_idx, int sensor_identifier, int sensor_index, bool firstcall )
+    1902 {
+    1903     int sensor_identifier_u = 0 ;
+    1904 
+    1905     if( firstcall )
+    1906     {
+    1907         assert( sensor_identifier >= -1 );
+    1908         sensor_identifier_u = sensor_identifier + 1 ;
+    1909     }
+    1910     else
+    1911     {
+    1912         assert( sensor_identifier >= 0 );
+    1913         sensor_identifier_u = sensor_identifier  ;
+    1914     }
+    1915     assert( sensor_identifier_u >= 0 );
+    1916 
+    1917 
+    1918     qat4 instance(tr16) ;  // identity matrix if tr16 is nullptr 
+    1919     int ins_idx = int(inst.size()) ;
+    1920 
+    1921     instance.setIdentity( ins_idx, gas_idx, sensor_identifier_u, sensor_index );
+    1922 
+    1923     LOG(debug)
+    1924         << " firstcall " << ( firstcall ? "YES" : "NO " )
+    1925         << " ins_idx " << ins_idx
+
+
+
+
+
+
