@@ -238,8 +238,9 @@ jok-report(){
 
    jok-init
 
-   which sreport
-   sreport 
+   local bin=$OPTICKS_PREFIX/lib/sreport 
+   echo $bin
+   $bin
 
 }
 
