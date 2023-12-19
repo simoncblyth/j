@@ -5,8 +5,8 @@
 #SBATCH --account=junogpu
 #SBATCH --job-name=okjob
 #SBATCH --ntasks=1
-#SBATCH --output=/hpcfs/juno/junogpu/blyth/okjob/%j.out
-#SBATCH --error=/hpcfs/juno/junogpu/blyth/okjob/%j.err
+#SBATCH --output=/hpcfs/juno/junogpu/%u/okjob/%j.out
+#SBATCH --error=/hpcfs/juno/junogpu/%u/okjob/%j.err
 #SBATCH --mem-per-cpu=20480
 #SBATCH --gres=gpu:v100:1
 
@@ -94,7 +94,7 @@ okjob-setup()
     #okjob-paths 
 
     ## HMM: WHERE ELSE TO PUT ? ## PROBLEMATIC BECAUSE THIS IS WORKSTATION SPECIFIC
-    #export CUDA_VISIBLE_DEVICES=1  
+    export CUDA_VISIBLE_DEVICES=1  
 
     export TMP=$HOME/tmp   ## override default /tmp/$USER/opticks as /tmp is blackhole (not same filesystem on GPU cluster and gateway)  
     mkdir -p $TMP          ## whether override or not, need to create 

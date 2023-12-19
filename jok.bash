@@ -247,12 +247,19 @@ jok-report(){
 jok-tds-gdb(){ GDB=1 jok-tds ; }
 
 
-jok-anamgr(){ cat << EOU
-$(: --opticks-anamgr)
---no-anamgr-normal
---no-anamgr-genevt
+jok-anamgr-notes(){ cat << EON
+--opticks-anamgr
 --no-anamgr-edm-v2
 $(: --anamgr-edm-v2)
+
+EON
+}
+
+
+jok-anamgr(){ cat << EOU
+--no-anamgr-normal
+--no-anamgr-genevt
+--anamgr-edm-v2
 --no-anamgr-grdm
 --no-anamgr-deposit
 --no-anamgr-deposit-tt

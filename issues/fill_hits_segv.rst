@@ -217,8 +217,102 @@ sensor_identifier OFF BY ONE ?
     1924         << " firstcall " << ( firstcall ? "YES" : "NO " )
     1925         << " ins_idx " << ins_idx
 
+::
+
+    367 inline void sframe::set_identity(int ins, int gas, int sensor_identifier, int sensor_index ) // formerly set_ins_gas_ias
+    368 {
+    369     aux.q0.i.x = ins ;
+    370     aux.q0.i.y = gas ;
+    371     aux.q0.i.z = sensor_identifier ;
+    372     aux.q0.i.w = sensor_index  ;
+    373 }
+    374 inline int sframe::ins() const { return aux.q0.i.x ; }
+    375 inline int sframe::gas() const { return aux.q0.i.y ; }
+    376 inline int sframe::sensor_identifier() const { return aux.q0.i.z ; }
+    377 inline int sframe::sensor_index() const {      return aux.q0.i.w ; }
+    378 
 
 
+::
+
+    057 inline void U4HitGet::FromEvt(U4Hit& hit, unsigned idx, int eidx )
+     58 {
+     59     sphoton global ;
+     60     sphoton local ;
+     61 
+     62     SEvt* sev = SEvt::Get(eidx);
+     63     sev->getHit( global, idx);
+     64 
+     65     sphit ht ;  // extra hit info : iindex, sensor_identifier, sensor_index
+     66     sev->getLocalHit( ht, local,  idx);
+     67 
+     68     ConvertFromPhoton(hit, global, local, ht );
+     69 }
+     70 
+
+::
+
+    4216 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4217 {
+    4218     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4219 
+    4220     sframe fr ;
+    4221     getPhotonFrame(fr, lp);
+    4222     fr.transform_w2m(lp);
+    4223 
+    4224     ht.iindex = fr.inst() ;
+    4225     ht.sensor_identifier = fr.sensor_identifier();
+    4226     ht.sensor_index = fr.sensor_index();
+    4227 }
+
+
+
+
+::
+
+    399 /**
+    400 CSGImport::importInst
+    401 ---------------------------
+    402 
+    403 The CSGFoundry calls should parallel CSG_GGeo_Convert::addInstances
+    404 the source is the stree instead of GGeo/GMergedMesh etc..
+    405 
+    406 **/
+    407 
+    408 void CSGImport::importInst()
+    409 {
+    410     fd->addInstanceVector( st->inst_f4 );
+    411 }
+
+
+::
+
+    1935 /**
+    1936 CSGFoundry::addInstanceVector
+    1937 ------------------------------
+    1938 
+    1939 stree.h/snode.h uses sensor_identifier -1 to indicate not-a-sensor, but 
+    1940 that is not convenient on GPU due to OptixInstance.instanceId limits.
+    1941 Hence here make transition by adding 1 and treating 0 as not-a-sensor, 
+    1942 with the sqat4::incrementSensorIdentifier method
+    1943 
+    1944 **/
+    1945 
+    1946 void CSGFoundry::addInstanceVector( const std::vector<glm::tmat4x4<float>>& v_inst_f4 )
+    1947 {
+    1948     assert( inst.size() == 0 );
+    1949     int num_inst = v_inst_f4.size() ;
+    1950 
+    1951     for(int i=0 ; i < num_inst ; i++)
+    1952     {
+    1953         const glm::tmat4x4<float>& inst_f4 = v_inst_f4[i] ;
+    1954         const float* tr16 = glm::value_ptr(inst_f4) ;
+    1955         qat4 instance(tr16) ;
+    1956         instance.incrementSensorIdentifier() ; // GPU side needs 0 to mean "not-a-sensor"
+    1957         inst.push_back( instance );
+    1958     }
+    1959 }
+    1960 
 
 
 
