@@ -72,7 +72,9 @@ okjob-body()
    local msg="=== $FUNCNAME:"
    echo $msg TMP $TMP
 
-   okjob-ctest
+   #okjob-ctest
+   opticks-t
+
    jok-tds
 }
 
