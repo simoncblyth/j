@@ -85,11 +85,11 @@ okjob-setup-junosw-opticks()
 
 okjob-setup()
 {
-    export HOME=/hpcfs/juno/junogpu/$USER
+    #export HOME=/hpcfs/juno/junogpu/$USER
 
-    okjob-setup-junosw-opticks-pre-release
+    #okjob-setup-junosw-opticks-pre-release
     #okjob-setup-standalone-opticks
-    #okjob-setup-junosw-opticks
+    okjob-setup-junosw-opticks
 
     #okjob-paths 
 

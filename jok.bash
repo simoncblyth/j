@@ -248,10 +248,10 @@ jok-tds-gdb(){ GDB=1 jok-tds ; }
 
 
 jok-anamgr(){ cat << EOU
---opticks-anamgr
+$(: --opticks-anamgr)
 --no-anamgr-normal
 --no-anamgr-genevt
---no-anamgr-edm-v2
+--anamgr-edm-v2
 --no-anamgr-grdm
 --no-anamgr-deposit
 --no-anamgr-deposit-tt
