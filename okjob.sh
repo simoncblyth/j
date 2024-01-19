@@ -107,6 +107,8 @@ arg=${1:-$defarg}
 case $arg in 
    main) okjob-main ;; 
   ctest) okjob-ctest ;; 
+  setup) okjob-setup ;; 
+   head) okjob-head ;; 
    init) jok-init ;; 
   info)  jok-info ;;
    grab) jok-grab ;;
