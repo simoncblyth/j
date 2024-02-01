@@ -259,7 +259,7 @@ EON
 jok-anamgr(){ cat << EOU
 --no-anamgr-normal
 --no-anamgr-genevt
---anamgr-edm-v2
+--no-anamgr-edm-v2
 --no-anamgr-grdm
 --no-anamgr-deposit
 --no-anamgr-deposit-tt

@@ -2,11 +2,12 @@ merge_huyuxiang_bitbucket_fork
 ================================
 
 
+https://support.atlassian.com/bitbucket-cloud/docs/resolve-merge-conflicts/
+
+
 https://bitbucket.org/simoncblyth/opticks/commits/
 
 https://bitbucket.org/huyuxiang-bit/opticks/commits/
-
-
 
 
 https://stackoverflow.com/questions/9944898/bitbucket-update-a-fork-to-merge-changes-of-master-repo

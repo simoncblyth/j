@@ -75,6 +75,9 @@ _jre_opticks_usage_env()
     export OPTICKS_HOME=$JUNOTOP/opticks
     export PYTHONPATH=$(dirname $OPTICKS_HOME):$PYTHONPATH
 
+    opticks-(){ source $JUNOTOP/opticks/opticks.bash && opticks-env $* ; }
+    opticks-
+
     #source /cvmfs/opticks.ihep.ac.cn/ok/releases/Opticks-v0.2.1/x86_64-CentOS7-gcc1120-geant4_10_04_p02-dbg/bashrc
     source $HOME/junotop/ExternalLibs/opticks/head/bashrc
 }

@@ -45,6 +45,66 @@ The cause is that the writer is not expecting SPMT hits resulting in nullptr jm_
 
 
 
+
+Same Again ? but i thought that was fixed ?
+----------------------------------------------
+
+::
+
+    commit bf77b63635363dd4799883f3a984a5a9f48bdd70
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Tue Dec 19 19:40:42 2023 +0800
+
+        try to fix the off-by-one sensor_identifier bug
+
+    M       sysrap/SEvt.cc
+    M       u4/U4Tree.h
+
+
+
+::
+
+    Begin of Event --> 116
+    2024-01-19 15:32:27.108 INFO  [306385] [QSim::simulate@376]  eventID 116 dt    0.009264 ph       9204 ph/M          0 ht       1748 ht/M          0 reset_ NO 
+    2024-01-19 15:32:27.133 INFO  [306385] [SEvt::save@3953] /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/A116 [genstep,hit]
+    junoSD_PMT_v2::EndOfEvent eventID 116 opticksMode 1 hitCollection 1748 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0 userhitCollectionTT.size: 0
+    junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2024-01-19 07:32:27.134933000Z
+    junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2024-01-19 07:32:27.137078000Z
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (117) 
+    junoSD_PMT_v2::Initialize eventID 117
+    Begin of Event --> 117
+    2024-01-19 15:32:27.148 INFO  [306385] [QSim::simulate@376]  eventID 117 dt    0.009222 ph       8753 ph/M          0 ht       1673 ht/M          0 reset_ NO 
+    2024-01-19 15:32:27.172 INFO  [306385] [SEvt::save@3953] /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/A117 [genstep,hit]
+    junoSD_PMT_v2::EndOfEvent eventID 117 opticksMode 1 hitCollection 1673 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0 userhitCollectionTT.size: 0
+    junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2024-01-19 07:32:27.173474000Z
+
+    Thread 1 "python" received signal SIGSEGV, Segmentation fault.
+    0x00007fffc8288da5 in DataModelWriterWithSplit::fill_hits(JM::SimEvt*, G4Event const*) () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libAnalysisCode.so
+    (gdb) 
+
+
+    #0  0x00007fffc8288da5 in DataModelWriterWithSplit::fill_hits(JM::SimEvt*, G4Event const*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libAnalysisCode.so
+    #1  0x00007fffc828abf9 in DataModelWriterWithSplit::EndOfEventAction(G4Event const*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libAnalysisCode.so
+    #2  0x00007fffc7f27558 in MgrOfAnaElem::EndOfEventAction(G4Event const*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libDetSimAlg.so
+    #3  0x00007fffd1164242 in G4EventManager::DoProcessing(G4Event*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #4  0x00007fffc8403630 in G4SvcRunManager::SimulateEvent(int) () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libG4SvcLib.so
+    #5  0x00007fffc7f1d63a in DetSimAlg::execute() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/junosw/InstallArea/lib64/libDetSimAlg.so
+    #6  0x00007fffd4e3e511 in Task::execute() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/sniper/InstallArea/lib64/libSniperKernel.so
+    #7  0x00007fffd4e42c1d in TaskWatchDog::run() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/sniper/InstallArea/lib64/libSniperKernel.so
+    #8  0x00007fffd4e3e0b4 in Task::run() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/sniper/InstallArea/lib64/libSniperKernel.so
+    #9  0x00007fffd4ef8943 in boost::python::objects::caller_py_function_impl<boost::python::detail::caller<bool (Task::*)(), boost::python::default_call_policies, boost::mpl::vector2<bool, Task&> > >::operator()(_object*, _object*) () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120_opticks/Pre-Release/J23.1.0-rc6/sniper/InstallArea/python/Sniper/libSniperPython.so
+    #10 0x00007fffd4de65d5 in boost::python::objects::function::call(_object*, _object*) const ()
+
+
+
+
+
 Issue
 ------
 
