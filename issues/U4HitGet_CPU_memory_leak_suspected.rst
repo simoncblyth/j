@@ -109,6 +109,11 @@ Can hit_photon be deleted after merger saveHit ?::
     390 }
 
 
+* the above "new junoHit_PMT" looks like a leak, but it is not because
+  the hitCollection that the hit is added to is registered with Geant4,
+  so the G4HCofThisEvent::~G4HCofThisEvent imvokes the delete of the hit
+  
+
 Nope, saveHit inserts hit_photon pointer into hitCollection (the owner?)::
 
      79 bool
@@ -262,7 +267,6 @@ Methods with spaces dont work, need to define the break point manually::
 
 
 
-
 Geant4 handles hit deletion in G4HCofThisEvent dtor, presumably as the hitCollection was registered with the G4Event::
 
     (gdb) d 3
@@ -289,4 +293,219 @@ Geant4 handles hit deletion in G4HCofThisEvent dtor, presumably as the hitCollec
     #9  0x00007fffd4e01511 in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
 
 
+::
+
+    jre
+    N[blyth@localhost j]$ BP="junoHit_PMT::operator new,junoHit_PMT::operator delete" ~/j/okjob.sh 
+
+
+    (gdb) f 6
+    #6  0x00007fffd0e36818 in G4RunManager::StackPreviousEvent(G4Event*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    (gdb) f 5
+    #5  0x00007fffd0d95873 in G4Event::~G4Event() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    (gdb) f 4
+    #4  0x00007fffced2616b in G4HCofThisEvent::~G4HCofThisEvent() ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    (gdb) f 3
+    #3  0x00007fffc77d7c4c in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xa58d6b30, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:168
+    168	}
+    (gdb) f 2
+    #2  0x00007fffc77d7bda in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xa58d6b30, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:165
+    165	  { delete (*theHitsCollection)[i]; }
+    (gdb) f 1
+    #1  0x00007fffc77ca2ee in junoHit_PMT::~junoHit_PMT (this=0xb1c3ff30, __in_chrg=<optimized out>) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoHit_PMT.cc:32
+    warning: Source file is more recent than executable.
+    32	{;}
+    (gdb) 
+
+
+
+
+Yuxiang found that not doing the below reduces the leak::
+
+
+    183     U4Hit hit ;
+    184     U4HitExtra hit_extra ;
+    185     U4HitExtra* hit_extra_ptr = way_enabled ? &hit_extra : nullptr ;
+    186     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    187     {
+    188         U4HitGet::FromEvt_EGPU(hit, idx);
+    189         collectHit(&hit, hit_extra_ptr, merged_count, savehit_count );
+    190         if(idx < 20 && LEVEL == info) ss << descHit(idx, &hit, hit_extra_ptr ) << std::endl ;
+    191     }
+    192 
+    193     LOG_IF(LEVEL, LEVEL == info) << std::endl << ss.str() ;
+
+
+
+U4HitGet is just shuffling content from two stack sphoton to a stack U4Hit 
+so no leaking is possible::
+
+     27 inline void U4HitGet::ConvertFromPhoton(U4Hit& hit,  const sphoton& global, const sphoton& local, const sphit& ht )
+     28 {
+     29     hit.zero();
+     30 
+     31     U4ThreeVector::FromFloat3( hit.global_position,      global.pos );
+     32     U4ThreeVector::FromFloat3( hit.global_direction,     global.mom );
+     33     U4ThreeVector::FromFloat3( hit.global_polarization,  global.pol );
+     34 
+     35     hit.time = double(global.time) ;
+     36     hit.weight = 1. ;
+     37     hit.wavelength = double(global.wavelength);
+     38 
+     39     U4ThreeVector::FromFloat3( hit.local_position,      local.pos );
+     40     U4ThreeVector::FromFloat3( hit.local_direction,     local.mom );
+     41     U4ThreeVector::FromFloat3( hit.local_polarization,  local.pol );
+     42 
+     43     hit.sensorIndex = ht.sensor_index ;
+     44     hit.sensor_identifier = ht.sensor_identifier ;
+     45     hit.nodeIndex = -1 ;
+     46 
+     47     hit.boundary = global.boundary() ;
+     48     hit.photonIndex = global.idx() ;
+     49     hit.flag_mask = global.flagmask ;
+     50     hit.is_cerenkov = global.is_cerenkov() ;
+     51     hit.is_reemission = global.is_reemit() ;
+     52 }
+     53 
+     54 
+     55 inline void U4HitGet::FromEvt_EGPU(U4Hit& hit, unsigned idx ){ FromEvt(hit, idx, SEvt::EGPU); }
+     56 inline void U4HitGet::FromEvt_ECPU(U4Hit& hit, unsigned idx ){ FromEvt(hit, idx, SEvt::ECPU); }
+     57 inline void U4HitGet::FromEvt(U4Hit& hit, unsigned idx, int eidx )
+     58 {
+     59     sphoton global ; 
+     60     sphoton local ;
+     61 
+     62     SEvt* sev = SEvt::Get(eidx);
+     63     sev->getHit( global, idx);
+     64 
+     65     sphit ht ;  // extra hit info : iindex, sensor_identifier, sensor_index
+     66     sev->getLocalHit( ht, local,  idx);
+     67 
+     68     ConvertFromPhoton(hit, global, local, ht );
+     69 }
+     70 
+
+
+::
+
+    4193 void SEvt::getHit(sphoton& p, unsigned idx) const
+    4194 {
+    4195     const NP* hit = getHit();
+    4196     sphoton::Get(p, hit, idx );
+    4197 }
+
+
+    4243 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4244 {
+    4245     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4246 
+    4247     sframe fr ;
+    4248     getPhotonFrame(fr, lp);
+    4249     fr.transform_w2m(lp);
+    4250 
+    4251     ht.iindex = fr.inst() ;
+    4252     ht.sensor_identifier = fr.sensor_identifier() - 1 ;
+    4253     ht.sensor_index = fr.sensor_index();
+    4254 }
+    4255 
+    4256 /**
+    4257 SEvt::getPhotonFrame
+    4258 ---------------------
+    4259 
+    4260 Note that this relies on the photon iindex which 
+    4261 may not be set for photons ending in some places. 
+    4262 It should always be set for photons ending on PMTs
+    4263 assuming properly instanced geometry. 
+    4264 
+    4265 **/
+    4266 
+    4267 void SEvt::getPhotonFrame( sframe& fr, const sphoton& p ) const
+    4268 {
+    4269     assert(cf);
+    4270     cf->getFrame(fr, p.iindex);
+    4271     fr.prepare();
+    4272 }
+
+
+
+    383 /**
+    384 G4CXOpticks::reset
+    385 ---------------------
+    386 
+    387 This needs to be called after invoking G4CXOpticks::simulate
+    388 when argument reset:false has been used in order to allow copy hits 
+    389 from the opticks/SEvt into other collections prior to invoking 
+    390 the reset. 
+    391 
+    392 **/
+    393 
+    394 void G4CXOpticks::reset(int eventID)
+    395 {
+    396     LOG_IF(fatal, NoGPU) << "NoGPU SKIP" ;
+    397     if(NoGPU) return ;
+    398 
+    399     assert( SEventConfig::IsRGModeSimulate() );
+    400     assert(qs);
+    401 
+    402     unsigned num_hit_0 = SEvt::GetNumHit_EGPU() ;
+    403     LOG(LEVEL) << "[ " << eventID << " num_hit_0 " << num_hit_0  ;
+    404 
+    405     qs->reset(eventID);
+    406 
+    407     unsigned num_hit_1 = SEvt::GetNumHit_EGPU() ;
+    408     LOG(LEVEL) << "] " << eventID << " num_hit_1 " << num_hit_1  ;
+    409 }
+    410 
+
+
+    0392 /**
+     393 QSim::reset
+     394 ------------
+     395 
+     396 When *QSim::simulate* is called with argument *reset:true* the
+     397 *QSim::reset* method is called automatically to clean 
+     398 up the SEvt after saving any configured arrays.
+     399 
+     400 When *QSim::simulate* is called with argument *reset:false*
+     401 (in order to copy gathered arrays into non-Opticks collections)  
+     402 the *QSim::reset* method must be called to avoid a memory leak. 
+     403 
+     404 **/
+     405 void QSim::reset(int eventID)
+     406 {
+     407     sev->endOfEvent(eventID);
+     408     LOG_IF(info, SEvt::LIFECYCLE) << "] eventID " << eventID ;
+     409 }
+
+
+
+::
+
+     232 QSim::QSim()
+     233     :
+     234     base(QBase::Get()),
+     235     event(new QEvent),
+     236     sev(event->sev),
+
+
+     095 QEvent::QEvent()
+      96     :
+      97     sev(SEvt::Get_EGPU()),
+      98     selector(sev ? sev->selector : nullptr),
+      99     evt(sev ? sev->evt : nullptr),
+     100     d_evt(QU::device_alloc<sevent>(1,"QEvent::QEvent/sevent")),
+     101     gs(nullptr),
+     102     input_photon(nullptr),
+     103     upload_count(0)
+     104 {
+
+
+
+
+Observations : note that SEvt_ECPU is not reset here. Its up to U4Recorder 
+to manage that.  BUT that should not be used in production/measuement running anyhow.  
 
