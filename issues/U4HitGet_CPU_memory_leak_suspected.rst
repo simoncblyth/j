@@ -174,7 +174,6 @@ jcv junoHit_PMT::
 
 
 * HMM DONT SEE WHERE HITS ARE GETTING DELETED 
-* TODO: BT="junoHit_PMT::operator delete"
 
 
 g4-cls G4THitsCollection::
@@ -211,5 +210,83 @@ Look for other usage::
     ./Simulation/DetSimV2/AnalysisCode/src/MuonFastSimVoxel.cc:        m_pmthitmerger->saveHit(hit_photon);
     ./Simulation/DetSimV2/AnalysisCode/src/MuonFastSimVoxel.cc:        m_pmthitmerger->saveHit(hit_photon);
     epsilon:junosw blyth$ 
+
+
+Changed j/okjob.sh to use current (not the release).
+
+
+Try hit operator breaking::
+
+   jre 
+   BP="junoHit_PMT::operator new" ~/j/okjob.sh 
+   BP="junoHit_PMT::operator delete" ~/j/okjob.sh 
+
+
+Methods with spaces dont work, need to define the break point manually::
+
+    Function "junoHit_PMT::operator" not defined.
+    Breakpoint 1 (junoHit_PMT::operator) pending.
+    Function "new" not defined.
+    Breakpoint 2 (new) pending.
+    Num     Type           Disp Enb Address    What
+    1       breakpoint     keep y   <PENDING>  junoHit_PMT::operator
+    2       breakpoint     keep y   <PENDING>  new
+
+
+::
+
+    (gdb) b "junoHit_PMT::operator new"
+    Breakpoint 3 at 0x7fffc7722890 (4 locations)
+    (gdb) r
+
+
+::
+
+
+    Thread 1 "python" hit Breakpoint 3, 0x00007fffc7722890 in junoHit_PMT::operator new(unsigned long)@plt () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    (gdb) bt
+    #0  0x00007fffc7722890 in junoHit_PMT::operator new(unsigned long)@plt () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    #1  0x00007fffc77de189 in junoSD_PMT_v2_Opticks::convertHit (this=0x8c16950, hit=0x7ffffffec340, hit_extra=0x0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:245
+    #2  0x00007fffc77de12f in junoSD_PMT_v2_Opticks::collectHit (this=0x8c16950, hit=0x7ffffffec340, hit_extra=0x0, merged_count=@0x7ffffffec418: 0, savehit_count=@0x7ffffffec414: 0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:223
+    #3  0x00007fffc77ddbc8 in junoSD_PMT_v2_Opticks::EndOfEvent_Simulate (this=0x8c16950, eventID=0)
+        at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:189
+    #4  0x00007fffc77dd7ba in junoSD_PMT_v2_Opticks::EndOfEvent (this=0x8c16950, eventID=0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:145
+    #5  0x00007fffc77db1c1 in junoSD_PMT_v2::EndOfEvent (this=0x8c16070, HCE=0xa58d5840) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:1093
+    #6  0x00007fffced1d0da in G4SDStructure::Terminate(G4HCofThisEvent*) ()
+
+    (gdb) b "junoHit_PMT::operator delete"
+    Breakpoint 4 at 0x7fffc771f470 (4 locations)
+    (gdb) 
+
+
+
+
+Geant4 handles hit deletion in G4HCofThisEvent dtor, presumably as the hitCollection was registered with the G4Event::
+
+    (gdb) d 3
+    (gdb) c
+    Continuing.
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 1 hitCollection 1701 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+
+    Thread 1 "python" hit Breakpoint 4, 0x00007fffc771f470 in junoHit_PMT::operator delete(void*)@plt () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    (gdb) bt
+    #0  0x00007fffc771f470 in junoHit_PMT::operator delete(void*)@plt () from /data/blyth/junotop/junosw/InstallArea/lib64/libPMTSim.so
+    #1  0x00007fffc77ca2ee in junoHit_PMT::~junoHit_PMT (this=0xb1c424d0, __in_chrg=<optimized out>) at /data/blyth/junotop/junosw/Simulation/DetSimV2/PMTSim/src/junoHit_PMT.cc:32
+    #2  0x00007fffc77d7bda in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xa58d5c40, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:165
+    #3  0x00007fffc77d7c4c in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xa58d5c40, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:168
+    #4  0x00007fffced2616b in G4HCofThisEvent::~G4HCofThisEvent() ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #5  0x00007fffd0d95873 in G4Event::~G4Event() () from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #6  0x00007fffd0e36818 in G4RunManager::StackPreviousEvent(G4Event*) ()
+       from /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J22.2.x/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #7  0x00007fffc7deb6db in G4SvcRunManager::SimulateEvent (this=0x58ca480, i_event=0) at /data/blyth/junotop/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:32
+    #8  0x00007fffc75d1d3e in DetSimAlg::execute (this=0x5e05250) at /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+    #9  0x00007fffd4e01511 in Task::execute() () from /home/blyth/junotop/sniper/InstallArea/lib64/libSniperKernel.so
+
 
 

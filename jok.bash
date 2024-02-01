@@ -285,10 +285,15 @@ jok-gdb()
     else
         H="-ex \"set breakpoint pending on\"";
         B="";
-        for bp in $BP;
+
+        : changed BP delim to comma such that methods with spaces can be passed
+        : such as BP="junoHit_PMT::operator new,junoHit_PMT::operator delete"
+
+        IFS=',' read -ra bps <<< "$BP"
+        for bp in "${bps[@]}"
         do
             B="$B -ex \"break $bp\" ";
-        done;
+        done
         T="-ex \"info break\" -ex r";
     fi;
     local runline="gdb $H $B $T --args $* ";
