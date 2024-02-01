@@ -46,9 +46,15 @@ if [ "${arg/info}" != "$arg" ]; then
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 fi 
 
+if [ "${arg/scpmeta}" != "$arg" ]; then 
+    scp P:$BASE/run_meta.txt $BASE/run_meta.txt
+fi 
+
 if [ "${arg/grab}" != "$arg" ]; then 
     source $OPTICKS_HOME/bin/rsync.sh $BASE
 fi 
+
+
 
 if [ "${arg/ana}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $script 

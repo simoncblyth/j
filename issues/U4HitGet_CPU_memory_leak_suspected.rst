@@ -92,7 +92,7 @@ junoSD_PMT_v2_Opticks::collectHit
     337     }
     338 }
 
-Can hit_photon be deleted after merger saveHit ?:: 
+Can hit_photon be deleted after merger saveHit ? NO:: 
 
     354 junoHit_PMT* junoSD_PMT_v2_Opticks::convertHit(const U4Hit* hit, const U4HitExtra* hit_extra ) const
     355 {

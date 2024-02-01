@@ -44,8 +44,9 @@ jok-init()
    local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
    mkdir -p $logdir
    cd $logdir     # log files are dropped in invoking directory 
+   echo === $FUNCNAME  
    pwd
-   ls -alst
+   #ls -alst
 }
 
 jok-info()
@@ -114,6 +115,7 @@ jok-srm-unused-so-far()
 
 
 jok-tds(){
+   echo === $FUNCNAME  
    jok-init
 
    local oim=1     # 1:opticks optical simulation only
@@ -236,7 +238,7 @@ jok-tds(){
 jok-report(){
    : ~/j/jok.bash summarize+present SEvt/NPFold timestamp and memory profile metadata 
 
-   jok-init
+   echo === $FUNCNAME PWD $PWD
 
    local bin=$OPTICKS_PREFIX/lib/sreport 
    echo $bin
@@ -271,7 +273,8 @@ EOU
 }
 
 
-jok-grab(){ ~/j/jtds/jtds.sh grab ; }
+jok-grab(){     ~/j/jtds/jtds.sh grab ; }
+jok-scpmeta(){ ~/j/jtds/jtds.sh scpmeta ; }
 jok-ana(){  ~/j/jtds/jtds.sh $* ; }
 
 

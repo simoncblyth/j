@@ -118,6 +118,7 @@ case $arg in
    init) jok-init ;; 
   info)  jok-info ;;
    grab) jok-grab ;;
+   scpmeta) jok-scpmeta ;;
    ana)  jok-ana ;;
 report)  jok-report ;;
      *)  echo $BASH_SOURCE : arg $arg unhandled ;;
