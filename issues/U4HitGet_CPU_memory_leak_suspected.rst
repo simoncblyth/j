@@ -19,6 +19,9 @@ U4HitGet::FromEvt_EGPU
 Cannot update until fix the unorderd map issue
 -----------------------------------------------------
 
+
+see :doc:`xmas2023_changes_from_map_to_unordered_map`
+
 ::
 
     n file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
@@ -775,6 +778,34 @@ So added to SEvt::EndOfRun writing to SEvt__EndOfRun_SProf.txt::
     QSim__simulate_TAIL:1706856303099104,12899444,5762320
     N[blyth@localhost opticks]$ 
 
+
+Contrast with U4HitGet disabled, much less of a leak::
+
+    N[blyth@localhost junosw]$ tail -20 /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/SEvt__EndOfRun_SProf.txt
+    QSim__simulate_HEAD:1707039243865418,10708656,3581820
+    QSim__simulate_PREL:1707039243866191,10708656,3581820
+    QSim__simulate_POST:1707039243872693,10708656,3581820
+    QSim__simulate_DOWN:1707039243873175,10708656,3581820
+    QSim__simulate_TAIL:1707039243873220,10708656,3581820
+    QSim__reset_HEAD:1707039243873259,10708656,3581820
+    QSim__reset_TAIL:1707039243875374,10708656,3581820
+    QSim__simulate_HEAD:1707039243877275,10708656,3581828
+    QSim__simulate_PREL:1707039243878054,10708656,3581828
+    QSim__simulate_POST:1707039243884901,10708656,3581828
+    QSim__simulate_DOWN:1707039243885404,10708656,3581828
+    QSim__simulate_TAIL:1707039243885451,10708656,3581828
+    QSim__reset_HEAD:1707039243885492,10708656,3581828
+    QSim__reset_TAIL:1707039243887576,10708656,3581828
+    QSim__simulate_HEAD:1707039243889552,10708656,3581832
+    QSim__simulate_PREL:1707039243890328,10708656,3581832
+    QSim__simulate_POST:1707039243897013,10708656,3581832
+    QSim__simulate_DOWN:1707039243897467,10708656,3581836
+    QSim__simulate_TAIL:1707039243897513,10708656,3581836
+    QSim__reset_HEAD:1707039243897553,10708656,3581836
+    N[blyth@localhost junosw]$ 
+
+
+
 Grab that::
 
     epsilon:issues blyth$ ~/j/okjob.sh scpmeta
@@ -952,8 +983,14 @@ Workflow for locating the 2MB leak
 
 
 
-Q: Is the leak jumping around in 0.2 MB range proportional to the number of hits in each event ?
---------------------------------------------------------------------------------------------------
+WIP: disable U4HitGet and check for leak 
+------------------------------------------
+
+* this required updating junosw + optick due to the unordered_map PMT info change  
+
+
+TODO: Q:Is the leak jumping around in 0.2 MB range proportional to the number of hits in each event ?
+-------------------------------------------------------------------------------------------------------
 
 TODO: SEvt dumping with memory totals
 ---------------------------------------
@@ -964,9 +1001,105 @@ TODO: SEvt dumping with memory totals
 
 
 
+As expected not doing U4HitGet avoids the leak : visible just by looking at the tail
+--------------------------------------------------------------------------------------
+
+
+Contrast with U4HitGet disabled, much less of a leak::
+
+    N[blyth@localhost junosw]$ tail -20 /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/SEvt__EndOfRun_SProf.txt
+    QSim__simulate_HEAD:1707039243865418,10708656,3581820
+    QSim__simulate_PREL:1707039243866191,10708656,3581820
+    QSim__simulate_POST:1707039243872693,10708656,3581820
+    QSim__simulate_DOWN:1707039243873175,10708656,3581820
+    QSim__simulate_TAIL:1707039243873220,10708656,3581820
+    QSim__reset_HEAD:1707039243873259,10708656,3581820
+    QSim__reset_TAIL:1707039243875374,10708656,3581820
+    QSim__simulate_HEAD:1707039243877275,10708656,3581828
+    QSim__simulate_PREL:1707039243878054,10708656,3581828
+    QSim__simulate_POST:1707039243884901,10708656,3581828
+    QSim__simulate_DOWN:1707039243885404,10708656,3581828
+    QSim__simulate_TAIL:1707039243885451,10708656,3581828
+    QSim__reset_HEAD:1707039243885492,10708656,3581828
+    QSim__reset_TAIL:1707039243887576,10708656,3581828
+    QSim__simulate_HEAD:1707039243889552,10708656,3581832
+    QSim__simulate_PREL:1707039243890328,10708656,3581832
+    QSim__simulate_POST:1707039243897013,10708656,3581832
+    QSim__simulate_DOWN:1707039243897467,10708656,3581836
+    QSim__simulate_TAIL:1707039243897513,10708656,3581836
+    QSim__reset_HEAD:1707039243897553,10708656,3581836
+    N[blyth@localhost junosw]$ 
+
+
+
+::
+
+    epsilon:ALL0 blyth$ mkdir no-U4HitGet
+    epsilon:ALL0 blyth$ cp SEvt__EndOfRun_SProf* no-U4HitGet/
+    epsilon:ALL0 blyth$ l no-U4HitGet/
+    total 1784
+    264 -rw-r--r--   1 blyth  staff  134011 Feb  4 17:37 SEvt__EndOfRun_SProf_txt_names.txt
+      0 drwxr-xr-x   9 blyth  staff     288 Feb  4 17:37 .
+      8 -rw-r--r--   1 blyth  staff     260 Feb  4 17:37 SEvt__EndOfRun_SProf_txt_meta.txt
+    336 -rw-r--r--   1 blyth  staff  168128 Feb  4 17:37 SEvt__EndOfRun_SProf_txt.npy
+    200 -rw-r--r--   1 blyth  staff  100000 Feb  4 17:37 SEvt__EndOfRun_SProf_names.txt
+      8 -rw-r--r--   1 blyth  staff     200 Feb  4 17:37 SEvt__EndOfRun_SProf_meta.txt
+    728 -rw-r--r--   1 blyth  staff  372058 Feb  4 17:37 SEvt__EndOfRun_SProf.txt
+    240 -rw-r--r--   1 blyth  staff  120128 Feb  4 17:37 SEvt__EndOfRun_SProf.npy
+      0 drwxrwxr-x  66 blyth  staff    2112 Feb  4 17:36 ..
+    epsilon:ALL0 blyth$ pwd
+    /data/blyth/opticks/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0
+    epsilon:ALL0 blyth$ 
+
+
+Try to find the lek  more precisely : by commenting convertHit only
+-----------------------------------------------------------------------
+
+* this means that U4Hit is still being populated, just 
+  the data is going nowhere 
+
+::
+
+    183     U4Hit hit ;
+    184     U4HitExtra hit_extra ;
+    185     U4HitExtra* hit_extra_ptr = way_enabled ? &hit_extra : nullptr ;
+    186     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    187     { 
+    188         U4HitGet::FromEvt_EGPU(hit, idx);
+    189        // collectHit(&hit, hit_extra_ptr, merged_count, savehit_count );
+    190        // if(idx < 20 && LEVEL == info) ss << descHit(idx, &hit, hit_extra_ptr ) << std::endl ;
+    191     }   
+
+
+Leak is back without convertHit suggesting leak is within U4HitGet::FromEvt_EGPU::
+
+    N[blyth@localhost junosw]$ tail -20 /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/jok-tds/ALL0/SEvt__EndOfRun_SProf.txt
+    QSim__simulate_HEAD:1707040363380622,12893360,5768812
+    QSim__simulate_PREL:1707040363381399,12893360,5768816
+    QSim__simulate_POST:1707040363390723,12893360,5768816
+    QSim__simulate_DOWN:1707040363391163,12893360,5768816
+    QSim__simulate_TAIL:1707040363391205,12893360,5768816
+    QSim__reset_HEAD:1707040363414058,12895076,5770396
+    QSim__reset_TAIL:1707040363415994,12895528,5770900
+    QSim__simulate_HEAD:1707040363417874,12895528,5770984
+    QSim__simulate_PREL:1707040363418650,12895528,5770984
+    QSim__simulate_POST:1707040363428877,12895528,5770984
+    QSim__simulate_DOWN:1707040363429337,12895528,5770984
+    QSim__simulate_TAIL:1707040363429381,12895528,5770984
+    QSim__reset_HEAD:1707040363452547,12897376,5772828
+    QSim__reset_TAIL:1707040363454508,12897748,5773120
+    QSim__simulate_HEAD:1707040363456435,12897748,5773204
+    QSim__simulate_PREL:1707040363457206,12897748,5773204
+    QSim__simulate_POST:1707040363466761,12897748,5773204
+    QSim__simulate_DOWN:1707040363467219,12897748,5773208
+    QSim__simulate_TAIL:1707040363467262,12897748,5773208
+    QSim__reset_HEAD:1707040363489825,12899464,5774788
+    N[blyth@localhost junosw]$ 
 
 
 
 
+NEXT : try to reproduce leak within u4/tests/U4HitTest.cc
+---------------------------------------------------------------
 
 

@@ -1,7 +1,21 @@
 xmas2023_changes_from_map_to_unordered_map.rst
 =======================================================
 
-Tao Changed several std::map to std::unordered_map
+
+Overview
+----------
+
+* extensive changes adding many "Unordered" methods to 
+  NPX.h on both serialize and import sides : manages to get this to compile
+
+* PMT serializations results not yet checked : dont expect issues though 
+
+
+
+Issue : Tao Changed several std::map to std::unordered_map causing PMT persisting to stop compiling
+------------------------------------------------------------------------------------------------------
+
+
 
 
 ::
@@ -508,6 +522,135 @@ Cannot update until fix the unorderd map issue
 
     In [23]: np.all( f.pmtID[:,0] == f.pmtCat[:,0] )
     Out[23]: True
+
+
+
+
+
+Same compilation error from spmt data
+---------------------------------------
+
+::
+
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h: In member function 'NPFold* _PMTSimParamData::serialize() const':
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:223:68: error: cannot convert 'std::unordered_map<int, PmtSimData_SPMT>' to 'const std::map<int, PmtSimData_SPMT, std::less<int>, std::allocator<std::pair<const int, PmtSimData_SPMT> > >&'
+      223 |     NP* spmtData = NPX::ArrayFromMap<double, PmtSimData_SPMT>(data.pd_map_SPMT) ;
+          |                                                               ~~~~~^~~~~~~~~~~
+          |                                                                    |
+          |                                                                    std::unordered_map<int, PmtSimData_SPMT>
+
+
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h: In member function 'int _PMTSimParamData::import(const NPFold*)':
+
+
+
+
+::
+
+    In [4]: f.spmtData.view(np.int64)[:,0]
+    Out[4]: array([300000, 300001, 300002, 300003, 300004, ..., 325595, 325596, 325597, 325598, 325599])
+
+    In [5]: f.spmtData.view(np.int64)[:,0].shape
+    Out[5]: (25600,)
+
+    In [6]: f.spmtData_meta
+    Out[6]:
+    k0:300000
+    ContiguousKey:1
+
+
+
+::
+
+    215 inline NPFold* _PMTSimParamData::serialize() const
+    216 {
+    217     NP* pmtID = NPX::ArrayFromVec<int, int>(data.m_all_pmtID) ;
+    218     NP* qeScale = NPX::ArrayFromVec<double,double>(data.m_all_pmtID_qe_scale) ;
+    219     NP* lpmtCat = NPX::ArrayFromMapUnordered<int, int>(data.m_map_pmt_category) ;
+    220     NP* pmtCat = NPX::ArrayFromDiscoMapUnordered<int>(data.m_all_pmt_category) ;
+    221     NP* pmtCatVec = NPX::ArrayFromVec<int, int>(data.m_all_pmt_catvec) ;
+    222
+
+    223     NP* spmtData = NPX::ArrayFromMap<double, PmtSimData_SPMT>(data.pd_map_SPMT) ;
+
+    224     NP* lpmtData = NPX::ArrayFromVec<double, PmtSimData_LPMT>(data.pd_vector) ;
+    225     NP* pmtTotal = serialize_pmtTotal();
+    226 
+    227     NPFold* MPT = S4MaterialPropertyVector::Serialize_MIMSV(data.m_PMT_MPT);
+    228     NPFold* CONST = NPFold::Serialize_MIMSD(data.m_PMT_CONST);
+    229     NPFold* QEshape = serialize_QEshape() ;
+
+
+
+
+Also get the error for other direction : importing
+----------------------------------------------------
+
+
+::
+
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:311:33: error: cannot convert 'std::unordered_map<int, int>' to 'std::map<int, int>&'
+      311 |     NPX::MapFromArray<int>(data.m_map_pmt_category, lpmtCat );
+          |                            ~~~~~^~~~~~~~~~~~~~~~~~
+          |                                 |
+          |                                 std::unordered_map<int, int>
+
+
+
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:312:38: error: cannot convert 'std::unordered_map<int, int>' to 'std::map<int, int>&'
+      312 |     NPX::DiscoMapFromArray<int>(data.m_all_pmt_category, pmtCat );
+          |                                 ~~~~~^~~~~~~~~~~~~~~~~~
+          |                                      |
+          |                                      std::unordered_map<int, int>
+
+
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:314:45: error: cannot convert 'std::unordered_map<int, PmtSimData_SPMT>' to 'std::map<int, PmtSimData_SPMT, std::less<int>, std::allocator<std::pair<const int, PmtSimData_SPMT> > >&'
+      314 |     NPX::MapFromArray<PmtSimData_SPMT>(data.pd_map_SPMT, spmtData);
+          |                                        ~~~~~^~~~~~~~~~~
+          |                                             |
+          |                                             std::unordered_map<int, PmtSimData_SPMT>
+
+
+
+    gmake[2]: *** [Simulation/DetSimV2/PhysiSim/CMakeFiles/PhysiSim.dir/src/DsPhysConsOptical.cc.o] Error 1
+    gmake[1]: *** [Simulation/DetSimV2/PhysiSim/CMakeFiles/PhysiSim.dir/all] Error 2
+    gmake[1]: *** Waiting for unfinished jobs....
+    [ 89%] Linking CXX shared library ../../../lib/libPMTSim.so
+
+
+
+::
+
+    306 
+    307     if(incomplete) return 1 ;
+    308 
+    309     NPX::VecFromArray<int>(data.m_all_pmtID, pmtID );
+    310     NPX::VecFromArray<double>(data.m_all_pmtID_qe_scale, qeScale );
+    311*    NPX::MapFromArray<int>(data.m_map_pmt_category, lpmtCat );
+    312*    NPX::DiscoMapFromArray<int>(data.m_all_pmt_category, pmtCat );
+    313     NPX::VecFromArray<int>(data.m_all_pmt_catvec, pmtCatVec );
+    314*    NPX::MapFromArray<PmtSimData_SPMT>(data.pd_map_SPMT, spmtData);
+    315     NPX::VecFromArray<PmtSimData_LPMT>(data.pd_vector, lpmtData);
+    316     import_pmtTotal(pmtTotal);
+    317 
+    318     S4MaterialPropertyVector::Import_MIMSV( data.m_PMT_MPT, MPT );
+    319     NPFold::Import_MIMSD( data.m_PMT_CONST, CONST );
+    320     import_QEshape(QEshape);
+    321 
+    322 
+    323     return 0 ;
+    324 }
+
+
+
 
 
 
