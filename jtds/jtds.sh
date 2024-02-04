@@ -47,7 +47,10 @@ if [ "${arg/info}" != "$arg" ]; then
 fi 
 
 if [ "${arg/scpmeta}" != "$arg" ]; then 
-    scp P:$BASE/run_meta.txt $BASE/run_meta.txt
+    txts="run_meta.txt SEvt__EndOfRun_SProf.txt"
+    for txt in $txts ; do
+        scp P:$BASE/$txt $BASE/$txt
+    done
 fi 
 
 if [ "${arg/grab}" != "$arg" ]; then 

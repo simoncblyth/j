@@ -358,6 +358,156 @@ by virtue of minting a new GEOM identifier.
     Out[3]: '/Users/blyth/.opticks/GEOM/J23_1_0_rc3_ok0/CSGFoundry/SSim/extra/jpmt'
 
 
+Cannot update until fix the unorderd map issue
+-----------------------------------------------------
+
+::
+
+    n file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h: In member function 'void _PMTSimParamData::populate_SPMT()':
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:143:32: warning: implicitly-declared 'constexpr PmtSimData_SPMT& PmtSimData_SPMT::operator=(const PmtSimData_SPMT&)' is deprecated [-Wdeprecated-copy]
+      143 |         data.pd_map_SPMT[id] = spmt ;
+          |                                ^~~~
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTSimParamData.h:42,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:368:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PmtSimData_SPMT.h:29:3: note: because 'PmtSimData_SPMT' has user-provided 'PmtSimData_SPMT::PmtSimData_SPMT(const PmtSimData_SPMT&)'
+       29 |   PmtSimData_SPMT(const PmtSimData_SPMT &others)
+          |   ^~~~~~~~~~~~~~~
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h: In member function 'NPFold* _PMTSimParamData::serialize() const':
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:219:52: error: cannot convert 'std::unordered_map<int, int>' to 'const std::map<int, int>&'
+      219 |     NP* lpmtCat = NPX::ArrayFromMap<int, int>(data.m_map_pmt_category) ;
+          |                                               ~~~~~^~~~~~~~~~~~~~~~~~
+          |                                                    |
+          |                                                    std::unordered_map<int, int>
+    In file included from /home/blyth/junotop/ExternalLibs/opticks/head/include/SysRap/NPFold.h:91,
+                     from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:5,
+                     from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /home/blyth/junotop/ExternalLibs/opticks/head/include/SysRap/NPX.h:583:55: note:   initializing argument 1 of 'static NP* NPX::ArrayFromMap(const std::map<int, S>&, bool) [with T = int; S = int]'
+      583 | inline NP* NPX::ArrayFromMap( const std::map<int, S>& m, bool contiguous_key )
+          |                               ~~~~~~~~~~~~~~~~~~~~~~~~^
+    In file included from /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/PMTAccessor.h:37,
+                     from /data/blyth/junotop/junosw/Simulation/DetSimV2/PhysiSim/src/DsPhysConsOptical.cc:369:
+    /data/blyth/junotop/junosw/Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h:220:51: error: cannot convert 'std::unordered_map<int, int>' to 'const std::map<int, int>&'
+      220 |     NP* pmtCat = NPX::ArrayFromDiscoMap<int>(data.m_all_pmt_category) ;
+          |                                              ~~~~~^~~~~~~~~~~~~~~~~~
+          |                                                   |
+          |                                                   std::unordered_map<int, int>
+
+
+
+::
+
+    215 inline NPFold* _PMTSimParamData::serialize() const
+    216 {
+    217     NP* pmtID = NPX::ArrayFromVec<int, int>(data.m_all_pmtID) ;
+    218     NP* qeScale = NPX::ArrayFromVec<double,double>(data.m_all_pmtID_qe_scale) ;
+
+    219     NP* lpmtCat = NPX::ArrayFromMap<int, int>(data.m_map_pmt_category) ;
+    220     NP* pmtCat = NPX::ArrayFromDiscoMap<int>(data.m_all_pmt_category) ;
+
+    221     NP* pmtCatVec = NPX::ArrayFromVec<int, int>(data.m_all_pmt_catvec) ;
+    222 
+
+
+::
+
+    epsilon:PMTSimParamData blyth$ pwd
+    /Users/blyth/.opticks/GEOM/J23_1_0_rc3_ok0/CSGFoundry/SSim/extra/jpmt/PMTSimParamData
+    epsilon:PMTSimParamData blyth$ f
+    f
+
+    CMDLINE:/Users/blyth/np/f.py
+    f.base:.
+
+      : f.lpmtData                                         :           (20012, 9) : 65 days, 3:09:53.825717 
+      : f.pmtTotal                                         :                 (4,) : 65 days, 3:09:53.820561 
+      : f.MPT                                              :                 None : 65 days, 3:09:53.794225 
+      : f.pmtCat                                           :           (45612, 2) : 65 days, 3:09:53.823900 
+      : f.QEshape                                          :                 None : 65 days, 3:09:53.794167 
+      : f.pmtCatVec                                        :           (45612, 1) : 65 days, 3:09:53.821933 
+      : f.pmtCatName_names                                 :                 (5,) : 65 days, 3:09:53.822877 
+      : f.CONST                                            :                 None : 65 days, 3:09:53.794241 
+      : f.pmtID                                            :           (45612, 1) : 65 days, 3:09:53.820976 
+      : f.NPFold_index                                     :                (12,) : 65 days, 3:09:53.843982 
+      : f.spmtData_meta                                    :                    2 : 65 days, 3:09:53.811113 
+      : f.spmtData                                         :          (25600, 10) : 65 days, 3:09:53.811709 
+      : f.pmtTotal_names                                   :                 (4,) : 65 days, 3:09:53.820214 
+      : f.qeScale                                          :           (45612, 1) : 65 days, 3:09:53.818052 
+      : f.lpmtCat_meta                                     :                    2 : 65 days, 3:09:53.842722 
+      : f.lpmtCat                                          :           (17612, 1) : 65 days, 3:09:53.843121 
+      : f.NPFold_names                                     :                 (0,) : 65 days, 3:09:53.843688 
+      : f.pmtCatName                                       :                 (5,) : 65 days, 3:09:53.823321 
+
+     min_stamp : 2023-11-29 14:22:49.409378 
+     max_stamp : 2023-11-29 14:22:49.459193 
+     dif_stamp : 0:00:00.049815 
+     age_stamp : 65 days, 3:09:53.794167 
+
+    In [1]:                                 
+
+
+    In [1]: f.lpmtCat
+    Out[1]: 
+    array([[1],
+           [1],
+           [3],
+           [1],
+           [3],
+           ...,
+           [1],
+           [1],
+           [1],
+           [1],
+           [1]], dtype=int32)
+
+    In [2]: f.lpmtCat.shape 
+    Out[2]: (17612, 1)
+
+    In [3]: f.lpmtCat_meta
+    Out[3]: 
+    k0:0
+    ContiguousKey:1
+
+
+    In [4]: f.pmtCat
+    Out[4]: 
+    array([[     0,      1],
+           [     1,      1],
+           [     2,      3],
+           [     3,      1],
+           [     4,      3],
+           ...,
+           [325595,      2],
+           [325596,      2],
+           [325597,      2],
+           [325598,      2],
+           [325599,      2]], dtype=int32)
+
+    In [5]: f.pmtCat.shape
+    Out[5]: (45612, 2)
+
+    In [7]: f.pmtCat[17600:17700,0]
+    Out[7]:
+    array([17600, 17601, 17602, 17603, 17604, 17605, 17606, 17607, 17608, 17609, 17610, 17611, 30000, 30001, 30002, 30003, 30004, 30005, 30006, 30007, 30008, 30009, 30010, 30011, 30012, 30013, 30014,
+           30015, 30016, 30017, 30018, 30019, 30020, 30021, 30022, 30023, 30024, 30025, 30026, 30027, 30028, 30029, 30030, 30031, 30032, 30033, 30034, 30035, 30036, 30037, 30038, 30039, 30040, 30041,
+           30042, 30043, 30044, 30045, 30046, 30047, 30048, 30049, 30050, 30051, 30052, 30053, 30054, 30055, 30056, 30057, 30058, 30059, 30060, 30061, 30062, 30063, 30064, 30065, 30066, 30067, 30068,
+           30069, 30070, 30071, 30072, 30073, 30074, 30075, 30076, 30077, 30078, 30079, 30080, 30081, 30082, 30083, 30084, 30085, 30086, 30087], dtype=int32)
+
+    In [8]:
+
+
+    In [21]: f.pmtID[:,0]
+    Out[21]: array([     0,      1,      2,      3,      4, ..., 325595, 325596, 325597, 325598, 325599], dtype=int32)
+
+    In [22]: f.pmtCat[:,0]
+    Out[22]: array([     0,      1,      2,      3,      4, ..., 325595, 325596, 325597, 325598, 325599], dtype=int32)
+
+    In [23]: np.all( f.pmtID[:,0] == f.pmtCat[:,0] )
+    Out[23]: True
 
 
 
