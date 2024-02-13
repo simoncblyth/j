@@ -1099,7 +1099,76 @@ Leak is back without convertHit suggesting leak is within U4HitGet::FromEvt_EGPU
 
 
 
-NEXT : try to reproduce leak within u4/tests/U4HitTest.cc
----------------------------------------------------------------
+WIP : shakedown u4/tests/U4HitTest.cc in order to reproduce leak under controlled conditions
+-----------------------------------------------------------------------------------------------
+
+* added handling of no-photon SEvt (eg hit only)
+* NEXT: need to get the geometry loaded as need the frame for local photons
+
+::
+
+
+    ] SEvt::descFull 
+    2024-02-13 18:02:17.375 INFO  [164386] [main@57]  num_hit 1701
+    U4HitTest: /home/blyth/junotop/opticks/sysrap/SEvt.cc:4275: void SEvt::getPhotonFrame(sframe&, const sphoton&) const: Assertion `cf' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff3113387 in raise () from /lib64/libc.so.6
+    (gdb) bt
+    #0  0x00007ffff3113387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff3114a78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff310c1a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff310c252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007ffff481b19c in SEvt::getPhotonFrame (this=0x4cf380, fr=..., p=...) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4275
+    #5  0x00007ffff481b0e2 in SEvt::getLocalHit (this=0x4cf380, ht=..., lp=..., idx=0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4254
+    #6  0x00000000004060a3 in main (argc=1, argv=0x7fffffff07f8) at /home/blyth/junotop/opticks/u4/tests/U4HitTest.cc:67
+    (gdb) 
+
+    (gdb) bt
+    #0  0x00007ffff3113387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff3114a78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff310c1a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff310c252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007ffff481b19c in SEvt::getPhotonFrame (this=0x4cf380, fr=..., p=...) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4275
+    #5  0x00007ffff481b0e2 in SEvt::getLocalHit (this=0x4cf380, ht=..., lp=..., idx=0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4254
+    #6  0x00000000004060a3 in main (argc=1, argv=0x7fffffff07f8) at /home/blyth/junotop/opticks/u4/tests/U4HitTest.cc:67
+    (gdb) f 6
+    #6  0x00000000004060a3 in main (argc=1, argv=0x7fffffff07f8) at /home/blyth/junotop/opticks/u4/tests/U4HitTest.cc:67
+    67	    sev->getLocalHit( ht, local,  hit_idx); 
+    (gdb) f 5
+    #5  0x00007ffff481b0e2 in SEvt::getLocalHit (this=0x4cf380, ht=..., lp=..., idx=0) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4254
+    4254	    getPhotonFrame(fr, lp); 
+    (gdb) f 4
+    #4  0x00007ffff481b19c in SEvt::getPhotonFrame (this=0x4cf380, fr=..., p=...) at /home/blyth/junotop/opticks/sysrap/SEvt.cc:4275
+    4275	    assert(cf); 
+    (gdb) 
+
+
+
+::
+
+    2024-02-13 18:11:51.098 INFO  [169197] [SEvt::load@3877]  dir /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/U4HitTest/ALL0/A000
+    2024-02-13 18:11:51.098 INFO  [169197] [SEvt::loadfold@3886] [ fold.load /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/U4HitTest/ALL0/A000
+    2024-02-13 18:11:51.100 INFO  [169197] [SEvt::loadfold@3888] ] fold.load /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0/U4HitTest/ALL0/A000
+    2024-02-13 18:11:51.100 INFO  [169197] [SEvt::load@3691] SEvt::DefaultDir $DefaultOutputDir rc 0
+    2024-02-13 18:11:51.100 INFO  [169197] [SEvt::LoadRelative@1323] ]
+     SEvt::LoadRelative sev YES
+     cfbase /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0
+    2024-02-13 18:11:51.100 INFO  [169197] [main@43]  cfbase /home/blyth/tmp/GEOM/J23_1_0_rc3_ok0
+    2024-02-13 18:11:51.100 FATAL [169197] [CSGFoundry::CSGFoundry@117] must SSim::Create before CSGFoundry::CSGFoundry 
+    U4HitTest: /home/blyth/junotop/opticks/CSG/CSGFoundry.cc:118: CSGFoundry::CSGFoundry(): Assertion `sim' failed.
+
+    Program received signal SIGABRT, Aborted.
+    0x00007ffff3113387 in raise () from /lib64/libc.so.6
+    (gdb) bt
+    #0  0x00007ffff3113387 in raise () from /lib64/libc.so.6
+    #1  0x00007ffff3114a78 in abort () from /lib64/libc.so.6
+    #2  0x00007ffff310c1a6 in __assert_fail_base () from /lib64/libc.so.6
+    #3  0x00007ffff310c252 in __assert_fail () from /lib64/libc.so.6
+    #4  0x00007ffff7c1580b in CSGFoundry::CSGFoundry (this=0x4d0fb0) at /home/blyth/junotop/opticks/CSG/CSGFoundry.cc:118
+    #5  0x00007ffff7c22d1c in CSGFoundry::Load (base=0x4d0080 "/home/blyth/tmp/GEOM/J23_1_0_rc3_ok0", rel=0x7ffff7d48984 "CSGFoundry")
+        at /home/blyth/junotop/opticks/CSG/CSGFoundry.cc:2989
+    #6  0x0000000000405fc8 in main (argc=1, argv=0x7fffffff04d8) at /home/blyth/junotop/opticks/u4/tests/U4HitTest.cc:45
+    (gdb) 
 
 
