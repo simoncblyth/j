@@ -1099,11 +1099,11 @@ Leak is back without convertHit suggesting leak is within U4HitGet::FromEvt_EGPU
 
 
 
-WIP : shakedown u4/tests/U4HitTest.cc in order to reproduce leak under controlled conditions
+DONE : shakedown u4/tests/U4HitTest.cc in order to reproduce leak under controlled conditions
 -----------------------------------------------------------------------------------------------
 
 * added handling of no-photon SEvt (eg hit only)
-* NEXT: need to get the geometry loaded as need the frame for local photons
+* DONE : get the geometry loaded as need the frame for local photons
 
 ::
 
@@ -1170,5 +1170,586 @@ WIP : shakedown u4/tests/U4HitTest.cc in order to reproduce leak under controlle
         at /home/blyth/junotop/opticks/CSG/CSGFoundry.cc:2989
     #6  0x0000000000405fc8 in main (argc=1, argv=0x7fffffff04d8) at /home/blyth/junotop/opticks/u4/tests/U4HitTest.cc:45
     (gdb) 
+
+
+
+
+laptop U4HitTest running with SProf::Add
+-------------------------------------------
+
+
+RSS leaking all between Head and Tail::
+
+     73     for(unsigned hit_idx=0 ; hit_idx < num_hit ; hit_idx++ )
+     74     {
+     75         SProf::SetTag(hit_idx);
+     76         SProf::Add("Head"); 
+     77         
+     78         sphoton global, local  ;
+     79         sev->getHit(global, hit_idx);
+     80         
+     81         sphit ht ;
+     82         sev->getLocalHit( ht, local,  hit_idx);
+     83         
+     84         U4Hit hit ;
+     85         U4HitGet::ConvertFromPhoton(hit,global,local, ht);
+     86         
+     87         std::cout << " global " << global.desc() << std::endl ;
+     88         std::cout << " local " << local.desc() << std::endl ; 
+     89         std::cout << " hit " << hit.desc() << std::endl ; 
+     90         std::cout << " ht " << ht.desc() << std::endl ; 
+     91         
+     92         SProf::Add("Tail");
+     93     }
+     94 
+     95     bool append = false ;
+     96     SProf::Write("U4HitTest.txt", append);
+     97 
+
+
+::
+
+    epsilon:opticks blyth$ ./u4/tests/U4HitTest.sh cat
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708313999079367,4561276,56143
+    000Tail:1708313999079423,4561276,56156
+    001Head:1708313999079430,4561276,56156
+    001Tail:1708313999079449,4561276,56156
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708313999112576,4563374,58486
+    1748Tail:1708313999112590,4563374,58486
+    1749Head:1708313999112593,4563374,58486
+    1749Tail:1708313999112606,4563374,58486
+    epsilon:opticks blyth$ 
+
+
+* 2343 kb from 1750 hits : but seems not all hits show leaks (could be reporting issue, cache?)
+
+
+Similar leak remains on Linux : 1000 kb for 1700 hit
+-------------------------------------------------------
+
+::
+
+    N[blyth@localhost opticks]$ ~/o/u4/tests/U4HitTest.sh cat
+    head -4 /home/blyth/tmp/U4HitTest/U4HitTest.txt
+    000Head:1708328943256219,325320,35876
+    000Tail:1708328943256441,325320,35912
+    001Head:1708328943256606,325320,36000
+    001Tail:1708328943256681,325320,36000
+    tail -4 /home/blyth/tmp/U4HitTest/U4HitTest.txt
+    1699Head:1708328943411884,326088,36812
+    1699Tail:1708328943411934,326088,36812
+    1700Head:1708328943411972,326088,36812
+    1700Tail:1708328943412022,326088,36812
+    N[blyth@localhost opticks]$ 
+
+
+
+
+
+With SEvt::getLocalHit commented down to 184 kb for 1750 hits
+---------------------------------------------------------------
+
+::
+
+     82         sphit ht = {}  ;
+     83         //sev->getLocalHit( ht, local,  hit_idx); 
+
+
+::
+
+    epsilon:u4 blyth$ ~/o/u4/tests/U4HitTest.sh cat
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708317198197148,4570714,56258
+    000Tail:1708317198197181,4570714,56270
+    001Head:1708317198197186,4570714,56270
+    001Tail:1708317198197191,4570714,56270
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708317198208171,4570714,56438
+    1748Tail:1708317198208174,4570714,56438
+    1749Head:1708317198208176,4570714,56438
+    1749Tail:1708317198208182,4570714,56442
+    epsilon:u4 blyth$ 
+
+
+Also commenting SEvt::getHit doesnt reduce that more, are at 209 kb for 1750 hits
+-----------------------------------------------------------------------------------
+
+::
+
+    epsilon:opticks blyth$ ./u4/tests/U4HitTest.sh cat
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708313999079367,4561276,56143
+    000Tail:1708313999079423,4561276,56156
+    001Head:1708313999079430,4561276,56156
+    001Tail:1708313999079449,4561276,56156
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708313999112576,4563374,58486
+    1748Tail:1708313999112590,4563374,58486
+    1749Head:1708313999112593,4563374,58486
+    1749Tail:1708313999112606,4563374,58486
+    epsilon:opticks blyth$ 
+
+
+
+Commenting only U4HitGet::ConvertFromPhoton : back to full leak
+-----------------------------------------------------------------
+
+::
+
+    In [4]: 58535-56156
+    Out[4]: 2379
+
+
+    074     for(unsigned hit_idx=0 ; hit_idx < num_hit ; hit_idx++ )
+     75     {
+     76         SProf::SetTag(hit_idx);
+     77         SProf::Add("Head");
+     78 
+     79         sphoton global = {} ;
+     80         sev->getHit(global, hit_idx);
+     81 
+     82         sphit ht = {}  ;
+     83         sphoton local = {}  ;
+     84         sev->getLocalHit( ht, local,  hit_idx);
+     85 
+     86         U4Hit hit = {} ;
+     87         //U4HitGet::ConvertFromPhoton(hit,global,local, ht); 
+     88 
+     96         SProf::Add("Tail");
+     97     }
+
+
+
+
+Pointing to SEvt::getLocalHit
+--------------------------------
+
+::
+
+    4249 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4250 {
+    4251     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4252 
+    4253     sframe fr ;
+    4254     getPhotonFrame(fr, lp);
+    4255     fr.transform_w2m(lp);
+    4256 
+    4257     ht.iindex = fr.inst() ;
+    4258     ht.sensor_identifier = fr.sensor_identifier() - 1 ;
+    4259     ht.sensor_index = fr.sensor_index();
+    4260 }
+
+
+    4279 void SEvt::getPhotonFrame( sframe& fr, const sphoton& p ) const
+    4280 {
+    4281     assert(cf);
+    4282     cf->getFrame(fr, p.iindex);
+    4283     fr.prepare(); 
+    4284 }   
+
+    3350 int CSGFoundry::getFrame(sframe& fr, int inst_idx) const
+    3351 {
+    3352     return target->getFrame( fr, inst_idx );
+    3353 }
+
+
+
+
+Bulk of leak from SEvt::getPhotonFrame ?
+---------------------------------------------
+
+::
+
+    2024-02-19 12:46:25.369 INFO  [103622] [main@69]  num_hit 1750
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708317985370031,4563369,56213
+    000Tail:1708317985370066,4563369,56225
+    001Head:1708317985370072,4563369,56225
+    001Tail:1708317985370077,4563369,56225
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708317985382593,4563369,56410
+    1748Tail:1708317985382597,4563369,56410
+    1749Head:1708317985382600,4563369,56410
+    1749Tail:1708317985382605,4563369,56410
+    epsilon:u4 blyth$ 
+
+
+Possible source of leak is the tranforms for every hit
+--------------------------------------------------------
+
+::
+
+    epsilon:opticks blyth$ git diff CSG/CSGTarget.cc
+    diff --git a/CSG/CSGTarget.cc b/CSG/CSGTarget.cc
+    index 27957cdf1..683c6df59 100644
+    --- a/CSG/CSGTarget.cc
+    +++ b/CSG/CSGTarget.cc
+    @@ -89,6 +89,8 @@ int CSGTarget::getFrame(sframe& fr, int inst_idx ) const
+         qat4::copy(fr.m2w,  t);   
+         qat4::copy(fr.w2m, *v); 
+     
+    +    delete v ; 
+    +
+         // identity info IS NOT cleared by Tran::Invert
+         // as there is special handling to retain it (see stran.h) 
+         // the explicit clearing below fixes a bug revealed during 
+    epsilon:opticks blyth$ 
+
+
+Hmm, nope::
+
+    2024-02-19 13:17:41.113 INFO  [143338] [main@69]  num_hit 1750
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708319861113482,4570714,56225
+    000Tail:1708319861113537,4570714,56238
+    001Head:1708319861113543,4570714,56238
+    001Tail:1708319861113562,4570714,56238
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708319861146716,4571762,58535
+    1748Tail:1708319861146730,4571762,58535
+    1749Head:1708319861146734,4571762,58535
+    1749Tail:1708319861146748,4571762,58535
+    epsilon:opticks blyth$ 
+
+
+sframe.h sframe::prepare : ADDING sframe dtor cleanup reduces leak to 800-900 kb for 1750 hits
+----------------------------------------------------------------------------------------------
+
+* but it not all hits that leak, a leak of 4-5 kb is seen for a few hundred of the 1750 hits 
+* dumping hit with RS leak and those without shows nothing distinctive about them 
+* the pattern could be just the memory allocator deciding when to free things : delete 
+  might not free things immediately 
+
+
+::
+
+    2024-02-19 13:30:24.615 INFO  [156691] [main@69]  num_hit 1750
+    head -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    000Head:1708320624615917,4570714,56246
+    000Tail:1708320624615972,4570714,56258
+    001Head:1708320624615979,4570714,56258
+    001Tail:1708320624615997,4570714,56258
+    tail -4 /data/blyth/opticks/U4HitTest/U4HitTest.txt
+    1748Head:1708320624649294,4571762,57077
+    1748Tail:1708320624649309,4571762,57077
+    1749Head:1708320624649313,4571762,57077
+    1749Tail:1708320624649328,4571762,57077
+    epsilon:opticks blyth$ 
+
+
+::
+
+    In [1]: 57077-56246
+    Out[1]: 831
+
+
+    In [1]: 57139-56242
+    Out[1]: 897
+
+
+
+Avoiding leaking(some) transforms gets to 1102 kb for 1750 hits
+-----------------------------------------------------------------
+
+::
+
+    num_hit 1750 SProf::Range_RS 1102 SProf::Range_RS/num_hit     0.6297
+    num_hit 1750 SProf::Range_RS 1007 SProf::Range_RS/num_hit     0.5754    ## with getHit commented
+    num_hit 1750 SProf::Range_RS  262 SProf::Range_RS/num_hit     0.1497    ## with getLocalHit commented
+    num_hit 1750 SProf::Range_RS  119 SProf::Range_RS/num_hit     0.0680    ## with both commented
+    num_hit 1750 SProf::Range_RS  172 SProf::Range_RS/num_hit     0.0983    ## all three commented
+
+    num_hit 1750 SProf::Range_RS  229 SProf::Range_RS/num_hit     0.1309    ## with only getHit
+    num_hit 1750 SProf::Range_RS 1073 SProf::Range_RS/num_hit     0.6131    ## with only getLocalHit
+
+    num_hit 1750 SProf::Range_RS 221 SProf::Range_RS/num_hit      0.1263    ## with getPhotonFrame commented
+
+
+
+
+::
+
+    139 inline void U4HitTest::convertHit(unsigned hidx, bool is_repeat)
+    140 {
+    141     SProf::SetTag(hidx);
+    142     SProf::Add("Head");
+    143 
+    144     //sev->getHit(global, hidx); 
+    145     //sev->getLocalHit( ht, local,  hidx); 
+    146     //U4HitGet::ConvertFromPhoton(hit,global,local, ht); 
+    147     
+    148     SProf::Add("Tail");
+    149     delta_rs = SProf::Delta_RS();
+    150     range_rs = SProf::Range_RS();
+    151     //LOG_IF(info, delta_rs > 0) << dump() ; 
+    152     LOG_IF(info, delta_rs > 0 || is_repeat) << brief() ;
+    153 
+    154 }
+
+
+
+
+::
+
+    4249 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4250 {   
+    4251     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4252     
+    4253     sframe fr = {} ;
+    4254     
+    4255     getPhotonFrame(fr, lp);
+    4256     fr.transform_w2m(lp);
+    4257     
+    4258     ht.iindex = fr.inst() ; 
+    4259     ht.sensor_identifier = fr.sensor_identifier() - 1 ;
+    4260     ht.sensor_index = fr.sensor_index();
+    4261 }
+
+::
+
+    4249 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4250 {
+    4251     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4252 
+    4253     sframe fr = {} ;
+    4254 
+    4255     //getPhotonFrame(fr, lp);  // TEMP COMMENT LEAK CHECK
+    4256     //fr.transform_w2m(lp);    // TEMP COMMENT LEAK CHECK
+    4257 
+    4258     ht.iindex = fr.inst() ;
+    4259     ht.sensor_identifier = fr.sensor_identifier() - 1 ;
+    4260     ht.sensor_index = fr.sensor_index();
+    4261 }
+
+
+
+
+    562 inline void sframe::transform_w2m( sphoton& p, bool normalize ) const
+    563 {
+    564     if(!tr_w2m) std::cerr << "sframe::transform_w2m MUST sframe::prepare before calling this " << std::endl;
+    565     assert( tr_w2m) ;
+    566     p.transform( tr_w2m->t, normalize );
+    567 }
+
+    503 SPHOTON_METHOD void sphoton::transform( const glm::tmat4x4<double>& tr, bool normalize )
+    504 {
+    505     float one(1.);
+    506     float zero(0.);
+    507 
+    508     unsigned count = 1 ;
+    509     unsigned stride = 4*4 ; // effectively not used as count is 1
+    510 
+    511     assert( sizeof(*this) == sizeof(float)*16 );
+    512     float* p0 = (float*)this ;
+    513 
+    514     Tran<double>::ApplyToFloat( tr, p0, one,  count, stride, 0, false );      // transform pos as position
+    515     Tran<double>::ApplyToFloat( tr, p0, zero, count, stride, 4, normalize );  // transform mom as direction
+    516     Tran<double>::ApplyToFloat( tr, p0, zero, count, stride, 8, normalize );  // transform pol as direction
+    517 }
+
+
+    4249 void SEvt::getLocalHit(sphit& ht, sphoton& lp, unsigned idx) const
+    4250 {   
+    4251     getHit(lp, idx);   // copy *idx* hit from NP array into sphoton& lp struct 
+    4252     
+    4253     sframe fr = {} ;
+    4254     
+    4255     //getPhotonFrame(fr, lp); 
+    4256     //fr.transform_w2m(lp);
+    4257     
+    4258     ht.iindex = fr.inst() ; 
+    4259     ht.sensor_identifier = fr.sensor_identifier() - 1 ;
+    4260     ht.sensor_index = fr.sensor_index();
+    4261 }
+
+
+
+
+
+HMM : inverting intance transform for every hit makes little sense, better to keep the inverses with geometry 
+--------------------------------------------------------------------------------------------------------------
+
+
+::
+
+    1460 const float4*    CSGFoundry::getPlan(unsigned planIdx)   const { return planIdx  < plan.size()  ? plan.data()  + planIdx  : nullptr ; }
+    1461 const qat4*      CSGFoundry::getTran(unsigned tranIdx)   const { return tranIdx  < tran.size()  ? tran.data()  + tranIdx  : nullptr ; }
+    1462 const qat4*      CSGFoundry::getItra(unsigned itraIdx)   const { return itraIdx  < itra.size()  ? itra.data()  + itraIdx  : nullptr ; }
+    1463 const qat4*      CSGFoundry::getInst(unsigned instIdx)   const { return instIdx  < inst.size()  ? inst.data()  + instIdx  : nullptr ; }
+
+
+Where do the inst come from originally ? What about the double precision stree.h handling ? 
+--------------------------------------------------------------------------------------------
+
+* CSGFoundry::addInstance
+
+::
+
+    408 void CSGImport::importInst()
+    409 {
+    410     fd->addInstanceVector( st->inst_f4 );
+    411 }
+
+    1946 void CSGFoundry::addInstanceVector( const std::vector<glm::tmat4x4<float>>& v_inst_f4 )
+    1947 {
+    1948     assert( inst.size() == 0 );
+    1949     int num_inst = v_inst_f4.size() ;
+    1950 
+    1951     for(int i=0 ; i < num_inst ; i++)
+    1952     {
+    1953         const glm::tmat4x4<float>& inst_f4 = v_inst_f4[i] ;
+    1954         const float* tr16 = glm::value_ptr(inst_f4) ;
+    1955         qat4 instance(tr16) ;
+    1956         instance.incrementSensorIdentifier() ; // GPU side needs 0 to mean "not-a-sensor"
+    1957         inst.push_back( instance );
+    1958     }
+    1959 }
+
+
+stree.h stree::add_inst() already collected all instance transforms and inverses into double precision
+and narrowed versions::
+
+     351     std::vector<glm::tmat4x4<double>> inst ;
+     352     std::vector<glm::tmat4x4<float>>  inst_f4 ;
+     353     std::vector<glm::tmat4x4<double>> iinst ;
+     354     std::vector<glm::tmat4x4<float>>  iinst_f4 ;
+
+
+
+HMM : do the iinst need to be on GPU (aka on CSGFoundry) ? No : just need access to stree ?
+-----------------------------------------------------------------------------------------------
+
+HMM : relationship of CSGFoundry and stree 
+
+* can having an stree always be relied upon ? 
+
+
+::
+
+     45 void CSGImport::import()
+     46 {
+     47     LOG(LEVEL) << "[" ;
+     48 
+     49     st = fd->sim ? fd->sim->tree : nullptr ;
+     50     LOG_IF(fatal, st == nullptr) << " fd.sim(SSim) fd.st(stree) required " ;
+     51     assert(st);
+     52 
+
+::
+
+    134 SSim::SSim()
+    135     :
+    136     relp(ssys::getenvvar("SSim__RELP", RELP_DEFAULT )), // alt: "extra/GGeo"
+    137     top(nullptr),
+    138     extra(nullptr),
+    139     tree(new stree)
+    140 {
+    141     init();
+    142 }
+
+
+Will have tree if have sim, but it needs to be populated. 
+That happens with U4Tree::Create::
+
+
+    227 void G4CXOpticks::setGeometry(const G4VPhysicalVolume* world )
+    228 {
+    229     LOG(LEVEL) << "[ G4VPhysicalVolume world " << world ;
+    230     assert(world); 
+    231     wd = world ;
+    232     
+    233     assert(sim && "sim instance should have been grabbed/created in ctor" );
+    234     stree* st = sim->get_tree(); 
+    235     
+    236     tr = U4Tree::Create(st, world, SensorIdentifier ) ;
+    237     LOG(LEVEL) << "Completed U4Tree::Create " ; 
+    238     
+    239     CSGFoundry* fd_ = CSGFoundry::CreateFromSim() ; // adopts SSim::INSTANCE  
+    240     setGeometry(fd_); 
+    241     
+    242     LOG(info) << Desc() ;
+    243     
+    244     LOG(LEVEL) << "] G4VPhysicalVolume world " << world ;
+    245 }   
+
+    2822 CSGFoundry* CSGFoundry::CreateFromSim()
+    2823 {
+    2824     assert(SSim::Get() != nullptr);
+    2825     CSGFoundry* fd = new CSGFoundry ;
+    2826     fd->importSim();
+    2827     return fd ;
+    2828 }
+
+    1527 void CSGFoundry::importSim()
+    1528 {
+    1529     assert(sim);
+    1530     import->import();
+    1531 }
+
+    045 void CSGImport::import()
+     46 {
+     47     LOG(LEVEL) << "[" ;
+     48 
+     49     st = fd->sim ? fd->sim->tree : nullptr ;
+     50     LOG_IF(fatal, st == nullptr) << " fd.sim(SSim) fd.st(stree) required " ;
+     51     assert(st);
+     52 
+     53 
+     54     importNames();
+     55     importSolid();
+     56     importInst();
+     57 
+     58     LOG(LEVEL) << "]" ;
+     59 }
+
+
+
+
+
+
+HMM: adding getTree to SGeo would allow trying to get the frame from the tree with no inverts
+-----------------------------------------------------------------------------------------------
+
+
+
+Trying SEvt::getLocalHit_ALT
+-----------------------------
+
+::
+
+    2024-02-20 10:32:25.384 INFO  [720708] [U4HitTest::convertHit_COMPARE@221] U4HitTest::brief hit_idx 1743 Delta_RS 4
+     local_delta ( 0.001, 0.000, 0.000, 0.000) 
+     local_delta ( 0.001, 0.000, 0.000, 0.000) 
+     local_delta ( 0.000, 0.000, 0.000, 0.000) 
+     local_delta ( 0.001, 0.000, 0.000, 0.000) 
+     local_delta ( 0.001, 0.000, 0.000, 0.000) 
+     local_delta ( 0.001, 0.000, 0.000, 0.000) 
+    2024-02-20 10:32:25.391 INFO  [720708] [main@278] U4HitTest::smry
+     num_hit 1750 SProf::Range_RS 910 SProf::Range_RS/num_hit     0.5200
+
+
+
+Note run to run variability in RSS leak reporting, so that means dont be concerned with variations below 100 kb.
+
+METHOD=convertHit ./U4HitTest.sh::
+
+     METHOD convertHit num_hit 1750 SProf::Range_RS 962  SProf::Range_RS/num_hit     0.5497
+     METHOD convertHit num_hit 1750 SProf::Range_RS 1032 SProf::Range_RS/num_hit     0.5897
+     METHOD convertHit num_hit 1750 SProf::Range_RS 1012 SProf::Range_RS/num_hit     0.5783
+     METHOD convertHit num_hit 1750 SProf::Range_RS 824 SProf::Range_RS/num_hit     0.4709
+
+METHOD=convertHit_COMPARE ./U4HitTest.sh::
+
+    METHOD convertHit_COMPARE num_hit 1750 SProf::Range_RS 1040 SProf::Range_RS/num_hit    0.5943
+    METHOD convertHit_COMPARE num_hit 1750 SProf::Range_RS 925 SProf::Range_RS/num_hit     0.5286
+
+METHOD=convertHit_ALT ./U4HitTest.sh::
+
+    METHOD convertHit_ALT num_hit 1750 SProf::Range_RS 209 SProf::Range_RS/num_hit     0.1194
+    METHOD convertHit_ALT num_hit 1750 SProf::Range_RS 140 SProf::Range_RS/num_hit     0.0800
+    METHOD convertHit_ALT num_hit 1750 SProf::Range_RS 135 SProf::Range_RS/num_hit     0.0771
+
 
 
