@@ -89,12 +89,8 @@ okjob-tail(){
    local rc=$?    # capture the return code of prior command
    echo $FUNCNAME : rc $rc              
    date  
-   
-   : /tmp on gpu cluster is a black hole 
-   : instead of using /tmp write to TMP $TMP
 
-   echo $FUNCNAME : /tmp files belonging to $USER
-   [ -d /tmp/$USER ] && echo "find /tmp/$USER -type f" && find /tmp/$USER -type f 
+   #okjob-check-tmp   
 }
 
 okjob-main(){
@@ -103,6 +99,17 @@ okjob-main(){
    okjob-body
    okjob-tail
 }
+
+
+okjob-check-tmp()
+{
+   : /tmp on gpu cluster is a black hole 
+   : instead of using /tmp write to TMP $TMP
+
+   echo $FUNCNAME : /tmp files belonging to $USER
+   [ -d /tmp/$USER ] && echo "find /tmp/$USER -type f" && find /tmp/$USER -type f 
+}
+
 
 
 source $HOME/j/jok.bash 

@@ -89,7 +89,7 @@ jre(){
     source $JUNOTOP/bashrc.sh  ## opticks sourcing is commented in here for clarity 
 
     #_jre_opticks_build_minimal_env
-    #_jre_opticks_build_env    
+    _jre_opticks_build_env    
     _jre_opticks_usage_env  
     : NB after any changes, for clarity start a new session and redo jre
 
