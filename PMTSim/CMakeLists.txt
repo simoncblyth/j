@@ -90,6 +90,13 @@ list(APPEND HEADERS_Geometry
     ${BASE_Geometry}/PMTCategory.h
 )
 
+set(BASE_Identifier    $ENV{JUNOTOP}/junosw/Detector/Identifier)
+list(APPEND HEADERS_Identifier
+    ${BASE_Identifier}/Identifier/CopyNumber.hh
+)
+
+
+
 set(FORMER_HEADERS_SimUtil
     ${BASE_SimUtil}/S4Touchable.h
 )
@@ -238,7 +245,7 @@ install(FILES ${HEADERS}                 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 install(FILES ${HEADERS_PMTSimParamSvc}  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PMTSimParamSvc )
 install(FILES ${HEADERS_Geometry}        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Geometry)
 install(FILES ${HEADERS_SimUtil}         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SimUtil)
-
+install(FILES ${HEADERS_Identifier}      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Identifier)
 
 
 add_subdirectory(tests)
