@@ -63,6 +63,7 @@ include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/include)
 include_directories($ENV{JUNOTOP}/junosw/Detector/Geometry)
 include_directories($ENV{JUNOTOP}/junosw/Utilities/EGet)
 include_directories($ENV{JUNOTOP}/junosw/Detector/Identifier)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src)  # for ZSolid.h 
 
 
 # HMM: ABOVE IS PICKING UP FROM SOURCE DIRS NOT FROM INSTALL DIRS junosw/InstallArea/include
@@ -116,6 +117,7 @@ list(APPEND SOURCES
 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Solid.cc
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Manager.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/ZSolid.cc
 
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/XJfixtureConstruction.cc
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/CentralDetector/src/SJReceiverFasternConstruction.cc
@@ -138,14 +140,15 @@ list(APPEND SOURCES
 
      LowerChimney.cc
      LowerChimneyMaker.cc
-     ZSolid.cc          ## TODO: this is in offline too, consolidate
      MaterialSvc.cc
+
 
      PMTSim.cc
      J_PMTSIM_LOG.cc 
 
      DetectorConstruction.cc
 )
+
 
 #[=[
 #]=]
@@ -155,17 +158,16 @@ list(APPEND SOURCES
 
 set(FORMER_SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PhysiSim/src/CustomG4OpBoundaryProcess.cc
+     ZSolid.cc          ## TODO: this is in offline too, consolidate
 )
-
-
-
 
 
 
 list(APPEND HEADERS
      PMTSIM_API_EXPORT.hh
 
-     ZSolid.h  
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src/ZSolid.h
+
      MaterialSvc.hh
 
      PMTSim.hh

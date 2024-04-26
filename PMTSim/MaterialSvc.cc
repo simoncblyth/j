@@ -81,7 +81,8 @@ G4MaterialPropertyVector* MaterialSvc::GetMPV(const char* path, bool dump)  // s
         << std::endl
         ; 
 
-    G4MaterialPropertyVector* vec = new G4MaterialPropertyVector(0,0,0);
+    G4MaterialPropertyVector* vec = new G4MaterialPropertyVector((G4double*)0,(G4double*)0,(size_t)0);
+
     for (unsigned i = 0; i < props.size(); ++i) vec->InsertValues(props[i].get<0>(), props[i].get<1>() );
     if(dump)
     {

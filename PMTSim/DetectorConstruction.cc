@@ -2,6 +2,8 @@
 DetectorConstruction.cc
 ==========================
 
+This is a hacked version of "jcv LSExpDetectorConstruction"
+
 RefBase.h
     header only templated reference holder, incorporated into PMTSim (copied from SNiPER)
  
@@ -53,7 +55,8 @@ bool DetectorConstruction::helper_mpt(G4MaterialPropertiesTable* MPT, const std:
         LogError << "can't find material property: " << name << std::endl;
         return false;
     }
-    G4MaterialPropertyVector* vec = new G4MaterialPropertyVector(0,0,0);
+
+    G4MaterialPropertyVector* vec = new G4MaterialPropertyVector((G4double*)0,(G4double*)0,(size_t)0);
 
     int N = props.size();
     if (!N) {
