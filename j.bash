@@ -521,6 +521,36 @@ JUNOSW Workflow for getting local changes into main
 
 
 
+blyth-opticks-interface-adapt-pmt-data-persisting-for-unordered-map
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+0. test build of main::
+
+   jo
+   ./build_Debug.sh
+
+1. update main and test again::
+
+   jo
+   git pull
+   ./build_Debug.sh
+
+2. make "New branch" off main using web interface
+
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches
+   * choose name starting with "blyth-"
+
+3. checkout the new branch::
+
+    branch=blyth-opticks-interface-adapt-pmt-data-persisting-for-unordered-map
+    git checkout -b $branch origin/$branch   # checkout the branch to put the fix into
+   
+4. add, commit and push to the branch 
+
+5. use the url provided when pushing to make merge request with web interface 
+
+
+
 Get started on bugfix branch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -529,8 +559,6 @@ Get started on bugfix branch
     get fetch origin   # pull down the branch created off main via web interface
     branch=blyth-123-SJFixtureConstruction-bugfix-use-of-uninitialized
     git checkout -b $branch origin/$branch   # checkout the branch to put the fix into 
-
-
 
 
 On workstation switch to a new branch created in web interface code.ihep.ac.cn repo
@@ -650,8 +678,7 @@ junoenv add external via merge request
     [blyth-88-add-new-Custom4-external-with-Geant4-customizations 29d8752] add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot
      2 files changed, 201 insertions(+)
      create mode 100644 packages/custom4.sh
-    epsilon:junoenv blyth$ 
-    epsilon:junoenv blyth$ git push 
+    epsilon:junoenv blyth$     epsilon:junoenv blyth$ git push 
     Counting objects: 5, done.
     Delta compression using up to 8 threads.
     Compressing objects: 100% (5/5), done.
