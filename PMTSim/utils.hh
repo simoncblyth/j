@@ -5,7 +5,7 @@
 #define LogError std::cerr
 #endif
 
-
+#include <map>
 #include <cctype>
 #include <vector>
 #include <sstream>

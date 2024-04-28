@@ -18,25 +18,36 @@ epsilon:offline blyth$ diff Detector/Parameter/Parameter/utils.hh Simulation/Det
 > #define utils_hh
 
 
+
+
+
+BOOST IS NO LONGER A STANDARD OPTICKS EXTERNAL : SO TOO MUCH HASSLE TO KEEP THIS WORKING 
+
+
+
 EOU
 }
 
 
 name=utilsTest 
 
+opticks-
 boost-
 g4-
 clhep-
 
+
 gcc $name.cc \
       -std=c++11 \
-      -DSTANDALONE \
+      -DPMTSIM_STANDALONE \
       -I.. \
       -lstdc++ \
       -I$(boost-prefix)/include \
+      -L$(boost-prefix)/lib \
       -I$(g4-prefix)/include/Geant4 \
       -I$(clhep-prefix)/include \
       -L$(g4-prefix)/lib \
+      -L$(g4-prefix)/lib64 \
       -lG4global \
       -o \
            /tmp/$name 
@@ -45,6 +56,7 @@ gcc $name.cc \
 
 
 export DYLD_LIBRARY_PATH=$(g4-prefix)/lib:$(clhep-prefix)/lib
+export LD_LIBRARY_PATH=$(g4-prefix)/lib64:$(clhep-prefix)/lib
 
 paths=$(find $JUNOTOP/data/Simulation/DetSim/Material -type f)
 
