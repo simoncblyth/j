@@ -19,6 +19,7 @@ bin=$FOLD/$name
 mkdir -p $FOLD
 export FOLD
 
+opticks-
 clhep-
 g4-
 
@@ -40,8 +41,10 @@ if [ "${arg/build}" != "$arg" ]; then
          -I$(clhep-prefix)/include \
          -I$(g4-prefix)/include/Geant4  \
          -L$OPTICKS_PREFIX/lib \
+         -L$OPTICKS_PREFIX/lib64 \
          -lPMTSim \
          -L$(g4-prefix)/lib \
+         -L$(g4-prefix)/lib64 \
          -L$(clhep-prefix)/lib \
          -lG4global \
          -lG4geometry \
