@@ -1,4 +1,4 @@
-# ~/j/j.bash 
+# ~/j/j.bash
 # ~/.bash_profile > ~/.bashrc > ~/j/j.bash
 [ "$DBG" == "1" ] && dbg_head $BASH_SOURCE
 
@@ -44,7 +44,7 @@ make sure that the figures are available in the gallery.
 With kind regards,
 Maxim
 on behalf of the Speaker's committee
--- 
+--
 
 
 
@@ -70,7 +70,7 @@ Reminders
 Mattermost
 -----------
 
-https://mattermost.ihep.ac.cn/signup_user_complete/?id=8diw658t67gkfjgwkn5awi7zgo 
+https://mattermost.ihep.ac.cn/signup_user_complete/?id=8diw658t67gkfjgwkn5awi7zgo
 
 
 DocDB
@@ -78,7 +78,7 @@ DocDB
 
 * https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowDocument?docid=9058
 
-  Opticks+JUNO : PMT Mask Bugs, GPU Multilayer TMM 
+  Opticks+JUNO : PMT Mask Bugs, GPU Multilayer TMM
 
 * https://juno.ihep.ac.cn/Dev_DocDB/0090/009012/001/20221108-CLS%20and%20USS%20parts%20geometries%20update.pdf
 
@@ -86,7 +86,7 @@ DocDB
 
 * https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowDocument?docid=8247
 
-  GT Geometry Modification 
+  GT Geometry Modification
 
 
 JOC Meeting
@@ -100,15 +100,15 @@ juno-simulation-paper
 * https://www.overleaf.com/project/617f56272cf66b58edaeff10
 
 
-How to test compilation without Opticks ? 
+How to test compilation without Opticks ?
 ------------------------------------------
 
-1. vi $JUNOTOP/bashrc.sh   ## comment opticks source-ing on last line 
+1. vi $JUNOTOP/bashrc.sh   ## comment opticks source-ing on last line
 2. close terminal session and start a new one
 3. get into env : jre  (the "o" command should not be found, showing opticks not hooked up)
 4. redo the build : "jo ; ./build_Debug.sh" this will compile without WITH_G4CXOPTICKS
-5. ntds3 should fail at DetSim0Svc::initializeOpticks 
-6. ntds0 should complete 
+5. ntds3 should fail at DetSim0Svc::initializeOpticks
+6. ntds0 should complete
 
 
 JUNO Groups
@@ -134,10 +134,10 @@ Liangjian Wen, for ACC
 
 
 
-Setup IHEP user website 
+Setup IHEP user website
 -------------------------
 
-* Connect from workstation using W. 
+* Connect from workstation using W.
 * https://juno.ihep.ac.cn/~blyth/
 
 * https://juno.ihep.ac.cn/env/presentation/GeoChain/nmskSolidMask/G4CXSimtraceTest/ALL/figs/gxt/mpcap/nmskSolidMask_RandomSpherical10_another_zsphere_apex_miss_perhaps.png
@@ -171,45 +171,45 @@ Simulation/SimSvc/PMTSimParamSvcTest/CMakeLists.txt::
         NOAUX
         APPONLY PMTSimParamSvcTestApp
         DEPENDS
-            PMTSimParamSvc  
+            PMTSimParamSvc
     )
 
 ::
 
-     10 
+     10
      11 install(EXPORT ${PROJECT_NAME}Targets
      12         NAMESPACE ${PROJECT_NAME}::
      13         FILE "${PROJECT_NAME}Targets.cmake"
      14         DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/")
-     15 
+     15
 
 
 
 Examples/Tutorial/python/Tutorial/JUNOApplication.py::
 
     138         import Sniper
-    139 
+    139
     140         # Create all tasks: top task + sub tasks
     141         self.toptask = Sniper.TopTask("junotoptask")
     142         self.toptask.setEvtMax(self.args.evtmax)
     143         self.toptask.setLogLevel(self.DATA_LOG_MAP[self.args.loglevel])
     144         Sniper.setLogLevel(self.DATA_LOG_MAP[self.args.loglevel])
-    145 
+    145
     146         for module_container in self.module_containers.values():
     147             # create task in toptask
     148             module_container.create_task(self.toptask)
     149         # Initialize all the modules: default + others
     150         self.module_container_default.init(self.toptask, self.args)
-    151 
+    151
     152         for module_container in self.module_containers.values():
-    153             # init all the modules 
+    153             # init all the modules
     154             for module in module_container.modules:
     155                 module.init(module_container.task, self.args)
-    156 
+    156
     157             self.setup_profiling(module_container.task)
-    158 
+    158
     159         self.setup_profiling(self.toptask)
-    160 
+    160
     161         self.toptask.show()
     162         self.toptask.run()
 
@@ -227,30 +227,30 @@ Examples/Tutorial/python/Tutorial/JUNODetSimModule.py::
      152         self.init_juno_timer(toptask, args)
      153         self.init_mc_parameters(toptask, args)
      154         self.init_geometry_and_parameters(toptask, args)
-     155 
+     155
 
     1086     def init_geometry_and_parameters(self, task, args):
     1087         import Geometry
     1088         pmt_param_svc = task.createSvc("PMTParamSvc")
-    1089 
+    1089
     1090         if args.ranges_pmt_enabled:
     1091             l = args.ranges_pmt_enabled.split(",")
     1092             l = [int(i) for i in l if i.isdigit()]
     1093             pmt_param_svc.property("Ranges_PMT_Enabled").set(l)
-    1094 
+    1094
     1095         if args.ranges_pmt_constructed:
     1096             l = args.ranges_pmt_constructed.split(",")
     1097             l = [int(i) for i in l if i.isdigit()]
     1098             pmt_param_svc.property("Ranges_PMT_Constructed").set(l)
-    1099 
-    1100 
+    1099
+    1100
     1101         tt_geom_svc = task.createSvc("TTGeomSvc")
-    1102 
+    1102
     1103         import PMTSimParamSvc
     1104         print(" == PMTSimParamSvc == ")
     1105         pmt_sim_param_svc = task.createSvc("PMTSimParamSvc")
     1106         pmt_sim_param_svc.property("DBType").set(args.dbtype)
-    1107 
+    1107
 
 junosw/Simulation/SimSvc/PMTSimParamSvc/python/PMTSimParamSvc/__init__.py::
 
@@ -264,7 +264,7 @@ junosw/Simulation/SimSvc/PMTSimParamSvc/python/PMTSimParamSvc/__init__.py::
 
 
 
-cmake/Modules/PKG.cmake 
+cmake/Modules/PKG.cmake
 -------------------------
 
 ::
@@ -272,16 +272,16 @@ cmake/Modules/PKG.cmake
      39 # = NOTE: build library as shared or module? =
      40 #
      41 # * In principle, all the SNiPER's dynamically-loadable elements should be
-     42 #   built as modules. 
+     42 #   built as modules.
      43 # * The module could not be linked by other libraries.
      44 # * Due to some reasons, the interface of service and the implementation is
-     45 #   not separated. This cause such libraries should be built as shared. 
-     46 # 
+     45 #   not separated. This cause such libraries should be built as shared.
+     46 #
      47 # The plan is to move to a more clean interface and a separate implemenataion.
      48 # The default policy is building a 'shared' library.
-     49 # User can use option 'MODULE' to enable a 'module' library. 
-     50 # For consistency, 'SHARED' will be also provided. 
-     51 # It is also same to the CMake add_library. 
+     49 # User can use option 'MODULE' to enable a 'module' library.
+     50 # For consistency, 'SHARED' will be also provided.
+     51 # It is also same to the CMake add_library.
 
 
 ::
@@ -290,12 +290,12 @@ cmake/Modules/PKG.cmake
     313         # = Build App =
     314         ######################################################################
     315         #
-    316         # In addition to the built libraries, an executable will be built. 
+    316         # In addition to the built libraries, an executable will be built.
     317         #
     318         # ARG_FILES will be used to build the App when ARG_APP exists
-    319         # 
+    319         #
     320         # The limitation is that only one app could be built in one package
-    321         # 
+    321         #
     322         ######################################################################
 
 
@@ -331,7 +331,7 @@ cmake/Modules/PKG.cmake
   developing a C++ test of PMTSimParamSvc for example
 
 
-* WOW : serena is the only APP in junosw 
+* WOW : serena is the only APP in junosw
 
 junosw/EventDisplay/VisClient/CMakeLists.txt::
 
@@ -348,7 +348,7 @@ junosw/EventDisplay/VisClient/CMakeLists.txt::
      11         JVisLib
      12         Gui Eve EG TreePlayer Geom Ged RGL
      13 )
-          
+
 
 
 
@@ -359,14 +359,14 @@ APPONLY binaries for tests ?
 
     epsilon:junosw blyth$ find . -name CMakeLists.txt -exec grep -A 5 -B 5 -H APPONLY {} \;
 
-    epsilon:junosw blyth$ find . -name '*.cc' -exec grep -H int\ main {} \; 
+    epsilon:junosw blyth$ find . -name '*.cc' -exec grep -H int\ main {} \;
 
 
 cmake/Modules/PKG.cmake::
 
 ::
 
-    epsilon:junosw blyth$ find . -name test 
+    epsilon:junosw blyth$ find . -name test
     ./Simulation/DetSimV2/MCParamsSvc/src/test
     ./Generator/Supernova/test
     ./RootIO/RootIOTest/test
@@ -377,8 +377,8 @@ cmake/Modules/PKG.cmake::
     ./Reconstruction/RecMuon/RecWpMuonAlg/test
     ./Reconstruction/RecMuon/RecCdMuonAlg/test
     ./DataModel/Context/test
-    epsilon:junosw blyth$ 
-        
+    epsilon:junosw blyth$
+
 
 
 
@@ -393,17 +393,17 @@ Adding documentation
 Thoughts on optimizing workflow
 ----------------------------------
 
-Having branches live for the shortest possible time avoids 
-having to deal with merge issues. 
+Having branches live for the shortest possible time avoids
+having to deal with merge issues.
 
-* So build up changes in working copy, and only when a change is 
-  ready to go, create the branch and do the commits and make 
-  the merge request all within a short time. 
+* So build up changes in working copy, and only when a change is
+  ready to go, create the branch and do the commits and make
+  the merge request all within a short time.
 
-* howverr cannot "git pull" like this with working copy changes 
+* howverr cannot "git pull" like this with working copy changes
 
-* Also working at a time when other people are not helps with this. 
-  17:00 BST is 00:00 CST : so aim to do such uploading admin 
+* Also working at a time when other people are not helps with this.
+  17:00 BST is 00:00 CST : so aim to do such uploading admin
   in the evening to have a quiet repo
 
 
@@ -440,7 +440,7 @@ Bring branch uptodate with master
      * [new branch]      liuzhen-elecsim_waveform_saving    -> origin/liuzhen-elecsim_waveform_saving
        4fc2ce8..4672fb0  quzhenning-gengenie-deexoption     -> origin/quzhenning-gengenie-deexoption
        772450f..bfc5137  quzhenning-oum_modify_for_gengenie -> origin/quzhenning-oum_modify_for_gengenie
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
     N[blyth@localhost junosw]$ git branch
@@ -488,7 +488,7 @@ https://www.atlassian.com/git/tutorials/syncing/git-fetch
     43ddf9b bug fix for solar neutrino generator #85
     45a145e Merge branch 'huyuxiang-update-dccomputing-oum-branch' into 'main'
     562c88f update the script of detsim in dccomputing suggested by Xuefeng.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 https://www.atlassian.com/git/tutorials/using-branches/git-merge
@@ -502,22 +502,22 @@ https://www.atlassian.com/git/tutorials/using-branches/git-merge
 
 
 
-JUNOSW Workflow for getting local changes into main 
+JUNOSW Workflow for getting local changes into main
 -----------------------------------------------------
 
 
 ::
 
     N[blyth@localhost junosw]$ branch=blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
-    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
- 
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch
+
     N[blyth@localhost junosw]$ branch=blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy
-    N[blyth@localhost junosw]$ git branch 
+    N[blyth@localhost junosw]$ git branch
     * main
     N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch
     Branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' set up to track remote branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' from 'origin'.
     Switched to a new branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy'
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
@@ -544,10 +544,10 @@ blyth-opticks-interface-adapt-pmt-data-persisting-for-unordered-map
 
     branch=blyth-opticks-interface-adapt-pmt-data-persisting-for-unordered-map
     git checkout -b $branch origin/$branch   # checkout the branch to put the fix into
-   
-4. add, commit and push to the branch 
 
-5. use the url provided when pushing to make merge request with web interface 
+4. add, commit and push to the branch
+
+5. use the url provided when pushing to make merge request with web interface
 
 
 
@@ -558,7 +558,7 @@ Get started on bugfix branch
 
     get fetch origin   # pull down the branch created off main via web interface
     branch=blyth-123-SJFixtureConstruction-bugfix-use-of-uninitialized
-    git checkout -b $branch origin/$branch   # checkout the branch to put the fix into 
+    git checkout -b $branch origin/$branch   # checkout the branch to put the fix into
 
 
 On workstation switch to a new branch created in web interface code.ihep.ac.cn repo
@@ -567,19 +567,19 @@ On workstation switch to a new branch created in web interface code.ihep.ac.cn r
 ::
 
     N[blyth@localhost junosw]$ branch=blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
-    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch
     Branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy' set up to track remote branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy' from 'origin'.
     Switched to a new branch 'blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy'
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
-* HMM : NOT THAT ONE : DO THE LESS IMPACTFUL ONE FIRST 
+* HMM : NOT THAT ONE : DO THE LESS IMPACTFUL ONE FIRST
 
 
     N[blyth@localhost junosw]$ branch=blyth-PMT-serialization-fully-standalone-and-add-tests
-    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch 
+    N[blyth@localhost junosw]$ git checkout -b $branch origin/$branch
     Branch blyth-PMT-serialization-fully-standalone-and-add-tests set up to track remote branch blyth-PMT-serialization-fully-standalone-and-add-tests from origin.
     Switched to a new branch 'blyth-PMT-serialization-fully-standalone-and-add-tests'
-        
+
 * CHECKING THAT COMPILES
 
 
@@ -590,65 +590,65 @@ Getting laptop to follow an upstream branch
 
     epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
     Branch blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess set up to track remote branch blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess from origin.
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
 
     N[blyth@localhost junosw]$  git branch --set-upstream-to=origin/blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess \
     > blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
     Branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess' set up to track remote branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess' from 'origin'.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
- 
+
 
     epsilon:junosw blyth$ git branch --set-upstream-to=origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
     Branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap set up to track remote branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap from origin.
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ git pull 
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$ git pull
     Updating b57f539..3995c72
     Fast-forward
      Simulation/DetSimV2/PMTSim/src/HamamatsuMaskManager.cc | 63 +++++++++++++++++++++++++++++++++++++++++++++++++--------------
      Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh         | 45 +++++++++++++++++++++++++++++++++++++++++++++
      2 files changed, 94 insertions(+), 14 deletions(-)
      create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
 
 
 junoenv add external via merge request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. add branch using web interface 
+1. add branch using web interface
 2. pull the repo, the new branch should be listed::
 
-    epsilon:junoenv blyth$ git pull 
+    epsilon:junoenv blyth$ git pull
     From code.ihep.ac.cn:JUNO/offline/junoenv
      * [new branch]      blyth-88-add-new-Custom4-external-with-Geant4-customizations -> origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
     Already up-to-date.
 
 3. HMM, the new remote is not yet present locally, need "-a" to list it::
 
-    epsilon:junoenv blyth$ git branch 
+    epsilon:junoenv blyth$ git branch
     * main
     epsilon:junoenv blyth$ git branch -a
     * main
       remotes/origin/HEAD -> origin/main
       remotes/origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
       remotes/origin/main
-    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$
 
 4. checkout the remote branch (which has no changes from main) locally::
 
     epsilon:junoenv blyth$ git --version
     git version 2.14.3 (Apple Git-98)
     epsilon:junoenv blyth$ branch=blyth-88-add-new-Custom4-external-with-Geant4-customizations
-    epsilon:junoenv blyth$ git checkout -b $branch origin/$branch 
+    epsilon:junoenv blyth$ git checkout -b $branch origin/$branch
     M	junoenv-external-libs.sh
     Branch blyth-88-add-new-Custom4-external-with-Geant4-customizations set up to track remote branch blyth-88-add-new-Custom4-external-with-Geant4-customizations from origin.
     Switched to a new branch 'blyth-88-add-new-Custom4-external-with-Geant4-customizations'
-    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$
 
-    epsilon:junoenv blyth$ git branch 
+    epsilon:junoenv blyth$ git branch
     * blyth-88-add-new-Custom4-external-with-Geant4-customizations
       main
-    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$
 
 
 5. Now the local changes appear again the newly created branch::
@@ -669,28 +669,28 @@ junoenv add external via merge request
         packages/custom4.sh
 
     no changes added to commit (use "git add" and/or "git commit -a")
-    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$
 
 
 ::
 
-    epsilon:junoenv blyth$ git commit -m "add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot" 
+    epsilon:junoenv blyth$ git commit -m "add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot"
     [blyth-88-add-new-Custom4-external-with-Geant4-customizations 29d8752] add Custom4 version 0.1.3, a new external that collects Geant4 customizations needed for PMT geometry pivot
      2 files changed, 201 insertions(+)
      create mode 100644 packages/custom4.sh
-    epsilon:junoenv blyth$     epsilon:junoenv blyth$ git push 
+    epsilon:junoenv blyth$     epsilon:junoenv blyth$ git push
     Counting objects: 5, done.
     Delta compression using up to 8 threads.
     Compressing objects: 100% (5/5), done.
     Writing objects: 100% (5/5), 1.75 KiB | 1.75 MiB/s, done.
     Total 5 (delta 3), reused 0 (delta 0)
-    remote: 
+    remote:
     remote: To create a merge request for blyth-88-add-new-Custom4-external-with-Geant4-customizations, visit:
     remote:   https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-88-add-new-Custom4-external-with-Geant4-customizations
-    remote: 
+    remote:
     To code.ihep.ac.cn:JUNO/offline/junoenv.git
        36f5e36..29d8752  blyth-88-add-new-Custom4-external-with-Geant4-customizations -> blyth-88-add-new-Custom4-external-with-Geant4-customizations
-    epsilon:junoenv blyth$ 
+    epsilon:junoenv blyth$
 
 
 * https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/27
@@ -703,7 +703,7 @@ All above locally on laptop. Now get workstation to use that branch::
       remotes/origin/HEAD -> origin/main
       remotes/origin/blyth-update-junoenv-opticks-for-CMake
       remotes/origin/main
-    N[blyth@localhost junoenv]$ git fetch 
+    N[blyth@localhost junoenv]$ git fetch
     remote: Enumerating objects: 177, done.
     remote: Counting objects: 100% (31/31), done.
     remote: Compressing objects: 100% (5/5), done.
@@ -713,22 +713,22 @@ All above locally on laptop. Now get workstation to use that branch::
     From code.ihep.ac.cn:JUNO/offline/junoenv
        877fc01..36f5e36  main       -> origin/main
      * [new branch]      blyth-88-add-new-Custom4-external-with-Geant4-customizations -> origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
-    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$
     N[blyth@localhost junoenv]$ git branch -a
     * main
       remotes/origin/HEAD -> origin/main
       remotes/origin/blyth-88-add-new-Custom4-external-with-Geant4-customizations
       remotes/origin/blyth-update-junoenv-opticks-for-CMake
       remotes/origin/main
-    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$
 
 
     N[blyth@localhost junoenv]$ branch=blyth-88-add-new-Custom4-external-with-Geant4-customizations
-    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$
     N[blyth@localhost junoenv]$ git checkout -b $branch origin/$branch
     Branch blyth-88-add-new-Custom4-external-with-Geant4-customizations set up to track remote branch blyth-88-add-new-Custom4-external-with-Geant4-customizations from origin.
     Switched to a new branch 'blyth-88-add-new-Custom4-external-with-Geant4-customizations'
-    N[blyth@localhost junoenv]$ 
+    N[blyth@localhost junoenv]$
 
 
 
@@ -738,7 +738,7 @@ All above locally on laptop. Now get workstation to use that branch::
 Web interface setup
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If have lots of changes, decide how to group them into issues/branches. 
+If have lots of changes, decide how to group them into issues/branches.
 
 
 1. create issue describing what will do using webinterface
@@ -753,30 +753,30 @@ If have lots of changes, decide how to group them into issues/branches.
 
    * blyth-10-standalone-mask-geometry-debug-interface
 
-   * note, do not create the merge request yet : will do that after making some commits onto the branch 
+   * note, do not create the merge request yet : will do that after making some commits onto the branch
 
 
 Working copy setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* FIRST UPDATE main :  with "git pull" : suspect that the need to rebase might be due to forgetting to do this 
+* FIRST UPDATE main :  with "git pull" : suspect that the need to rebase might be due to forgetting to do this
 
-Even if I already have some working copy changes (against main branch) 
+Even if I already have some working copy changes (against main branch)
 can still switch to the branch just created via web interface.
 
 * this leave working copy changes asis (but if there are lots of them could use stash for safety)
 
 List branches::
 
-    epsilon:junosw blyth$ git branch 
+    epsilon:junosw blyth$ git branch
       blyth-66-low-dependency-PMT-data-access
     * main
 
     epsilon:junosw blyth$ git checkout -b blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
     Switched to a new branch 'blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess'
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
 
-    epsilon:junosw blyth$ git branch 
+    epsilon:junosw blyth$ git branch
       blyth-66-low-dependency-PMT-data-access
     * blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
       main
@@ -785,23 +785,23 @@ List branches::
     warning: deleting branch 'blyth-66-low-dependency-PMT-data-access' that has been merged to
              'refs/remotes/origin/blyth-66-low-dependency-PMT-data-access', but not yet merged to HEAD.
     Deleted branch blyth-66-low-dependency-PMT-data-access (was 4a9d093).
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ git branch 
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$ git branch
     * blyth-88-pivot-PMT-optical-model-from-FastSim-to-CustomG4OpBoundaryProcess
       main
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
 
 
 Examples::
 
    * git checkout -b blyth-66-low-dependency-PMT-data-access
-   * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
+   * git checkout -b blyth-22-simplify-Cerenkov-genstep-collection
    * git checkout -b blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
    * git checkout -b blyth-24-DsG4Scintillation-debug-machinery
    * git checkout -b blyth-10-standalone-mask-geometry-debug-interface
-    
-    N[blyth@localhost junosw]$ git checkout -b blyth-22-simplify-Cerenkov-genstep-collection 
+
+    N[blyth@localhost junosw]$ git checkout -b blyth-22-simplify-Cerenkov-genstep-collection
     Switched to a new branch 'blyth-22-simplify-Cerenkov-genstep-collection'
 
     N[blyth@localhost junosw]$ git checkout -b blyth-10-standalone-mask-geometry-debug-interface
@@ -817,7 +817,7 @@ Examples::
 4. now make a series of commits to the branch, prefix commit messages "WIP: #22 "  or "WIP: #23 "
    keep each commit small such that can describe the change succinctly in commit message.
 
-   * WIP will indicate the MR is still under developement. 
+   * WIP will indicate the MR is still under developement.
    * For your final commit, you just just remove WIP.
    * As pipeline is triggered when you sync the repository, so you can wait to push the commits until it is ready.
    * But we could also add some special rules to disable the pipeline, you can see the example in JUNOSW:
@@ -832,15 +832,15 @@ Build up the commits, each with related changes that make sense (and compile) to
     git add ..
     git commit -m "WIP: #22 add Utilities/EGet header for grabbing values from environment, prepare to use this from PhysiSim "
 
-Note, there is no need to push after every commit. Do that after a sequence of commits, when ready for the pipelines to run. 
+Note, there is no need to push after every commit. Do that after a sequence of commits, when ready for the pipelines to run.
 
-    git commit -m "WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042 " 
+    git commit -m "WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042 "
 
 
 
 ::
 
-    N[blyth@localhost junosw]$ git push 
+    N[blyth@localhost junosw]$ git push
     fatal: The current branch blyth-22-simplify-Cerenkov-genstep-collection has no upstream branch.
     To push the current branch and set the remote as upstream, use
 
@@ -855,7 +855,7 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     hint: to the same ref. You may want to first integrate the remote changes
     hint: (e.g., 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
     epsilon:junosw blyth$ git push --set-upstream origin blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
@@ -864,22 +864,22 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     Compressing objects: 100% (7/7), done.
     Writing objects: 100% (7/7), 936 bytes | 936.00 KiB/s, done.
     Total 7 (delta 6), reused 0 (delta 0)
-    remote: 
+    remote:
     remote: To create a merge request for blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual, visit:
     remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
-    remote: 
+    remote:
     To code.ihep.ac.cn:JUNO/offline/junosw.git
        dad6f3d..bd1e2ad  blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual -> blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
     Branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual set up to track remote branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual from origin.
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$
 
 
 
 
 
 
-    N[blyth@localhost junosw]$ git pull 
+    N[blyth@localhost junosw]$ git pull
     remote: Enumerating objects: 23, done.
     remote: Counting objects: 100% (23/23), done.
     remote: Compressing objects: 100% (17/17), done.
@@ -900,7 +900,7 @@ Note, there is no need to push after every commit. Do that after a sequence of c
 
         git branch --set-upstream-to=origin/<branch> blyth-22-simplify-Cerenkov-genstep-collection
 
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
     N[blyth@localhost junosw]$ git pull origin main
@@ -909,43 +909,43 @@ Note, there is no need to push after every commit. Do that after a sequence of c
     hint: You have divergent branches and need to specify how to reconcile them.
     hint: You can do so by running one of the following commands sometime before
     hint: your next pull:
-    hint: 
+    hint:
     hint:   git config pull.rebase false  # merge (the default strategy)
     hint:   git config pull.rebase true   # rebase
     hint:   git config pull.ff only       # fast-forward only
-    hint: 
+    hint:
     hint: You can replace "git config" with "git config --global" to set a default
     hint: preference for all repositories. You can also pass --rebase, --no-rebase,
     hint: or --ff-only on the command line to override the configured default per
     hint: invocation.
     fatal: Need to specify how to reconcile divergent branches.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
-    N[blyth@localhost junosw]$ git config pull.ff only  
+    N[blyth@localhost junosw]$ git config pull.ff only
     N[blyth@localhost junosw]$ git pull origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     fatal: Not possible to fast-forward, aborting.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
     N[blyth@localhost junosw]$ git config pull.rebase false
     N[blyth@localhost junosw]$ git pull origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     fatal: Not possible to fast-forward, aborting.
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
     N[blyth@localhost junosw]$ git config pull.rebase true
     N[blyth@localhost junosw]$ git pull origin main
     error: cannot pull with rebase: You have unstaged changes.
     error: please commit or stash them.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 Same problem again, push is rejected due to another repo having pushed::
 
-    N[blyth@localhost PMTSim]$ git push 
+    N[blyth@localhost PMTSim]$ git push
     fatal: The current branch blyth-10-standalone-mask-geometry-debug-interface has no upstream branch.
     To push the current branch and set the remote as upstream, use
 
@@ -961,7 +961,7 @@ Same problem again, push is rejected due to another repo having pushed::
     hint: (e.g., 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 
-    N[blyth@localhost PMTSim]$ git pull 
+    N[blyth@localhost PMTSim]$ git pull
     remote: Enumerating objects: 101, done.
     remote: Counting objects: 100% (28/28), done.
     remote: Total 101 (delta 28), reused 28 (delta 28), pack-reused 73
@@ -982,13 +982,13 @@ Same problem again, push is rejected due to another repo having pushed::
 
         git branch --set-upstream-to=origin/<branch> blyth-10-standalone-mask-geometry-debug-interface
 
-    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$
 
     N[blyth@localhost PMTSim]$ git pull origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     fatal: Not possible to fast-forward, aborting.
-    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$
 
 
 
@@ -1021,12 +1021,12 @@ The changes remaining are all related to logging changes::
         Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
 
     no changes added to commit (use "git add" and/or "git commit -a")
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
-    N[blyth@localhost junosw]$ git stash 
+    N[blyth@localhost junosw]$ git stash
     Saved working directory and index state WIP on blyth-22-simplify-Cerenkov-genstep-collection: 58b435f WIP: #22 use EGet::Get<int> for envvar control of process verboseLevel, add genstep collection to G4Cerenkov_modified and move to using that in opticksMode 3 instead of LocalG4Cerenkov1042
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
     N[blyth@localhost junosw]$ git s
@@ -1050,28 +1050,28 @@ The changes remaining are all related to logging changes::
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     fatal: Not possible to fast-forward, aborting.
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git help pull 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git help pull
     N[blyth@localhost junosw]$ git pull --rebase origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     Successfully rebased and updated refs/heads/blyth-22-simplify-Cerenkov-genstep-collection.
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
 
     N[blyth@localhost PMTSim]$ git config pull.rebase true
     N[blyth@localhost PMTSim]$ git pull origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     fatal: Not possible to fast-forward, aborting.
-    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$
     N[blyth@localhost PMTSim]$ git pull --rebase origin main
     From code.ihep.ac.cn:JUNO/offline/junosw
      * branch            main       -> FETCH_HEAD
     Successfully rebased and updated refs/heads/blyth-10-standalone-mask-geometry-debug-interface.
-    N[blyth@localhost PMTSim]$ 
-    N[blyth@localhost PMTSim]$ 
-    N[blyth@localhost PMTSim]$ git push 
+    N[blyth@localhost PMTSim]$
+    N[blyth@localhost PMTSim]$
+    N[blyth@localhost PMTSim]$ git push
     fatal: The current branch blyth-10-standalone-mask-geometry-debug-interface has no upstream branch.
     To push the current branch and set the remote as upstream, use
 
@@ -1084,14 +1084,14 @@ The changes remaining are all related to logging changes::
     Compressing objects: 100% (40/40), done.
     Writing objects: 100% (40/40), 13.06 KiB | 1.00 MiB/s, done.
     Total 40 (delta 33), reused 0 (delta 0), pack-reused 0
-    remote: 
+    remote:
     remote: To create a merge request for blyth-10-standalone-mask-geometry-debug-interface, visit:
     remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-10-standalone-mask-geometry-debug-interface
-    remote: 
+    remote:
     To code.ihep.ac.cn:JUNO/offline/junosw
        1b26cb0..32b2d18  blyth-10-standalone-mask-geometry-debug-interface -> blyth-10-standalone-mask-geometry-debug-interface
     Branch 'blyth-10-standalone-mask-geometry-debug-interface' set up to track remote branch 'blyth-10-standalone-mask-geometry-debug-interface' from 'origin'.
-    N[blyth@localhost PMTSim]$ 
+    N[blyth@localhost PMTSim]$
 
 
 
@@ -1108,14 +1108,14 @@ The changes remaining are all related to logging changes::
     Compressing objects: 100% (20/20), done.
     Writing objects: 100% (22/22), 3.13 KiB | 535.00 KiB/s, done.
     Total 22 (delta 14), reused 0 (delta 0), pack-reused 0
-    remote: 
+    remote:
     remote: To create a merge request for blyth-22-simplify-Cerenkov-genstep-collection, visit:
     remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-22-simplify-Cerenkov-genstep-collection
-    remote: 
+    remote:
     To code.ihep.ac.cn:JUNO/offline/junosw
        91d0968..c46d86a  blyth-22-simplify-Cerenkov-genstep-collection -> blyth-22-simplify-Cerenkov-genstep-collection
     Branch 'blyth-22-simplify-Cerenkov-genstep-collection' set up to track remote branch 'blyth-22-simplify-Cerenkov-genstep-collection' from 'origin'.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
@@ -1142,9 +1142,9 @@ The changes remaining are all related to logging changes::
      .../DetSimV2/PhysiSim/src/LocalG4Cerenkov1042.cc   |  7 +-
      Simulation/GenTools/src/GtOpticksTool.cc           | 10 +--
      10 files changed, 154 insertions(+), 65 deletions(-)
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
-    N[blyth@localhost junosw]$ git stash apply 
+    N[blyth@localhost junosw]$ git stash apply
     On branch blyth-22-simplify-Cerenkov-genstep-collection
     Your branch is up to date with 'origin/blyth-22-simplify-Cerenkov-genstep-collection'.
 
@@ -1170,7 +1170,7 @@ The changes remaining are all related to logging changes::
         Simulation/DetSimV2/PhysiSim/src/OK_PHYSISIM_LOG.cc
 
     no changes added to commit (use "git add" and/or "git commit -a")
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
@@ -1179,11 +1179,11 @@ Alt : Following merge update and tidy workstation repo
 
 ::
 
-    git fetch origin    # bring local update without changing working copy 
+    git fetch origin    # bring local update without changing working copy
     git checkout main   # comment says are behind and can be fast forwarded
-    git pull            # message lists the changes 
-    git branch          # list the branches to get precise name of obsolete branch 
-    git branch -d name-of-obsolete-branch       
+    git pull            # message lists the changes
+    git branch          # list the branches to get precise name of obsolete branch
+    git branch -d name-of-obsolete-branch
 
 ::
 
@@ -1191,7 +1191,7 @@ Alt : Following merge update and tidy workstation repo
     warning: deleting branch 'blyth-PMT-serialization-fully-standalone-and-add-tests' that has been merged to
              'refs/remotes/origin/blyth-PMT-serialization-fully-standalone-and-add-tests', but not yet merged to HEAD.
     Deleted branch blyth-PMT-serialization-fully-standalone-and-add-tests (was 7ffe0c4).
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 HMM : Need to update that branch to latest main
@@ -1203,20 +1203,20 @@ Instead of git gymnastics delete the branch and make a new one
 
 Delete the branch and make new one with web interface::
 
-    blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy 
+    blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
     blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy
 
 ::
 
     N[blyth@localhost junosw]$ git branch -d blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy
     Deleted branch blyth-122-add-envvar-offset-controls-for-PMT-geometry-to-avoid-degeneracy (was 27d86b9).
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 * MORAL : ONLY CREATE BRANCH OFF MAIN WHEN PRIOR IS MERGED
 
 
-    
+
 
 
 
@@ -1225,13 +1225,13 @@ Following a merge tidy up the obsolete branch
 
 Now following the merge of the MR, tidy up : by deleting the now merged branch.
 
-1. hop to main: git checkout main  
+1. hop to main: git checkout main
 
-   * HMM it refused when there are working copy changes, suggesting to commit or stash them  
+   * HMM it refused when there are working copy changes, suggesting to commit or stash them
 
 2. list branches, and delete the old one::
-     
-    N[blyth@localhost junosw]$ git branch 
+
+    N[blyth@localhost junosw]$ git branch
       blyth-22-simplify-Cerenkov-genstep-collection
     * main
 
@@ -1239,7 +1239,7 @@ Now following the merge of the MR, tidy up : by deleting the now merged branch.
     warning: deleting branch 'blyth-22-simplify-Cerenkov-genstep-collection' that has been merged to
              'refs/remotes/origin/blyth-22-simplify-Cerenkov-genstep-collection', but not yet merged to HEAD.
     Deleted branch blyth-22-simplify-Cerenkov-genstep-collection (was c46d86a).
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 Why this complaint ? Maybe as forgot to pull before deleting::
@@ -1248,32 +1248,32 @@ Why this complaint ? Maybe as forgot to pull before deleting::
     warning: deleting branch 'blyth-66-low-dependency-PMT-data-access' that has been merged to
              'refs/remotes/origin/blyth-66-low-dependency-PMT-data-access', but not yet merged to HEAD.
     Deleted branch blyth-66-low-dependency-PMT-data-access (was 57cd3e0).
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git pull 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git pull
     Already up to date.
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
 
 Another example::
 
-    N[blyth@localhost junosw]$ git branch 
+    N[blyth@localhost junosw]$ git branch
       blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
     * main
     N[blyth@localhost junosw]$ git branch -d blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages
     Deleted branch blyth-23-update-plog-logging-in-Opticks-integrated-simulation-packages (was 003c978).
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 Another::
 
-    N[blyth@localhost junosw]$ git checkout main 
+    N[blyth@localhost junosw]$ git checkout main
     Switched to branch 'main'
     Your branch is behind 'origin/main' by 15 commits, and can be fast-forwarded.
       (use "git pull" to update your local branch)
 
-    N[blyth@localhost junosw]$ git pull 
+    N[blyth@localhost junosw]$ git pull
     remote: Enumerating objects: 18, done.
     remote: Counting objects: 100% (18/18), done.
     remote: Compressing objects: 100% (9/9), done.
@@ -1309,8 +1309,8 @@ Another::
      create mode 100644 RootIO/RootIOTools/src/HaddAlg.cc
      create mode 100644 RootIO/RootIOTools/src/HaddAlg.h
      create mode 100644 Simulation/DetSimV2/MCParamsSvc/python/MCParamsSvc/__init__.py
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git branch 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git branch
       blyth-10-standalone-mask-geometry-debug-interface
     * main
 
@@ -1322,23 +1322,23 @@ Another::
     Your branch is up to date with 'origin/main'.
 
     nothing to commit, working tree clean
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
 
 3. pull the upstream updates
 
-    N[blyth@localhost junosw]$ git pull 
+    N[blyth@localhost junosw]$ git pull
     error: cannot pull with rebase: You have unstaged changes.
     error: please commit or stash them.
     N[blyth@localhost junosw]$ git stash    # clear decks of local changes, other than untracked which are still lying around
     N[blyth@localhost junosw]$ git pull     # now can pull from upstream
-    N[blyth@localhost junosw]$ git stash apply   # get back local changes 
+    N[blyth@localhost junosw]$ git stash apply   # get back local changes
 
 
-* so now are back on main branch with local changes ready to be incorporated in another branch 
-* check can build OK : jx-touch 
+* so now are back on main branch with local changes ready to be incorporated in another branch
+* check can build OK : jx-touch
 
 
 
@@ -1353,12 +1353,12 @@ Another Example
     Your branch is up-to-date with 'origin/blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual'.
 
     nothing to commit, working tree clean
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ 
-    epsilon:junosw blyth$ git checkout main 
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$
+    epsilon:junosw blyth$ git checkout main
     Switched to branch 'main'
     Your branch is up-to-date with 'origin/main'.
-    epsilon:junosw blyth$ git pull 
+    epsilon:junosw blyth$ git pull
     remote: Enumerating objects: 1, done.
     remote: Counting objects: 100% (1/1), done.
     remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 0
@@ -1369,18 +1369,18 @@ Another Example
     Fast-forward
      Simulation/DetSimV2/PMTSim/src/NNVTMaskManager.cc | 28 +++++++++++++++++++++++-----
      1 file changed, 23 insertions(+), 5 deletions(-)
-    epsilon:junosw blyth$ git branch 
+    epsilon:junosw blyth$ git branch
       blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
     * main
     epsilon:junosw blyth$ git branch -d blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual
     Deleted branch blyth-32-NNVTMaskManager-fix-MaskTail-overlap-MaskVirtual (was 035de03).
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
     epsilon:junosw blyth$ git s
     On branch main
     Your branch is up-to-date with 'origin/main'.
 
     nothing to commit, working tree clean
-    epsilon:junosw blyth$ 
+    epsilon:junosw blyth$
 
 
 Another
@@ -1391,15 +1391,15 @@ Another
     N[blyth@localhost junosw]$ git checkout main
     Switched to branch 'main'
     Your branch is up to date with 'origin/main'.
-    N[blyth@localhost junosw]$  git branch 
+    N[blyth@localhost junosw]$  git branch
       blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
     * main
     N[blyth@localhost junosw]$  git branch -d blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap
     warning: deleting branch 'blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap' that has been merged to
              'refs/remotes/origin/blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap', but not yet merged to HEAD.
     Deleted branch blyth-33-HamamatsuMaskManager-fix-Mask-PMT-overlap (was 3995c72).
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git pull 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git pull
     remote: Enumerating objects: 1, done.
     remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 1
     Unpacking objects: 100% (1/1), 320 bytes | 160.00 KiB/s, done.
@@ -1412,8 +1412,8 @@ Another
      Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh         | 45 +++++++++++++++++++++++++++++++++++++++++++++
      2 files changed, 94 insertions(+), 14 deletions(-)
      create mode 100644 Simulation/DetSimV2/SimUtil/SimUtil/SimUtil.hh
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
 
 
 
@@ -1427,22 +1427,22 @@ Another : maybe to avoid the warning should "git fetch origin" before the delete
     /data/blyth/junotop/junosw
     # On branch blyth-Opticks-integration-updates-for-current-API
     nothing to commit, working directory clean
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git checkout main  
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git checkout main
     Switched to branch 'main'
-    N[blyth@localhost junosw]$ git branch 
+    N[blyth@localhost junosw]$ git branch
       blyth-Opticks-integration-updates-for-current-API
     * main
     N[blyth@localhost junosw]$ git branch -d blyth-Opticks-integration-updates-for-current-API
     warning: deleting branch 'blyth-Opticks-integration-updates-for-current-API' that has been merged to
              'refs/remotes/origin/blyth-Opticks-integration-updates-for-current-API', but not yet merged to HEAD.
     Deleted branch blyth-Opticks-integration-updates-for-current-API (was f8f1715).
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ 
-    N[blyth@localhost junosw]$ git branch 
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$
+    N[blyth@localhost junosw]$ git branch
     * main
-    N[blyth@localhost junosw]$ 
+    N[blyth@localhost junosw]$
 
 
 
@@ -1472,7 +1472,7 @@ Tao advice
 
     OK, I see your issue now.
 
-    BTW: when you make commit, you can add "WIP:" so that the CI will run without testing jobs. 
+    BTW: when you make commit, you can add "WIP:" so that the CI will run without testing jobs.
     Tao
 
 
@@ -1488,7 +1488,7 @@ Tao advice
     About the developer's workflow: due to the fork projects could not use the
     gitlab runners to run CI, we suggest developers to create a branch in junosw
     official repository. Then you can create a merge request after you have this
-    branch.  People will review your code and the merge your merge request. 
+    branch.  People will review your code and the merge your merge request.
 
     Do you think is that clear?
     Tao
@@ -1497,11 +1497,11 @@ Tao advice
 IHEP git setup
 ---------------
 
-0. access instructions using un:j/pw:j 
+0. access instructions using un:j/pw:j
 
 * https://juno.ihep.ac.cn/~offline/Doc/user-guide/appendix/tools.html#git-a-version-control-system
 
-1. add id_rsa.pub key from Precision workstation into gitlab web interface 
+1. add id_rsa.pub key from Precision workstation into gitlab web interface
 
    * https://code.ihep.ac.cn/-/profile
 
@@ -1509,7 +1509,7 @@ IHEP git setup
 
     N[blyth@localhost ~]$ ssh -T git@code.ihep.ac.cn
     Welcome to GitLab, @blyth!
-    N[blyth@localhost ~]$ 
+    N[blyth@localhost ~]$
 
 3. check from epsilon before and after adding "Epsilon.Laptop.blyth" key thru web interface::
 
@@ -1529,7 +1529,7 @@ IHEP git setup
     remote: Total 3614 (delta 10), reused 0 (delta 0), pack-reused 3588
     Receiving objects: 100% (3614/3614), 6.38 MiB | 11.16 MiB/s, done.
     Resolving deltas: 100% (637/637), done.
-    N[blyth@localhost ~]$ 
+    N[blyth@localhost ~]$
     N[blyth@localhost ~]$ l junosw/
     total 68
      0 drwxrwxr-x.  8 blyth blyth  163 Sep 22 17:10 .git
@@ -1561,8 +1561,8 @@ IHEP git setup
 
     epsilon:~ blyth$ mv junosw junotop/
     epsilon:~ blyth$ t jo
-    jo () 
-    { 
+    jo ()
+    {
         cd_func $JUNOTOP/junosw && pwd && git status
     }
 
@@ -1639,7 +1639,7 @@ For learning git, you can have a look at following materials:
     HSF Software Training Center: https://hepsoftwarefoundation.org/training/curriculum.html
     Git book: https://git-scm.com/book/en/v2
 
-If you have any permission problems, please feel free to send me mail. 
+If you have any permission problems, please feel free to send me mail.
 Tao
 
 
@@ -1661,7 +1661,7 @@ PMTSim
 
 ::
 
-   cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile 
+   cd ; git clone git@github.com:simoncblyth/j.git ; echo "source \$HOME/j/j.bash" >> .bash_profile
 
 
 Was surprised that this worked::
@@ -1673,8 +1673,8 @@ Was surprised that this worked::
     remote: Total 1610 (delta 0), reused 0 (delta 0), pack-reused 1610
     Receiving objects: 100% (1610/1610), 2.03 MiB | 190.00 KiB/s, done.
     Resolving deltas: 100% (583/583), done.
-    epsilon:tmp blyth$ 
-    epsilon:tmp blyth$ 
+    epsilon:tmp blyth$
+    epsilon:tmp blyth$
     epsilon:tmp blyth$ l qmultifilmlut/
     total 16
      0 drwxr-xr-x   13 blyth  wheel   416 May 25 10:49 .git
@@ -1686,10 +1686,10 @@ Was surprised that this worked::
     16 -rw-r--r--    1 blyth  wheel  6280 May 25 10:49 README.md
      0 drwxr-xr-x   91 blyth  wheel  2912 May 25 10:49 CSGOptiX
      0 drwxrwxrwt   35 root   wheel  1120 May 25 10:49 ..
-    epsilon:tmp blyth$ 
+    epsilon:tmp blyth$
 
 
-    
+
 
 
 
@@ -1727,7 +1727,7 @@ Maxim
 
 https://www.youtube.com/watch?v=ONXeTieQte4
 
--- 
+--
 
 
 
@@ -1737,20 +1737,20 @@ same time. We have noticed that more efforts are required to make things  go
 smoothly. For this purpose, we decided to organize the JUNO Offline
 Coordination (JOC) Meeting. The JOC meeting is supposed to be a one-hour
 meeting taking place at 09:00 (Europe/Zurich), 16:00 (Beijing) every Thursday.
- 
+
 You may find more information about the meeting in the DocDB event:
- 
+
 https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?conferenceid=1021
- 
+
 Since we don’t want everyone to be disturbed by  the meeting announcement next
 time, please login with the account, juno/jiangmen, and add your email to the
 mailing list if you feel interested in this meeting:
- 
+
 https://juno.ihep.ac.cn/mailman/listinfo/offline_coordination
- 
- 
+
+
 Best regards,
- 
+
 Giuseppe, Xingtao and Weidong
 
 
@@ -1803,7 +1803,7 @@ proxy-git-cern ()
 
     : -f got to background before call
     : -N do not execute remote command, useful for just forwarding ports
-    : -D setup forwarding port 37687, allocates a socket 
+    : -D setup forwarding port 37687, allocates a socket
     : cern the name of the remote machine in ssh_config
 }
 
@@ -1821,18 +1821,18 @@ proxy-setup-cern ()
     export NO_PROXY=${no_proxy}
 
     : see man curl
-    : NO_PROXY is list of hostname that should not go thru the proxy 
+    : NO_PROXY is list of hostname that should not go thru the proxy
 
 }
 
-As socks5 is not supported by wget, so I had already modified junoenv to use cURL to download files. 
+As socks5 is not supported by wget, so I had already modified junoenv to use cURL to download files.
 For the github ssh access, I had setup following in $HOME/.gitconfig:
 
 [http "https://github.com"]
         proxy = socks5://localhost:37687
 
 
- 
+
 
 
 
@@ -1872,9 +1872,9 @@ JUNO CORE SW FDR : Mon Jan 17, 2022
 
 FDR: the review comittee shall pay particular attentions on that if the
 current core software design satisfies the various needs of future physics
-analysis. The draft of charge letter is attached. 
+analysis. The draft of charge letter is attached.
 
-* Charge letter doc-7783. 
+* Charge letter doc-7783.
 * Agenda for the FDR: https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/DisplayMeeting?sessionid=1625
 * Live note https://jupyter.ihep.ac.cn/htaWZQnRSQmHSRKcy80C6g
 
@@ -1893,7 +1893,7 @@ Tao demo-photon-generation
 
 * https://github.com/mirguest/demo-photon-generation
 
-  git clone git@github.com:mirguest/demo-photon-generation.git 
+  git clone git@github.com:mirguest/demo-photon-generation.git
 
 
 Analysis_Foundation_Groups
@@ -1934,10 +1934,10 @@ Guofu, Cecile and Ziyan
 
 Hi Yongpeng et al,
 
-I'm afarid there is hyperlink under the URL you provided, if one clicks it, it directs to the calib_analysis list. 
+I'm afarid there is hyperlink under the URL you provided, if one clicks it, it directs to the calib_analysis list.
 Anyways, I re-copy it here: https://juno.ihep.ac.cn/mailman/listinfo/juno_oec
 
-Btw, Please also add this mailing list info into the wiki page: 
+Btw, Please also add this mailing list info into the wiki page:
 https://juno.ihep.ac.cn/mediawiki/index.php/Analysis_Foundation_Groups
 
 Regards,
@@ -1979,8 +1979,8 @@ Page for updating
 Tao /cvmfs Offline Scripts
 -----------------------------
 
-Yes, we also encounter such problem (ROOT not compatible with devtoolset) before. 
-You can use the GCC 8.3.0 provided by JUNO. You can have a look at my installation 
+Yes, we also encounter such problem (ROOT not compatible with devtoolset) before.
+You can use the GCC 8.3.0 provided by JUNO. You can have a look at my installation
 script to see how to reuse the external libraries:
 
 * /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0/quick-deploy-J21v2r0-Pre0.sh
@@ -1995,18 +1995,18 @@ The nightly build consists a shell script and a crontab:
     25 17 * * * bash <<< "$(bash /cvmfs/juno_nightlies.ihep.ac.cn/centos7_amd64_gcc830/b/build-tools/build.sh deployit)"
 
 
-SCB: deployit emits to stdout a few commands including "cvmfs_server publish" 
+SCB: deployit emits to stdout a few commands including "cvmfs_server publish"
 
 The software is built in a container on the cvmfspublisher. The reason why I
 use '<<<' is because the CVMFS will check any file belong this repository is
 used or not. If the shell script is still used, then the publish will be
-failed.  
+failed.
 
 If I remember correctly, you had the access to the opticks CVMFS
 repository. So you can create a directory for such usage.  I think one missing
 part is the CUDA is not included inside the container. I am not sure is that
 easy to deploy it inside the container.  Maybe we can contact with Jingyan Shi
-and Ran Du for the help. 
+and Ran Du for the help.
 
 
 /cvmfs/juno_nightlies.ihep.ac.cn/centos7_amd64_gcc830/b/build-tools/build.sh
@@ -2021,11 +2021,11 @@ Reuse of ExternalLibs
      10 function reuse-junotop() {
      11     echo /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch
      12 }
-     13 
+     13
      14 function junotop() {
      15     echo /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-Pre0
      16 }
-     17 
+     17
      18 function checkout-junoenv() {
      19     if [ -d "$(junotop)/junoenv" ];
      20     then
@@ -2033,7 +2033,7 @@ Reuse of ExternalLibs
      22     fi
      23     svn co https://juno.ihep.ac.cn/svn/offline/${JUNOENV_branches}/installation/junoenv
      24 }
-     25 
+     25
      26 function setup-env() {
      27     export JUNOTOP=$(junotop)
      28     export JUNO_EXTLIB_OLDTOP=$(reuse-junotop)/ExternalLibs
@@ -2041,11 +2041,11 @@ Reuse of ExternalLibs
      30     export Sniper_version="2.0.3"
      31     export OfflineData_version="trunk 115"
      32     export Offline_version="tags/J21v2r0-Pre0" # TODO
-     33 
+     33
      34     export JUNOENV_branches=trunk
      35     export JUNOENV_version=
      36 }
-     37 
+     37
      38 function reuse-libs() {
      39     # bash junoenv libs reuse allpkgs
      40     bash junoenv libs reuse python
@@ -2053,7 +2053,7 @@ Reuse of ExternalLibs
      42     bash junoenv libs reuse python-pip
      43     bash junoenv libs reuse python-cython
      44     bash junoenv libs reuse python-numpy
-       
+
 
 
 junoenv-external-libs.sh::
@@ -2062,15 +2062,15 @@ junoenv-external-libs.sh::
     796     local msg="==== $FUNCNAME: "
     797     # = check the environment variable $JUNO_EXTLIB_OLDTOP =
     798     if [ -z "$JUNO_EXTLIB_OLDTOP" ];
-    799     then 
+    799     then
     800         echo $msg Please set the ENVIRONMENT VARIABLE called \$JUNO_EXTLIB_OLDTOP first1>&2
     801         exit 1
-    802     fi  
+    802     fi
     803     if [ ! -d "$JUNO_EXTLIB_OLDTOP" ];
-    804     then 
+    804     then
     805         echo $msg The \$JUNO_EXTLIB_OLDTOP \"$JUNO_EXTLIB_OLDTOP\" does not exist.
     806         exit 1
-    807     fi  
+    807     fi
     808     local pkg=$1
     809     # = get the installation directory for PKG =
     810     # here is the dir with version
@@ -2144,7 +2144,7 @@ Sniper Links
 slack kanban
 --------------
 
-* https://juno-analysis.slack.com 
+* https://juno-analysis.slack.com
 * https://juno.ihep.ac.cn/kanboard/
 
 Example Paths
@@ -2152,9 +2152,9 @@ Example Paths
 
 /junofs/users/lint/juno-release/J19v1r1-branch/jobs/geometry_acrylic.gdml
 
-    still with torus 
+    still with torus
 
-Simon, this is Jilei's muon jobs: 
+Simon, this is Jilei's muon jobs:
 
     /junofs/users/xujl/juno7/sim_results/J18v2r1/muon/twomu/optical/
 
@@ -2176,20 +2176,20 @@ Index
 *  http://juno.ihep.ac.cn/~offline/Doxygen/offline/html/files
 
 
-OPTICKS_TOP envvar : a trick for Opticks developers working in peer-to-peer fashion 
+OPTICKS_TOP envvar : a trick for Opticks developers working in peer-to-peer fashion
 ---------------------------------------------------------------------------------------------
 
 When OPTICKS_TOP is defined it overrides the opticks installation used by junoenv.
 This makes it possible to use a separately installed Opticks installation.
- 
+
 
 /home/blyth/junotop/junoenv/junoenv-external-libs.sh::
 
     819 function junoenv-external-libs-list {
     820     local mode=$1
-    821 
+    821
     822     [ -n "$OPTICKS_TOP" ] && echo opticks
-    823 
+    823
     ### Ahem : should be checking CMTEXTRATAGS for opticks, not checking OPTICKS_TOP ?
     ### switched to :  [ "${CMTEXTRATAGS/opticks}" != "$CMTEXTRATAGS" ] && echo opticks
 
@@ -2198,13 +2198,13 @@ This makes it possible to use a separately installed Opticks installation.
     096 function juno-ext-libs-opticks-generate-sh {
      97     local msg="====== $FUNCNAME :"
      98     local prefix=$(juno-ext-libs-opticks-install-dir)
-     99     echo $msg replacing bashrc 
-    100 
+     99     echo $msg replacing bashrc
+    100
     101     # When OPTICKS_TOP is defined it overrides the opticks installation used by junoenv.
     102     # This makes it possible to use a separately installed Opticks installation.
-    103 
+    103
     104 cat <<EOF > bashrc
-    105 if [ -n "\${OPTICKS_TOP}" ]; then 
+    105 if [ -n "\${OPTICKS_TOP}" ]; then
     106    source \${OPTICKS_TOP}/bin/opticks-setup.sh
     107 else
     108    source $prefix/bin/opticks-setup.sh
@@ -2214,11 +2214,11 @@ This makes it possible to use a separately installed Opticks installation.
     112 function juno-ext-libs-opticks-generate-csh {
     113     local msg="SCB $FUNCNAME :"
     114     local prefix=$(juno-ext-libs-opticks-install-dir)
-    115     echo $msg replacing tcshrc 
-    116 
+    115     echo $msg replacing tcshrc
+    116
     117 cat <<EOF > tcshrc
-    118 if [ -n "\${OPTICKS_TOP}" ]; then 
-    119    source \${OPTICKS_TOP}/bin/opticks-setup.csh 
+    118 if [ -n "\${OPTICKS_TOP}" ]; then
+    119    source \${OPTICKS_TOP}/bin/opticks-setup.csh
     120 else
     121    source $prefix/bin/opticks-setup.sh
     122 fi
@@ -2257,8 +2257,8 @@ cmt introspection
 ::
 
     cd ~/juno-tutorial
-    source bashrc 
-    cmt show packages 
+    source bashrc
+    cmt show packages
 
 
 
@@ -2272,13 +2272,13 @@ j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
 
 ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
-j1(){ ji ; vi $(ls -1t | head -1) ; } 
-j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; } 
+j1(){ ji ; vi $(ls -1t | head -1) ; }
+j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; }
 jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 jp(){ j-cd ; cd production ; ls -lt | head -30 ;  }
-jp1(){ jp ; vi $(ls -1t | head -1) ; } 
-jp2(){ jp ; vi $(ls -1t | head -2 | tail -1) ; } 
+jp1(){ jp ; vi $(ls -1t | head -1) ; }
+jp2(){ jp ; vi $(ls -1t | head -2 | tail -1) ; }
 jprst(){ jp-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 
@@ -2286,9 +2286,9 @@ jprst(){ jp-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 
 
-j-scp(){  
-    local target=${1:-L7} 
-    local cmd="scp $(j-dir)/j.bash $target:j/j.bash" 
+j-scp(){
+    local target=${1:-L7}
+    local cmd="scp $(j-dir)/j.bash $target:j/j.bash"
     echo $cmd
     eval $cmd
 }
@@ -2308,25 +2308,25 @@ jm-bdir : $(jm-bdir)
 jm-idir : $(jm-idir)
 
 jm-scd jm-bcd jm-icd
-    cd to respective dirs 
+    cd to respective dirs
 
 jm-cmake-has-opticks
-    detect if CMAKE_PREFIX_PATH has the expected opticks prefixes 
+    detect if CMAKE_PREFIX_PATH has the expected opticks prefixes
 
-jm-cmake- 
+jm-cmake-
     emit to stdout the cmake commandline configuring with OR without Opticks depending on jm-cmake-has-opticks
 
 jm-cmake
-    after some directory checks runs the above cmake commandline 
+    after some directory checks runs the above cmake commandline
 
 jm-clean
-    clean from the build directory 
+    clean from the build directory
 
 jm-make
-    make and install from from the CMake build directory 
+    make and install from from the CMake build directory
 
 jm
-    short for jm-make 
+    short for jm-make
 
 EON
 }
@@ -2346,8 +2346,8 @@ jm-unhookup(){ jm-junoenv-opticks unhookup ; echo NOW start a new session to fee
 jm-find-opticks-prefix(){
    local opticks_prefix
    local prefix
-   for prefix in ${CMAKE_PREFIX_PATH//:/ } 
-   do 
+   for prefix in ${CMAKE_PREFIX_PATH//:/ }
+   do
        [ -f "$prefix/include/OpticksCore/Opticks.hh" ] && opticks_prefix=$prefix
    done
    echo $opticks_prefix
@@ -2363,16 +2363,16 @@ jm-cmake-has-opticks(){
    local with_opticks_externals=0
    local with_optix=0
    local prefix
-   for prefix in ${CMAKE_PREFIX_PATH//:/ } 
-   do 
-       [ -f "$prefix/include/OpticksCore/Opticks.hh" ] && with_opticks_package=1  
-       [ -f "$prefix/plog/include/plog/Severity.h" ]   && with_opticks_externals=1  
-       [ -f "$prefix/include/optix.h" ]                && with_optix=1  
-   done 
+   for prefix in ${CMAKE_PREFIX_PATH//:/ }
+   do
+       [ -f "$prefix/include/OpticksCore/Opticks.hh" ] && with_opticks_package=1
+       [ -f "$prefix/plog/include/plog/Severity.h" ]   && with_opticks_externals=1
+       [ -f "$prefix/include/optix.h" ]                && with_optix=1
+   done
 
    if [ $with_opticks_package -eq 1 -a $with_opticks_externals -eq 1 -a $with_optix -eq 1 ]; then
        with_opticks=1
-   fi 
+   fi
    echo $with_opticks
 }
 
@@ -2386,22 +2386,22 @@ j-curl-scp(){
    local dist=$(basename $url)
 
    cd /tmp
-   [ ! -f "$name" ] && curl -L -O $url && mv $dist $name 
+   [ ! -f "$name" ] && curl -L -O $url && mv $dist $name
    local cmd="scp $name P:junotop/"
 
-   echo $msg url $url name $name dist $dist 
-   echo $msg $cmd 
-   eval $cmd 
+   echo $msg url $url name $name dist $dist
+   echo $msg $cmd
+   eval $cmd
 
 }
 
 
 j-sniper-curl-scp(){
 
-   : workaround GFW firewall github blockage 
+   : workaround GFW firewall github blockage
    local msg="=== $FUNCNAME :"
 
-   . $JUNOTOP/junoenv/junoenv-sniper.sh 
+   . $JUNOTOP/junoenv/junoenv-sniper.sh
 
    local sv=$(junoenv-sniper-version)
    local mv=$(junoenv-mtsniper-version)
@@ -2416,7 +2416,7 @@ j-sniper-curl-scp(){
    local mname=sniper-$mbase     # duplicate bug in junoenv-sniper
 
    j-curl-scp $surl $sname
-   j-curl-scp $murl $mname 
+   j-curl-scp $murl $mname
 }
 
 
@@ -2424,30 +2424,30 @@ j-sniper-curl-scp(){
 j-sniper-clean()
 {
    cd $JUNOTOP/sniper || exit 1
-   
-   rm -rf build 
+
+   rm -rf build
    rm -rf InstallArea
 }
 
 
 
-jm-bdir(){ echo $JUNOTOP/offline/build ; }
-jm-idir(){ echo $JUNOTOP/offline/InstallArea ; }
-jm-sdir(){ echo $JUNOTOP/offline  ; }
+jm-bdir(){ echo $JUNOTOP/junosw/build ; }
+jm-idir(){ echo $JUNOTOP/junosw/InstallArea ; }
+jm-sdir(){ echo $JUNOTOP/junosw  ; }
 
 jm-bcd(){  cd $(jm-bdir) ; }
 jm-icd(){  cd $(jm-idir) ; }
 jm-scd(){  cd $(jm-sdir) ; }
 
-jm-clean(){ 
-   jm-bcd 
-   make clean 
+jm-clean(){
+   jm-bcd
+   make clean
 }
 
-jm-cmake-extra(){   
+jm-cmake-extra(){
    : opticks ON/OFF switch based on contents of CMAKE_PREFIX_PATH
-   : DONE: avoided need for -DOPTICKS_PREFIX by setting from envvar in FindOpticks.cmake 
-   : TODO: avoid need for -DCMAKE_MODULE_PATH by setting it based on OPTICKS_PREFIX envvar 
+   : DONE: avoided need for -DOPTICKS_PREFIX by setting from envvar in FindOpticks.cmake
+   : TODO: avoid need for -DCMAKE_MODULE_PATH by setting it based on OPTICKS_PREFIX envvar
    :        this is needed separately because of chicken-and-egg issue
 
    local sdir=$(jm-sdir)
@@ -2455,8 +2455,8 @@ jm-cmake-extra(){
 
    local cmake_has_opticks=$(jm-cmake-has-opticks)
    local extra=""
-   if [ "$cmake_has_opticks" == "1" ]; then 
-       if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then 
+   if [ "$cmake_has_opticks" == "1" ]; then
+       if [ -d "$JUNOTOP/opticks/cmake/Modules" ]; then
            extra="$extra -DCMAKE_MODULE_PATH=$JUNOTOP/opticks/cmake/Modules"
        fi
     fi
@@ -2471,7 +2471,7 @@ EOC
 }
 
 
-jm-cmake-(){   
+jm-cmake-(){
    : have moved the opticks ON/OFF switch inside the CMakeLists.txt based on OPTICKS_PREFIX envvar
    : in order to allow the JUNO standard cmake commandline to be used with no extras
 
@@ -2481,7 +2481,7 @@ jm-cmake-(){
    cat << EOC
    cmake $sdir \
          -DCMAKE_INSTALL_PREFIX=$idir \
-         -DCMAKE_CXX_STANDARD=17 
+         -DCMAKE_CXX_STANDARD=17
 
 EOC
 }
@@ -2489,9 +2489,9 @@ EOC
 
 
 
-jm-cmake(){   
+jm-cmake(){
    : j/j.bash using build layout from $JUNOTOP/junoenv/junoenv-offline.sh  junoenv-offline-compile-cmake
-   : huh $JUNOTOP/offline/build.sh run-build has different cmake line withoec handling 
+   : huh $JUNOTOP/junosw/build.sh run-build has different cmake line withoec handling
    : see j/opticks_with_cmake_offline.rst
 
    local msg="=== $FUNCNAME :"
@@ -2499,28 +2499,28 @@ jm-cmake(){
    local bdir=$(jm-bdir)
    local idir=$(jm-idir)
 
-   [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1 
+   [ ! -d $sdir -o ! -d $bdir -o ! -d $idir ] && echo $msg use "bash junoenv offline" first  && return 1
 
    jm-bcd
 
    local cmd=$(jm-cmake-)
    echo $msg cmd $cmd
-   eval $cmd 
+   eval $cmd
 }
 
 jm-make(){
-   : j/j.bash 
- 
-   jm-bcd
-   [ $? -ne 0 ] && echo bdir error && return 1 
+   : j/j.bash
 
-   make 
+   jm-bcd
+   [ $? -ne 0 ] && echo bdir error && return 1
+
+   make
    [ $? -ne 0 ] && echo make error && return 2
 
    make install
    [ $? -ne 0 ] && echo install error && return 3
 
-   return 0 
+   return 0
 }
 
 jm(){ jm-make ; }
@@ -2553,7 +2553,7 @@ jcv junoPMTOpticalModel
 
 
 jcv MultiFilmModel
-jcv OpticalSystem 
+jcv OpticalSystem
 jcv Layer
 jcv Matrix
 jcv Material
@@ -2563,11 +2563,11 @@ jcv Material
 
     768 void
     769 HamamatsuR12860PMTManager::helper_fast_sim()
-    770 {   
+    770 {
     771     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
     772     body_log->SetRegion(body_region);
     773     body_region->AddRootLogicalVolume(body_log);
-    774     
+    774
     775     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
     776                                                                    body_phys, body_region);
 
@@ -2577,7 +2577,7 @@ jcv Material
     715     G4Region* body_region = new G4Region(this->GetName()+"_body_region");
     716     body_log->SetRegion(body_region);
     717     body_region->AddRootLogicalVolume(body_log);
-    718 
+    718
     719     junoPMTOpticalModel *pmtOpticalModel = new junoPMTOpticalModel(GetName()+"_optical_model",
     720                                                                    body_phys, body_region);
 
@@ -2600,13 +2600,13 @@ jcv Material
     284         = envelope_phys->GetLogicalVolume();
     285     G4MaterialPropertiesTable* glass_pt
     286         = envelope_log->GetMaterial()->GetMaterialPropertiesTable();
-    287 
+    287
     288     _rindex_glass   = glass_pt->GetProperty("RINDEX");
     289     _inner1_phys    = envelope_log->GetDaughter(0);
     290     _inner1_solid   = _inner1_phys->GetLogicalVolume()->GetSolid();
     291     _rindex_vacuum  = _inner1_phys->GetLogicalVolume()->GetMaterial()
     292                                   ->GetMaterialPropertiesTable()->GetProperty("RINDEX");
-    293 
+    293
     294     _inner2_phys    = envelope_log->GetDaughter(1);
     295     _inner2_solid   = _inner2_phys->GetLogicalVolume()->GetSolid();
     296 }
@@ -2626,7 +2626,7 @@ jcv JUNODetSimModule
     ./Simulation/DetSimV2/DetSimMTUtil/src/DetFactorySvc.cc:    dc->setPMTName(m_pmt_name);
     ./Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh:     void setPMTName(const std::string& pmt_name) {m_pmt_name = pmt_name;}
     ./Simulation/DetSimV2/DetSimOptions/src/DetSim0Svc.cc:    dc->setPMTName(m_pmt_name);
-    epsilon:offline blyth$ 
+    epsilon:offline blyth$
 
 ::
 
@@ -2656,9 +2656,9 @@ jcv JUNODetSimModule
      315                                                    "HamamatsuMask", "NNVTMask"
      316                                                    ],
      317                                           help=mh("20inch PMT name."))
-     318 
+     318
      319         self.register_SWITCH_options(grp_pmt_op)
-     320 
+     320
      321         grp_pmt_op.add_argument("--pmt20inch-extra", default="TWO-mask",
      322                                           choices = ["ONE", "TWO", "TWO-mask"],
      323                                           help=mh("ONE category or TWO categories of LPMT. TWO: pmts without mask. TWO-mask: pmts with mask"))
@@ -2669,14 +2669,14 @@ jcv JUNODetSimModule
 ::
 
      450 LSExpDetectorConstruction::setupCentralDetector()
-     451 { 
+     451 {
      452   // construct the Central Detector
      453   IDetElement* cd_det = 0;
      454   if (m_cd_name == "DetSim0" or m_cd_name == "DetSim1" or m_cd_name == "DetSim2") {
      455       std::string new_name = m_cd_name + "Construction";
      456       cd_det = det_elem(new_name);
      457   }
-     458   
+     458
 
 jcv DetSim1Construction::
 
@@ -2684,7 +2684,7 @@ jcv DetSim1Construction::
      98     IPMTElement* pmt_elem_nnvt = 0; // NNVT w/ or w/o mask
      99     if (!other) {
     100         // retrieve
-    101         // * get detsimalg 
+    101         // * get detsimalg
     102         // * get pmt elem
     103         SniperPtr<DetSimAlg> detsimalg(*getParent(), "DetSimAlg");
     104         if (detsimalg.invalid()) {
@@ -2694,14 +2694,14 @@ jcv DetSim1Construction::
     108         pmt_elem_r12860 = dynamic_cast<IPMTElement*>(detsimalg->findTool("HamamatsuR12860")); // need to define the official name
     109         pmt_elem_nnvt = dynamic_cast<IPMTElement*>(detsimalg->findTool("NNVTMCPPMT"));
 
-    // WHY NO Manager ON THESE ? 
+    // WHY NO Manager ON THESE ?
 
 
-    110 
+    110
     111         LogInfo << "Mixing PMT mode: " << std::endl;
     112         LogInfo << "-> Get Hamamatsu R12860: " << pmt_elem_r12860 << std::endl;
     113         LogInfo << "-> Get NNVT MCPPMT: " << pmt_elem_nnvt << std::endl;
-    114 
+    114
     115     } else {
 
 
@@ -2712,7 +2712,7 @@ jcv DetSim1Construction::
     ./SniperKernel/src/AlgBase.cc:ToolBase* AlgBase::findTool(const std::string& toolName)
     ./SniperKernel/src/binding/AlgBaseExp.cc:        .def("findTool",   &AlgBase::findTool,
     ./SniperKernel/src/DleSupervisor.cc:            return obj->findTool(name.substr(pseg+1, std::string::npos));
-    epsilon:sniper blyth$ 
+    epsilon:sniper blyth$
 
     061 ToolBase* AlgBase::findTool(const std::string& toolName)
      62 {
@@ -2724,10 +2724,10 @@ jcv DetSim1Construction::
      68     return nullptr;
      69 }
 
-    054 
+    054
      55         std::map<std::string, ToolBase*>  m_tools;
      56 };
-     57 
+     57
      58 template<typename Type>
      59 Type* AlgBase::tool(const std::string& toolName)
      60 {
@@ -2735,7 +2735,7 @@ jcv DetSim1Construction::
      62 }
 
     036 ToolBase* AlgBase::createTool(const std::string& toolName)
-     37 {   
+     37 {
      38     DLElement* obj = DLEFactory::instance().create(toolName);
      39     if ( obj != 0 ) {
      40         ToolBase* result = dynamic_cast<ToolBase*>(obj);
@@ -2755,7 +2755,7 @@ jcv DetSim1Construction::
      44         type = type.substr(0, pseg);
      45         nobj = nobj.substr(pseg+1, std::string::npos);
      46     }
-     47 
+     47
      48     Type2CreatorMap::iterator it = m_creators.find(type);
      49     if ( it != m_creators.end() ) {
      50         DLElement* result = (it->second)(nobj);
@@ -2763,13 +2763,13 @@ jcv DetSim1Construction::
      52         return result;
      53     }
 
-    049 
+    049
      50         typedef std::map<std::string, DLECreator> Type2CreatorMap;
-     51 
+     51
      52         //standard constructor
      53         DLEFactory();
      54         ~DLEFactory();
-     55 
+     55
      56         //members
      57         std::string      m_name;
      58         Type2CreatorMap  m_creators;
@@ -2792,7 +2792,7 @@ jcv DetSim1Construction::
     1630                 nnvt_mcp_pmt.property("FastCover").set(True)
     1631                 nnvt_mcp_pmt.property("FastCoverMaterial").set("Water")
     1632                 nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
-    1633 
+    1633
     1634                 hamamatsu_pmt = sim_conf.tool("HamamatsuR12860PMTManager/HamamatsuR12860")
     1635                 hamamatsu_pmt.property("FastCover").set(True)
     1636                 hamamatsu_pmt.property("FastCoverMaterial").set("Water")
@@ -2800,34 +2800,34 @@ jcv DetSim1Construction::
 
     1638             elif args.pmt20inch_extra == "TWO-mask":
 
-    //// THIS IS DEFAULT 
+    //// THIS IS DEFAULT
 
     1639                 log.info("TWO-mask . args.pmt20inch_extra %s " % args.pmt20inch_extra)
     1640                 nnvt_mcp_pmt = sim_conf.tool("NNVTMCPPMTManager/NNVTMCPPMT_PMT_20inch")
     1641                 nnvt_mcp_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
     1642                 nnvt_mcp_pmt.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
-    1643 
+    1643
     1644                 nnvt_mcp_mask = sim_conf.tool("NNVTMaskManager/NNVTMCPPMT")
     1645                 nnvt_mcp_mask.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
     1646                 nnvt_mcp_mask.property("UseRealMaskTail").set(args.real_mask_tail)
     1647                 nnvt_mcp_mask.property("UseMaskTailOpSurface").set(args.mask_tail_surface_enabled)
-    1648    
+    1648
     1649                 hamamatsu_pmt = sim_conf.tool("HamamatsuR12860PMTManager/HamamatsuR12860_PMT_20inch")
     1650                 hamamatsu_pmt.property("UsePMTOpticalModel").set(args.pmt_optical_model)
     1651                 hamamatsu_pmt.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
-    1652 
-    1653                 hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860")       
+    1652
+    1653                 hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860")
     1654                 hamamatsu_mask.property("UseRealSurface").set(args.real_surface_in_cd_enabled)
     1655                 hamamatsu_mask.property("UseRealMaskTail").set(args.real_mask_tail)
     1656                 hamamatsu_mask.property("UseMaskTailOpSurface").set(args.mask_tail_surface_enabled)
-    1657 
+    1657
     1658             else:
 
 
-    //// THE OBJECT NAMES ARISING FROM THE BELOW ARE CONFUSING AS THEY DO NOT INCLUDE "Mask" 
+    //// THE OBJECT NAMES ARISING FROM THE BELOW ARE CONFUSING AS THEY DO NOT INCLUDE "Mask"
     ////
     ////          nnvt_mcp_mask = sim_conf.tool("NNVTMaskManager/NNVTMCPPMT")
-    ////          hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860") 
+    ////          hamamatsu_mask = sim_conf.tool("HamamatsuMaskManager/HamamatsuR12860")
     ////
 
 
@@ -2836,7 +2836,7 @@ jcv DetSim1Construction::
      69             self.configure()
      70         if self._detsimalg.findTool(toolname):
      71             return self._detsimalg.findTool(toolname)
-     72 
+     72
      73         return self._detsimalg.createTool(toolname)
 
 
@@ -2848,11 +2848,11 @@ jcv HamamatsuR12860PMTManager::
      32 #else
      33 DECLARE_TOOL(HamamatsuR12860PMTManager);
      34 #endif
-      
+
 
 jcv NNVTMCPPMTManager::
 
-     40 #ifdef PMTSIM_STANDALONE 
+     40 #ifdef PMTSIM_STANDALONE
      41 #else
      42 DECLARE_TOOL(NNVTMCPPMTManager);
      43 #endif
@@ -2866,23 +2866,23 @@ SniperKernel/SniperKernel/ToolFactory.h::
 ::
 
      24 class DLElement;
-     25 
+     25
      26 struct SniperBookDLE
      27 {
      28     SniperBookDLE() = delete;
      29     SniperBookDLE(const SniperBookDLE&) = delete;
      30     SniperBookDLE& operator=(const SniperBookDLE&) = delete;
-     31 
+     31
      32     typedef DLElement* (*DLECreator)(const std::string&);
      33     SniperBookDLE(const std::string& type, DLECreator creator);
      34 };
-     35 
+     35
      36 #define SNIPER_DECLARE_DLE(DLEClass) \
      37 DLElement* sniper_DLE_##DLEClass##_creator_(const std::string& name) { \
      38    return new DLEClass(name); \
      39 } \
      40 SniperBookDLE sniper_book_DLE_##DLEClass##_(#DLEClass, &sniper_DLE_##DLEClass##_creator_)
-     41 
+     41
 
 
 
@@ -2890,7 +2890,7 @@ SniperKernel/SniperKernel/ToolFactory.h::
 Simulation/DetSimV2/PhysiSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* C + S genstep collection 
+* C + S genstep collection
 
 jcv LocalG4Cerenkov1042
 jcv DsG4Scintillation
@@ -2900,7 +2900,7 @@ jcv DsPhysConsOptical
 Simulation/DetSimV2/PMTSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* sensitive detector, calling G4Opticks::propagate, handling hits 
+* sensitive detector, calling G4Opticks::propagate, handling hits
 
 jcv junoSD_PMT_v2
 jcv junoSD_PMT_v2_Opticks
@@ -2911,7 +2911,7 @@ jcv PMTSDMgr
 Simulation/DetSimV2/AnalysisCode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-jcv G4OpticksAnaMgr      # top level passing to G4OpticksRecorder 
+jcv G4OpticksAnaMgr      # top level passing to G4OpticksRecorder
 
 
 Simulation/DetSimV2/DetSimOptions
@@ -2920,19 +2920,19 @@ Simulation/DetSimV2/DetSimOptions
 jcv DetSim0Svc
 jcv LSExpDetectorConstruction_Opticks
 
-    1. invokes G4Opticks::setEmbeddedCommandLineExtra(embedded_commandline_extra) using 
+    1. invokes G4Opticks::setEmbeddedCommandLineExtra(embedded_commandline_extra) using
        geospecific default argument : "--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3 --gdmlkludge"
        which can be overridden with LSXDC_GEOSPECIFIC
 
-    2. passes geometry to G4Opticks for translation 
+    2. passes geometry to G4Opticks for translation
 
 
 Simulation/GenTools
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 jcv GtOpticksTool
- 
-    Input photons mutate 
+
+    Input photons mutate
 
 
 Simulation/DetSimV2/AnalysisCode
@@ -2947,7 +2947,7 @@ Opticks Integration Classes
 jgr _Opticks
 
 
-JUNO Classes Particularly Pertinent to Opticks 
+JUNO Classes Particularly Pertinent to Opticks
 --------------------------------------------------
 
 jcv tut_detsim
@@ -2961,11 +2961,11 @@ jcv StrutAcrylicConstruction
 
 jcv StrutBar2AcrylicConstruction
 
-   sStrut : lSteel2 
+   sStrut : lSteel2
 
 jcv StrutBallheadAcrylicConstruction
 
-   sStrutBallhead : lSteel : G4Orb   
+   sStrutBallhead : lSteel : G4Orb
 
 jcv FastenerAcrylicConstruction
 
@@ -2973,12 +2973,12 @@ jcv FastenerAcrylicConstruction
 
 jcv UpperAcrylicConstruction
 
-   base_steel : lUpper : G4Polycone 
+   base_steel : lUpper : G4Polycone
 
 jcv AdditionAcrylicConstruction
 
    ~/opticks_refs/computing_csg_tree_boundaries_as_algebraic_expressions.pdf
-    
+
 jcv FastenerAcrylicConstruction
 
 jcv NNVTMCPPMTManager
@@ -2989,12 +2989,12 @@ jcv NNVT_MCPPMT_PMTSolid
 jcv HamamatsuR12860PMTManager
 
 jcv Hamamatsu_R12860_PMTSolid
-   
+
     G4VSolid* GetSolid(G4String solidname, double thickness=0.0, char mode=' ');
 
 jcv LSExpDetectorConstruction
 
-    
+
 jcv DsPhysConsOptical
 
 jcv tut_detsim
@@ -3006,14 +3006,14 @@ jcv JUNODetSimModule
 
 jcv junoSD_PMT_v2_Opticks
     Invokes Opticks GPU optical photon simulation at the EndOfEvent
-    Hit handling, conversion 
+    Hit handling, conversion
 
-jcv LSExpDetectorConstruction_Opticks 
+jcv LSExpDetectorConstruction_Opticks
     Setup function, geometry translation, collect efficiencies
- 
+
 jcv junoSD_PMT_v2
 
-jcv junoSD_PMT_v2_Debug 
+jcv junoSD_PMT_v2_Debug
 
 
 EOC
@@ -3022,63 +3022,63 @@ EOC
 
 
 
-# -false to end sequence of ors 
+# -false to end sequence of ors
 #
-# HMM jcl jcld fails when the * shell expansion find the files in the invoking directory 
+# HMM jcl jcld fails when the * shell expansion find the files in the invoking directory
 # as that messes up the find command
 # double quoting the f gets some way but somehow messes up other things
-# HENCE: use jcl jfi from top level where shell expansion will not find the files in the invoking directory 
+# HENCE: use jcl jfi from top level where shell expansion will not find the files in the invoking directory
 
-jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
-jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
-jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; } 
+jcld(){ local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ; echo find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; }
+jcl(){  local f="" ; for name in $* ; do f="$f -name $name.* -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; }
+jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      find . \( $f -false \) -a ! -path './*/Linux-x86_64/*' -a ! -path './build/*' ; }
 
 
 jps_add(){
     local extra
-    for extra in $* 
-    do 
+    for extra in $*
+    do
         case $extra in
            *.hh) drel=Simulation/DetSimV2/PMTSim/include ;;
-            *.h) drel=Simulation/DetSimV2/PMTSim/src     ;;   # local convention for private headers 
-           *.cc) drel=Simulation/DetSimV2/PMTSim/src     ;;  
+            *.h) drel=Simulation/DetSimV2/PMTSim/src     ;;   # local convention for private headers
+           *.cc) drel=Simulation/DetSimV2/PMTSim/src     ;;
         esac
-        echo cp $extra $JUNOTOP/offline/$drel/$extra 
+        echo cp $extra $JUNOTOP/junosw/$drel/$extra
     done
 }
 
 
 
-jcopy(){  
-   : copy classes from offline into PWD 
+jcopy(){
+   : copy classes from offline into PWD
    local dst=$PWD
-   local src=$JUNOTOP/offline
+   local src=$JUNOTOP/junosw
    cd $src
-   local rels=$(jcl $*)    # paths relative to PWD for all the class name arguments 
-   local rel 
-   local name 
+   local rels=$(jcl $*)    # paths relative to PWD for all the class name arguments
+   local rel
+   local name
    local path
    local cmd
    local spath
 
-   for rel in $rels 
-   do  
+   for rel in $rels
+   do
        name=$(basename $rel)
        path=$dst/$name
 
-       if [ ! -f "$path" ]; then 
+       if [ ! -f "$path" ]; then
            cmd="cp $rel $path"
            echo $cmd
-           eval $cmd 
-       fi  
-   done 
-   cd $dst 
+           eval $cmd
+       fi
+   done
+   cd $dst
 }
 
 
 jcopyback_notes(){ cat <<EON
 
-NB to actually do the copies must pipe the commands to sh 
+NB to actually do the copies must pipe the commands to sh
 
 ::
 
@@ -3096,33 +3096,33 @@ EON
 }
 
 jcopyback(){
-   : j/j.bash 
-   : emit copy commands to copy classes from PWD eg from jps back into offline SVN 
+   : j/j.bash
+   : emit copy commands to copy classes from PWD eg from jps back into offline SVN
 
    local iwd=$PWD
    local src=$iwd
    local dst=$JUNOTOP/junosw
    cd $dst
 
-   local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments 
-   local rel 
-   local name 
+   local rels=$(jcl $* | sort )    # paths relative to PWD for all the class name arguments
+   local rel
+   local name
    local path
    local cmd
    local spath
    local dpath
 
-   for rel in $rels 
-   do  
+   for rel in $rels
+   do
        name=$(basename $rel)
        spath=$src/$name
        dpath=$dst/$rel
 
-       if [ -f "$spath" ]; then 
+       if [ -f "$spath" ]; then
            cmd="cp $spath $dpath"
            echo $cmd
-       fi  
-   done 
+       fi
+   done
 
    cd $iwd
 }
@@ -3130,9 +3130,9 @@ jcopyback(){
 
 jdiff(){
 
-   : j/j.bash 
+   : j/j.bash
    : Compares files from current directory specified by stem arguments
-   : to files with same stems found under JUNOTOP/junosw : formerly offline 
+   : to files with same stems found under JUNOTOP/junosw : formerly offline
    : NB this must be run from the directory such as j/PMTSim with the modified files
 
    local iwd=$PWD
@@ -3140,26 +3140,26 @@ jdiff(){
    local src=$JUNOTOP/junosw
    cd $src
    local rels=$(jcl $*)
-   : rels are JUNOTOP/junosw relative paths 
+   : rels are JUNOTOP/junosw relative paths
 
-   local rel 
-   local name 
+   local rel
+   local name
    local path
    local cmd
    local spath
 
-   for rel in $rels 
-   do  
+   for rel in $rels
+   do
        name=$(basename $rel)
        path=$dst/$name
        spath=$src/$rel
-       if [ -f "$path" -a -f "$spath" ]; then 
+       if [ -f "$path" -a -f "$spath" ]; then
            cmd="diff $spath $path"
            echo $cmd
-       fi  
-   done 
-   cd $iwd   
-   # tis impolite to leave function without returning to initial dir 
+       fi
+   done
+   cd $iwd
+   # tis impolite to leave function without returning to initial dir
 }
 
 
@@ -3173,7 +3173,7 @@ jlibs-usage(){ cat << EOU
         lists selection of libs starting from ROOT
 
     jlibs- ROOT+
-        lists selection of libs starting from the lib after ROOT which is currently hepmc 
+        lists selection of libs starting from the lib after ROOT which is currently hepmc
 
 
     jlibs
@@ -3183,7 +3183,7 @@ jlibs-usage(){ cat << EOU
         build selection of libs starting from ROOT
 
     jlibs ROOT+
-        build selection of libs starting from the lib after ROOT which is currently hepmc 
+        build selection of libs starting from the lib after ROOT which is currently hepmc
 
 
 
@@ -3208,7 +3208,7 @@ jlibs-usage(){ cat << EOU
             4 drwxr-xr-x 35 blyth dyw 4096 Dec  3 02:59 ..
             4 drwxr-xr-x  2 blyth dyw 4096 Dec  3 02:59 .
             4 lrwxrwxrwx  1 blyth dyw  105 Dec  3 02:59 10.04.p02.juno -> /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs/Geant4/10.04.p02.juno
-            L7[blyth@lxslc701 junotop]$ 
+            L7[blyth@lxslc701 junotop]$
 
 
 
@@ -3224,17 +3224,17 @@ jlibs-()
    esac
 
    cd $JUNOTOP/junoenv;
-   local libs=$(bash junoenv libs list | perl -ne 'm, (\S*)@, && print "$1\n"' -); 
-   local sel=0   
+   local libs=$(bash junoenv libs list | perl -ne 'm, (\S*)@, && print "$1\n"' -);
+   local sel=0
    for sub in $libs;
    do
-       [ -z "$arg" ] && sel=1 
-       [ "${sub}" == "$first" -a "${mode}" == ":" ] && sel=1 
-       [ "${sub}" == "$first" -a "${mode}" == "+" ] && sel=2 
+       [ -z "$arg" ] && sel=1
+       [ "${sub}" == "$first" -a "${mode}" == ":" ] && sel=1
+       [ "${sub}" == "$first" -a "${mode}" == "+" ] && sel=2
        [ "$sel" == "1" ] && echo $sub
        [ "$sel" == "2" ] && sel=1
    done
-}   
+}
 
 jlibs()
 {
@@ -3244,7 +3244,7 @@ jlibs()
         echo $lib
         bash junoenv libs all $lib || return 1
    done
-   return 0 
+   return 0
 }
 
 
@@ -3264,23 +3264,23 @@ jcompiler()
     : sets    : JUNO_GCC_PREFIX, CC, CXX, FC
     : appends : PATH, LD_LIBRARY_PATH, MANPATH, INFOPATH
     :
-    
+
     source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/contrib/binutils/2.28/bashrc
 
     : sets    : JUNO_BINUTILS_PREFIX
     : appends : PATH, LD_LIBRARY_PATH, MANPATH, INFOPATH
-   
+
 }
 
 jlibs_oldtop()
 {
-    export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs 
+    export JUNO_EXTLIB_OLDTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J21v2r0-branch/ExternalLibs
 }
 
 
 j-sniper-hookup(){
    : curriously this is not how sniper is typically hooked up see j-runtime-env-
-   cat << EOA >> $JUNOTOP/bashrc.sh 
+   cat << EOA >> $JUNOTOP/bashrc.sh
 source $JUNOTOP/sniper/InstallArea/bashrc
 source $JUNOTOP/mt.sniper/InstallArea/bashrc
 EOA
@@ -3298,7 +3298,7 @@ jlibs_reuse()
         echo $lib
         bash junoenv libs reuse $lib || return 1
    done
-   return 0 
+   return 0
 }
 
 
@@ -3306,28 +3306,28 @@ jlibs_reuse()
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 
-jcv(){ cd $JUNOTOP/offline ; jcv- $* ; : edit files identified by stem ;  } 
-jfv(){ cd $JUNOTOP/offline ; jfv- $* ; : list files identified by wildcard ; } 
+jcv(){ cd $JUNOTOP/junosw ; jcv- $* ; : edit files identified by stem ;  }
+jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; }
 
-jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; } 
-jgr(){ cd $JUNOTOP/offline ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
+jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; }
+jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  }
 
 jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
-jgl(){ cd $JUNOTOP/offline ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
- 
-jt(){ cd $JUNOTOP ; pwd ; } 
-je(){ cd $JUNOTOP/junoenv && pwd ; } 
-#jo(){ cd $JUNOTOP/offline && pwd && git status ; } 
-jo(){ cd $JUNOTOP/junosw && pwd && git status ; } 
+jgl(){ cd $JUNOTOP/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; }
 
-jk(){ cd $JUNOTOP/opticks && pwd && git status ; } 
-js(){ cd $JUNOTOP/offline/Simulation/DetSimV2/$1 && pwd ; } 
-jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  } 
+jt(){ cd $JUNOTOP ; pwd ; }
+je(){ cd $JUNOTOP/junoenv && pwd ; }
+#jo(){ cd $JUNOTOP/junosw && pwd && git status ; }
+jo(){ cd $JUNOTOP/junosw && pwd && git status ; }
+
+jk(){ cd $JUNOTOP/opticks && pwd && git status ; }
+js(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/$1 && pwd ; }
+jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  }
 
 psi(){ js PMTSIM/src ; }
-#jb(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/cmt && pwd ; } 
-#jp(){ cd $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; } 
-td(){ vi $JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py ; }
+#jb(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/G4OpticksBridge/cmt && pwd ; }
+#jp(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/G4OpticksBridge/src/phys && pwd ; }
+td(){ vi $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py ; }
 jsd(){ jcv junoSD_PMT_v2 ; }
 jdsm(){ jcv JUNODetSimModule ; }
 
@@ -3346,7 +3346,7 @@ jpo(){  cd $HOME/j/PosFile    ; git status ; }
 #jcvv(){ jcv Hamamatsu_R12860_PMTSolid ; }
 jcvv(){ jcv NNVTMCPPMTManager NNVT_MCPPMT_PMTSolid HamamatsuR12860PMTManager Hamamatsu_R12860_PMTSolid ; }
 
-gb(){ cd $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 && pwd ; } 
+gb(){ cd $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 && pwd ; }
 
 jf(){
    type jt
@@ -3354,34 +3354,34 @@ jf(){
    type jo
    type js
    type psi
-   type jb  
+   type jb
    type jp
    type td
-   type gb  
+   type gb
 }
 
 
 jokc(){
     : list offline .cc WITH_G4OPTICKS
-    cd $JUNOTOP/offline
-    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
+    cd $JUNOTOP/junosw
+    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+
 }
 
 j-find-(){ cat << EOC
-find . -name '*.cc'  -exec grep -H G4OPTICKS {}  
-find . -name '*.cc'  -exec grep -H g4opticks {} 
-find . -name '*.cc'  -exec grep -H g4ok {} 
-find . -name '*.py'  -exec grep -H opticks {} 
+find . -name '*.cc'  -exec grep -H G4OPTICKS {}
+find . -name '*.cc'  -exec grep -H g4opticks {}
+find . -name '*.cc'  -exec grep -H g4ok {}
+find . -name '*.py'  -exec grep -H opticks {}
 EOC
 }
 
 j-find(){
     local line
-    cd $JUNOTOP/offline
-    j-find- | while read line ; do 
+    cd $JUNOTOP/junosw
+    j-find- | while read line ; do
         echo "$line \;"
         eval "$line \;"
-    done 
+    done
 }
 
 ################### INSTALLATION ###################################
@@ -3393,12 +3393,12 @@ j-install-open(){ open $(j-install-url) ; }
 j-install(){
     :   https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
     j-install-junotop
-    [ $? -ne 0 ] && return 1 
+    [ $? -ne 0 ] && return 1
     j-install-junoenv
     [ $? -ne 0 ] && return 2
-    j-install-preq 
+    j-install-preq
     [ $? -ne 0 ] && return 3
-    j-install-libs 
+    j-install-libs
     [ $? -ne 0 ] && return 4
     j-install-runtime
     [ $? -ne 0 ] && return 5
@@ -3414,32 +3414,32 @@ j-install(){
     j-install-opticks          ## does nothing without pre-requisite envvars
     [ $? -ne 0 ] && return 10
 
-    return 0 
+    return 0
 }
 
-j-install-junotop(){ 
+j-install-junotop(){
     local msg="=== $FUNCNAME :"
-    echo $msg JUNOTOP $JUNOTOP 
-    [ -z "$JUNOTOP" ] && echo $msg JUNOTOP is not defined && return 1 
-    mkdir -p $JUNOTOP ; 
+    echo $msg JUNOTOP $JUNOTOP
+    [ -z "$JUNOTOP" ] && echo $msg JUNOTOP is not defined && return 1
+    mkdir -p $JUNOTOP ;
     [ ! -d "$JUNOTOP" ] && echo $msg failed to create JUNOTOP dir && return 2
-    return 0 
+    return 0
 }
 j-install-junoenv(){
     local msg="=== $FUNCNAME :"
-    echo $msg 
+    echo $msg
     cd $JUNOTOP
-    if [ -d junoenv ]; then 
-        echo junoenv directory already exists 
-    else 
+    if [ -d junoenv ]; then
+        echo junoenv directory already exists
+    else
         svn co https://juno.ihep.ac.cn/svn/offline/trunk/installation/junoenv
-    fi 
-    [ ! -d junoenv ] && echo $msg failed to checkout junoenv && return 1 
+    fi
+    [ ! -d junoenv ] && echo $msg failed to checkout junoenv && return 1
     return 0
 }
 j-install-preq(){
     local msg="=== $FUNCNAME :"
-    echo $msg 
+    echo $msg
     cd $JUNOTOP/junoenv
     case $(uname -n) in
      lxslc*) echo $msg assuming preq are satisfied on $(uname -n)  ;;
@@ -3454,11 +3454,11 @@ j-install-libs-uninstalled(){   j-install-libs-list | perl -ne 'm, \[ \]\s*(\S*)
 j-install-lib-deps(){           j-install-libs-list | grep ${1}@ | perl -ne 'm,-\> (.*)$, && print "$1\n"' - ; }
 
 j-install-item-in-list(){
-    local item=$1 ; shift 
+    local item=$1 ; shift
     local list=$*
-    local x 
+    local x
     for x in $list ; do  [ "$item" == "$x" ] && return 0  ; done
-    return 1 
+    return 1
 }
 
 j-install-lib-canbuild(){
@@ -3467,13 +3467,13 @@ j-install-lib-canbuild(){
     local installed=$(j-install-libs-installed)
     local deps=$(j-install-lib-deps $lib)
     local dep
-    for dep in $deps ; do 
-        if [ "${dep:0:1}" != "+" ]; then     # skippin the + : is that appropriate 
-            j-install-item-in-list $dep $installed 
-            [ $? -eq 1 ] && echo $msg missing dependency $dep to build lib $lib && return 1 
-        fi 
+    for dep in $deps ; do
+        if [ "${dep:0:1}" != "+" ]; then     # skippin the + : is that appropriate
+            j-install-item-in-list $dep $installed
+            [ $? -eq 1 ] && echo $msg missing dependency $dep to build lib $lib && return 1
+        fi
     done
-    return 0 
+    return 0
 }
 
 j-install-lib(){
@@ -3483,13 +3483,13 @@ j-install-lib(){
 
     local mkr=$JUNOTOP/junoenv/.j-libs/$lib
     mkdir -p $(dirname $mkr)
-    if [ -f "$mkr" ]; then 
-        printf "$msg skipping %-20s as mkr exists : $mkr \n" $lib 
+    if [ -f "$mkr" ]; then
+        printf "$msg skipping %-20s as mkr exists : $mkr \n" $lib
     else
         j-install-lib-canbuild $lib
         [ $? -ne 0 ] && echo $msg cannot build lib $lib due to missing dependency && return 1
 
-        bash junoenv libs all $lib 
+        bash junoenv libs all $lib
         [ $? -ne 0 ] && echo $msg ERROR with lib $lib && return 1
         touch $mkr
     fi
@@ -3497,14 +3497,14 @@ j-install-lib(){
 
 j-install-libs(){
     local msg="=== $FUNCNAME :"
-    echo $msg 
+    echo $msg
     cd $JUNOTOP/junoenv
     local libs=$(j-install-libs-all)
-    for lib in $libs ; do 
+    for lib in $libs ; do
         j-install-lib $lib
-    done  
+    done
     return 0
-}    
+}
 
 j-install-runtime-()
 {
@@ -3512,18 +3512,18 @@ j-install-runtime-()
     cd $JUNOTOP/junoenv
     bash junoenv env
     [ ! -s "$runtime" ] && echo $msg failed to create runtime env file $runtime && return 1
-    return 0  
+    return 0
 }
 j-install-runtime()
 {
-    : setup the runtime environment script JUNOTOP/bashrc.sh 
+    : setup the runtime environment script JUNOTOP/bashrc.sh
     local runtime=$JUNOTOP/bashrc.sh
-    if [ ! -s "$runtime" ]; then 
+    if [ ! -s "$runtime" ]; then
         j-install-runtime-
-        [ $? -ne 0 ] && return 1 
-    fi 
+        [ $? -ne 0 ] && return 1
+    fi
     source $runtime
-    return 0 
+    return 0
 }
 
 j-install-runtime-resetup()
@@ -3556,14 +3556,14 @@ j-install-cmtlibs()
     local msg="=== $FUNCNAME :"
     cd $JUNOTOP/junoenv
     bash junoenv cmtlibs
-    [ $? -ne 0 ] && echo $msg failed cmtlibs && return 1 
+    [ $? -ne 0 ] && echo $msg failed cmtlibs && return 1
 
     cd $JUNOTOP/ExternalInterface/EIRelease/cmt/ && source setup.sh
-    [ $? -ne 0 ] && echo $msg failed EIRelease setup && return 2 
+    [ $? -ne 0 ] && echo $msg failed EIRelease setup && return 2
 
     cd $JUNOTOP/junoenv
 
-    return 0 
+    return 0
 }
 
 j-install-sniper()
@@ -3573,12 +3573,12 @@ j-install-sniper()
     local msg="=== $FUNCNAME :"
     cd $JUNOTOP/junoenv
     bash junoenv sniper
-    [ $? -ne 0 ] && echo $msg failed && return 1 
+    [ $? -ne 0 ] && echo $msg failed && return 1
 
     cd $JUNOTOP/sniper/SniperRelease/cmt/ && source setup.sh
     [ $? -ne 0 ] && echo $msg failed && return 2
 
-    return 0 
+    return 0
 }
 
 
@@ -3589,9 +3589,9 @@ j-install-offline()
     cd $JUNOTOP/junoenv
 
     bash junoenv offline
-    [ $? -ne 0 ] && echo $msg failed && return 1 
+    [ $? -ne 0 ] && echo $msg failed && return 1
 
-    return 0 
+    return 0
 }
 
 j-install-offline-data()
@@ -3602,9 +3602,9 @@ j-install-offline-data()
     cd $JUNOTOP/junoenv
 
     bash junoenv offline-data
-    [ $? -ne 0 ] && echo $msg failed && return 1 
+    [ $? -ne 0 ] && echo $msg failed && return 1
 
-    return 0 
+    return 0
 }
 
 
@@ -3615,33 +3615,33 @@ j-install-opticks-()
     local msg="=== $FUNCNAME :"
     cd $JUNOTOP/junoenv
     bash junoenv opticks
-    [ $? -ne 0 ] && echo $msg failed && return 1 
+    [ $? -ne 0 ] && echo $msg failed && return 1
 
-    return 0 
+    return 0
 }
 
 j-install-opticks-envdump()
 {
     local vars="OPTICKS_CUDA_PREFIX OPTICKS_OPTIX_PREFIX OPTICKS_COMPUTE_CAPABILITY"
     local var
-    for var in $vars ; do printf "%-30s : %s \n" $var ${!var} ; done 
+    for var in $vars ; do printf "%-30s : %s \n" $var ${!var} ; done
 }
 
 j-install-opticks()
 {
     local msg="=== $FUNCNAME: "
-    if 
+    if
         [ -n "$OPTICKS_CUDA_PREFIX" -a -d "$OPTICKS_CUDA_PREFIX" ] &&
         [ -n "$OPTICKS_OPTIX_PREFIX" -a -d "$OPTICKS_OPTIX_PREFIX" ] &&
-        [ -n "$OPTICKS_COMPUTE_CAPABILITY" ] 
-    then 
-        echo $msg environment looks ready to install opticks   
+        [ -n "$OPTICKS_COMPUTE_CAPABILITY" ]
+    then
+        echo $msg environment looks ready to install opticks
         j-install-opticks-envdump
         j-install-opticks-
     else
         echo $msg environment is not ready to install opticks
         j-install-opticks-envdump
-    fi 
+    fi
 }
 
 
@@ -3654,43 +3654,43 @@ EOI
 
 #####################  OFFLINE UPDATING ##################
 
-j-offline(){ 
+j-offline(){
     : building the offline
     cd $JUNOTOP/junoenv
     bash junoenv offline
 }
 
-j-opticks(){ 
+j-opticks(){
     : controlling opticks
     cd $JUNOTOP/junoenv
-    bash junoenv opticks $* 
+    bash junoenv opticks $*
 }
 
 
 
-j-offline-alt(){ 
+j-offline-alt(){
     : from junoenv-offline.sh:junoenv-offline-compile which is called by "bash junoenv offline"
-    cd $JUNOTOP/offline/JunoRelease/cmt
+    cd $JUNOTOP/junosw/JunoRelease/cmt
     cmt br cmt config
     source setup.sh
-    cmt br cmt make   
+    cmt br cmt make
 }
 
 j-make(){
    cmt br cmt config
    source setup.sh
-   #cmt br cmt make 
-   cmt make 
+   #cmt br cmt make
+   cmt make
 }
 
 j-cmtdirs-(){
    : list cmt directories in dependency order without the usual cmt guff
-   cd $JUNOTOP/offline/JunoRelease/cmt
+   cd $JUNOTOP/junosw/JunoRelease/cmt
    cmt br pwd | grep -v ^#
 }
-j-cmtdirs(){ 
-   : list cmt directories in dependency order with package not found warnings elided 
-   j-cmtdirs- 2>/dev/null 
+j-cmtdirs(){
+   : list cmt directories in dependency order with package not found warnings elided
+   j-cmtdirs- 2>/dev/null
 }
 
 
@@ -3700,25 +3700,25 @@ jok-cmtdirs(){
    : cmtdirs relative to JUNOTOP/offline in JunoRelease dependency order with files that contain WITH_G4OPTICKS
 
    local cache="$HOME/.jokdirs"
-   if [ -f "$cache" ]; then 
+   if [ -f "$cache" ]; then
        cat $cache
        return 0
-   fi 
+   fi
    local dirs=$(j-cmtdirs)
    local dir
-   local sel=() 
-   for dir in $dirs ; do 
+   local sel=()
+   for dir in $dirs ; do
        local ncc=$(find $dir/.. -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+ | wc -l)
-       if [ $ncc -gt 0 ]; then 
+       if [ $ncc -gt 0 ]; then
            local rel=${dir/$JUNOTOP\/offline\/}
            sel+=($rel)
        fi
-   done 
+   done
 
-   local s 
+   local s
    for s in ${sel[@]}; do echo $s ; done
 
-   if [ ! -f "$cache" ]; then 
+   if [ ! -f "$cache" ]; then
       for s in ${sel[@]}; do echo $s >> $cache ; done
    fi
 }
@@ -3749,7 +3749,7 @@ Changes need to be manually included into $JUNOTOP/junoenv/junoenv-opticks.sh ju
 Update the build with::
 
     O[blyth@localhost junoenv]$ bash junoenv opticks touchbuild
-    
+
 EON
 }
 
@@ -3765,8 +3765,8 @@ EOX
 
 jok-cc(){
     : list offline .cc WITH_G4OPTICKS
-    cd $JUNOTOP/offline
-    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+  
+    cd $JUNOTOP/junosw
+    find . -name '*.cc' -exec grep -l WITH_G4OPTICKS {} \+
 }
 
 
@@ -3784,24 +3784,24 @@ jok-touchbuild-(){
 
    local msg="=== $FUNCNAME :"
    echo $msg CMTEXTRATAGS : $CMTEXTRATAGS
-   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE $FUNCNAME && return 2 
+   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE $FUNCNAME && return 2
 
    local dir
    local rel
    echo $msg $*
-   for rel in $* ; do 
-       local dir=$JUNOTOP/offline/$rel
+   for rel in $* ; do
+       local dir=$JUNOTOP/junosw/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && return 1
        cd $dir
        pwd
    done
 
-   for rel in $* ; do 
+   for rel in $* ; do
 
-       local dir=$JUNOTOP/offline/$rel
+       local dir=$JUNOTOP/junosw/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && continue
        cd $dir
-       printf "\n\n\n ================== $(pwd) ==============\n\n\n" 
+       printf "\n\n\n ================== $(pwd) ==============\n\n\n"
 
        : cmt dependency check doesnt notice CMTEXTRATAGS so must touch to force recompile
        : somehow clean is not working to force recompile
@@ -3809,33 +3809,33 @@ jok-touchbuild-(){
        cmt config
        source setup.sh
 
-       touch $(grep -l WITH_G4OPTICKS ../src/*.cc) 
+       touch $(grep -l WITH_G4OPTICKS ../src/*.cc)
 
        #make clean
-       make  
-       [ $? -ne 0 ] && echo $msg make ERROR && break        
+       make
+       [ $? -ne 0 ] && echo $msg make ERROR && break
    done
    echo $msg CMTEXTRATAGS : $CMTEXTRATAGS
 
 }
 jok-make(){
-   local rel 
-   while read rel ; do  
-       local dir=$JUNOTOP/offline/$rel
+   local rel
+   while read rel ; do
+       local dir=$JUNOTOP/junosw/$rel
        [ ! -d "$dir" ] && echo $msg ERROR no such dir $dir && return 1
        cd $dir
        pwd
-       printf "\n\n\n ================== $(pwd) ==============\n\n\n" 
+       printf "\n\n\n ================== $(pwd) ==============\n\n\n"
 
 
        cmt config
        source setup.sh
 
-       touch $(grep -l WITH_G4OPTICKS ../src/*.cc) 
+       touch $(grep -l WITH_G4OPTICKS ../src/*.cc)
 
        #make clean
-       make  
-       [ $? -ne 0 ] && echo $msg make ERROR && break        
+       make
+       [ $? -ne 0 ] && echo $msg make ERROR && break
    done
 }
 
@@ -3845,8 +3845,8 @@ jok-dso(){ echo Simulation/DetSimV2/DetSimOptions/cmt | jok-make ; }
 
 ################### ENVIRONMENT ###################################
 
-j-g4(){  echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; } 
-j-okb(){ echo $JUNOTOP/offline/Simulation/DetSimV2/G4OpticksBridge ; }  # not currently used
+j-g4(){  echo $JUNOTOP/ExternalLibs/Build/geant4.10.04.p02 ; }
+j-okb(){ echo $JUNOTOP/junosw/Simulation/DetSimV2/G4OpticksBridge ; }  # not currently used
 
 
 j-runtime-env-notes(){  cat << EON
@@ -3869,13 +3869,13 @@ j-runtime-env-()
    local sniper_cmt_setup=$JUNOTOP/sniper/SniperRelease/cmt/setup.sh
    if [ -f $sniper_cmt_setup ]; then
        CMTEXTRATAGS= source $sniper_cmt_setup
-       source $JUNOTOP/offline/JunoRelease/cmt/setup.sh
-   else 
+       source $JUNOTOP/junosw/JunoRelease/cmt/setup.sh
+   else
        #source $JUNOTOP/sniper/InstallArea/share/sniper/setup.sh    # curious setting CMAKE_PREFIX_PATH to lib dir
        source $JUNOTOP/sniper/InstallArea/bashrc
        source $JUNOTOP/mt.sniper/InstallArea/bashrc
-       source $JUNOTOP/offline/InstallArea/setup.sh 
-   fi 
+       source $JUNOTOP/junosw/InstallArea/setup.sh
+   fi
 
    echo $msg
 }
@@ -3886,24 +3886,24 @@ j-runtime-env()
    local msg="=== $FUNCNAME: "
    local var=J_RUNTIME_ENV
    if [ -n "${!var}" ]; then
-       echo $msg skip as $var:${!var} use jre- or j-runtime-env- to force it 
-   else 
-       export $var=1 
+       echo $msg skip as $var:${!var} use jre- or j-runtime-env- to force it
+   else
+       export $var=1
        j-runtime-env-
    fi
 
 }
-jre(){  
-   j-runtime-env 
-   jo 
+jre(){
+   j-runtime-env
+   jo
    if [ -n "$OPTICKS_PREFIX" ]; then
-       : TODO add these settings to standard environment  
+       : TODO add these settings to standard environment
 
-       opticks- 
+       opticks-
 
        export PYTHONPATH=$PYTHONPATH:$JUNOTOP
 
-   fi   
+   fi
 }
 jre-(){ j-runtime-env- ; }
 
@@ -3915,7 +3915,7 @@ $JUNOTOP/bashrc.sh
     invokes bashrc of all the externals including ~/junotop/ExternalLibs/Opticks/0.1.0/bashrc
     that contains only::
 
-        source ${OPTICKS_TOP}/bin/opticks-setup.sh    
+        source ${OPTICKS_TOP}/bin/opticks-setup.sh
 
      TODO: avoid errors when have no OPTICKS_TOP
 
@@ -3927,8 +3927,8 @@ EON
 
 okt(){
    type $FUNCNAME
-   [ -z "$OPTICKS_KEY" ] && echo $msg MISSING MANDATORY OPTICKS_KEY envvar && return 1 
-   [ "$(which OKTest 2>/dev/null)" == "" ] && echo $msg missing opticks env use : oe- && return 2 
+   [ -z "$OPTICKS_KEY" ] && echo $msg MISSING MANDATORY OPTICKS_KEY envvar && return 1
+   [ "$(which OKTest 2>/dev/null)" == "" ] && echo $msg missing opticks env use : oe- && return 2
    #elog
 
    local args="OKTest --xanalytic --save --dbggsload --dumphit --dbggsdir /tmp/blyth/opticks/dbggs --printenabled --pindex ${P:-1000} "
@@ -3938,26 +3938,26 @@ okt(){
    mkdir -p $dir
    cd $dir
 
-   gdb__ $args 
+   gdb__ $args
 }
 
 gdb__(){
-   : j/j.bash prepares and invokes gdb - sets up breakpoints based on BP envvar containing space delimited symbols 
+   : j/j.bash prepares and invokes gdb - sets up breakpoints based on BP envvar containing space delimited symbols
    if [ -z "$BP" ]; then
-      H="" 
-      B="" 
-      T="-ex r" 
+      H=""
+      B=""
+      T="-ex r"
    else
       H="-ex \"set breakpoint pending on\""
-      B="" 
+      B=""
       for bp in $BP ; do B="$B -ex \"break $bp\" " ; done
-      T="-ex \"info break\" -ex r" 
+      T="-ex \"info break\" -ex r"
    fi
 
    local runline="gdb $H $B $T --args $* "
    echo $runline
    date
-   eval $runline 
+   eval $runline
    date
 }
 
@@ -3966,16 +3966,16 @@ gdb__(){
 ############################################# tds : tut_detsim.py runner #############################
 
 tds-label(){
-   local label="tds" 
-   local arg 
+   local label="tds"
+   local arg
    for arg in $* ; do
-       case $arg in  
+       case $arg in
            --no-guide_tube)           label="${label}_ngt" ;;
            --pmt20inch-polycone-neck) label="${label}_pcnk" ;;
            --pmt20inch-simplify-csg)  label="${label}_sycg" ;;
-       esac 
+       esac
    done
-   echo $label 
+   echo $label
 }
 
 
@@ -3987,29 +3987,29 @@ tds-elog-verbose(){
    export GMaterialLib=INFO
    export GPropertyLib=INFO
    export GGeoSensor=INFO
-   export CGenstepCollector=INFO 
-   export G4Opticks=INFO 
+   export CGenstepCollector=INFO
+   export G4Opticks=INFO
    export OKMgr=INFO
    export OKPropagator=INFO
-   export OpMgr=INFO 
-   export OpEngine=INFO 
-   export OpticksRun=INFO 
+   export OpMgr=INFO
+   export OpEngine=INFO
+   export OpticksRun=INFO
    export OpticksGen=INFO
-   export OEvent=INFO 
-   export OPropagator=INFO 
+   export OEvent=INFO
+   export OPropagator=INFO
    export OGeo=INFO
-   export GMesh=INFO 
+   export GMesh=INFO
    export OContext=INFO
 }
 
 tds-elog-quiet(){
-   export G4Opticks=INFO 
+   export G4Opticks=INFO
 }
 
 tds-ectrl-notes(){ cat << EON
 
-Control via envvar is appropriate only for temporary debugging. 
-Changes should be solidified into code ASAP, for example into 
+Control via envvar is appropriate only for temporary debugging.
+Changes should be solidified into code ASAP, for example into
 
    Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
 
@@ -4020,40 +4020,40 @@ tds-ectrl(){
    local msg="=== $FUNCNAME :"
    #export OPTICKS_RESOURCE_LAYOUT=2
 
-   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default  
-   #export OPTICKS_EMBEDDED_COMMANDLINE="dev"  
+   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default
+   #export OPTICKS_EMBEDDED_COMMANDLINE="dev"
    #export OPTICKS_EMBEDDED_COMMANDLINE=" --compute --embedded --xanalytic --save --natural --printenabled --pindex 0"
 
    local extra
    #extra="--dbggssave --dumphit --layout 100 --savesensor"
-   #extra="--dbggdmlpath $dbggdmlpath" 
+   #extra="--dbggdmlpath $dbggdmlpath"
    #extra="--rngmax 100"
    extra="--rngmax 100 --skipsolidname NNVTMCPPMTsMask_virtual,HamamatsuR12860sMask_virtual,mask_PMT_20inch_vetosMask_virtual -e ~8, --rtx 1 --cvd 1"
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
-   if [ -n "$extra" ]; then 
-       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
+   if [ -n "$extra" ]; then
+       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"
        echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
-   fi    
+   fi
 
    local lsxdc_geospecific
-   #local lsxdc_geospecific="--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3  --gdmlkludge" 
-    
+   #local lsxdc_geospecific="--way --pvname pAcrylic --boundary Water///Acrylic --waymask 3  --gdmlkludge"
+
    unset LSXDC_GEOSPECIFIC
-   if [ -n "${lsxdc_geospecific}" ]; then  
-       export LSXDC_GEOSPECIFIC=${lsxdc_geospecific} 
-       echo $msg LSXDC_GEOSPECIFIC ${LSXDC_GEOSPECIFIC} 
+   if [ -n "${lsxdc_geospecific}" ]; then
+       export LSXDC_GEOSPECIFIC=${lsxdc_geospecific}
+       echo $msg LSXDC_GEOSPECIFIC ${LSXDC_GEOSPECIFIC}
    fi
 
    unset PMTEfficiencyCheck_dump
    unset PMTEfficiencyCheck_assert_match
-   #export PMTEfficiencyCheck_dump=1 
-   #export PMTEfficiencyCheck_assert_match=1 
+   #export PMTEfficiencyCheck_dump=1
+   #export PMTEfficiencyCheck_assert_match=1
 
 }
 
 
-tds-grab(){  
+tds-grab(){
     local outbase=/tmp/$USER/opticks/tds
     mkdir -p $outbase
     local cmd="rsync -rtz --progress P:$outbase/ $outbase/"
@@ -4066,15 +4066,15 @@ tds-grab(){
 
 tds0(){
    : run with opticks disabled
-   #local former_opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;   
-   local opts="--opticks-mode 0 --no-guide_tube --evtmax 2 " ;   
+   #local former_opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 " ;
+   local opts="--opticks-mode 0 --no-guide_tube --evtmax 2 " ;
    tds- $opts gun $*
 }
 
 tds2(){
    : run with opticks disabled, but with Opticks provided intrumentation used to save info from Geant4 in OpticksEvent format files
-   #local former_opts="--opticks-mode 2 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;   
-   local opts="--opticks-mode 2 --no-guide_tube --evtmax 2 --opticks-anamgr" ;   
+   #local former_opts="--opticks-mode 2 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 2 --opticks-anamgr" ;
+   local opts="--opticks-mode 2 --no-guide_tube --evtmax 2 --opticks-anamgr" ;
    tds- $opts gun $*
 }
 
@@ -4095,7 +4095,7 @@ EOU
 
 yuxiang()
 {
-   local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py 
+   local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
    gdb --args \
        python $script \
        --opticks-mode 1 \
@@ -4113,7 +4113,7 @@ yuxiang()
        --no-anamgr-interesting-process \
        --no-anamgr-optical-parameter \
        --no-anamgr-timer \
-       gun  
+       gun
 }
 
 
@@ -4123,11 +4123,11 @@ tds3mu(){
    export OPTICKS_EVENT_PFX=tds3mu
    unset INPUT_PHOTON_PATH
 
-   local outdir="/tmp/G4OpticksAnaMgr" 
+   local outdir="/tmp/G4OpticksAnaMgr"
    mkdir -p $outdir
    export G4OpticksAnaMgr_outdir=$outdir
 
-   tds3 --particles mu- --momentums 215000 
+   tds3 --particles mu- --momentums 215000
 }
 
 
@@ -4136,7 +4136,7 @@ tds3gun(){
    export OPTICKS_EVENT_PFX=tds3gun
    unset INPUT_PHOTON_PATH
 
-   local outdir="/tmp/G4OpticksAnaMgr" 
+   local outdir="/tmp/G4OpticksAnaMgr"
    mkdir -p $outdir
    export G4OpticksAnaMgr_outdir=$outdir
 
@@ -4144,24 +4144,24 @@ tds3gun(){
 }
 
 tds3ip(){
-   #local name="RandomSpherical10" 
-   #local name="CubeCorners" 
-   #local name="CubeCorners10x10" 
-   #local name="CubeCorners100x100" 
+   #local name="RandomSpherical10"
+   #local name="CubeCorners"
+   #local name="CubeCorners10x10"
+   #local name="CubeCorners100x100"
    local name="InwardsCubeCorners17699"
 
    local path="$HOME/.opticks/InputPhotons/${name}.npy"
-   #local path=/tmp/check_innerwater_bulk_absorb.npy 
+   #local path=/tmp/check_innerwater_bulk_absorb.npy
 
    export OPTICKS_EVENT_PFX=tds3ip
    export INPUT_PHOTON_PATH=$path
-   export INPUT_PHOTON_REPEAT=10000  
-   : 100k repeat falls foul of Geant4 big primary slowdown  
+   export INPUT_PHOTON_REPEAT=10000
+   : 100k repeat falls foul of Geant4 big primary slowdown
    #export INPUT_PHOTON_WAVELENGTH=360,380,400,420,440,460,480
    export INPUT_PHOTON_WAVELENGTH=440
    export EVTMAX=7
 
-   tds3 
+   tds3
 }
 
 tds3dbg()
@@ -4216,15 +4216,15 @@ EON
 
 
 tds3(){
-   : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation  
-   : tds3 args now passed along to tut_detsim.py not the embedded opticks as previously 
+   : both opticks and geant4 optical simulations with --opticks-anamgr to provide OpticksEvent G4OpticksRecorder instrumentation to the Geant4 simulation
+   : tds3 args now passed along to tut_detsim.py not the embedded opticks as previously
 
-   local args=$*     
+   local args=$*
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
 
-   local opts="" 
-   opts="$opts --opticks-mode 3"   
+   local opts=""
+   opts="$opts --opticks-mode 3"
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
 
@@ -4238,24 +4238,24 @@ tds3(){
 
    if [ -n "$DEBUG_DISABLE_STICKS" ]; then
        opts="$opts --debug-disable-sticks"
-   fi 
+   fi
 
 
    tds_ls
-   tds_ctrl_ls 
+   tds_ctrl_ls
 
-   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default with --nosave   
-   export OPTICKS_EMBEDDED_COMMANDLINE="dev"    # with --save 
+   #export OPTICKS_EMBEDDED_COMMANDLINE="pro"   # default with --nosave
+   export OPTICKS_EMBEDDED_COMMANDLINE="dev"    # with --save
 
    local extra
    #extra="--rngmax 100"
    extra="--skipsolidname $(tds-skipsolidname)"
-   #extra="$extra -e ~8,"  
+   #extra="$extra -e ~8,"
    extra="$extra --rtx 1"
 
-   case $USER in 
+   case $USER in
       blyth) extra="$extra --cvd 1" ;;
-   esac 
+   esac
 
    local dindex=${DINDEX}
    local dbgseqhis=${DBGSEQHIS}
@@ -4263,11 +4263,11 @@ tds3(){
 
    if [ -n "$dindex" ]; then
       extra="$extra --dindex $dindex "
-   fi 
-   
+   fi
+
    if [ -n "$dbgseqhis" ]; then
       extra="$extra --dbgseqhis $dbgseqhis "
-   fi 
+   fi
 
    if [ -n "$dbgseqmat" ]; then
       extra="$extra --dbgseqmat $dbgseqmat "
@@ -4275,33 +4275,33 @@ tds3(){
 
 
    unset OPTICKS_EMBEDDED_COMMANDLINE_EXTRA
-   if [ -n "$extra" ]; then 
-       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"  
+   if [ -n "$extra" ]; then
+       export OPTICKS_EMBEDDED_COMMANDLINE_EXTRA="$extra"
        echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : ${OPTICKS_EMBEDDED_COMMANDLINE_EXTRA}
    else
-       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : not defined  
-   fi    
+       echo $msg OPTICKS_EMBEDDED_COMMANDLINE_EXTRA : not defined
+   fi
 
-   local input_photon_path=${INPUT_PHOTON_PATH} 
-   local input_photon_repeat=${INPUT_PHOTON_REPEAT} 
-   local input_photon_wavelength=${INPUT_PHOTON_WAVELENGTH} 
+   local input_photon_path=${INPUT_PHOTON_PATH}
+   local input_photon_repeat=${INPUT_PHOTON_REPEAT}
+   local input_photon_wavelength=${INPUT_PHOTON_WAVELENGTH}
 
    local trgs=""
-   if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then 
+   if [ -n "${input_photon_path}" -a -f "${input_photon_path}" ]; then
        trgs="$trgs opticks --input-photon-path ${input_photon_path}"
        if [ -n "${input_photon_repeat}" ]; then
            trgs="$trgs --input-photon-repeat ${input_photon_repeat}"
-       fi 
+       fi
        if [ -n "${input_photon_wavelength}" ]; then
            trgs="$trgs --input-photon-wavelength ${input_photon_wavelength}"
-       fi 
+       fi
    else
        trgs="$trgs gun"
-   fi 
+   fi
 
-   echo $msg opts : $opts 
-   echo $msg trgs : $trgs 
-   echo $msg args : atrgs 
+   echo $msg opts : $opts
+   echo $msg trgs : $trgs
+   echo $msg args : atrgs
 
    tds- $opts $trgs $args
 }
@@ -4318,29 +4318,29 @@ logging(){
 debug(){
    export GEOM=J005
    export OPTICKS_EVENT_MODE=StandardFullDebug
-   #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM  
-   export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM  
-   export G4CXOpticks__simulate_saveEvent=1 
+   #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
+   export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+   export G4CXOpticks__simulate_saveEvent=1
 
 }
 
 
-ntds0_old(){ OPTICKS_MODE=0 ntds3_old ; }  #0b00   Ordinary running without Opticks involved at all  
-ntds1_old(){ OPTICKS_MODE=1 ntds3_old ; }  #0b01   Running with only Opticks doing the optical propagation 
-                                    #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used 
+ntds0_old(){ OPTICKS_MODE=0 ntds3_old ; }  #0b00   Ordinary running without Opticks involved at all
+ntds1_old(){ OPTICKS_MODE=1 ntds3_old ; }  #0b01   Running with only Opticks doing the optical propagation
+                                    #       but U4RecorderTest running superceeds that :  perhaps assert that this mode is not used
 ntds3_old()  # see jx.bash for the new one  #0b11   Running with both Geant4 and Opticks optical propagation
 {
    env | grep =INFO
 
-   local args=$*     
+   local args=$*
    local msg="=== $FUNCNAME :"
    local evtmax=${EVTMAX:-2}
    local mode=${OPTICKS_MODE:-3}
 
-   export SCRIPT=${SCRIPT:-$FUNCNAME} 
+   export SCRIPT=${SCRIPT:-$FUNCNAME}
 
-   local opts="" 
-   opts="$opts --opticks-mode $mode"   
+   local opts=""
+   opts="$opts --opticks-mode $mode"
    opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --disable-pmt-optical-model"
@@ -4349,19 +4349,19 @@ ntds3_old()  # see jx.bash for the new one  #0b11   Running with both Geant4 and
 
    if [ -n "$DEBUG_DISABLE_STICKS" ]; then
        opts="$opts --debug-disable-sticks"
-   fi 
+   fi
 
    local trgs=""
    trgs="$trgs gun"
 
-   echo $msg opts : $opts 
-   echo $msg trgs : $trgs 
-   echo $msg args : atrgs 
+   echo $msg opts : $opts
+   echo $msg trgs : $trgs
+   echo $msg args : atrgs
 
-   #BASE=/tmp/$USER/opticks/$SCRIPT   
-   BASE=.opticks/$SCRIPT   
+   #BASE=/tmp/$USER/opticks/$SCRIPT
+   BASE=.opticks/$SCRIPT
 
-   case $(uname) in 
+   case $(uname) in
       Linux) tds- $opts $trgs $args  ;;
       Darwin) source $OPTICKS_HOME/bin/rsync.sh $BASE ;;
    esac
@@ -4385,7 +4385,7 @@ tds_ctrl_unset(){ VNAME=tds_ctrl tds_unset ; }
 
 
 
-# logging evar control 
+# logging evar control
 tds_log_(){ cat << EOV
 G4Opticks
 G4OpticksRecorder
@@ -4403,56 +4403,56 @@ EOV
 
 tds_on(){  tds_log_ |  grep  -v ^\#  ; }
 tds_off(){ tds_log_ |  grep  ^\#  | tr "\#" " " ;  }
-tds_all(){ tds_on ; tds_off ; } 
+tds_all(){ tds_on ; tds_off ; }
 
-tds_ls(){     for var in $(${VNAME:-tds_all}) ; do printf "%20s : [%s] \n"  $var ${!var} ; done ; } 
-tds_export(){ for var in $(${VNAME:-tds_on})  ; do export $var=INFO                      ; done ; }   
-tds_unset(){  for var in $(${VNAME:-tds_off}) ; do unset $var                            ; done ; } 
-tds_log(){  
-    : exports/unsets logging evars according to tds_log_ commenting  
-    tds_export 
-    tds_unset 
-    tds_ls 
-}   
+tds_ls(){     for var in $(${VNAME:-tds_all}) ; do printf "%20s : [%s] \n"  $var ${!var} ; done ; }
+tds_export(){ for var in $(${VNAME:-tds_on})  ; do export $var=INFO                      ; done ; }
+tds_unset(){  for var in $(${VNAME:-tds_off}) ; do unset $var                            ; done ; }
+tds_log(){
+    : exports/unsets logging evars according to tds_log_ commenting
+    tds_export
+    tds_unset
+    tds_ls
+}
 
 
 
 tds-mu(){ tds --particles mu- --momentums 215000 ; }
-tds(){ 
-   #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
-   #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"  
-   #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"  
-   #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"  
+tds(){
+   #local opts="--opticks-mode 0 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
+   #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --evtmax 2"
+   #local opts="--opticks-mode 1 --no-guide_tube --pmt20inch-polycone-neck --pmt20inch-simplify-csg --evtmax 10"
+   #local opts="--opticks-mode 1 --no-guide_tube --evtmax 2"
 
-   local opts="--opticks-mode 1 --no-guide_tube --evtmax 10"  
+   local opts="--opticks-mode 1 --no-guide_tube --evtmax 10"
 
    tds-elog-quiet
-   tds-ectrl 
+   tds-ectrl
 
    tds- $opts gun $*
 }
 
-tds-(){ 
+tds-(){
    type $FUNCNAME
    local msg="=== $FUNCNAME :"
 
-   if [ "${CMTEXTRATAGS/opticks}" != "${CMTEXTRATAGS}" ]; then 
+   if [ "${CMTEXTRATAGS/opticks}" != "${CMTEXTRATAGS}" ]; then
        echo $msg CMTEXTRATAGS $CMTEXTRATAGS contains opticks
        #[ -z "$OPTICKS_TOP" ] && echo $msg OPTICKS_TOP is not defined && return 1
    fi
 
-   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2 
- 
-   local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py
+   [ -z "$J_RUNTIME_ENV" ]  && echo $msg MUST RUN jre BEFORE tds && return 2
+
+   local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
    if [ -z "$BP" ]; then
-      H="" 
-      B="" 
-      T="-ex r" 
+      H=""
+      B=""
+      T="-ex r"
    else
       H="-ex \"set breakpoint pending on\""
-      B="" 
+      B=""
       for bp in $BP ; do B="$B -ex \"break $bp\" " ; done
-      T="-ex \"info break\" -ex r" 
+      T="-ex \"info break\" -ex r"
    fi
 
    local iwd=$PWD
@@ -4461,15 +4461,15 @@ tds-(){
    cd $dir
 
    local runline
-   if [ -n "$PDB" ]; then 
+   if [ -n "$PDB" ]; then
        runline="ipython --pdb $script $*"
    else
        runline="gdb $H $B $T --args python $script $*"
-   fi 
+   fi
 
    echo $runline
    date
-   eval $runline 
+   eval $runline
    date
    cd $iwd
 
@@ -4478,7 +4478,7 @@ tds-(){
 }
 
 tds-gdb-(){
-   local script=$JUNOTOP/offline/Examples/Tutorial/share/tut_detsim.py
+   local script=$JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py
    local runline="gdb --args python $script $*"
    echo $runline
    eval $runline
@@ -4487,7 +4487,7 @@ tds-gdb-(){
 
 
 tds-csg-ggeo-reminder(){  cat << EOR
-    
+
 tds-csg-ggeo-reminder
 =======================
 
@@ -4495,27 +4495,27 @@ Recall that creation of CSG/CSGFoundry geometries for CSGOptiX usage with NVIDIA
 
 Following tds running that changes geometry you must remember to:
 
-1. update the OPTICKS_KEY envvar in .bash_profile etc.. if the 
+1. update the OPTICKS_KEY envvar in .bash_profile etc.. if the
    geometry change caused the key envvar digest to differ
 
-2. run the conversion from geocache into CSG_GGeo which is 
+2. run the conversion from geocache into CSG_GGeo which is
    now housed within the geocache directory identified by OPTICKS_KEY::
 
-      cd ~/opticks/CSG_GGeo   # cg 
+      cd ~/opticks/CSG_GGeo   # cg
       ./run.sh                # should takes less than 5 seconds even for large geometries
 
-   * NB even when the OPTICKS_KEY is unchanged it is still necessary to 
-     update the CSG geometry in order to propagate geometry changes into CSG 
+   * NB even when the OPTICKS_KEY is unchanged it is still necessary to
+     update the CSG geometry in order to propagate geometry changes into CSG
 
    * after doing this renders created with the various CSGOptiX render scripts
-     should reflect the updated geometry 
+     should reflect the updated geometry
 
 
-TODO: 
-    automate cg running at bash level, as interim fix prior to being able to do it 
-    properly at C++ level (which must wait until have made the leap to 7) 
-    by autodetecting that the b7 opticks-build7 has been used and simply running 
-    scripts at the tail of tds-  
+TODO:
+    automate cg running at bash level, as interim fix prior to being able to do it
+    properly at C++ level (which must wait until have made the leap to 7)
+    by autodetecting that the b7 opticks-build7 has been used and simply running
+    scripts at the tail of tds-
 
 
 EOR
@@ -4528,7 +4528,7 @@ tds-cd(){ cd $(tds-dir) ; }
 
 ############################## tds runners with various breakpoints #########################
 
-tdsA(){ BP=R12860PMTManager::R12860PMTManager     tds ; } 
+tdsA(){ BP=R12860PMTManager::R12860PMTManager     tds ; }
 
 tdsB-(){ cat << EOB
 G4Torus::G4Torus
@@ -4541,8 +4541,8 @@ tdsB(){ BP="$(tds2-)" tds ; }
 tdsC-(){
    : breakpoint signatures of PMTSolid ctors
    local iwd=$PWD
-   cd $JUNOTOP/offline/Simulation/DetSimV2/PMTSim/src
-   ls -1 *_PMTSolid.cc | perl -p -e 's,(\S*).cc,$1::$1,' - 
+   cd $JUNOTOP/junosw/Simulation/DetSimV2/PMTSim/src
+   ls -1 *_PMTSolid.cc | perl -p -e 's,(\S*).cc,$1::$1,' -
    cd $iwd
 }
 tdsC(){ BP="$(tdsC-)" tds ; }
