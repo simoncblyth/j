@@ -4571,3 +4571,6 @@ tdsE(){ BP="$(tdsE-)" tds ; }
 ###########################################################################################
 
 [ "$DBG" == "1" ] && dbg_tail $BASH_SOURCE
+
+# jx.bash is meant to replace j.bash
+source $HOME/j/jx.bash
