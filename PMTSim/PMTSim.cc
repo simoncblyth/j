@@ -33,6 +33,7 @@
 
 #include "FastenerAcrylicConstruction.hh"
 
+#include "WaterPoolConstruction.hh"
 
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
@@ -702,6 +703,7 @@ PMTSim::PMTSim()
     SJRC_STR(SJRC),  
     SJRF_STR(SJRF),  
     FACR_STR(FACR),
+    WPCO_STR(WPCO),
     m_dc(nullptr),
     m_hama(nullptr),
     m_nnvt(nullptr),
@@ -715,7 +717,8 @@ PMTSim::PMTSim()
     m_sjfx(nullptr),
     m_sjrc(nullptr),
     m_sjrf(nullptr),
-    m_facr(nullptr)
+    m_facr(nullptr),
+    m_wpco(nullptr)
 {
     init(); 
 }
@@ -781,6 +784,9 @@ void PMTSim::init()
         m_facr = new FastenerAcrylicConstruction(FACR_STR) ; 
         m_facr->getLV(); 
 
+        m_wpco = new WaterPoolConstruction(WPCO_STR) ;
+        m_wpco->getLV();
+
         // TO SEE OUTPUT IF THE ABOVE WITHOUT SETTING VERBOSE : MOVE OUTSIDE THIS CAPTURE BLOCK
         // dtors of the redirect structs reset back to standard cout/cerr streams  
     }    
@@ -814,7 +820,8 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     bool sjfx = StartsWithPrefix(name, SJFX ); 
     bool sjrc = StartsWithPrefix(name, SJRC ); 
     bool sjrf = StartsWithPrefix(name, SJRF ); 
-    bool facr = StartsWithPrefix(name, FACR ); 
+    bool facr = StartsWithPrefix(name, FACR );
+    bool wpco = StartsWithPrefix(name, WPCO );
 
     int check = 0 ; 
     if(hama) check += 1 ; 
@@ -830,7 +837,8 @@ bool PMTSim::HasManagerPrefix( const char* name ) // static
     if(sjfx) check += 1 ; 
     if(sjrc) check += 1 ; 
     if(sjrf) check += 1 ; 
-    if(facr) check += 1 ; 
+    if(facr) check += 1 ;
+    if(wpco) check += 1 ;
 
     assert( check == 0 || check == 1 ) ;  
     return check == 1 ; 
@@ -870,7 +878,8 @@ IGeomManager* PMTSim::getManager(const char* geom)
     bool sjfx = StartsWithPrefix(geom, SJFX ); 
     bool sjrc = StartsWithPrefix(geom, SJRC ); 
     bool sjrf = StartsWithPrefix(geom, SJRF ); 
-    bool facr = StartsWithPrefix(geom, FACR ); 
+    bool facr = StartsWithPrefix(geom, FACR );
+    bool wpco = StartsWithPrefix(geom, WPCO );
 
     if(hama) mgr = m_hama ; 
     if(nnvt) mgr = m_nnvt ; 
@@ -884,7 +893,8 @@ IGeomManager* PMTSim::getManager(const char* geom)
     if(sjfx) mgr = m_sjfx ; 
     if(sjrc) mgr = m_sjrc ; 
     if(sjrf) mgr = m_sjrf ; 
-    if(facr) mgr = m_facr ; 
+    if(facr) mgr = m_facr ;
+    if(wpco) mgr = m_wpco ;
 
     if(mgr == nullptr)
     {

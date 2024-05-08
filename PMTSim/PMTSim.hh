@@ -29,6 +29,8 @@ class SJReceiverFasternConstruction ;
 
 class FastenerAcrylicConstruction ;
 
+class WaterPoolConstruction;
+
 struct IGeomManager ; 
 
 #include "PMTSIM_API_EXPORT.hh"
@@ -63,6 +65,9 @@ struct PMTSIM_API PMTSim
 
     static constexpr const char* FACR = "facr" ; 
 
+    /// WaterPoolConstruction
+    static constexpr const char* WPCO = "wpco" ;
+
     const std::string HMSK_STR ;  
     const std::string NMSK_STR ;  
     const std::string LCHI_STR ;  
@@ -77,6 +82,9 @@ struct PMTSIM_API PMTSim
     const std::string SJRF_STR ;  
 
     const std::string FACR_STR ;  
+
+    /// WaterPoolConstruction string
+    const std::string WPCO_STR ;
 
     static G4VSolid* GetSolid();  // arg from GEOM envvar  
     static G4VSolid* GetSolid(const char* name); 
@@ -139,6 +147,7 @@ struct PMTSIM_API PMTSim
 
     FastenerAcrylicConstruction*    m_facr ; 
 
+    WaterPoolConstruction*          m_wpco ;
 
     static bool HasManagerPrefix( const char* name ); 
     IGeomManager* getManager(const char* name); 
