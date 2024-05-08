@@ -30,6 +30,7 @@ LSExpDetectorConstructionMaterial.icc
 #include "DetectorConstruction.hh"
 #include "MaterialSvc.hh"
 
+#include "G4Version.hh"
 
 DetectorConstruction::DetectorConstruction()
    :
@@ -66,7 +67,11 @@ bool DetectorConstruction::helper_mpt(G4MaterialPropertiesTable* MPT, const std:
     for (int i = 0; i < N; ++i) {
         vec->InsertValues(props[i].get<0>(), props[i].get<1>()*scale);
     }
+#if G4VERSION_NUMBER < 1100
     MPT->AddProperty(mname.c_str(), vec);
+#else
+    MPT->AddProperty(mname.c_str(), vec, true);
+#endif
 
 
     std::cout 
