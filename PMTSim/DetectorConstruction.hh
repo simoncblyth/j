@@ -38,6 +38,7 @@ struct PMTSIM_API DetectorConstruction
      G4Material* ETFE;         // Detector material
      G4Material* FEP;         // Detector material
      G4Material* PE_PA;          // Default material PE/PA--Nylon
+     G4Material* Black_HDPE;          // Default material HDPE C2H4 0.94*g/cm^3
      G4Material* PA;          // Default material---Nylon
      G4Material* Photocathode_mat;
      G4Material* Steel;
@@ -53,6 +54,7 @@ struct PMTSIM_API DetectorConstruction
      G4Material* Oil;
      G4Material* Water;
      G4Material* vetoWater;
+     G4Material* DeadWater;
      G4Material* Rock;
      G4Material* Copper;
 

@@ -66,6 +66,7 @@ include_directories($ENV{JUNOTOP}/junosw/Detector/Identifier)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src)  # for ZSolid.h 
 
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/include)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/src)
 
 
 # HMM: ABOVE IS PICKING UP FROM SOURCE DIRS NOT FROM INSTALL DIRS junosw/InstallArea/include
