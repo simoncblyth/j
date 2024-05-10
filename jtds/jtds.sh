@@ -26,8 +26,8 @@ SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
 
 export REMOTE=${REMOTE:-P}
-export L_TMP=/hpcfs/juno/junogpu/blyth/tmp
-export P_TMP=/data/blyth/opticks    # HOME/tmp on P is symbolic link to /data/blyth/opticks 
+export L_TMP=${L_TMP:/tmp/l_tmp}
+export P_TMP=${P_TMP:/tmp/opticks}
 # using local laptop directories that duplicate the remote ones
 
 TMPVAR=${REMOTE}_TMP

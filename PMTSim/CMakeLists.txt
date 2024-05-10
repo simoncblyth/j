@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-set(name PMTSim)
+set(name PMTSim_standalone)
 project(${name} VERSION 0.1.0)
 include(OpticksBuildOptions)
 
@@ -64,6 +64,9 @@ include_directories($ENV{JUNOTOP}/junosw/Detector/Geometry)
 include_directories($ENV{JUNOTOP}/junosw/Utilities/EGet)
 include_directories($ENV{JUNOTOP}/junosw/Detector/Identifier)
 include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/PMTSim/src)  # for ZSolid.h 
+
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/include)
+include_directories($ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/src)
 
 
 # HMM: ABOVE IS PICKING UP FROM SOURCE DIRS NOT FROM INSTALL DIRS junosw/InstallArea/include
@@ -141,6 +144,9 @@ list(APPEND SOURCES
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Layer.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Matrix.cc
      $ENV{JUNOTOP}/junosw/Simulation/SimSvc/MultiFilmSimSvc/src/Material.cc
+
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/src/GlobalGeomInfo.cc
+     $ENV{JUNOTOP}/junosw/Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc
 
 
      # TRY moving to common sources (different options) for junosw/PMTSim and j/PMTSim 
