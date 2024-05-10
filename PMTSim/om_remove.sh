@@ -20,74 +20,66 @@ EOU
 }
 
 paths(){ cat << EOP
-/usr/local/opticks/lib/libPMTSim.dylib
-/usr/local/opticks/lib/pkgconfig/PMTSim.pc
-/usr/local/opticks/lib/cmake/pmtsim/properties-pmtsim-targets.cmake
-/usr/local/opticks/lib/cmake/pmtsim/pmtsim-targets.cmake
-/usr/local/opticks/lib/cmake/pmtsim/pmtsim-targets-debug.cmake
-/usr/local/opticks/lib/cmake/pmtsim/pmtsim-config.cmake
-/usr/local/opticks/lib/cmake/pmtsim/pmtsim-config-version.cmake
-/usr/local/opticks/include/PMTSim/PMTSIM_API_EXPORT.hh
-/usr/local/opticks/include/PMTSim/ZSolid.h
-/usr/local/opticks/include/PMTSim/MaterialSvc.hh
-/usr/local/opticks/include/PMTSim/PMTSim.hh
-/usr/local/opticks/include/PMTSim/J_PMTSIM_LOG.hh
-/usr/local/opticks/include/PMTSim/DetectorConstruction.hh
-/usr/local/opticks/include/PMTSim/Layr.h
-/usr/local/opticks/include/PMTSim/JPMT.h
-/usr/local/opticks/include/PMTSim/junoPMTOpticalModel.hh
-/usr/local/opticks/include/PMTSim/ModelTrigger_Debug.h
-/usr/local/opticks/include/PMTSim/PMTSimParamSvc/PMTAccessor.h
-/usr/local/opticks/include/PMTSim/PMTSimParamSvc/PMTSimParamData.h
-/usr/local/opticks/include/PMTSim/PMTSimParamSvc/_PMTSimParamData.h
-/usr/local/opticks/include/PMTSim/PMTSimParamSvc/PmtSimData_LPMT.h
-/usr/local/opticks/include/PMTSim/PMTSimParamSvc/PmtSimData_SPMT.h
-/usr/local/opticks/include/PMTSim/Geometry/PMT.h
-/usr/local/opticks/include/PMTSim/Geometry/PMTCategory.h
-/usr/local/opticks/lib/PMTSimTest
-/usr/local/opticks/lib/X4SolidTreeTest
-/usr/local/opticks/lib/G4UnionSolidOffsetsTest
-/usr/local/opticks/lib/HamamatsuR12860PMTManagerTest
-/usr/local/opticks/lib/MaterialSvcTest
-/usr/local/opticks/lib/DetectorConstructionTest
-/usr/local/opticks/lib/PMTSolidTest
-/usr/local/opticks/lib/GetSolidTest
-/usr/local/opticks/lib/GetValuesTest
-/usr/local/opticks/lib/GetSolid_Test
-/usr/local/opticks/lib/GetPVTest
+lib64/libPMTSim_standalone.so
+lib64/pkgconfig/PMTSim_standalone.pc
+lib64/cmake/pmtsim_standalone/properties-pmtsim_standalone-targets.cmake
+lib64/cmake/pmtsim_standalone/pmtsim_standalone-targets.cmake
+lib64/cmake/pmtsim_standalone/pmtsim_standalone-targets-debug.cmake
+lib64/cmake/pmtsim_standalone/pmtsim_standalone-config.cmake
+lib64/cmake/pmtsim_standalone/pmtsim_standalone-config-version.cmake
+include/PMTSim_standalone/PMTSIM_API_EXPORT.hh
+include/PMTSim_standalone/ZSolid.h
+include/PMTSim_standalone/MaterialSvc.hh
+include/PMTSim_standalone/PMTSim.hh
+include/PMTSim_standalone/J_PMTSIM_LOG.hh
+include/PMTSim_standalone/DetectorConstruction.hh
+include/PMTSim_standalone/Layr.h
+include/PMTSim_standalone/JPMT.h
+include/PMTSim_standalone/junoPMTOpticalModel.hh
+include/PMTSim_standalone/ModelTrigger_Debug.h
+include/PMTSim_standalone/PMTSimParamSvc/PMTAccessor.h
+include/PMTSim_standalone/PMTSimParamSvc/PMTSimParamData.h
+include/PMTSim_standalone/PMTSimParamSvc/_PMTSimParamData.h
+include/PMTSim_standalone/PMTSimParamSvc/PmtSimData_LPMT.h
+include/PMTSim_standalone/PMTSimParamSvc/PmtSimData_SPMT.h
+include/PMTSim_standalone/Geometry/PMT.h
+include/PMTSim_standalone/Geometry/PMTCategory.h
+include/PMTSim_standalone/Identifier/CopyNumber.hh
+lib/PMTSimTest
+lib/X4SolidTreeTest
+lib/G4UnionSolidOffsetsTest
+lib/HamamatsuR12860PMTManagerTest
+lib/MaterialSvcTest
+lib/DetectorConstructionTest
+lib/PMTSolidTest
+lib/GetSolidTest
+lib/GetValuesTest
+lib/GetSolid_Test
+lib/GetPVTest
+lib/GetLVTest
+lib64/cmake/pmtsim_standalone
+include/PMTSim_standalone
 EOP
 }
 
-dirs(){ cat << EOD
-/usr/local/opticks/include/PMTSim
-/usr/local/opticks/lib/cmake/pmtsim
-EOD
-}
 
+
+cd $OPTICKS_PREFIX
+[ $? -ne 0 ] && echo $BASH_SOURCE : FAILED TO cd to OPTICKS_PREFIX $OPTICKS_PREFIX && exit 1
+pwd
 
 for path in $(paths) ; do 
     if [ -f "$path" ]; then 
        echo $BASH_SOURCE : remove path $path 
-       rm $path
+       rm "$path"
+    elif [ -d "$path" -a ${#path} -gt 1 ]; then 
+       echo $BASH_SOURCE : remove directory $path 
+       rm -rf "$path" 
     else
        echo -n 
        #echo $BASH_SOURCE : path $path does not exist
     fi 
 done
-
-for dir in $(dirs) ; do 
-   if [ -d "$dir" -a ${#dir} -gt 1 ]; then 
-       echo $BASH_SOURCE : dir $dir exists : removing 
-       rm -rf "$dir" 
-   else
-       echo -n 
-       #echo $BASH_SOURCE : dir $dir DOES NOT EXIST 
-   fi 
-done
-
-
-
-
 
 
 
