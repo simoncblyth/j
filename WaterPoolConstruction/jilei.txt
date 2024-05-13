@@ -1,0 +1,90 @@
+Hi Jilei, cc:Guofu, Ziyan, Tao, Albert, 
+
+Tao told me about your discussion with him about 
+the WaterPoolConstruction geometry.
+
+Albert has investigated how this geometry causes
+a problem for the Opticks geometry translation. 
+I have taken a look at the implementation and have 
+a suggestion of how to re-arrange it in a much 
+simpler more hierarchical way avoiding all the
+hole subtractions. 
+
+Current flat sibling approach
+------------------------------
+
+   vetoWater
+      DeadWater : holes with vetoWater
+      Tyvek     : holes with vetoWater
+      Air
+      Steel
+
+* forces complex CSG shapes (with 61 subtracted holes)
+  for DeadWater+Tyvek to avoid overlaps between the siblings
+
+
+Hierarchy approach 1                        Hierarchy approach 2 
+----------------------                      ----------------------
+                                             
+::                                           ::
+                                             
+      DeadWater                                    Air 
+         Air                                          DeadWater  
+         Tyvek                                           Tyvek
+            vetoWater                                       vetoWater 
+               Steel                                           Steel 
+               Steel                                           Steel
+               ...                                             ...
+                                             
+         Steel-pillar-feet ?                          Steel-pillar-feet ?     
+                                             
+                                                                                       
+      +---DeadWater-------------+                                                        
+      | +---Air---------------+ |                                                          
+      | |                     | |                  +---Air-----------------------+         
+      | +---Tyvek-------------+ |                  |                             |          
+      | | +----vetoWater----+ | |                  | +--DeadWater--------------+ |        
+      | | |                 | | |                  | | +---Tyvek-------------+ | |       
+      | | | +-+         +-+ | | |                  | | | +----vetoWater----+ | | |        
+      | | | |Steel      | | | | |                  | | | |                 | | | |        
+      | | | +-+         +-+ | | |                  | | | | +-+         +-+ | | | |       
+      | | +-----------------+ | |                  | | | | |Steel      | | | | | |      
+      | +---------------------+ |                  | | | | +-+         +-+ | | | |         
+      +-------------------------+                  | | | +-----------------+ | | |          
+                                                   | | +---------------------+ | |
+                                                   | +-------------------------+ |
+                                                   +-----------------------------+   
+
+* Profits from Geant4 daughter material overriding mother such
+  that DeadWater, Air, Tyvek and vetoWater can all be simple
+  filled cylinders (G4Tubs/G4Polycone with inner radius zero)
+
+* For DeadWater/Tyvek/VetoWater the cylinders would be with 
+  progressively smaller radii and heights.
+
+* The simplest would be for the steel pillars to "float" above the 
+  Tyvek, but if you think some Steel in the DeadWater is needed 
+  then separated "pillar feet" just within the DeadWater could 
+  be added
+
+* Note how this arrangement totally avoids subtracting any holes   
+
+
+
+Perhaps we could arrange a meeting next week to 
+discuss this ? There is usually a 
+simulation meeting on Monday at 09:00 or we could 
+have a dedicated meeting some other time ? 
+ 
+Simon
+
+
+
+
+
+
+
+
+
+
+

@@ -9,6 +9,10 @@ EOU
 }
 
 
+
+
+source $HOME/.opticks/GEOM/GEOM.sh 
+
 export PMTSim=1 
 bin=GetSolidTest
 

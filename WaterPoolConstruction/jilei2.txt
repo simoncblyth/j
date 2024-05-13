@@ -1,0 +1,76 @@
+Hi Jilei, Guofu, Ziyan, Tao, Albert, 
+
+As Guofu and Tao were not there and Ziyan had to 
+go to another meeting half way through let me 
+summarize our discussion this morning. 
+
+Jilei agreed with adopting a hierarchy approach and avoiding the 
+complicated hole subtraction. He also agreed that it would be 
+better to simply keep the steel pillars within the vetoWater 
+and not extend them down into the Tyvek and DeadWater.
+
+However Jilei made the point that reducing the height of the pillars 
+would require chopping the bottom off the steel pillars : 0.101 m 
+
+   0.1m (DeadWater) + 0.001m (Tyvek)  
+
+The code that describes these pillars (from Tao) is quite involved
+so it is not immediately obvious how best to cut off the bottom 0.101m.
+
+   ./Simulation/DetSimV2/CentralDetector/include/HBeamConstruction.hh
+   ./Simulation/DetSimV2/CentralDetector/src/HBeamConstruction.cc
+
+Simon suggests one way to do this would be to incorporate a configurable Z-scaling 
+that would restrict the changes needed to hopefully only a few lines. The Z-scaling 
+would allow reducing the height by 0.101m with a corresponding shift upwards to keep 
+the top in the same place. 
+
+Actually looking at a visualization of the bottom of the pillars 
+(with old geometry, before DeadWater addition) 
+it is apparent that the bottom cross pieces are poking into the concrete. 
+So increasing the Z down-scaling to reduce the height by a bit more 
+than 0.101m could avoid the pillars poking into the Tyvek+DeadWater.  
+
+Regarding reducing the thickness of the DeadWater, a suggestion from Tao,
+Jilei thought that Hao-Qi would not agree to that as it would make 
+muon track lengths a bit different from reality.
+
+Simon
+
+
+
+       Hierarchy approach 2 
+       ----------------------
+        
+        ::
+        
+              Air 
+                 DeadWater  
+                    Tyvek
+                       vetoWater 
+                          Steel 
+                          Steel
+                          ...
+        
+                 Steel-pillar-feet ?     
+        
+                                                  
+                                                    
+                                                      
+              +---Air-----------------------+         
+              |                             |          
+              | +--DeadWater--------------+ |        
+              | | +---Tyvek-------------+ | |       
+              | | | +----vetoWater----+ | | |        
+              | | | |                 | | | |        
+              | | | | +-+         +-+ | | | |       
+              | | | | |Steel      | | | | | |      
+              | | | | +-+         +-+ | | | |         
+              | | | +-----------------+ | | |          
+              | | +---------------------+ | |
+              | +-------------------------+ |
+              +-----------------------------+   
+
+
+
+
