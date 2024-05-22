@@ -84,13 +84,15 @@ _jre_opticks_usage_env()
 
 jre(){ 
     : ~/j/.junosw_build_config
+    [ -n "$DBG" ] && echo $BASH_SOURCE $FUNCNAME start
     _jre 
 
     source $JUNOTOP/bashrc.sh  ## opticks sourcing is commented in here for clarity 
 
     #_jre_opticks_build_minimal_env
     _jre_opticks_build_env    
-    _jre_opticks_usage_env  
+    #_jre_opticks_usage_env  
+
     : NB after any changes, for clarity start a new session and redo jre
 
     source $JUNOTOP/sniper/InstallArea/bashrc;
@@ -99,4 +101,5 @@ jre(){
 
     _source(){ [ -s "$1" ] && source "$1" ; }
     _source $JUNOTOP/junosw/InstallArea/setup.sh
+    [ -n "$DBG" ] && echo $BASH_SOURCE $FUNCNAME end
 }

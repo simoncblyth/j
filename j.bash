@@ -7,7 +7,6 @@ Common source for JUNO high level bash functions
 ====================================================
 
 
-* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/releases/J23.1.0-rc3
 
 
@@ -21,6 +20,134 @@ Common source for JUNO high level bash functions
 
 * https://github.com/JUNO-collaboration
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
+
+
+
+Wed 22 May 2024 : from scratch JUNOSW build of J24.1.0-rc0 on workstation
+---------------------------------------------------------------------------
+
+Objective is to compile only JUNOSW itself against the cvmfs releases of all the externals, 
+initially without Opticks. 
+
+* START FROM AN EMPTY ENVIRONMENT 
+
+* https://juno.ihep.ac.cn/mediawiki/index.php/Offline:Installation
+* The old instructions above are outdated, nevertheless some things remain true. 
+
+1. Change old /data/blyth/junotop name and create new empty JUNOTOP dir
+2. get junoenv from git, not SVN, into local JUNOTOP::
+
+    jt
+    git clone git@code.ihep.ac.cn:JUNO/offline/junoenv.git 
+
+Cannot just source the release environment::
+
+    [blyth@localhost junotop]$ source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J24.1.0-rc0/bashrc.sh 
+
+As unfortunately that sets JUNOTOP on line 1 but we need to build JUNOSW from source so we need a local JUNOTOP::
+
+  1 export JUNOTOP=/cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J24.1.0-rc0
+  2 source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/binutils/2.36/bashrc
+  3 source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/bashrc
+  4 source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/go/1.20.6/bashrc
+
+So copy it locally and comment the first line::
+
+    jt 
+    cp /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J24.1.0-rc0/bashrc.sh .
+
+ROOT and Geant4 resisting::
+
+    [blyth@localhost junotop]$ source $JUNOTOP/bashrc.sh 
+    bash: /home/blyth/junotop/ExternalLibs/ROOT/6.30.02/bin/thisroot.sh: No such file or directory
+    bash: /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/bin/geant4.sh: No such file or directory
+
+Kludge with symbolic link::
+
+    [blyth@localhost junotop]$ ln -s /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J24.1.0-rc0/ExternalLibs
+
+Now have the env paths of the released externals::
+
+    source $JUNOTOP/bashrc.sh 
+    paths 
+
+Note that the externals do not include sniper, so build that against the release externals using junoenv::
+
+    je
+    bash junoenv sniper
+
+If GFW is in a blocking mood this will hang and then fail. 
+Workaround the blockage  by starting socks5 proxy in another tab 
+and configure curl to use it with::
+
+    export ALL_PROXY=socks5://127.0.0.1:8080   ## port number might be different depending on proxy you are running, eg with soks-fg
+    bash junoenv sniper
+
+Next try offline::
+
+   je
+   bash junoenv offline
+
+   Your branch is up to date with 'origin/main'.
+   === junoenv-offline: Please using junoenv env to setup the environment first
+
+What is lacking, take a look JUNOTOP/junoenv/junoenv-offline.sh, 
+thats shows are missing JUNOTOP/setup.sh::
+
+   je
+   vi junoenv-offline.sh::
+
+     58 function junoenv-offline-preq {
+     59     source $JUNOENVDIR/junoenv-env.sh
+     60     local setupscript=$(juno-top-dir)/setup.sh
+     61     if [ -f "$setupscript" ]; then
+     62         pushd $(juno-top-dir) >& /dev/null
+     63         source $setupscript
+     64         popd
+     65     else
+     66         echo $msg Please using "junoenv env" to setup the environment first 1>&2
+     67         exit 1
+     68     fi
+     69 }
+
+
+"bash junoenv env" does little because already have JUNOTOP/bashrc.sh 
+
+    junoenv]$ bash junoenv env 
+    = The junoenv is in /data/blyth/junotop/junoenv
+    ...
+    === junoenv-env-script-check: bashrc.sh already exists in /home/blyth/junotop
+    === junoenv-env-setup-check: The setup scripts seems already exists.
+    === junoenv-env-setup-check: If you want to resetup, please use
+    === junoenv-env-setup-check: ==== $ junoenv env resetup
+    === junoenv-env-setup-check: first, it will rename your setup scripts. Then use
+    === junoenv-env-setup-check: ==== $ junoenv env
+    === junoenv-env-setup-check: to resetup.
+    [blyth@localhost junoenv]$ 
+
+So try "bash junoenv env resetup" this deletes the JUNOTOP/bashrc.sh that 
+I copied in from cvmfs and generates one. That is close (other than path differences
+that are the same via the symbolic link) but it misses the Geant4 line.
+
+So get again the release one::
+
+   mv bashrc.sh resetup_bashrc.sh
+   [blyth@localhost junotop]$ cp /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Pre-Release/J24.1.0-rc0/bashrc.sh bashrc.sh
+   vi bashrc.sh # comment first line that sets JUNOTOP 
+
+When rerunning "bash junoenv offline" had to "rm ../junosw" to get it to redo the clone.
+        
+After some pilot error omitting to comment the first line of JUNOTOP/bashrc.sh that changes JUNOTOP. 
+Try again, new tab::
+
+     source $JUNOTOP/setup.sh
+     je
+     rm -rf ../junosw
+     bash junoenv offline     ## now the build succeeds
+
+
+
+
 
 
 Gallery
@@ -3893,7 +4020,7 @@ j-runtime-env()
    fi
 
 }
-jre(){
+j-jre(){
    j-runtime-env
    jo
    if [ -n "$OPTICKS_PREFIX" ]; then
@@ -3905,7 +4032,7 @@ jre(){
 
    fi
 }
-jre-(){ j-runtime-env- ; }
+j-jre-(){ j-runtime-env- ; }
 
 
 
