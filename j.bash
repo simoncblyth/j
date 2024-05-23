@@ -218,7 +218,130 @@ Met a few issues due to unclean build that were fixed by cleaning. Described in:
   from om-install to om-cleaninstall in opticks-full-make. 
 
 * fixed issue in opticks-prepare-InputPhotons of failing to import 
-  the opticks python modules from the source tree  
+  the opticks python modules from the source tree  for lack of PYTHONPATH=$(opticks-fold)
+
+
+Thu 23 May 2024 : source build of latest JUNOSW+Opticks against standard set of /cvmfs externals from recent JUNOSW release 
+-------------------------------------------------------------------------------------------- ---------------------------------
+
+
+The presence of Opticks to the JUNOSW build is signalled via the OPTICKS_PREFIX envvar::
+
+    [blyth@localhost junoenv]$ jgr OPTICKS_PREFIX
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        noop = os.environ.get("OPTICKS_PREFIX", None) is None
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            log.fatal("lack of WITH_G4CXOPTICKS is inferred by lack of OPTICKS_PREFIX envvar") 
+    ./cmake/legacy/JUNODependencies.cmake:if(DEFINED ENV{OPTICKS_PREFIX})
+    ./cmake/legacy/JUNODependencies.cmake:   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{OPTICKS_PREFIX}/cmake/Modules")
+
+ 
+
+A small number of JUNOSW packages need to be recompiled 
+
+
+Read the notes::
+
+   je
+   bash junoenv opticks notes
+
+Get into env for some building::
+
+   source $JUNOTOP/setup.sh 
+   opticks_minimal
+
+Note that junoenv-opticks-env is setting OPTICKS_PREFIX so add some flexibility
+for coordination between the Opticks build and JUNOSW build::
+
+    253 function junoenv-opticks-prefix-default {
+    254     local version=$(junoenv-opticks-version)
+    255     echo $(juno-top-dir)/ExternalLibs/$(junoenv-opticks-name)/${version:-head}
+    256 }
+    257 
+    258 function junoenv-opticks-prefix {
+    259     local default=$(junoenv-opticks-prefix-default)
+    260     echo ${JUNOENV_OPTICKS_PREFIX:-$default}
+    261 }
+
+
+Modify opticks_minimal to strap together the JUNOSW and Opticks builds::
+
+    opticks_minimal(){
+        :  .bashrc/.local.bash
+
+
+        export CUDA_VISIBLE_DEVICES=1         # TITAN RTX 
+        export OPTICKS_COMPUTE_CAPABILITY=70  # depends on GPU 
+
+        export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
+        export OPTICKS_DOWNLOAD_CACHE=/cvmfs/opticks.ihep.ac.cn/opticks_download_cache
+        export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_750
+
+        export OPTICKS_BUILDTYPE=Debug
+        export OPTICKS_PREFIX=/data/$USER/opticks_${OPTICKS_BUILDTYPE}
+        mkdir -p $OPTICKS_PREFIX
+
+        export TMP=/data/$USER/opticks
+        mkdir -p $TMP
+
+        opticks-(){ . $HOME/opticks/opticks.bash && opticks-env $* ; : .bashrc/.local.bash ; } 
+        opticks-
+
+        : integration with JUNOSW junoenv scripts
+        export JUNOENV_OPTICKS_VERSION=head
+        export JUNOENV_OPTICKS_PREFIX=$OPTICKS_PREFIX
+    }
+
+
+Now run the hookup::
+
+   bash junoenv opticks hookup
+
+* made some fixes to "bash junoenv opticks unhookup/hookup" to make 
+  work without assumptions on the OPTICKS_PREFIX directory   
+
+Check the resultant paths and vars::
+
+   source $JUNOTOP/setup.sh 
+   paths
+   env | grep OPTICKS 
+
+
+Check the JUNOSW packages that use WITH_G4CXOPTICKS
+and need to be rebuilt when adding or removing Opticks
+from the build::
+
+    [blyth@localhost junosw]$ jgl WITH_G4CXOPTICKS
+
+One new pkg, so append it to touchbuild dirs and proceed::
+
+    je
+    bash junoenv opticks touchbuild
+
+
+
+Make junoenv MR 55 updating junoenv-opticks.sh 
+------------------------------------------------
+
+0. use web interface to create a new branch
+
+   * https://code.ihep.ac.cn/JUNO/offline/junoenv/-/branches
+
+1. in the working copy::
+
+    git remote -v 
+    git fetch origin
+    get pull   # make sure main is uptodate before jumping to brancg 
+ 
+    git branch -a # list branches including remotes
+
+    branch=blyth-opticks-fix-hookup-assumption-add-prefix-flexibility-for-source-build
+    git checkout -b $branch origin/$branch
+    
+    # add and commit 
+
+2. use web interface to make:
+
+   * https://code.ihep.ac.cn/JUNO/offline/junoenv/-/merge_requests/55
+   
 
 
 
@@ -718,6 +841,7 @@ JUNOSW Workflow for getting local changes into main
     Branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' set up to track remote branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy' from 'origin'.
     Switched to a new branch 'blyth-122-envvar-controls-for-PMT-micro-offsets-to-avoid-degeneracy'
     N[blyth@localhost junosw]$
+
 
 
 
