@@ -138,7 +138,9 @@ jok-tds(){
    #fi 
 
 
-
+   NOGT=0      # dont --no-guide_tube
+   NOXJ=0      # dont --debug-disable-xj
+   NOSJ=0      # dont --debug-disable-sj
    NOFA=0      # dont --debug-disable-fa
    unset FastenerAcrylicConstruction__CONFIG
 
@@ -148,6 +150,8 @@ jok-tds(){
    export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
    export U4Solid__IsFlaggedType=G4MultiUnion
 
+
+   export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480
 
 
 
@@ -179,9 +183,15 @@ jok-tds(){
    local opts="" 
    opts="$opts --evtmax $OPTICKS_NUM_EVENT"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
-   opts="$opts --no-guide_tube"
    opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --no-toptask-show"
+
+
+   NOGT=${NOGT:-1}
+   case $NOGT in 
+      0) opts="$opts" ;; 
+      1) opts="$opts --no-guide_tube" ;; 
+   esac
 
    NOXJ=${NOXJ:-1}
    case $NOXJ in 
