@@ -40,7 +40,10 @@ jok-script(){ echo $JUNOTOP/junosw/Examples/Tutorial/share/tut_detsim.py ; }
 
 jok-init()
 {
-   export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
+   #export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
+   #export GEOM=J_2024may20
+   export GEOM=J_2024jun14
+
    local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
    mkdir -p $logdir
    cd $logdir     # log files are dropped in invoking directory 
@@ -118,6 +121,36 @@ jok-tds(){
    echo === $FUNCNAME  
    jok-init
 
+
+   local WPC_ASIS=0              # no change : Opticks translation will assert with CSG tree height < MAX_TREE_DEPTH 
+   local WPC_ZERO_HOLES=1        # adhoc just dont subtract the 30+30+1+1=62 holes : translation expected to succeed 
+   local WPC_MULTIUNION_HOLES=2  # instead of subtracting the 62 holes one by one, collect into multiunion and subtract together
+   local WPC_HIERARCHY=3         # major simplification of WaterPoolConstruction : natural hierarchy removes need for the 62 subtractions 
+   #export WaterPoolConstruction__CONFIG=$WPC_MULTIUNION_HOLES
+   export WaterPoolConstruction__CONFIG=$WPC_HIERARCHY
+
+   unset ConfAcrylic__data_pillar_remove_bottom_angled_cross_piece
+   unset HBeamConstruction__try_init_model_pillar_shortleg_LSCALE
+
+   #if [ "$WaterPoolConstruction__CONFIG" == "$HIERARCHY" ]; then
+   #    export ConfAcrylic__data_pillar_remove_bottom_angled_cross_piece=1 
+   #    export HBeamConstruction__try_init_model_pillar_shortleg_LSCALE=0.95
+   #fi 
+
+
+
+   NOFA=0      # dont --debug-disable-fa
+   unset FastenerAcrylicConstruction__CONFIG
+
+   local FAC_ASIS=0                   # geometry is present but does not render
+   local FAC_MULTIUNION_CONTIGUOUS=1
+   local FAC_MULTIUNION_DISCONTIGUOUS=2
+   export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
+   export U4Solid__IsFlaggedType=G4MultiUnion
+
+
+
+
    local oim=1     # 1:opticks optical simulation only
    #local oim=3    # 3:both geant4 and opticks optical simulation 
    local OIM=${OIM:-$oim}
@@ -128,18 +161,19 @@ jok-tds(){
    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
 
-   #local mode=DebugLite
+   local mode=DebugLite
    #local mode=Nothing     # GPU leak debug 
    #local mode=Minimal
-   local mode=Hit
+   #local mode=Hit
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
    export OPTICKS_MAX_PHOTON=M1
-   export OPTICKS_NUM_EVENT=1000
+   export OPTICKS_NUM_EVENT=1
 
    if [ "$OPTICKS_EVENT_MODE" == "DebugLite" ]; then
        export G4CXOpticks__SaveGeometry_DIR=$HOME/.opticks/GEOM/$GEOM
+       export SScene__initFromTree_addFrames=$HOME/.opticks/GEOM/${GEOM}_framespec.txt
    fi 
 
    local opts="" 
@@ -232,7 +266,12 @@ jok-tds(){
 
    eval $runline
    
-   jok-report
+   if [ -z "$NOREPORT" ]; then
+      echo === $BASH_SOURCE no NOREPORT detected proceed with jok-report
+      jok-report
+   else
+      echo === $BASH_SOURCE NOREPORT detected skipping jok-report
+   fi 
 }
 
 jok-report(){
@@ -246,7 +285,7 @@ jok-report(){
 
 }
 
-jok-tds-gdb(){ GDB=1 jok-tds ; }
+jok-tds-gdb(){ GDB=1 NOREPORT=1 jok-tds ; }
 
 
 jok-anamgr-notes(){ cat << EON

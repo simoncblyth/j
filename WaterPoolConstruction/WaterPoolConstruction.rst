@@ -2,6 +2,28 @@ j/WaterPoolConstruction/WaterPoolConstruction.rst
 =======================================================
 
 
+
+Review code thinking about how to impl HIERARCHY
+--------------------------------------------------
+
+WaterPoolConstruction::makeWPLogical
+    creates logicWaterPool G4Polycone of : material vetoWater
+
+WaterPoolConstruction::makeAirGapLogical
+    creates logicAirGap G4SubtractionSolid subtracting small cylinder from big one : material Air
+        
+WaterPoolConstruction::makeAirGapPhysical
+    places logicAirGap within logicWaterPool
+
+    logicWaterPool:vetoWater
+        logicAirGap:Air
+
+WaterPoolConstruction::makeDeadWaterLogical
+    
+
+
+
+
 Current flat sibling approach
 ------------------------------
 
@@ -105,8 +127,6 @@ WaterPoolConstruction::makeDeadWaterLogical,Physical
 Uses G4Polycone with 6 planes to create hollow cylinder
 and then subtracts 61 holes, one at center top and 60 around the 
 edge of the base in 30 pairs::  
-
-
 
 
 
