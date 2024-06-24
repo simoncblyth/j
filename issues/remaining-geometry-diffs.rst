@@ -265,3 +265,42 @@ Finding PosFiles
      1321 total
     [blyth@localhost data]$ 
 
+
+
+JUNO_SIMPLIFY_CALIB_ANCHOR
+---------------------------
+
+::
+
+
+
+    epsilon:presentation blyth$ jgr JUNO_SIMPLIFY_CALIB_ANCHOR
+    ./Simulation/DetSimV2/CentralDetector/src/XJanchorConstruction.cc:    m_simplify_calib_anchor = getenv("JUNO_SIMPLIFY_CALIB_ANCHOR") == nullptr ? false : true ; 
+    ./Simulation/DetSimV2/CentralDetector/src/SJFixtureConstruction.cc:    m_simplify_calib_anchor = getenv("JUNO_SIMPLIFY_CALIB_ANCHOR") == nullptr ? false : true ;    
+    Binary file ./Simulation/DetSimV2/CentralDetector/src/.SJCLSanchorConstruction.cc.swp matches
+    ./Simulation/DetSimV2/CentralDetector/src/SJCLSanchorConstruction.cc:    m_simplify_calib_anchor = getenv("JUNO_SIMPLIFY_CALIB_ANCHOR") == nullptr ? false : true ;    
+    ./Simulation/DetSimV2/CentralDetector/src/SJReceiverConstruction.cc:    m_simplify_calib_anchor = getenv("JUNO_SIMPLIFY_CALIB_ANCHOR") == nullptr ? false : true ;    
+    ./Simulation/DetSimV2/DetSimMT/share/run.py:    os.environ["JUNO_SIMPLIFY_CALIB_ANCHOR"] = "Enable"
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            os.environ["JUNO_SIMPLIFY_CALIB_ANCHOR"]="Enable"
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:        elif "JUNO_SIMPLIFY_CALIB_ANCHOR" in os.environ:
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            os.environ.pop("JUNO_SIMPLIFY_CALIB_ANCHOR")
+    ./Examples/Tutorial/python/Tutorial/JUNODetSimModule.py:            print("unset key : JUNO_SIMPLIFY_CALIB_ANCHOR ")       
+    epsilon:junosw blyth$ 
+
+
+
+jcv JUNODetSimModule::
+
+    0276         grp_calib_unit.add_argument("--simplify-calib-anchor", dest="simplify_calib_anchor", action="store_true", help=mh(""))
+     277         grp_calib_unit.add_argument("--no-simplify-calib-anchor", dest="simplify_calib_anchor", action="store_false", help=mh(""))
+     278         grp_calib_unit.set_defaults( simplify_calib_anchor = True )
+
+
+    2213         #==========  simplify calib anchor ============#
+    2214         if args.simplify_calib_anchor:
+    2215             os.environ["JUNO_SIMPLIFY_CALIB_ANCHOR"]="Enable"
+    2216         elif "JUNO_SIMPLIFY_CALIB_ANCHOR" in os.environ:
+    2217             os.environ.pop("JUNO_SIMPLIFY_CALIB_ANCHOR")
+    2218             print("unset key : JUNO_SIMPLIFY_CALIB_ANCHOR ")
+    2219 
+
