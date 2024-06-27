@@ -152,7 +152,7 @@ jok-tds(){
 
 
    export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480
-
+   export U4Mesh__NumberOfRotationSteps_solidName_sTarget=240
 
 
    local oim=1     # 1:opticks optical simulation only
