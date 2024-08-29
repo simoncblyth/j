@@ -70,6 +70,22 @@ copy fresh build config from user simon on Gold
     ~/fresh_build.sh  
 
 
+~/.opticks_externals_config 
+-------------------------------
+
+
+::
+
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Boost/1.82.0/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Xercesc/3.2.4/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/CLHEP/2.4.7.1/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/custom4/0.1.8/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Python/3.9.19/bashrc
+    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/python-numpy/1.23.5/bashrc
+
+
+
 
 shakedown build
 --------------------
@@ -111,8 +127,13 @@ Reproduce with::
 Fixed with Opticks change using sdirectory.h in QRng.cc
 
 
-Issue 2 : missing numpy : handle more cleanly
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FIXED Issue 2 : missing numpy : handle more cleanly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* added numpy check to script
+* TODO: document the environment 
+
+
 
 ::
 
@@ -129,6 +150,13 @@ Issue 2 : missing numpy : handle more cleanly
     ModuleNotFoundError: No module named 'numpy'
     /home/blyth/opticks/ana/input_photons.sh run error
     [blyth@localhost ~]$ 
+
+
+
+Issue 3 : using /cvmfs geometry kinda works but analytic optix render for some shapes looks broken
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* using exact same geometry in earlier CUDA works OK 
 
 
 
