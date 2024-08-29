@@ -158,5 +158,67 @@ Issue 3 : using /cvmfs geometry kinda works but analytic optix render for some s
 
 * using exact same geometry in earlier CUDA works OK 
 
+* TODO: solid by solid geometry testing 
+
+
+Issue 4 : test fails
+~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid changing the runners to look in /cvmfs by using a symbolic link::
+
+    cd ~/.opticks/GEOM
+    ln -s /cvmfs/opticks.ihep.ac.cn/.opticks/GEOM/J_2024aug27 
+
+
+::
+
+    FAILS:  5   / 213   :  Thu Aug 29 22:11:33 2024   
+      94 /107 Test #94 : SysRapTest.ssys_test                          Subprocess aborted***Exception:   0.05   
+      10 /20  Test #10 : QUDARapTest.QEventTest                        ***Failed                      0.17   
+      11 /20  Test #11 : QUDARapTest.QEvent_Lifecycle_Test             ***Failed                      0.13   
+      13 /20  Test #13 : QUDARapTest.QSimWithEventTest                 ***Failed                      2.12   
+      11 /30  Test #11 : U4Test.U4RandomTest                           ***Failed                      0.03   
+
+
+
+FIXED ssys_test impl error when no envvar defined::
+
+    94/107 Test  #94: SysRapTest.ssys_test .....................................Subprocess aborted***Exception:   0.05 sec
+    terminate called after throwing an instance of 'std::logic_error'
+      what():  basic_string::_M_construct null not valid
+
+
+QUDARap 3 thrust related fails::
+
+    0/20 Test #10: QUDARapTest.QEventTest ..............***Failed    0.17 sec
+                    HOME : /home/blyth
+                     PWD : /data1/blyth/local/opticks_Debug/build/qudarap/tests
+                    GEOM : J_2024aug27
+             BASH_SOURCE : /data1/blyth/local/opticks_Debug/bin/QTestRunner.sh
+              EXECUTABLE : QEventTest
+                    ARGS : 
+    QEventTest::setGenstep_one
+    terminate called after throwing an instance of 'thrust::THRUST_200302_700_NS::system::system_error'
+      what():  after reduction step 1: cudaErrorNoKernelImageForDevice: no kernel image is available for execution on the device
+    /data1/blyth/local/opticks_Debug/bin/QTestRunner.sh: line 23: 59189 Aborted                 (core dumped) $EXECUTABLE $@
+    /data1/blyth/local/opticks_Debug/bin/QTestRunner.sh : FAIL from QEventTest
+
+
+* TODO : try different COMPUTE_CAPABILITY
+
+
+U4RandomTest failing from missing precooked::
+
+          Start 11: U4Test.U4RandomTest
+    11/30 Test #11: U4Test.U4RandomTest ...........................***Failed    0.03 sec
+                    HOME : /home/blyth
+                     PWD : /data1/blyth/local/opticks_Debug/build/u4/tests
+                    GEOM : J_2024aug27
+             BASH_SOURCE : /data1/blyth/local/opticks_Debug/bin/U4TestRunner.sh
+              EXECUTABLE : U4RandomTest
+                    ARGS : 
+    NP::load Failed to load from path /home/blyth/.opticks/precooked/QSimTest/rng_sequence/rng_sequence_f_ni1000000_nj16_nk16_tranche100000/rng_sequence_f_ni100000_nj16_nk16_ioffset000000.npy
+    /data1/blyth/local/opticks_Debug/bin/U4TestRunner.sh : FAIL from U4RandomTest
+
 
 
