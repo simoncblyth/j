@@ -1,0 +1,250 @@
+Hi Yuhan, 
+
+> I pushed the branches renyuhan_enable_lpmt_backward_photon at JUNOSW and renyuhan_update_lpmt_optical_parameter at dbdata.
+> https://code.ihep.ac.cn/JUNO/offline/junosw/-/commit/7d91aeb4730b384489e3baedcaf38a240dab3f94
+> https://code.ihep.ac.cn/JUNO/offline/dbdata/-/commit/ff917416457465cb4fc38b0f17888a594516fb35
+> 
+> I added 3 branches to PMTSimParamSvc/PMTParam_CD_LPMT.root, and I changed the type to std::array: 
+> - thicknessARC[3]
+> - coefficients of a quadratic equation, ARC thickness = the first parameter*theta**2 + the second*theta + the last
+> - loaded using PMTSimParamSvc::get_thicknessARC
+
+Did you try using cos(theta) rather than directly theta ?  
+This is because obtaining cos(theta) is cheap but doing acos is expensive.  
+
+
+> - thicknessPC[3] 
+> - similarly
+> - loaded using PMTSimParamSvc::get_thicknessPC
+
+> - CE[9]
+> - CE values at 9 theta angles
+> - loaded using PMTSimParamSvc::get_CE
+> - interpolated at PMTSimParamSvc::get_pmtid_ce_v2
+
+
+
+About your PMTSimParamSvc::get_pmtid_ce_v2 from
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/commit/7d91aeb4730b384489e3baedcaf38a240dab3f94
+
+::
+
+    double PMTSimParamSvc::get_pmtid_ce_v2(int pmtid , double theta) const
+    {   
+        double ce;
+        if (PMT::Is20inch(pmtid) && PMT::IsCD(pmtid)) {
+            std::array<double,9> ce_pmtid = get_CE(pmtid);
+            G4MaterialPropertyVector* vec = new G4MaterialPropertyVector();
+            if (m_PMTParamSvc->isHamamatsu(pmtid)) {
+                double s_theta_hamamatsu[9] = {0.*deg, 13.*deg, 28.*deg, 41.*deg, 55.*deg, 66.*deg, 79.*deg, 85.*deg, 90.*deg};
+                for (int i = 0; i < 9; i++) {
+                    vec->InsertValues(s_theta_hamamatsu[i], ce_pmtid[i]);
+                }
+            } else {
+                double s_theta_NNVT[9] = {0.*deg, 14.*deg, 30.*deg, 42.5*deg, 55.*deg, 67.*deg, 77.5*deg, 85.*deg, 90.*deg};
+                for (int i = 0; i < 9; i++) {
+                    vec->InsertValues(s_theta_NNVT[i], ce_pmtid[i]);
+                }
+           }
+            ce = vec->Value(theta);
+            assert( ce > 0 );
+        } else {
+            ce = get_pmtid_ce(pmtid,theta);
+        }
+         return  ce ;
+    }
+
+
+The above code will be called for each photon, so can be many millions of 
+calls in a single event. 
+Each call allocates and repeatedly fills the MPV G4MaterialPropertyVector.
+That is an enormous memory leak and an exceedingly repetitive approach. 
+
+But there is no need to do it like that, you can fill all the MPV 
+once only at initialization (by looping over all pmtid) 
+and then simply lookup the MPV appropriate to the pmtid at the 
+photon level call.
+
+You can use a C array or std::array of pointers to G4MaterialPropertyVector
+
+Another thing to consider is whether using the theta angle directly or using cos(theta)
+would be better. This is because it is very fast to obtain cos(theta) from z/r of the 
+intersect position and relatively slow to do acos. When you are doing something 
+potentially millions of times per event it is good to avoid acos if possible. 
+
+
+
+
+> Each CD_LPMT has its own data.
+>
+> I also added the same branches to PMTSimParamSvc/PMTParam_WP_LPMT.root, but the
+> values are uniform thickness parameters and old CE. Although it could also load
+> these parameters for WP_LPMT, it is not acturally executed. I think this PMT
+> optical model update focuses only on CD_LPMT, not on WP_LPMT. 
+>
+> I set 2 options --pmt-backward-photon and --no-pmt-backward-photon (default) to
+> switch modes between w/ and w/o backward photons simulation.
+>
+> When m_UsePMTOpticalModel == true && m_Use_PMTNaturalGeometry == true &&
+> m_EnablePMTBackwardPhoton == true, it will simulate backward photons with a new
+> version custom4 and implement PMTSimParamSvc::get_pmtid_ce_v2.
+>
+
+Using a boolean for the PMT implementation is not convenient if you want to change the implementation later
+and compare between them. I suggest an integer implementation version. See:
+
+   https://github.com/simoncblyth/customgeant4/commit/48ad617a371df97e02bc7233b34b82d980034e30
+
+
+> When m_UsePMTOpticalModel == true && m_Use_PMTNaturalGeometry == false && m_EnablePMTBackwardPhoton == false, it will call helper_fast_sim.
+
+Its better to pass the implementation_version integer into custom4 and avoid the 
+branching.  
+
+> For other combinations of conditions, I think they're not under consideration for simplicity.
+
+You should assert on unexpected combinations of conditions with error messsage. 
+
+ 
+> A tricky thing is that some new CE values are over 1, which could be caused by
+> the uncerntainty of escape factor and the overly simplified model, so it will
+> lead to PDE sampling issues under the previous logic at junoSD_PMT_v2.cc. 
+
+Point to the code with this issue. 
+What is the solution ? std::min(ce, 1. ) ? 
+
+> To avoid the problems, I propose not calculating QE but only A in custom4 and
+> applying escape factor at junoSD_PMT_v2.cc when 
+> m_EnablePMTBackwardPhoton == true.
+
+You need to elaborate on how this could work. The normal incidence
+stack calc is needed for "An" to give theEfficiency but the 
+non-normal incidence stack calc is needed too for the A,R,T 
+so I dont see how your proposal could work ?
+
+    319 inline void C4CustomART::doIt(const G4Track& aTrack, const G4Step& )
+    320 {
+    ...
+    338     Stack<double,4> stack ;
+    339     theEfficiency = zero ;
+    340     double _qe = zero ;
+    341     double lposcost = local_cost();
+    342 
+    343     if(implementation_version == 0 )
+    344     {
+    345         _qe = minus_cos_theta > 0. ? 0.0 : accessor->get_pmtid_qe( pmtid, energy ) ;  // energy_eV ?
+    346         // following the old junoPMTOpticalModel with "backwards" _qe always zero 
+    347         if( minus_cos_theta < zero )
+    348         {
+    349             // normal incidence calc only needed for ingoing photons as _qe is fixed to zero for outgoing  
+    350             stack.calc( wavelength_nm, minus_one, zero, ss, 16u );  // normal incidence calc 
+    351             theEfficiency = _qe/stack.art.A ;                       // aka escape_fac
+    352         }
+    353     }
+    354     else
+    355     {
+    356         // allowing non-zero "backwards" _qe means must do norml incidence calc every time as need theEfficiency
+    357         _qe = accessor->get_pmtid_qe_angular( pmtid, energy, lposcost, minus_cos_theta ) ;
+    358         stack.calc( wavelength_nm, minus_one      , zero, ss, 16u );  // for normal incidence efficiency 
+    359         theEfficiency = _qe/stack.art.A ;                       // aka escape_fac
+    360     }
+    361 
+    362 #ifdef C4_DEBUG
+    363     dbg.An = stack.art.A ;
+    364     dbg.Rn = stack.art.R  ;
+    365     dbg.Tn = stack.art.T  ;
+    366     dbg.escape_fac = theEfficiency ;
+    367 #endif
+    368     stack.calc( wavelength_nm, minus_cos_theta, dot_pol_cross_mom_nrm, ss, 16u );
+    369 
+
+
+
+I think it is better to move as much of the calc as possible
+into the accessor to avoid future changes to Custom4 "C4". 
+The above code starts doing that, but it could go further by 
+passing the normal incidence absorbtion "An" as an argument  
+into the accessor eg::
+
+      stack.calc( wavelength_nm, minus_one, zero, ss, 16u );  // normal incidence calc
+      theEfficiency = accessor->get_pmtid_efficiency_angular( pmtid, energy, lposcost, minus_cos_theta, stack.art.A );  
+
+
+> I added ESCAPE files for 3 types of PMTs, and corresponding functions
+> PMTSimParamSvc::get_pmtcat_escape and PMTSimParamSvc::get_pmtid_escape.
+
+::
+
+    double PMTSimParamSvc::get_pmtcat_escape(int pmtcat, double val) const 
+    {
+      assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+      double escape = -1;
+      G4MaterialPropertyVector * vec = 0 ;
+      switch(pmtcat)
+        {   
+            case kPMT_NNVT:        { vec = m_escape_NNVTMCP ; } ; break ;
+            case kPMT_Hamamatsu:   { vec = m_escape_R12860 ; } ; break ;
+            case kPMT_NNVT_HighQE: { vec = m_escape_NNVTMCP_HiQE ; } ; break ;
+        }
+      
+      if(vec){ 
+            escape = vec->Value(val);
+      }
+        
+      assert(escape > 0 && escape <= 1 );
+      return escape;
+    }
+
+
+
+You should split off a method that returns the MPV for the pmtcat, as below.
+This will be needed for getting the info to the GPU. Without this split you are making
+useful functionality inaccessible. 
+
+
+    G4MaterialPropertyVector* PMTSimParamSvc::get_pmtcat_escape_prop(int pmtcat) const 
+    {
+      assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 );
+      G4MaterialPropertyVector * vec = 0 ;
+      switch(pmtcat)
+        {   
+            case kPMT_NNVT:        { vec = m_escape_NNVTMCP ; } ; break ;
+            case kPMT_Hamamatsu:   { vec = m_escape_R12860 ; } ; break ;
+            case kPMT_NNVT_HighQE: { vec = m_escape_NNVTMCP_HiQE ; } ; break ;
+        }
+      
+      return vec ; 
+    } 
+
+
+    double PMTSimParamSvc::get_pmtcat_escape(int pmtcat, double val) const 
+    {
+        G4MaterialPropertyVector * vec = get_pmtcat_escape_prop(pmtcat) ; 
+        double escape = vec ? vec->Value(val) : -1. ;
+        assert(escape > 0 && escape <= 1 );
+        return escape;
+    }
+
+
+> 
+> Moreover, I updated ARC_RINDEX, PHC_RINDEX and PHC_KINDEX from 390-500 nm to 300-700 nm.
+> 
+> Finally, I think the new custom4 version will include the 3 updates: 
+> - ARC and PC thickness(theta) dependance
+> - backward photons calculation
+> - calculate A instead of QE = A x escape
+
+All of these should be done in the accessor, not in Custom4. 
+But Custom4 will need to change the accessor interface to allow it. 
+
+
+> Sorry for the late email, and have a great weekend!
+>
+
+It is not late here in UK. I get back to IHEP after one week.  
+
+
+Simon
+
+ 
