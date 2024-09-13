@@ -1,0 +1,166 @@
+
+Hi Simon,
+
+I updated the code.
+https://code.ihep.ac.cn/JUNO/offline/junosw/-/commit/4c68aa526297d492fe3383678e7a51fb22f9a919
+
+
+> Did you try using cos(theta) rather than directly theta ?  
+> This is because obtaining cos(theta) is cheap but doing acos is expensive.   
+
+I used d(theta) rather than d(cos(theta)) since we use ce(theta) in the current
+simulation, and they had better be consistent. I tried fitting with
+d(cos(theta)), but results are no better than d(theta). Besides, in the process
+I obtain the new ce, the reference points for ce will be changed from theta to
+cos(theta), which affects the weight I give to each point and lead to a
+different ce . Actually I think it's hard to say theta or cos(theta) which one
+is more reasonable from a physical perspective.
+
+I perfer to use theta temporarily. If millions of theta calculations decrease
+the speed significantly, we can update it to d(cos(theta)) as well as
+ce(cos(theta)).
+
+
+> About your PMTSimParamSvc::get_pmtid_ce_v2 from
+...
+> You can use a C array or std::array of pointers to G4MaterialPropertyVector
+
+I added PMTSimParamSvc::init_CD_LPMT_ce and G4MaterialPropertyVector* PMTSimParamSvc::get_CD_LPMT_ce.
+
+
+> Using a boolean for the PMT implementation is not convenient if you want to change the implementation later
+> and compare between them. I suggest an integer implementation version. See:
+> 
+>    https://github.com/simoncblyth/customgeant4/commit/48ad617a371df97e02bc7233b34b82d980034e30
+> 
+> 
+> > When m_UsePMTOpticalModel == true && m_Use_PMTNaturalGeometry == false && m_EnablePMTBackwardPhoton == false, it will call helper_fast_sim.
+> 
+> Its better to pass the implementation_version integer into custom4 and avoid the 
+> branching.  
+> 
+> > For other combinations of conditions, I think they're not under consideration for simplicity.
+> 
+> You should assert on unexpected combinations of conditions with error messsage. 
+
+I added accessor and error messsage.
+
+
+
+> > I added ESCAPE files for 3 types of PMTs, and corresponding functions
+> > PMTSimParamSvc::get_pmtcat_escape and PMTSimParamSvc::get_pmtid_escape.
+...
+> You should split off a method that returns the MPV for the pmtcat, as below.
+> This will be needed for getting the info to the GPU. Without this split you are making
+> useful functionality inaccessible. 
+> 
+>     G4MaterialPropertyVector* PMTSimParamSvc::get_pmtcat_escape_prop(int pmtcat) const 
+...
+
+OK.
+
+
+> > A tricky thing is that some new CE values are over 1, which could be caused by
+> > the uncerntainty of escape factor and the overly simplified model, so it will
+> > lead to PDE sampling issues under the previous logic at junoSD_PMT_v2.cc. 
+> 
+> Point to the code with this issue. 
+> What is the solution ? std::min(ce, 1. ) ? 
+> 
+> > To avoid the problems, I propose not calculating QE but only A in custom4 and
+> > applying escape factor at junoSD_PMT_v2.cc when 
+> > m_EnablePMTBackwardPhoton == true.
+> 
+> You need to elaborate on how this could work. The normal incidence
+> stack calc is needed for "An" to give theEfficiency but the 
+> non-normal incidence stack calc is needed too for the A,R,T 
+> so I dont see how your proposal could work ?
+
+In the current simulation, 
+escape = QE/An
+(docdb-8400)
+
+
+        PDE
+QE = ------------
+       Sum CE_i * w_i
+        i 1:7
+
+
+where PDE is container PDE,
+w_i is the surface area weight of scanning station LED_i,
+CE_i is just from scaling average scanning station PDE_i so it's incorrect.
+
+When considering A non-uniformity, there is no constraint for the escape
+because QE is unknown at a specific theta.  Therefore, I set the same escape
+for the same type PMT, which is from Yaoguang's measurement, and PMTs' ce
+compensates for variations of the escape among PMTs, and the bias makes new ce
+has a possibility more than one.
+
+
+Currently in junoSD_PMT_v2.cc:
+
+ 414     // TODO: get CE and angle response from data.
+ 415     // = decide the CE (collection efficiency)
+ 416     // = the CE can be different at different position
+ 417     // == position
+ 418     const G4AffineTransform& trans = track->GetTouchable()->GetHistory()->GetTopTransform();
+ 419     const G4ThreeVector& global_pos = postStepPoint->GetPosition();
+ 420     G4ThreeVector local_pos = trans.TransformPoint(global_pos);
+ 421 
+ 422     double qe = 1;
+ 423     double ce = 1;
+ 424     // == get the copy number -> pmt id
+ 425     int pmtID = get_pmtid(track);
+ 426     // = final DE = QE * CE, 
+ 427     // but QE is already applied (this is old implementation,
+ 428     // Now we use PMTSimParamSvc to get real QE and CE ), so only CE is important.
+ 429     // = DE: Detection Efficiency
+ 430     if(m_use_pmtsimsvc){
+ 431         qe = (m_enable_optical_model && PMT::Is20inch(pmtID)) ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+ 432         ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+ 433      }
+ 434      else{
+ 435         std::string volname = track->GetVolume()->GetName();
+ 436     GetQEandCEByOldWay(qe , ce , pmtID,  volname, local_pos);
+ 437      }
+ 438 
+ 439     double f_angle_response = 1.0;
+ 440     double de = qe*ce*f_angle_response ;
+ 441     if (de>1.0){
+ 442         std::cout<<"junoSD_PMT_v2:: de is larger than 1.0"<<std::endl;
+ 443     }
+ 444     bool de_cull = G4UniformRand() > de ;
+ 445 
+ 446 
+ 447 
+ 448 
+
+
+Here qe = 1, since qe has been simulated in C4. It samples only ce.
+Once ce > 1, it cannot set a probability over one for a photon to be collected.
+Therefore, I moved the escape here in the new mode, since escape x ce < 1 and
+could avoid the sampling problem.
+
+I tried adding PMTAccessor::get_stackspec_test, which sets the new thickness
+when giving a specific theta and pmtid.
+
+I think in the C4 new implementation mode, it can use get_stackspec_test, and
+not calculate An but directly set theEfficiency = 1, since the escape will be
+sampled in junoSD_PMT_v2.cc.
+
+
+Best,
+Yuhan
+
+
+
+
+
+
+
+
+
+
+
+
