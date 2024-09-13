@@ -153,16 +153,22 @@ FIXED Issue 2 : missing numpy : handle more cleanly
 
 
 
-Issue 3 : using /cvmfs geometry kinda works but analytic optix render for some shapes looks broken
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FIXED AFTER A WEEK  : Issue 3 : using /cvmfs geometry kinda works but analytic optix render for some shapes looks broken
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * using exact same geometry in earlier CUDA works OK 
+* DONE: solid-by-solid ... need to create some small geometries  
+* CSGOptiXRenderInteractiveTest loads the CSGFoundry identified by GEOM : so need some small example GEOM to debug 
 
-* TODO: solid by solid geometry testing 
+  * older GEOM fold may be incompatible with current code 
+  * need to make a selection of small geomtries : best to do that from U4 level not CSG ?
 
 
-Issue 4 : test fails
-~~~~~~~~~~~~~~~~~~~~~~
+* upstream this to ~/opticks/notes/issues/rtx-5000-ada-generation-cuda-12p4-driver-550p76-some-analytic-geometry-skipped.rst
+
+
+FIXED : Issue 4 : 5/213 test fails : NOW DOWN TO 1/213 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Avoid changing the runners to look in /cvmfs by using a symbolic link::
 
@@ -188,7 +194,7 @@ FIXED ssys_test impl error when no envvar defined::
       what():  basic_string::_M_construct null not valid
 
 
-QUDARap 3 thrust related fails::
+FIXED QUDARap 3 thrust related fails::
 
     0/20 Test #10: QUDARapTest.QEventTest ..............***Failed    0.17 sec
                     HOME : /home/blyth
@@ -204,10 +210,22 @@ QUDARap 3 thrust related fails::
     /data1/blyth/local/opticks_Debug/bin/QTestRunner.sh : FAIL from QEventTest
 
 
-* TODO : try different COMPUTE_CAPABILITY
+Fixed by setting the correct OPTICKS_COMPUTE_CAPABILITY of 89 (not 70) and doing fresh_build.sh
+
+    [blyth@localhost ~]$ ~/opticks/sysrap/tests/sdevice_test.sh 
+    [0:NVIDIA_RTX_5000_Ada_Generation]
+    idx/ord/mpc/cc:0/0/100/89  31.592 GB  NVIDIA RTX 5000 Ada Generation
+    [blyth@localhost ~]$ 
 
 
-U4RandomTest failing from missing precooked::
+fresh_build.sh taking LESS THAN 2 MIN on Ada machine::
+
+    Fri Aug 30 09:59:34 AM CST 2024
+    Fri Aug 30 10:01:14 AM CST 2024     
+
+
+
+FIXED U4RandomTest failing from missing precooked::
 
           Start 11: U4Test.U4RandomTest
     11/30 Test #11: U4Test.U4RandomTest ...........................***Failed    0.03 sec
@@ -219,6 +237,9 @@ U4RandomTest failing from missing precooked::
                     ARGS : 
     NP::load Failed to load from path /home/blyth/.opticks/precooked/QSimTest/rng_sequence/rng_sequence_f_ni1000000_nj16_nk16_tranche100000/rng_sequence_f_ni100000_nj16_nk16_ioffset000000.npy
     /data1/blyth/local/opticks_Debug/bin/U4TestRunner.sh : FAIL from U4RandomTest
+
+
+
 
 
 

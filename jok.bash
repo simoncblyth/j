@@ -42,7 +42,8 @@ jok-init()
 {
    #export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
    #export GEOM=J_2024may20
-   export GEOM=J_2024jun14
+   #export GEOM=J_2024jun14
+   export GEOM=J_2024aug27
 
    local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
    mkdir -p $logdir
@@ -122,6 +123,9 @@ jok-tds(){
    jok-init
 
 
+
+
+
    local WPC_ASIS=0              # no change : Opticks translation will assert with CSG tree height < MAX_TREE_DEPTH 
    local WPC_ZERO_HOLES=1        # adhoc just dont subtract the 30+30+1+1=62 holes : translation expected to succeed 
    local WPC_MULTIUNION_HOLES=2  # instead of subtracting the 62 holes one by one, collect into multiunion and subtract together
@@ -148,11 +152,21 @@ jok-tds(){
    local FAC_MULTIUNION_CONTIGUOUS=1
    local FAC_MULTIUNION_DISCONTIGUOUS=2
    export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
-   export U4Solid__IsFlaggedType=G4MultiUnion
+   #export U4Solid__IsFlaggedType=G4MultiUnion
 
+   export stree__force_triangulate_solid='filepath:$HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt'
 
+   unset U4Mesh__NumberOfRotationSteps_DUMP
+   #export U4Mesh__NumberOfRotationSteps_DUMP=1
    export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480
-   export U4Mesh__NumberOfRotationSteps_solidName_sTarget=240
+
+   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
+   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
+   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
+
+
+
+
 
 
    local oim=1     # 1:opticks optical simulation only
@@ -161,9 +175,7 @@ jok-tds(){
    export OPTICKS_INTEGRATION_MODE=$OIM   
    export OPTICKS_SCRIPT=$FUNCNAME        # avoid default sproc::_ExecutableName of python3.9 
 
-   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
-   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
-   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
+
 
    local mode=DebugLite
    #local mode=Nothing     # GPU leak debug 
