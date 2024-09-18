@@ -1,6 +1,5 @@
-> Hi Simon,
-> 
-> I updated the code.
+Hi Yuhan, 
+
 > https://code.ihep.ac.cn/JUNO/offline/junosw/-/commit/4c68aa526297d492fe3383678e7a51fb22f9a919
 > 
 > 
@@ -10,13 +9,16 @@
 > I used d(theta) rather than d(cos(theta)) since we use ce(theta) in the current
 > simulation, and they had better be consistent. 
 
-Which to use is a modelling choice. Both can be made to work correctly. 
-The performance of the two might be significantly different however. 
+Using theta or cos(theta) is a modelling choice. 
+Both can be made to work correctly. 
 
 > I tried fitting with
 > d(cos(theta)), but results are no better than d(theta). 
 
 Getting the same results is what I would expect. 
+The performance of the two will likely be significantly 
+different however. 
+
 
 > Besides, in the process
 > I obtain the new ce, the reference points for ce will be changed from theta to
@@ -28,6 +30,7 @@ Getting the same results is what I would expect.
 > the speed significantly, we can update it to d(cos(theta)) as well as
 > ce(cos(theta)).
 > 
+
 OK
 
 
@@ -36,6 +39,7 @@ OK
 > > You can use a C array or std::array of pointers to G4MaterialPropertyVector
 > 
 > I added PMTSimParamSvc::init_CD_LPMT_ce and G4MaterialPropertyVector* PMTSimParamSvc::get_CD_LPMT_ce.
+
 
 When you know the size of something quite large like the m_CD_LPMT_ce 
 vector ahead of time (its m_PmtTotal elements) you should size the vector first 
@@ -46,13 +50,12 @@ To do that simply start with::
 
     m_CD_LPMT_ce.resize(m_PmtTotal) 
 
-Then you can populate it with::
+Then instead of push_back you can populate it directly with::
 
     m_CD_LPMT_ce[idx] = vec ; 
 
 
  
-> 
 > > Using a boolean for the PMT implementation is not convenient if you want to change the implementation later
 > > and compare between them. I suggest an integer implementation version. See:
 > > 
@@ -72,23 +75,12 @@ Then you can populate it with::
 
 
 
-
-
  
-> 
 > 
 > > > I added ESCAPE files for 3 types of PMTs, and corresponding functions
 > > > PMTSimParamSvc::get_pmtcat_escape and PMTSimParamSvc::get_pmtid_escape.
 > ...
-> > You should split off a method that returns the MPV for the pmtcat, as below.
-> > This will be needed for getting the info to the GPU. Without this split you are making
-> > useful functionality inaccessible. 
-> > 
-> >     G4MaterialPropertyVector* PMTSimParamSvc::get_pmtcat_escape_prop(int pmtcat) const 
-> ...
-> 
-> OK.
-> 
+
 > 
 > > > A tricky thing is that some new CE values are over 1, which could be caused by
 > > > the uncerntainty of escape factor and the overly simplified model, so it will
@@ -178,7 +170,130 @@ Then you can populate it with::
 > I think in the C4 new implementation mode, it can use get_stackspec_test, and
 > not calculate An but directly set theEfficiency = 1, since the escape will be
 > sampled in junoSD_PMT_v2.cc.
-> 
-> 
-> Best,
-> Yuhan
+
+
+
+
+I am concerned that the changes you are making will prevent use of the 
+old implementation from the same code base and set of data files. It is 
+very important to make changes in such a way that you can compare old and 
+new implementations from the same codebase and set of files. Comparing 
+between different versions of a codebase/files is just not practical as 
+there are always lots of other changes that are impossible to disentangle
+from the change you are making. 
+
+Can you reassure me that the changes you are making will allow
+switching between implementations via a simple runtime switch ? 
+This is especially important as coordinated changes are needed across
+3 packages: JUNOSW, Custom4, Opticks 
+
+Working this way will also enable you to communicate what you want 
+to do more clearly as you can make the changes within implementation 
+if blocks. 
+
+Note that the calculation you do in JUNOSW needs to be duplicated in Opticks
+and that means the inputs you base that calculation on need to be 
+copied to the GPU. Mainly in qudarap/qpmt.h and qudarap/qsim.h::
+
+    1731 inline QSIM_METHOD int qsim::propagate_at_surface_CustomART(unsigned& flag, curandStateXORWOW& rng, sctx& ctx) const
+    1732 {
+    1733 
+    1734     const sphoton& p = ctx.p ;
+    1735     const float3* normal = (float3*)&ctx.prd->q0.f.x ;  // geometrical outwards normal 
+    1736     int lpmtid = ctx.prd->identity() - 1 ;  // identity comes from optixInstance.instanceId where 0 means not-a-sensor  
+    1737     //int lpmtid = p.identity ; 
+    1738 
+    1739     float minus_cos_theta = dot(p.mom, *normal);
+    1740     float dot_pol_cross_mom_nrm = dot(p.pol,cross(p.mom,*normal)) ;
+    ....
+    1759     if(lpmtid < 0 )
+    1760     {
+    1761         flag = NAN_ABORT ;
+    1762 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    1763         //if( ctx.idx == base->pidx ) 
+    1764         printf("//qsim::propagate_at_surface_CustomART idx %7d lpmtid %d : ERROR NOT-A-SENSOR : NAN_ABORT \n", ctx.idx, lpmtid );
+    1765 #endif
+    1766         return BREAK ;
+    1767     }
+    1768 
+    1769 
+    1770     float ARTE[4] ;
+    1771     if(lpmtid > -1) pmt->get_lpmtid_ARTE(ARTE, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm );
+    1772 
+    1773 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    1774     if( ctx.idx == base->pidx )
+    1775     printf("//qsim::propagate_at_surface_CustomART idx %d lpmtid %d wl %7.3f mct %7.3f dpcmn %7.3f ARTE ( %7.3f %7.3f %7.3f %7.3f ) \n",
+    1776            ctx.idx, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm, ARTE[0], ARTE[1], ARTE[2], ARTE[3] );
+    1777 #endif
+    1778 
+    1779 
+    1780     const float& theAbsorption = ARTE[0];
+    1781     //const float& theReflectivity = ARTE[1]; 
+    1782     const float& theTransmittance = ARTE[2];
+    1783     const float& theEfficiency = ARTE[3];
+    1784 
+    1785     float u_theAbsorption = curand_uniform(&rng);
+    1786     int action = u_theAbsorption < theAbsorption  ? BREAK : CONTINUE ;
+    1787 
+    1788 
+    1789 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    1790     if( ctx.idx == base->pidx )
+    1791     printf("//qsim.propagate_at_surface_CustomART idx %d lpmtid %d ARTE ( %7.3f %7.3f %7.3f %7.3f ) u_theAbsorption  %7.3f action %d \n",
+    1792         ctx.idx, lpmtid, ARTE[0], ARTE[1], ARTE[2], ARTE[3], u_theAbsorption, action  );
+    1793 #endif
+    1794     
+    1795     if( action == BREAK )
+    1796     {
+    1797         float u_theEfficiency = curand_uniform(&rng) ;
+    1798         flag = u_theEfficiency < theEfficiency ? SURFACE_DETECT : SURFACE_ABSORB ;
+    1799     }
+    1800     else
+    1801     {
+    1802         propagate_at_boundary( flag, rng, ctx, theTransmittance  );
+    1803     }
+    1804     return action ;
+    1805 }
+
+
+I made some recent additions to Opticks to enable this.
+In sysrap/S4MaterialPropertyVector.h I added new API to 
+serialize/import vectors of G4MaterialPropertyVector
+
+
+     24 struct S4MaterialPropertyVector
+     25 {
+     26     static NP* ConvertToArray(const G4MaterialPropertyVector* vec);
+     27     static G4MaterialPropertyVector* Load(const char* path);
+     28 
+     29     static G4MaterialPropertyVector* FromArrayData(const double* aa, int ni, int nj  );
+     30     static G4MaterialPropertyVector* FromArray(const NP* prop);
+     31     static G4MaterialPropertyVector* Make_V(double value);
+     32     static std::string Desc_V(const G4MaterialPropertyVector* v);
+     33 
+     34 
+     35     static void    Import_VV(         std::vector<G4MaterialPropertyVector*>& vv, const NPFold* f ) ;
+     36     static NPFold* Serialize_VV(const std::vector<G4MaterialPropertyVector*>& vv ) ;
+     37     static std::string  Desc_VV(const std::vector<G4MaterialPropertyVector*>& vv ) ;
+     38 
+     39     static void  Import_VV_CombinedArray(          std::vector<G4MaterialPropertyVector*>& vv, const NP* vvcom );
+     40     static NP* Serialize_VV_CombinedArray(   const std::vector<G4MaterialPropertyVector*>& vv ) ;
+     41     static std::string Desc_VV_CombinedArray(const std::vector<G4MaterialPropertyVector*>& vv );
+     42 
+
+In sysrap/NPX.h new API for handling vectors of std::array
+
+      46     template<typename T, int N>
+      47     static NP* ArrayFromVecOfArrays(const std::vector<std::array<T,N>>& va );
+      48 
+      49     template<typename T, int N>
+      50     static void VecOfArraysFromArray( std::vector<std::array<T,N>>& va, const NP* a );
+      51 
+
+
+This new Opticks functionality will need to be used from _PMTSimParamData.h 
+to get the necessary extra PMT information onto the GPU. 
+
+
+Simon
+
+
