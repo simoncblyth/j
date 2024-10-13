@@ -116,14 +116,18 @@ jok-srm-unused-so-far()
 }
 
 
+jok-tds-input-photon()
+{
+    type $FUNCNAME
+    export OPTICKS_RUNNING_MODE=SRM_INPUT_PHOTON
+    export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
+    export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
+}
 
 
 jok-tds(){
    echo === $FUNCNAME  
    jok-init
-
-
-
 
 
    local WPC_ASIS=0              # no change : Opticks translation will assert with CSG tree height < MAX_TREE_DEPTH 
@@ -142,10 +146,6 @@ jok-tds(){
    #fi 
 
 
-   NOGT=0      # dont --no-guide_tube
-   NOXJ=0      # dont --debug-disable-xj
-   NOSJ=0      # dont --debug-disable-sj
-   NOFA=0      # dont --debug-disable-fa
    unset FastenerAcrylicConstruction__CONFIG
 
    local FAC_ASIS=0                   # geometry is present but does not render
@@ -199,29 +199,43 @@ jok-tds(){
    opts="$opts --no-toptask-show"
 
 
-   NOGT=${NOGT:-1}
+
+
+   NOGT=0      # dont --no-guide_tube
+   NOXJ=0      # dont --debug-disable-xj
+   NOSJ=0      # dont --debug-disable-sj
+   NOFA=0      # dont --debug-disable-fa
+
+   ## NB not skipping problem geometry requires careful config of force triangulation 
+   ## to avoid missing and broken geometry 
+
+
+   NOGT=${NOGT:-0}
    case $NOGT in 
       0) opts="$opts" ;; 
       1) opts="$opts --no-guide_tube" ;; 
    esac
 
-   NOXJ=${NOXJ:-1}
+   NOXJ=${NOXJ:-0}
    case $NOXJ in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-xj" ;; 
    esac
 
-   NOSJ=${NOSJ:-1}
+   NOSJ=${NOSJ:-0}
    case $NOSJ in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-sj" ;; 
    esac
 
-   NOFA=${NOFA:-1}
+   NOFA=${NOFA:-0}
    case $NOFA in 
       0) opts="$opts" ;; 
       1) opts="$opts --debug-disable-fa" ;; 
    esac
+
+
+
 
    opts="$opts $(jok-anamgr) "
 
@@ -231,7 +245,9 @@ jok-tds(){
    local trgs=""     
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
-   local gun=1 
+   #local gun=1    ## long time defalt is the base "gun"
+   local gun=0     ## tryout input photons
+   
    local GUN=${GUN:-$gun}
    case $GUN in  
      0) trgs="$trgs opticks" ;;
@@ -239,6 +255,10 @@ jok-tds(){
      2) trgs="$trgs $gun2"  ;;
      3) trgs="$trgs $gun3"  ;;
    esac
+
+   if [ "$GUN" == "0" ]; then
+       jok-tds-input-photon
+   fi 
 
 
    logging()
