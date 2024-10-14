@@ -19,7 +19,6 @@ EOU
 }
 
 
-export SGeoConfig__ELVSelection_VERBOSE=1
 
 elv=$(cat << EOS | tr "\n" ","
 sTopRock_domeAir
@@ -50,11 +49,25 @@ sWorld
 EOS
 )
 
+elv="${elv},sTarget,sAcrylic" 
+
+
 echo $elv
 
-export CSGFoundry=INFO
+logging(){ 
+   type $FUNCNAME
+   export SGeoConfig__ELVSelection_VERBOSE=1
+   export CSGFoundry=INFO
+}
 
-MOI=EXTENT:40000 ELV=t:$elv ~/o/cx.sh
+[ -n "$LOG" ] && logging 
+
+
+moi=EXTENT:40000
+export MOI=${MOI:-$moi}
+export ELV=t:$elv 
+
+~/o/cx.sh
 
 #ELV=filepath:/tmp/elv.txt MOI=EXTENT:40000 ~/o/cx.sh
 
