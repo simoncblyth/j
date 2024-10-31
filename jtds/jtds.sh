@@ -1,4 +1,4 @@
-#!/bin/bash -l 
+#!/bin/bash 
 usage(){ cat << EOU
 ~/j/jtds/jtds.sh
 ==================
@@ -24,15 +24,6 @@ arg=${1:-$defarg}
 name=jtds
 SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
-
-export REMOTE=${REMOTE:-P}
-export L_TMP=${L_TMP:/tmp/l_tmp}
-export P_TMP=${P_TMP:/tmp/opticks}
-# using local laptop directories that duplicate the remote ones
-
-TMPVAR=${REMOTE}_TMP
-export TMP=${!TMPVAR}
-
 export BASE=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0
 
 EVT=${EVT:-000}
@@ -40,7 +31,7 @@ export AFOLD=$BASE/A$EVT
 export BFOLD=$BASE/B$EVT
 script=$SDIR/$name.py 
 
-vars="BASH_SOURCE REMOTE L_TMP P_TMP TMPVAR TMP arg name SDIR GEOM BASE EVT evt AFOLD BFOLD script"
+vars="BASH_SOURCE TMP arg name SDIR GEOM BASE EVT evt AFOLD BFOLD script"
 
 if [ "${arg/info}" != "$arg" ]; then
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 

@@ -118,6 +118,7 @@ jok-srm-unused-so-far()
 
 jok-tds-input-photon()
 {
+    : this is invoked from jok-tds when GUN is zero
     type $FUNCNAME
     export OPTICKS_RUNNING_MODE=SRM_INPUT_PHOTON
     export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
@@ -127,7 +128,7 @@ jok-tds-input-photon()
 
 jok-tds(){
    echo === $FUNCNAME  
-   jok-init
+   jok-init  # set GEOM, creates logdir and cd to it
 
 
    local WPC_ASIS=0              # no change : Opticks translation will assert with CSG tree height < MAX_TREE_DEPTH 
@@ -151,7 +152,8 @@ jok-tds(){
    local FAC_ASIS=0                   # geometry is present but does not render
    local FAC_MULTIUNION_CONTIGUOUS=1
    local FAC_MULTIUNION_DISCONTIGUOUS=2
-   export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
+   #export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
+   export FastenerAcrylicConstruction__CONFIG=$FAC_ASIS
    #export U4Solid__IsFlaggedType=G4MultiUnion
 
    export stree__force_triangulate_solid='filepath:$HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt'
@@ -268,11 +270,12 @@ jok-tds(){
        ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
        ##export QEvent__SEvt_NPFold_VERBOSE=1  
        ##export U4Recorder__SEvt_NPFold_VERBOSE=1  
-       ##export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
-
-       #export QEvent=INFO
-       #export junoSD_PMT_v2_Opticks=INFO
-       #export junoSD_PMT_v2=INFO
+       
+       export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
+       export CSGFoundry=INFO
+       export QEvent=INFO
+       export junoSD_PMT_v2_Opticks=INFO
+       export junoSD_PMT_v2=INFO
        #export SEvt__GATHER=1   ## gather_component debug 
 
        export QEvent__LIFECYCLE=1 
