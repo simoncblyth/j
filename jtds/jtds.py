@@ -18,11 +18,11 @@ if __name__ == '__main__':
 
     INST_FRAME = int(os.environ.get("INST_FRAME","-1"))
     if INST_FRAME == -1:
-        print("using default sframe saved with the sevt")
+        print("INST_FRAME %d : using default sframe saved with the sevt" % INST_FRAME )
         M2W_OVERRIDE = None 
         W2M_OVERRIDE = None 
     else: 
-        print("W2M_OVERRIDE obtained from cf.inst controlled by envvar INST_FRAME %d " % INST_FRAME )
+        print("INST_FRAME %d : W2M_OVERRIDE obtained from cf.inst controlled by envvar INST_FRAME " % INST_FRAME )
         M2W_OVERRIDE = np.eye(4)  
         M2W_OVERRIDE[:,:3] = cf.inst[INST_FRAME][:,:3]  
         W2M_OVERRIDE = np.linalg.inv(M2W_OVERRIDE)
@@ -91,16 +91,21 @@ if __name__ == '__main__':
 
         if hasattr(e.f, 'sframe'):
             _W2M = e.f.sframe.w2m
+            log.info("%s:sevt has sframe giving _W2M " % e.symbol)
         else:
             _W2M = np.eye(4)
             log.info("%s:sevt lacks sframe" % e.symbol)
         pass 
 
         W2M = _W2M if W2M_OVERRIDE is None else W2M_OVERRIDE
+        
          
+        print("W2M_OVERRIDE (from manual INST_FRAME, no longer typical)\n",W2M_OVERRIDE)
+        print("_W2M(from %s.f.sframe.w2m, now standard)\n" % e.symbol,_W2M)
         print("W2M\n",W2M)
 
         if not pos is None:
+            print("transform gpos (from photon or hit array) to lpos using W2M : ie into target frame : GLOBAL %d " % GLOBAL)
             gpos = np.ones( [len(pos), 4 ] ) 
             gpos[:,:3] = pos
             lpos = np.dot( gpos, W2M )   # hmm unfilled global zeros getting transformed somewhere
@@ -110,6 +115,7 @@ if __name__ == '__main__':
         pass 
 
         if not poi is None:
+            print("transform gpoi (from record array) to lpoi using W2M : ie into target frame : GLOBAL %d " % GLOBAL)
             gpoi = np.ones( [len(poi), 4 ] ) 
             gpoi[:,:3] = poi
             lpoi = np.dot( gpoi, W2M )
@@ -126,9 +132,11 @@ if __name__ == '__main__':
             pvplt_viewpoint(pl) # sensitive EYE, LOOK, UP, ZOOM envvars eg EYE=0,-3,0 
 
             if not upoi is None:
+                print("add_points green for the upoi : record points ") 
                 pl.add_points( upoi[:,:3], color="green", point_size=3.0 )
             pass
             if not upos is None:
+                print("add_points red  for the upos : photon/hit points ") 
                 pl.add_points( upos[:,:3], color="red", point_size=3.0 )
             pass
             pl.show_grid()
