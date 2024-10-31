@@ -33,14 +33,23 @@ if __name__ == '__main__':
     print(repr(a))
     print(repr(b))
 
-    print("[--- ab = SAB(a,b) ----")
-    ab = SAB(a,b)
-    print("]--- ab = SAB(a,b) ----")
+    if not a is None and b is None:
+        PICK = "A"
+    elif not b is None and a is None:
+        PICK = "B"
+    else:
+        pass
+    pass 
 
-    print("[----- repr(ab) ")
-    print(repr(ab))
-    print("]----- repr(ab) ")
+    if not a is None and not b is None:
+        print("[--- ab = SAB(a,b) ----")
+        ab = SAB(a,b)
+        print("]--- ab = SAB(a,b) ----")
 
+        print("[----- repr(ab) ")
+        print(repr(ab))
+        print("]----- repr(ab) ")
+    pass
 
     assert PICK in ["A","B","AB","BA", "CF"]
     if PICK == "A":
