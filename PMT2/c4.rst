@@ -1,0 +1,106 @@
+c4
+===
+
+
+::
+
+    epsilon:~ blyth$ cd
+    epsilon:~ blyth$ l *.tar
+    184 -rw-r--r--@ 1 blyth  staff  92160 Nov  1 11:43 yuhan2.tar
+
+::
+
+    cp ~/yuhan2.tar /tmp/
+    cd /tmp
+    tar tvf yuhan2.tar
+    tar xvf yuhan2.tar
+
+
+Yuhan based changes upon the installed 0.1.8 headers passed to me via tarball, 
+exploded to::
+
+    /tmp/include/Custom4
+
+That needs comparison with 0.1.8::
+
+    epsilon:customgeant4 blyth$ l /usr/local/opticks_externals/custom4/0.1.8/
+    total 0
+    0 drwxr-xr-x  8 blyth  staff  256 Oct 18  2023 ..
+    0 drwxr-xr-x  4 blyth  staff  128 Oct 18  2023 lib
+    0 drwxr-xr-x  3 blyth  staff   96 Oct 18  2023 include
+    0 drwxr-xr-x  4 blyth  staff  128 Oct 18  2023 .
+    epsilon:customgeant4 blyth$ 
+
+
+
+::
+
+    epsilon:customgeant4 blyth$ cd /tmp/include/Custom4
+    epsilon:Custom4 blyth$ l
+    total 208
+     0 drwxr-xr-x   3 blyth  wheel     96 Nov  1 11:45 ..
+     0 drwxr-xr-x@ 14 blyth  wheel    448 Sep  9 15:42 .
+     8 -rw-r--r--@  1 blyth  wheel   2611 Sep  9 15:42 C4Version.h
+    32 -rw-r--r--@  1 blyth  wheel  14126 Sep  9 15:41 C4CustomART.h
+     8 -rw-r--r--@  1 blyth  wheel    712 Sep  9 15:08 C4IPMTAccessor.h
+     8 -rw-r--r--@  1 blyth  wheel    718 Oct 18  2023 C4CustomART_Debug.h
+     8 -rw-r--r--@  1 blyth  wheel   2079 Oct 18  2023 C4GS.h
+    48 -rw-r--r--@  1 blyth  wheel  23440 Oct 18  2023 C4MultiLayrStack.h
+    32 -rw-r--r--@  1 blyth  wheel  12290 Oct 18  2023 C4OpBoundaryProcess.hh
+    16 -rw-r--r--@  1 blyth  wheel   6105 Oct 18  2023 C4Pho.h
+     8 -rw-r--r--@  1 blyth  wheel    442 Oct 18  2023 C4Sys.h
+    16 -rw-r--r--@  1 blyth  wheel   5451 Oct 18  2023 C4Touchable.h
+    16 -rw-r--r--@  1 blyth  wheel   5483 Oct 18  2023 C4Track.h
+     8 -rw-r--r--@  1 blyth  wheel   3831 Oct 18  2023 C4TrackInfo.h
+    epsilon:Custom4 blyth$ 
+
+    epsilon:Custom4 blyth$ l /usr/local/opticks_externals/custom4/0.1.8/include/Custom4/
+    total 208
+     0 drwxr-xr-x  14 blyth  staff    448 Oct 18  2023 .
+     0 drwxr-xr-x   3 blyth  staff     96 Oct 18  2023 ..
+     8 -rw-r--r--   1 blyth  staff   2611 Oct 18  2023 C4Version.h
+    48 -rw-r--r--   1 blyth  staff  23440 Oct 18  2023 C4MultiLayrStack.h
+    16 -rw-r--r--   1 blyth  staff   5451 Aug  8  2023 C4Touchable.h
+    32 -rw-r--r--   1 blyth  staff  12290 Aug  8  2023 C4OpBoundaryProcess.hh
+    32 -rw-r--r--   1 blyth  staff  13585 Aug  7  2023 C4CustomART.h
+     8 -rw-r--r--   1 blyth  staff    453 Jul 22  2023 C4IPMTAccessor.h
+     8 -rw-r--r--   1 blyth  staff   2079 Apr  7  2023 C4GS.h
+    16 -rw-r--r--   1 blyth  staff   5483 Apr  7  2023 C4Track.h
+    16 -rw-r--r--   1 blyth  staff   6105 Apr  7  2023 C4Pho.h
+     8 -rw-r--r--   1 blyth  staff    718 Mar 30  2023 C4CustomART_Debug.h
+     8 -rw-r--r--   1 blyth  staff   3831 Mar 24  2023 C4TrackInfo.h
+     8 -rw-r--r--   1 blyth  staff    442 Mar 24  2023 C4Sys.h
+    epsilon:Custom4 blyth$ 
+
+
+
+::
+
+    epsilon:tmp blyth$ diff -r --brief /usr/local/opticks_externals/custom4/0.1.8/include/Custom4 /tmp/include/Custom4
+    Files /usr/local/opticks_externals/custom4/0.1.8/include/Custom4/C4CustomART.h and /tmp/include/Custom4/C4CustomART.h differ
+    Files /usr/local/opticks_externals/custom4/0.1.8/include/Custom4/C4IPMTAccessor.h and /tmp/include/Custom4/C4IPMTAccessor.h differ
+    epsilon:tmp blyth$ 
+
+
+
+Need three-way comparison:
+
+1. 0.1.8
+2. yuhan2
+3. latest c4
+
+
+::
+
+
+    epsilon:~ blyth$ vimdiff /usr/local/opticks_externals/custom4/0.1.8/include/Custom4/C4CustomART.h /tmp/include/Custom4/C4CustomART.h
+
+
+
+    epsilon:~ blyth$ vimdiff /usr/local/opticks_externals/custom4/0.1.8/include/Custom4/C4IPMTAccessor.h /tmp/include/Custom4/C4IPMTAccessor.h
+    added: 
+           get_stackspec_test (poor name)   
+           get_implementation_version
+
+
+
