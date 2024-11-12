@@ -147,13 +147,20 @@ jok-tds(){
    #fi 
 
 
+   : jcv FastenerAcrylicConstruction
    unset FastenerAcrylicConstruction__CONFIG
 
-   local FAC_ASIS=0                   # geometry is present but does not render
+   local FAC_ASIS=0                       ## geometry present but does not render
    local FAC_MULTIUNION_CONTIGUOUS=1
-   local FAC_MULTIUNION_DISCONTIGUOUS=2
-   #export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS
-   export FastenerAcrylicConstruction__CONFIG=$FAC_ASIS
+   local FAC_MULTIUNION_DISCONTIGUOUS=2   ## G4MultiUnion SEGV with input photons
+   local FAC_LISTNODE_DISCONTIGUOUS=3     ## avoid the G4MultiUnion but still translate to listnode
+   local FAC_LISTNODE_CONTIGUOUS=4
+
+   #export FastenerAcrylicConstruction__CONFIG=$FAC_ASIS
+   #export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS  
+   export FastenerAcrylicConstruction__CONFIG=$FAC_LISTNODE_DISCONTIGUOUS      
+
+
    #export U4Solid__IsFlaggedType=G4MultiUnion
 
    export stree__force_triangulate_solid='filepath:$HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt'
@@ -171,8 +178,8 @@ jok-tds(){
 
 
 
-   local oim=1     # 1:opticks optical simulation only
-   #local oim=3    # 3:both geant4 and opticks optical simulation 
+   #local oim=1     # 1:opticks optical simulation only
+   local oim=3    # 3:both geant4 and opticks optical simulation 
    local OIM=${OIM:-$oim}
    export OPTICKS_INTEGRATION_MODE=$OIM   
    export OPTICKS_SCRIPT=$FUNCNAME        # avoid default sproc::_ExecutableName of python3.9 
@@ -240,6 +247,10 @@ jok-tds(){
 
 
    opts="$opts $(jok-anamgr) "
+   case $OPTICKS_INTEGRATION_MODE in 
+       2|3) opts="$opts --opticks-anamgr " ;;   ## switch on U4RecorderAnaMgr to record Geant4 propagtion into Opticks "B000,.." SEvt 
+   esac
+
 
    local gun1="gun"
    local gun2="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
@@ -263,23 +274,42 @@ jok-tds(){
    fi 
 
 
+   unlogging()
+   {
+       unset U4Recorder__SEvt_NPFold_VERBOSE
+       unset U4Recorder
+       unset SEvt__LIFECYCLE
+       unset CSGFoundry
+       unset QEvent
+       unset junoSD_PMT_v2_Opticks
+       unset junoSD_PMT_v2   
+       unset SEvt__GATHER
+       unset sn__level
+       unset QEvent__LIFECYCLE
+   }
+
+
    logging()
    {
        : jok.bash 
        type $FUNCNAME 
        ## for SEvt::setFoldVerbose NPFold::set_verbose frm A and B SEvt
        ##export QEvent__SEvt_NPFold_VERBOSE=1  
-       ##export U4Recorder__SEvt_NPFold_VERBOSE=1  
-       
+       export U4Recorder__SEvt_NPFold_VERBOSE=1  
+       export U4Recorder=INFO       
+
        export SEvt__LIFECYCLE=1  ## sparse SEvt debug output, works well alone  
        export CSGFoundry=INFO
        export QEvent=INFO
        export junoSD_PMT_v2_Opticks=INFO
        export junoSD_PMT_v2=INFO
        #export SEvt__GATHER=1   ## gather_component debug 
+       #export sn__level=2  
 
        export QEvent__LIFECYCLE=1 
    }
+
+   unlogging
    if [ -n "$LOG" ]; then 
        echo $BASH_SOURCE - $FUNCNAME - logging enabled
        logging
