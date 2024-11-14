@@ -4,8 +4,13 @@ Fastener_asis_sibling_soup
 Links
 --------
 
+
 * this : ~/j/setupCD_Sticks_Fastener/Fastener_asis_sibling_soup.rst
 * prior : ~/o/notes/issues/G4CXTest_GEOM_deviant_simple_history_TO_BT_BT_SA_at_1000_per_1M_level.rst
+
+* this : https://github.com/simoncblyth/j/blob/main/setupCD_Sticks_Fastener/Fastener_asis_sibling_soup.rst
+* prior : https://bitbucket.org/simoncblyth/opticks/src/master/notes/issues/G4CXTest_GEOM_deviant_simple_history_TO_BT_BT_SA_at_1000_per_1M_level.rst
+
 
 
 Issue : Unexpected boundaries indicate borked hierarchy

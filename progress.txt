@@ -1,0 +1,147 @@
+Recent Progress
+================
+
+Steps done
+------------
+
+1. full geometry "scan" performance test on the workstations
+
+   * shows no slow solids : so no geometry performance issues
+
+
+2. comparisons of performance with the two workstation GPUs
+
+   * TITAN RTX  (1st gen)
+   * RTX 5000 Ada (3rd gen)
+
+   show a factor 4 improvement in ray trace performance that directly 
+   feeds into a factor 4 improvement in simulation performance.
+   So far RTX RT performance has been improving ~2x each ~2 yrs.   
+
+   I reported this at CHEP and McGill. 
+   Showing the progression of GPU RT performance with RTX generations 
+   did what I expected and grabbed the attention of many, especially 
+   as 4th generation is expected early next year.
+
+
+3. avoided FastenerAcrylic G4MultiUnion voxelization crash
+   by making the translation able to sn::CreateSmallerTreeWithListNode direct 
+   from the big tree with no G4MultiUnion. Only need to change the names of 
+   some of the constituent solids to give hints to the translation. 
+
+4. workstation geometry validation chi2 check using input photons 
+   targetting single PMTs  comparing with/without Opticks : chi2 OK
+
+
+
+WIP : workstation geometry validation chi2 Opticks:Geant4
+-------------------------------------------------------------
+
+Detailed debug notes:
+
+* https://bitbucket.org/simoncblyth/opticks/src/master/notes/issues/G4CXTest_GEOM_deviant_simple_history_TO_BT_BT_SA_at_1000_per_1M_level.rst
+* https://github.com/simoncblyth/j/blob/main/setupCD_Sticks_Fastener/Fastener_asis_sibling_soup.rst
+
+Summary:
+
+1. 1M photons from center of CD "~/o/G4CXTest_GEOM.sh ; ~/o/G4CXTest_GEOM.sh chi2" 
+
+   * deviant simple history "TO BT BT SA"  : Opticks has +1000 with this history
+
+2. checking A:Opticks boundaries within "TO BT BT SA" reveals smoking gun boundary 107
+
+   * 107:Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lFasteners_phys//Steel 
+   * steel of Fasteners is directly within the Water (should be inside AdditionAcrylic)
+   * https://simoncblyth.bitbucket.io/env/presentation/cxt_min/Fastener_soup.png
+
+::
+
+    In [23]: np.c_[np.unique( ra[:,3,3,0].view(np.uint32) >> 16, return_counts=True )]
+    Out[23]: 
+    array([[   99, 14137],            ## Tyvek//CDInnerTyvekSurface/Water
+           [  107,  3828],            ## Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lFasteners_phys//Steel
+           [  108,  1857]])           ## Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lUpper_phys//Steel
+
+
+3. implement proper hierarchy : inject Fasteners into AdditionAcrylic then AdditionAcrylic*590 into cd_det lWaterPool 
+
+   * currently in working copy
+
+4. initially the chi2 got a lot worse : the sign of my relative transform was wrong causing 
+   Fasteners to poke into Acrylic sphere : this was revealed by "simtrace" slice plot "~/o/cxt_min.sh"
+
+   * https://simoncblyth.bitbucket.io/env/presentation/cxt_min/Fastener_inside_AdditionAcrylic_oops_inversion_perhaps.png
+   * https://simoncblyth.bitbucket.io/env/presentation/cxt_min/Fastener_fixed_heirarchy_with_tran_flip.png
+
+5. after fix heirarchy + adhoc tran flip the simtrace looks good and the 1M photon CD center chi2 is matching, switch with::
+
+   export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=1     
+
+
+* TODO: make branch + MR  
+* TODO: make slides describing this issue and fix 
+
+
+
+Next "sequential" steps
+-------------------------
+ 
+1. workstation muon run comparison 
+
+   * validation chi2 check (restrict to 3~5M for validation perhaps) 
+   * implement splitting launch to fit within VRAM
+   * implement better handling of QCurandState to avoid large file duplication 
+
+2. revive the Release build (-DPRODUCTION flag), compare hits with Debug 
+
+3. make JUNOSW+Opticks release onto /cvmfs  
+
+4. test release performance on GPU cluster
+
+
+
+Tasks that student could do without time consuming training 
+-----------------------------------------------------------
+
+After I have made the first pass at these "sequential" steps 
+and made any necessary updates to code and scripts and made the
+first release I could use help with checking the release on cluster.   
+This will likely be in 1-2 weeks time.
+
+
+Other student tasks : JUNOSW small geometry change validations  
+----------------------------------------------------------------
+
+* WaterPoolConstruction : move to hierachy from "sibling soup"
+* PMT virtual wrapper sub-mm enlargements
+
+These changes are merged already, with envvar controls that 
+adjust the geometry. Once validated simple merges are needed that
+adjust the default values of the controls changing the 
+default (no envvar) geometry::  
+
+   WaterPoolConstruction__CONFIG
+   FastenerAcrylicConstruction__CONFIG
+   Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM
+   HamamatsuMaskManager__MAGIC_virtual_thickness_MM
+   NNVTMaskManager__MAGIC_virtual_thickness_MM
+
+As this geometry change validation does not need Opticks it
+can be done now simply by making validation comparisons with different 
+envvar values that change the geometry. 
+
+What student needs to do:
+
+1. understand how the geometry code that is impacted by the envvars
+2. compare with/without envvar changes 
+
+
+Non-urgent tasks
+------------------
+
+1. investigate failure of G4MultiUnion within boolean, prepare unittest, 
+   check with latest Geant4 and file bug if still there 
+
+   * build Geant4 with debug symbol [would be good to include the libs with debug symbols into /cvmfs?]
+   * build JUNOSW+Opticks against that
+ 
