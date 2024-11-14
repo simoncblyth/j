@@ -161,6 +161,11 @@ jok-tds(){
    export FastenerAcrylicConstruction__CONFIG=$FAC_LISTNODE_DISCONTIGUOUS      
 
 
+   local AAF_ASIS=0
+   local AAF_HIERARCHY=1
+   export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=$AAF_HIERARCHY
+   export AdditionAcrylicConstruction__rdelta_mm=1   ## set it big to see something 
+
    #export U4Solid__IsFlaggedType=G4MultiUnion
 
    export stree__force_triangulate_solid='filepath:$HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt'

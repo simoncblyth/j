@@ -1,11 +1,11 @@
 Fastener_asis_sibling_soup
 ===========================
 
-
-Prior
+Links
 --------
 
-From ~/o/notes/issues/G4CXTest_GEOM_deviant_simple_history_TO_BT_BT_SA_at_1000_per_1M_level.rst
+* this : ~/j/setupCD_Sticks_Fastener/Fastener_asis_sibling_soup.rst
+* prior : ~/o/notes/issues/G4CXTest_GEOM_deviant_simple_history_TO_BT_BT_SA_at_1000_per_1M_level.rst
 
 
 Issue : Unexpected boundaries indicate borked hierarchy
@@ -13,11 +13,34 @@ Issue : Unexpected boundaries indicate borked hierarchy
 
 :: 
 
+    P[blyth@localhost issues]$ PICK=AB HSEL="TO BT BT SA" ~/o/G4CXTest_GEOM.sh ana 
+
     In [23]: np.c_[np.unique( ra[:,3,3,0].view(np.uint32) >> 16, return_counts=True )]
     Out[23]: 
     array([[   99, 14137],            ## Tyvek//CDInnerTyvekSurface/Water
            [  107,  3828],            ## Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lFasteners_phys//Steel
            [  108,  1857]])           ## Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lUpper_phys//Steel
+
+
+    P[blyth@localhost tests]$ ~/o/bin/bd_names.sh | grep Water
+    ...
+    96   vetoWater/Implicit_RINDEX_NoRINDEX_pWaterPool_ZC2.A03_A03_HBeam_phys//LatticedShellSteel
+    97   vetoWater/Implicit_RINDEX_NoRINDEX_pWaterPool_ZC2.A05_A05_HBeam_phys//LatticedShellSteel
+    99   Tyvek//CDInnerTyvekSurface/Water
+    100  Water///Acrylic
+    104  Water/StrutAcrylicOpSurface//StrutSteel
+    105  Water/Strut2AcrylicOpSurface//StrutSteel
+    106  Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lSteel_phys//Steel
+    107  Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lFasteners_phys//Steel
+    108  Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lUpper_phys//Steel
+    109  Water///PE_PA
+    110  Water///Water
+    111  Water///AcrylicMask
+    112  Water/HamamatsuMaskOpticalSurface//CDReflectorSteel
+    113  Water///Pyrex
+    122  Water/NNVTMaskOpticalSurface//CDReflectorSteel
+    130  Water/Implicit_RINDEX_NoRINDEX_PMT_3inch_log_phys_PMT_3inch_cntr_phys//Steel
+
 
 
 lFasteners : Expected the Steel to be within Acrylic not Water
@@ -407,5 +430,160 @@ Opticks viz commandlines for the 590 instances of each::
     MOI=uni_acrylic1:0:0 ~/o/cx.sh
     MOI=uni_acrylic1:0:589 ~/o/cx.sh
 
+
+
+
+
+After cleanup Sticks/Fastener impl
+--------------------------------------
+
+::
+
+    junotoptask:DetSimAlg.StrutAcrylicConstruction.initVariables  INFO: Option RealSurface is enabled in Central Detector.  Reduce m_lengthStrut from 1807.60000 to: 1548.05399
+    m_radStrut = 42.5
+    Total Number of lSteel in CD is 370
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutAcrylic   anchor_r =  18854.92700 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Acrylic.csv
+    junotoptask:DetSimAlg.StrutBar2AcrylicConstruction.initVariables  INFO: Option RealSurface is enabled in Central Detector.  Reduce m_lengthStrut from 1913.60000 to: 1548.07707
+    m_radStrut = 30
+    Total Number of lSteel2 in CD is 220
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutBar2Acrylic   anchor_r =  18854.93854 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/StrutBar2_Acrylic.csv
+    in det_elemStrutBallheadAcrylicConstruction not found. Try to create it.
+    m_rad = 50
+    Total Number of lSteel in CD is 590
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutBallheadAcrylic   anchor_r =  18030.90000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    in det_elemFastenerAcrylicConstruction not found. Try to create it.
+    Total Number of lFasteners in CD is 590
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = FastenerAcrylic   anchor_r =  17844.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    in det_elemUpperAcrylicConstruction not found. Try to create it.
+    Total Number of lUpper in CD is 590
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = UpperAcrylic   anchor_r =  17964.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    in det_elemAdditionAcrylicConstruction not found. Try to create it.
+    Total Number of lAddition in CD is 590
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = AdditionAcrylic   anchor_r =  17824.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    in det_elemSJCLSanchorConstruction not found. Try to create it.
+    Total Number of lSJCLSanchor in CD is 2
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJCLSanchor   anchor_r =  17694.89800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJCLSanchor.csv
+    in det_elemSJFixtureConstruction not found. Try to create it.
+    Total Number of lSJFixture in CD is 36
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJFixture   anchor_r =  17694.98200 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJFixturePos.csv
+    in det_elemSJReceiverConstruction not found. Try to create it.
+    Total Number of lSJReceiver in CD is 8
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJReceiver   anchor_r =  17694.89800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJReceiverPos.csv
+    in det_elemSJReceiverFasternConstruction not found. Try to create it.
+    Total Number of lSJReceiverFastern in CD is 8
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJReceiverFastern   anchor_r =  17683.39800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJReceiverPos.csv
+    in det_elemXJanchorConstruction not found. Try to create it.
+    use simplify xj anchor
+    Total Number of lXJanchor in CD is 56
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = XJanchor   anchor_r =  17829.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/XJanchor.csv
+    in det_elemXJfixtureConstruction not found. Try to create it.
+
+
+
+
+::
+
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutAcrylic         anchor_r =  18854.92700 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Acrylic.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutBar2Acrylic     anchor_r =  18854.93854 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/StrutBar2_Acrylic.csv
+
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = StrutBallheadAcrylic anchor_r =  18030.90000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = FastenerAcrylic      anchor_r =  17844.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = UpperAcrylic         anchor_r =  17964.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = AdditionAcrylic      anchor_r =  17824.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/Strut_Anchor_Acrylic.csv
+
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJCLSanchor          anchor_r =  17694.89800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJCLSanchor.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJFixture            anchor_r =  17694.98200 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJFixturePos.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJReceiver           anchor_r =  17694.89800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJReceiverPos.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = SJReceiverFastern    anchor_r =  17683.39800 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/SJReceiverPos.csv
+    SNiPER:Unknown.setupAnchorPosition  INFO: anchor_name = XJanchor             anchor_r =  17829.00000 mm  anchor_pos_file = /data/blyth/junotop/junosw/Simulation/DetSimV2/DetSimOptions/data/XJanchor.csv
+
+
+::
+
+     07 class IDetElementPos {
+      8 public:
+      9     virtual G4bool hasNext()=0;
+     10     virtual G4Transform3D next()=0;
+     11     virtual ~IDetElementPos(){}
+     12 };
+
+
+
+Changes
+-----------
+
+
+::
+
+    P[blyth@localhost junosw]$ jo
+    /home/blyth/junotop/junosw
+    On branch main
+    Your branch is up to date with 'origin/main'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+            ## add CONFIG enabling Opticks translation to listnode 
+            ## without adopting G4MultiUnion in source geometry 
+
+        modified:   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc
+            ## rationalize LSExpDetectorConstruction::setupCD_Sticks implementation
+            ## ADD CONFIG to inject Fastener into AdditionAcrylic fixing hierarchy 
+
+        modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+            ## reposition high level setup into G4CXOpticks::SetGeometry_JUNO for ease of updating
+
+        modified:   Simulation/GenTools/src/GtOpticksTool.cc       
+        modified:   Simulation/GenTools/src/GtOpticksTool.h        
+            ## remove input_photon configure check : thats too early for current Opticks
+
+        modified:   Simulation/SimSvc/MultiFilmLUTMakerSvc/src/MultiFilmLUTMakerSvc.cc   
+            ## reduce verbosity
+
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+        Simulation/DetSimV2/SimUtil/include/AdditionAcrylic_FastenerPos.hh
+        Simulation/DetSimV2/SimUtil/src/AdditionAcrylic_FastenerPos.cc
+
+
+
+With HIERARCHY configured
+----------------------------
+
+With::
+
+
+
+    164    local AAF_ASIS=0
+    165    local AAF_HIERARCHY=1
+    166    export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=$AAF_HIERARCHY
+
+
+
+* geometry looks the same with ~/o/cx.sh
+* boundaries have changed::
+
+    P[blyth@localhost junosw]$ ~/o/bin/bd_names.sh | head -120 
+
+    98   Air/CDTyvekSurface//Tyvek
+    99   Tyvek//CDInnerTyvekSurface/Water
+    100  Water///Acrylic
+    101  Acrylic///LS
+    102  LS///Acrylic
+    103  LS///PE_PA
+    104  Water/StrutAcrylicOpSurface//StrutSteel
+    105  Water/Strut2AcrylicOpSurface//StrutSteel
+    106  Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lSteel_phys//Steel
+    107  Water/Implicit_RINDEX_NoRINDEX_pInnerWater_lUpper_phys//Steel
+    108  Acrylic/Implicit_RINDEX_NoRINDEX_lAddition_phys_lFasteners_phys//Steel
+    109  Water///PE_PA
+    110  Water///Water
+    111  Water///AcrylicMask
+    112  Water/HamamatsuMaskOpticalSurface//CDReflectorSteel
+    113  Water///Pyrex
+    114  Pyrex/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/Vacuum
+    115  Vacuum/HamamatsuR12860_PMT_20inch_dynode_plate_opsurface//Steel
 
 
