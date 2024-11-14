@@ -164,7 +164,9 @@ jok-tds(){
    local AAF_ASIS=0
    local AAF_HIERARCHY=1
    export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=$AAF_HIERARCHY
-   export AdditionAcrylicConstruction__rdelta_mm=1   ## set it big to see something 
+ 
+   unset AdditionAcrylicConstruction__rdelta_mm
+   #export AdditionAcrylicConstruction__rdelta_mm=1   ## set it big to see something 
 
    #export U4Solid__IsFlaggedType=G4MultiUnion
 
