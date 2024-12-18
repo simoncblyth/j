@@ -43,7 +43,8 @@ jok-init()
    #export GEOM=J23_1_0_rc3_ok0         # replace . and - with _ to make valid bash identifier
    #export GEOM=J_2024may20
    #export GEOM=J_2024jun14
-   export GEOM=J_2024aug27
+   #export GEOM=J_2024aug27
+   export GEOM=J_2024nov27
 
    local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
    mkdir -p $logdir
@@ -131,12 +132,22 @@ jok-tds(){
    jok-init  # set GEOM, creates logdir and cd to it
 
 
+   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
+   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
+   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
+
+
+
    local WPC_ASIS=0              # no change : Opticks translation will assert with CSG tree height < MAX_TREE_DEPTH 
    local WPC_ZERO_HOLES=1        # adhoc just dont subtract the 30+30+1+1=62 holes : translation expected to succeed 
    local WPC_MULTIUNION_HOLES=2  # instead of subtracting the 62 holes one by one, collect into multiunion and subtract together
    local WPC_HIERARCHY=3         # major simplification of WaterPoolConstruction : natural hierarchy removes need for the 62 subtractions 
    #export WaterPoolConstruction__CONFIG=$WPC_MULTIUNION_HOLES
    export WaterPoolConstruction__CONFIG=$WPC_HIERARCHY
+
+
+
+
 
    unset ConfAcrylic__data_pillar_remove_bottom_angled_cross_piece
    unset HBeamConstruction__try_init_model_pillar_shortleg_LSCALE
@@ -147,38 +158,44 @@ jok-tds(){
    #fi 
 
 
-   : jcv FastenerAcrylicConstruction
-   unset FastenerAcrylicConstruction__CONFIG
-
-   local FAC_ASIS=0                       ## geometry present but does not render
-   local FAC_MULTIUNION_CONTIGUOUS=1
-   local FAC_MULTIUNION_DISCONTIGUOUS=2   ## G4MultiUnion SEGV with input photons
-   local FAC_LISTNODE_DISCONTIGUOUS=3     ## avoid the G4MultiUnion but still translate to listnode
-   local FAC_LISTNODE_CONTIGUOUS=4
-
-   #export FastenerAcrylicConstruction__CONFIG=$FAC_ASIS
-   #export FastenerAcrylicConstruction__CONFIG=$FAC_MULTIUNION_DISCONTIGUOUS  
-   export FastenerAcrylicConstruction__CONFIG=$FAC_LISTNODE_DISCONTIGUOUS      
+   unset FastenerConstruction__CONFIG
+   ## REMOVED AS FC_LISTNODE_DISCONTIGUOUS IS NOW DEFAULT
+   ## local FC_ASIS=0                       ## geometry present but does not render
+   ## local FC_MULTIUNION_CONTIGUOUS=1
+   ## local FC_MULTIUNION_DISCONTIGUOUS=2   ## G4MultiUnion SEGV with input photons
+   ## local FC_LISTNODE_DISCONTIGUOUS=3     ## avoid the G4MultiUnion but still translate to listnode
+   ## local FC_LISTNODE_CONTIGUOUS=4
+   ## export FastenerConstruction__CONFIG=$FC_ASIS
+   ## export FastenerConstruction__CONFIG=$FC_MULTIUNION_DISCONTIGUOUS  
+   ## export FastenerConstruction__CONFIG=$FC_LISTNODE_DISCONTIGUOUS      
 
 
-   local AAF_ASIS=0
-   local AAF_HIERARCHY=1
-   export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=$AAF_HIERARCHY
- 
+   ## REMOVED AS FORMER APPROACH IS A BUG
+   ## unset LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG
+   ## local AAF_ASIS=0
+   ## local AAF_HIERARCHY=1
+   ## export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=$AAF_HIERARCHY
+
+
+   unset LSExpDetectorConstruction__setupCD_Sticks_Fastener_Hierarchy_DELTA_MM 
+   ## local FC_DELTA_MM_DEFAULT=0.10
+   ## local FC_DELTA_MM_ENLARGED_FOR_VISIBILITY=2
+   ## export LSExpDetectorConstruction__setupCD_Sticks_Fastener_Hierarchy_DELTA_MM=$FC_DELTA_MM_ENLARGED_FOR_VISIBILITY
+
    unset AdditionAcrylicConstruction__rdelta_mm
    #export AdditionAcrylicConstruction__rdelta_mm=1   ## set it big to see something 
 
    #export U4Solid__IsFlaggedType=G4MultiUnion
 
+
+
    export stree__force_triangulate_solid='filepath:$HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt'
 
    unset U4Mesh__NumberOfRotationSteps_DUMP
-   #export U4Mesh__NumberOfRotationSteps_DUMP=1
+   export U4Mesh__NumberOfRotationSteps_DUMP=1
    export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480
 
-   export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10            # default 1.e-3 
-   export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10  # default 0.05 
-   export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10       # default 0.05
+   export U4Tree__MATERIAL_DEBUG=1
 
 
 
@@ -211,10 +228,10 @@ jok-tds(){
    local opts="" 
    opts="$opts --evtmax $OPTICKS_NUM_EVENT"
    opts="$opts --opticks-mode $OPTICKS_INTEGRATION_MODE "   
-   opts="$opts --additionacrylic-simplify-csg"
    opts="$opts --no-toptask-show"
 
-
+   # opts="$opts --additionacrylic-simplify-csg"
+   ## have removed this, it is now the default 
 
 
    NOGT=0      # dont --no-guide_tube

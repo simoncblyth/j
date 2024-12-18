@@ -78,19 +78,28 @@ Summary:
    export LSExpDetectorConstruction__setupCD_Sticks_Fastener_CONFIG=1     
 
 
-* TODO: make branch + MR  
+* DONE: make branch 
+* TODO: MR  
 * TODO: make slides describing this issue and fix 
 
+
+* DONE : implement splitting launch to fit within VRAM
+* DONE : implement better handling of QCurandState to avoid large file duplication 
+* DONE : enabled flexible RNG switching "using RNG =" line in qrng.h and recompile) 
+* DONE : testing RNG = Philox which does not need the state files avoiding init delay
 
 
 Next "sequential" steps
 -------------------------
+
+0. cxs_min.sh : large scan expanding into multi-launch territory  
+
+   * compare Philox and XORWOW
+   * DONE : organization of max controls and VRAM detection to sort out 
  
-1. workstation muon run comparison 
+1. tds : workstation muon run comparison 
 
    * validation chi2 check (restrict to 3~5M for validation perhaps) 
-   * implement splitting launch to fit within VRAM
-   * implement better handling of QCurandState to avoid large file duplication 
 
 2. revive the Release build (-DPRODUCTION flag), compare hits with Debug 
 

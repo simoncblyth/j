@@ -592,3 +592,399 @@ With::
     115  Vacuum/HamamatsuR12860_PMT_20inch_dynode_plate_opsurface//Steel
 
 
+
+
+Changes so far
+-----------------
+
+::
+
+    P[blyth@localhost junosw]$ jo
+    /home/blyth/junotop/junosw
+    # On branch main
+    # Changes not staged for commit:
+    #   (use "git add <file>..." to update what will be committed)
+    #   (use "git checkout -- <file>..." to discard changes in working directory)
+    #
+    #   modified:   Simulation/DetSimV2/CentralDetector/include/AdditionAcrylicConstruction.hh
+    #   modified:   Simulation/DetSimV2/CentralDetector/src/AdditionAcrylicConstruction.cc
+    #   modified:   Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+    #   modified:   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh
+    #   modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc
+    #   modified:   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+    #   modified:   Simulation/GenTools/src/GtOpticksTool.cc
+    #   modified:   Simulation/GenTools/src/GtOpticksTool.h
+    #   modified:   Simulation/SimSvc/MultiFilmLUTMakerSvc/src/MultiFilmLUTMakerSvc.cc
+    #
+    # Untracked files:
+    #   (use "git add <file>..." to include in what will be committed)
+    #
+    #   Simulation/DetSimV2/SimUtil/include/OnePosition.hh
+    #   Simulation/DetSimV2/SimUtil/src/OnePosition.cc
+    no changes added to commit (use "git add" and/or "git commit -a")
+    P[blyth@localhost junosw]$ 
+
+
+
+Ziyan now requests Water cylinders too  
+------------------------------------------
+
+So need::
+
+   FastenerWater volume : 
+   (delta enlarged outwards and inwards for annulus) 
+
+   FastenerSteel volume
+
+   inject FastenerSteel volume into FastenerWater with no position offset 
+        
+   inject FastenerWater into AdditionAcrylic (position offset-delta)
+
+
+
+
+::
+
+
+
+          
+                           +---------------------------------------+
+                          /                                         \ 
+                         /                                           \ 
+                        /    +------+                                 \
+                       /     | +--+ |                                  \  
+                      /      | |St|W|                                   \ 
+                     /       | |  | |                                    \  
+                    /        | +--+ |                                     \      
+                   /         +------+                                      \ 
+                  /                                                         \   
+                 /                                       Acrylic             \                         
+                /  +-------------------------------------------------+        \
+               /   | +---------------------------------------------+ |         \
+              /    | |                           Steel             |W|          \
+             /     | +---------------------------------------------+ |           \ 
+            /      +-------------------------------------------------+            \
+           /                                                                       \
+          +-------------------------------------------------------------------------+
+
+
+
+Better to reuse the code changing param delta+material, 
+perhaps via det_elem nobj mechanism
+Seems nobj not designed for that. But still need to use it
+to create separate instances of "FastenerConstruction" ?
+By looking for non-existing tools called the string after slash::
+
+    // the nobj is needed to create 
+    IDetElement* fac_water_ = det_elem("FastenerConstruction/FastenerConstruction_Water") ; 
+    FastenerConstruction* fac_water = dynamic_case<FastenerConstruction*>(fac_water_); 
+
+    IDetElement* fac_steel_ = det_elem("FastenerConstruction/FastenerConstruction_Steel") ;
+    FastenerConstruction* fac_steel = dynamic_case<FastenerConstruction*>(fac_steel_); 
+ 
+
+::
+
+    1117 IDetElement*
+    1118 LSExpDetectorConstruction::det_elem(const std::string& name) {
+    1119     SniperPtr<DetSimAlg> detsimalg(*m_scope, "DetSimAlg");
+    1120     if (detsimalg.invalid()) {
+    1121         std::cout << "Can't Load DetSimAlg" << std::endl;
+    1122         assert(0);
+    1123     }
+    1124 
+    1125     // get type/nobj
+    1126     std::string type = name;
+    1127     std::string nobj = name;
+    1128     std::string::size_type pseg = name.find('/');
+    1129     if ( pseg != std::string::npos ) {
+    1130         type = type.substr(0, pseg);
+    1131         nobj = nobj.substr(pseg+1, std::string::npos);
+    1132     }
+    1133 
+    1134     ToolBase* t = 0;
+    1135     // find the tool first
+    1136     // create the tool if not exist
+    1137     t = detsimalg->findTool(nobj);
+    1138     if (not t) {
+    1139         std::cout <<"in det_elem"<< name << " not found. Try to create it." << std::endl;
+    1140         t = detsimalg->createTool(name);
+    1141     }
+    1142 
+    1143     return dynamic_cast<IDetElement*>(t);
+    1144 }
+
+
+
+
+
+Need to instanciate and cast then change param then. 
+
+::
+
+     23 #ifdef PMTSIM_STANDALONE
+     24 #include "PMTSIM_API_EXPORT.hh"
+     25 class FastenerAcrylicConstruction : public IGeomManager {
+     26 #else
+     27 class FastenerAcrylicConstruction : public IDetElement,
+     28                             public ToolBase{
+     29 #endif
+
+
+
+
+::
+
+    1630 IDetElement* LSExpDetectorConstruction::setupAnchorElement(std::string& anchor_name)
+    1631 {
+    1632     std::string de_name = anchor_name + "Construction";
+    1633     IDetElement* de = det_elem(de_name);
+    1634     return de ;
+    1635 }
+
+
+
+FIXED : Shakedown : dud material ? 
+------------------------------------
+
+
+::
+
+    024-11-25 14:37:29.995 INFO  [455020] [LSExpDetectorConstruction_Opticks::Setup@44] [ WITH_G4CXOPTICKS opticksMode 3 sd 0x9af00a0
+    ssys::getenvvar.is_path_prefixed  path $HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt
+    2024-11-25 14:37:29.996 INFO  [455020] [G4CXOpticks::SetGeometry_JUNO@89] [ WITH_G4CXOPTICKS opticksMode 3 sd 0x9af00a0
+    2024-11-25 14:37:29.996 INFO  [455020] [U4Tree::Create@214] [new U4Tree
+    2024-11-25 14:37:29.997 INFO  [455020] [U4Tree::init@270] -initRayleigh
+    2024-11-25 14:37:29.997 INFO  [455020] [U4Tree::init@272] -initMaterials
+
+    Thread 1 "python" received signal SIGSEGV, Segmentation fault.
+    0x00007fffcd2e0a68 in G4Material::GetIndex (this=0xc0c8c7bb7202b7f1) at /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4Material.hh:262
+    262   inline size_t GetIndex() const {return fIndexInTable;}
+    (gdb) bt
+    #0  0x00007fffcd2e0a68 in G4Material::GetIndex (this=0xc0c8c7bb7202b7f1) at /home/blyth/junotop/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4Material.hh:262
+    #1  0x00007fffcd30f661 in U4Tree::initMaterial (this=0xb013ae0, mt=0xc0c8c7bb7202b7f1) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:444
+    #2  0x00007fffcd30f5d6 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x9a46d50) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:428
+    #3  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x9a46ec0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #4  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x9a470d0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #5  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x9993340) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #6  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x99934f0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #7  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x992f300) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #8  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x98fce00) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #9  0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x98fce60) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #10 0x00007fffcd30f333 in U4Tree::initMaterials_r (this=0xb013ae0, pv=0x98e9ed0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:411
+    #11 0x00007fffcd30edd2 in U4Tree::initMaterials (this=0xb013ae0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:322
+    #12 0x00007fffcd30e67b in U4Tree::init (this=0xb013ae0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:273
+    #13 0x00007fffcd30e46d in U4Tree::U4Tree (this=0xb013ae0, st_=0xb03af30, top_=0x98e9ed0, sid_=0x0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:257
+    #14 0x00007fffcd30d9dc in U4Tree::Create (st=0xb03af30, top=0x98e9ed0, sid=0x0) at /data/blyth/opticks_Debug/include/U4/U4Tree.h:215
+    #15 0x00007fffcd2c21cc in G4CXOpticks::setGeometry (this=0xb03a930, world=0x98e9ed0) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:311
+
+
+::
+
+    NP::save failed to U::Resolve path_ $MultiFilmLUTMakerSvc_DIR/multifilm.npy
+    2024-11-25 15:00:17.897 INFO  [51283] [LSExpDetectorConstruction_Opticks::Setup@44] [ WITH_G4CXOPTICKS opticksMode 3 sd 0x9af03b0
+    ssys::getenvvar.is_path_prefixed  path $HOME/.opticks/GEOM/${GEOM}_meshname_stree__force_triangulate_solid.txt
+    2024-11-25 15:00:17.899 INFO  [51283] [G4CXOpticks::SetGeometry_JUNO@89] [ WITH_G4CXOPTICKS opticksMode 3 sd 0x9af03b0
+    2024-11-25 15:00:17.899 INFO  [51283] [U4Tree::Create@216] [new U4Tree
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::init@273] -initRayleigh
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::init@275] -initMaterials
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials@325] [
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pDomeAir lv lDomeAir num_child 0 mt Air
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pDomeRock lv lDomeRock num_child 1 mt Rock
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pDomeRockBox lv lDomeRockBox num_child 1 mt Galactic
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pPoolCover lv lPoolCover num_child 0 mt Steel
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pUpperChimneyLS lv lUpperChimneyLS num_child 0 mt LS
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pUpperChimneyTyvek lv lUpperChimneyTyvek num_child 0 mt Tyvek
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pBar lv lBar num_child 0 mt Scintillator
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pCoating_00_ lv lCoating num_child 1 mt TiO2Coating
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pPanelTape lv lPanelTape num_child 64 mt Adhesive
+    2024-11-25 15:00:17.900 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pPanel_0_f_ lv lPanel num_child 1 mt Aluminium
+    2024-11-25 15:00:17.907 INFO  [51283] [U4Tree::initMaterials_r@440]  pv GLw1.up10_up11_HBeam_phys lv GLw1.up10_up11_HBeam num_child 0 mt LatticedShellSteel
+    2024-11-25 15:00:17.908 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pWaterPool lv lOuterWaterPool num_child 2090 mt vetoWater
+    2024-11-25 15:00:17.908 INFO  [51283] [U4Tree::initMaterials_r@440]  pv pDeadWater lv lDeadWater num_child 1 mt DeadWater
+    2024-11-25 15:00:17.908 INFO  [51283] [U4Tree::initMaterials_r@440]  pv lSJCLSanchor_phys lv lSJCLSanchor num_child 0 mt Acrylic
+    2024-11-25 15:00:17.908 INFO  [51283] [U4Tree::initMaterials_r@440]  pv lSJReceiverFastern_phys lv lSJReceiverFastern num_child 0 mt PE_PA
+    2024-11-25 15:00:17.908 INFO  [51283] [U4Tree::initMaterials_r@440]  pv lSteel_phys lv lSteel num_child 0 mt StrutSteel
+
+    Thread 1 "python" received signal SIGSEGV, Segmentation fault.
+    0x00007fffef9f07a8 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string (this=0x7ffffffed040, __str=<error reading variable: Cannot access memory at address 0xc0c8c7bb7202b801>) at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/download/gcc-11.2.0.build/x86_64-pc-linux-gnu/libstdc++-v3/include/bits/basic_string.h:459
+    459 /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/download/gcc-11.2.0.build/x86_64-pc-linux-gnu/libstdc++-v3/include/bits/basic_string.h: No such file or directory.
+    (gdb) 
+
+
+    2024-11-25 15:15:15.961 INFO  [100352] [U4Tree::initMaterials_r@446]  pv lSJReceiverFastern_phys lv lSJReceiverFastern num_child 0 mt PE_PA
+    2024-11-25 15:15:15.961 INFO  [100352] [U4Tree::initMaterials_r@440]  pv lSteel_phys lv lSteel num_child 0
+    2024-11-25 15:15:15.961 INFO  [100352] [U4Tree::initMaterials_r@446]  pv lSteel_phys lv lSteel num_child 0 mt StrutSteel
+    2024-11-25 15:15:15.962 INFO  [100352] [U4Tree::initMaterials_r@440]  pv lFasteners_phys lv lFasteners num_child 0
+
+    Thread 1 "python" received signal SIGSEGV, Segmentation fault.
+    0x00007fffef9f07a8 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string (this=0x7ffffffebe40, __str=<error reading variable: Cannot access memory at address 0xc0c8c7bb7202b801>) at /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/download/gcc-11.2.0.build/x86_64-pc-linux-gnu/libstdc++-v3/include/bits/basic_string.h:459
+    459 /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/contrib/gcc/11.2.0/download/gcc-11.2.0.build/x86_64-pc-linux-gnu/libstdc++-v3/include/bits/basic_string.h: No such file or directory.
+    (gdb) 
+
+
+Ordering?::
+
+    AdditionAcrylicConstruction::initVariables m_radAcrylic 17824 rdelta_mm 0 m_rdelta 0 [AdditionAcrylicConstruction__rdelta_mm]  m_addition_pos 17824
+    in det_elemFastenerConstruction/FastenerConstruction_Water not found. Try to create it.
+    in det_elemFastenerConstruction/FastenerConstruction_Steel not found. Try to create it.
+    FastenerConstruction::setMaterial  Steel:0xc0c0d703ec7a019d Water:0xc0c508eba41b31a3 theMaterial:0xc0c508eba41b31a3 name:Water 
+    FastenerConstruction::setMaterial  Steel:0xc0c8c7bb7202b7f1 Water:0x9985ac0 theMaterial:0xc0c8c7bb7202b7f1 name:Steel 
+    FastenerConstruction::initMaterials  Steel:0x989c7e0 Water:0x98ddfb0 
+    FastenerConstruction::makeFastenerLogical  Steel:0x989c7e0 Water:0x98ddfb0 theMaterial:0xc0c508eba41b31a3 lvname:lFasteners 
+    FastenerConstruction::initMaterials  Steel:0x989c7e0 Water:0x98ddfb0 
+    FastenerConstruction::makeFastenerLogical  Steel:0x989c7e0 Water:0x98ddfb0 theMaterial:0xc0c8c7bb7202b7f1 lvname:lFasteners 
+    LSExpDetectorConstruction::setupCD_Sticks_Fastener_Hierarchy  addition_PosR 17824 f_PosR 17844 f_dR 20 addition_lv YES f_water_lv YES f_steel_lv YES
+    FastenerConstruction::inject daughtervol.Name :lFasteners
+    FastenerConstruction::inject copyno = 1
+
+
+FIXED by simplify the impl (removing the cached materials) and using setMaterialName.
+
+
+
+
+WIP : remove --additionacrylic-simplify-csg option (making standard) plus make fastener heirarchy standard 
+--------------------------------------------------------------------------------------------------------------
+
+The "--additionacrylic-simplify-csg" is python SWITCH option that gets converted into 
+internal envvar JUNO_ADDITIONACRYLIC_SIMPLIFY_CSG 
+
+jcv JUNODetSimModule::
+
+    1959     --additionacrylic-simplify-csg 
+    1960         Simplify CSG modelling avoiding CSG subtraction for daughters, see AdditionAcrylicConstruction
+    1961 
+
+::
+
+    P[blyth@localhost issues]$ jgr additionacrylic_simplify_csg
+    P[blyth@localhost junosw]$ jgr JUNO_ADDITIONACRYLIC_SIMPLIFY_CSG 
+    ./Simulation/DetSimV2/CentralDetector/src/AdditionAcrylicConstruction.cc:    m_simplify_csg = getenv("JUNO_ADDITIONACRYLIC_SIMPLIFY_CSG") == nullptr ? false : true ; 
+    P[blyth@localhost junosw]$ 
+
+
+jcv AdditionAcrylicConstruction::
+
+    129    } else if (option=="simple") {
+    130 
+    131         double ZNodes3[3];
+    132         double RminNodes3[3];
+    133         double RmaxNodes3[3];
+    134         ZNodes3[0] = 5.7*mm; RminNodes3[0] = 0*mm; RmaxNodes3[0] = 450.*mm;
+    135         ZNodes3[1] = 0.0*mm; RminNodes3[1] = 0*mm; RmaxNodes3[1] = 450.*mm;
+    136         ZNodes3[2] = -140.0*mm; RminNodes3[2] = 0*mm; RmaxNodes3[2] = 200.*mm;
+    137 
+    138         solidAddition_down = new G4Polycone("solidAddition_down",0.0*deg,360.0*deg,3,ZNodes3,RminNodes3,RmaxNodes3);
+    139 
+    140     }
+    141 
+    142 
+    143 //    solidAddition_down = new G4Tubs("solidAddition_down",0,199.67*mm,140*mm,0.0*deg,360.0*deg);
+    144 //    solidAddition_down = new G4Cons("solidAddition_down",0.*mm,450.*mm,0.*mm,200*mm,70.*mm,0.*deg,360.*deg);
+    145     solidAddition_up = new G4Sphere("solidAddition_up",0*mm,m_radAcrylic,0.0*deg,360.0*deg,0.0*deg,180.*deg);
+    146 
+    147     uni_acrylic1 = new G4SubtractionSolid("uni_acrylic1",solidAddition_down,solidAddition_up,0,G4ThreeVector(0*mm,0*mm,+m_radAcrylic));
+    148 
+    149     solidAddition_up1 = new G4Tubs("solidAddition_up1",120*mm,208*mm,15.2*mm,0.0*deg,360.0*deg);
+    150     uni_acrylic2 = new G4SubtractionSolid("uni_acrylic2",uni_acrylic1,solidAddition_up1,0,G4ThreeVector(0.*mm,0.*mm,-20*mm));
+    151     solidAddition_up2 = new G4Tubs("solidAddition_up2",0,14*mm,52.5*mm,0.0*deg,360.0*deg);
+    152 
+    153     for(int i=0;i<8;i++)
+    154     {
+    155     uni_acrylic3 = new G4SubtractionSolid("uni_acrylic3",uni_acrylic2,solidAddition_up2,0,G4ThreeVector(164.*cos(i*pi/4)*mm,164.*sin(i*pi/4)*mm,-87.5));
+    156     uni_acrylic2 = uni_acrylic3;
+    157 
+    158     }
+    159 
+    160 
+    161     G4VSolid* solid = m_simplify_csg == false ? uni_acrylic2 : uni_acrylic1 ;
+
+
+* HMM : THIS MEANS USING HEIRARCY FOR THE FastenerConstruction NEEDS TO FORCE USING --additionacrylic-simplify-csg to not subtract the voids 
+* best way is to remove the option and hardcode the simplify-csg 
+
+
+jump to new GEOM J_2024nov27
+-------------------------------- 
+
+Note that need some setup to do the triangulation::
+
+    cp J_2024nov27/CSGFoundry/meshname.txt J_2024nov27_meshname_stree__force_triangulate_solid.txt
+
+Tried triangulating everything, but that dont work::
+
+    2024-11-27 16:51:22.439 INFO  [106291] [U4Tree::Create@218] ]new U4Tree
+    2024-11-27 16:51:22.439 INFO  [106291] [U4Tree::Create@220] [stree::factorize
+    python: /data/blyth/opticks_Debug/include/SysRap/stree.h:3774: void stree::collectGlobalNodes(): Assertion `do_force_triangulate == false && "force triangulate solid is currently only supported for remainder nodes"' failed.
+
+    Thread 1 "python" received signal SIGABRT, Aborted.
+    0x00007ffff6b34387 in raise () from /lib64/libc.so.6
+    (gdb) 
+
+     
+Vim edits::
+
+   :0,$s/^/#/g              # on all lines
+   :138,293s/^#//g          # remove the # from the guidetube torus lines 
+                            # plus manually remove the # for the XJ and SJ solids
+
+::
+
+    P[blyth@localhost GEOM]$ vimdiff J_2024aug27_meshname_stree__force_triangulate_solid.txt J_2024nov27_meshname_stree__force_triangulate_solid.txt
+
+
+Also framespec bookmarks::
+
+    P[blyth@localhost GEOM]$ cp J_2024aug27_framespec.txt J_2024nov27_framespec.txt  
+
+
+
+
+create new branch : blyth-hierarchical-sticks-fastener-geometry-with-thin-water
+---------------------------------------------------------------------------------
+
+switch to the web interface created branch::
+
+    git pull 
+    git fetch 
+
+    P[blyth@localhost junosw]$ git switch blyth-hierarchical-sticks-fastener-geometry-with-thin-water
+    M   Simulation/DetSimV2/CentralDetector/include/AdditionAcrylicConstruction.hh
+    M   Simulation/DetSimV2/CentralDetector/src/AdditionAcrylicConstruction.cc
+    M   Simulation/DetSimV2/CentralDetector/src/FastenerAcrylicConstruction.cc
+    M   Simulation/DetSimV2/DetSimOptions/include/LSExpDetectorConstruction.hh
+    M   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc
+    M   Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+    M   Simulation/GenTools/src/GtOpticksTool.cc
+    M   Simulation/GenTools/src/GtOpticksTool.h
+    M   Simulation/SimSvc/MultiFilmLUTMakerSvc/src/MultiFilmLUTMakerSvc.cc
+    branch 'blyth-hierarchical-sticks-fastener-geometry-with-thin-water' set up to track 'origin/blyth-hierarchical-sticks-fastener-geometry-with-thin-water'.
+    Switched to a new branch 'blyth-hierarchical-sticks-fastener-geometry-with-thin-water'
+    P[blyth@localhost junosw]$ 
+
+
+
+TODO : chi2 check from center ? G4CXTest_GEOM.sh  already doing that
+-----------------------------------------------------------------------
+
+::
+
+    ~/o/G4CXTest_GEOM.sh 
+    ~/o/G4CXTest_GEOM.sh chi2
+
+
+
+
+TODO : Create MR
+------------------
+
+::
+
+    remote: To create a merge request for blyth-hierarchical-sticks-fastener-geometry-with-thin-water, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-hierarchical-sticks-fastener-geometry-with-thin-water
+
+
+
+
+
