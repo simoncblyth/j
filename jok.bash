@@ -56,7 +56,13 @@ jok-init()
        Linux) ctx=$(TEST=ContextString sbuild_test) ;;  ## eg Debug_Philox see sbuild.h
    esac
 
-   export OPTICKS_EVENT_NAME=$ctx  # used by SEventConfig::EventReldir "OPTICKS_EVENT_RELDIR"
+   local test=GUN0
+   #local test=GUN1
+   #local test=GUN2
+   #local test=GUN3
+   export TEST=${TEST:-$test}
+
+   export OPTICKS_EVENT_NAME=${ctx}_$TEST   # used by SEventConfig::EventReldir "OPTICKS_EVENT_RELDIR"
 
    local opticks_event_reldir=ALL${VERSION:-0}_${OPTICKS_EVENT_NAME:-none}   
    export OPTICKS_EVENT_RELDIR='ALL${VERSION:-0}_${OPTICKS_EVENT_NAME:-none}'  ## this is the default in SEventConfig
@@ -75,7 +81,7 @@ jok-init()
 jok-info()
 {
    jok-init 
-   local vars="0 BASH_SOURCE FUNCNAME GEOM PWD"  
+   local vars="0 BASH_SOURCE FUNCNAME GEOM PWD TEST"  
    local var
    for var in $vars ; do printf "%20s : %s \n" "$var" "${!var}" ; done 
 }
@@ -135,7 +141,7 @@ jok-srm-unused-so-far()
 }
 
 
-jok-tds-input-photon()
+jok-tds-inputphoton()
 {
     : this is invoked from jok-tds when GUN is zero
     type $FUNCNAME
@@ -143,6 +149,18 @@ jok-tds-input-photon()
     export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
     export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
 }
+
+jok-tds-inputphoton-unset()
+{
+    : this is invoked from jok-tds when GUN is non-zero
+    type $FUNCNAME
+    unset OPTICKS_RUNNING_MODE
+    unset OPTICKS_INPUT_PHOTON
+    unset OPTICKS_INPUT_PHOTON_FRAME
+}
+
+
+
 
 
 jok-tds(){
@@ -229,17 +247,28 @@ jok-tds(){
 
 
 
-   local mode=DebugLite
+   #local mode=DebugLite
    #local mode=Nothing     # GPU leak debug 
    #local mode=Minimal
-   #local mode=Hit
-
-   export OPTICKS_MAX_SLOT=M1    ## need to be reasonable when debug arrays enabled
-                                 ## default of zero uses heuristic calc   
+   local mode=Hit
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
+
+
+   local opticks_max_slot
+   local opticks_max_photon 
+   case $OPTICKS_EVENT_MODE in 
+       DebugLite) opticks_max_slot=M1 ; opticks_max_photon=M1  ;;  ## need to be reasonable when debug arrays enabled
+             Hit) opticks_max_slot=0  ; opticks_max_photon=G1  ;;
+               *) opticks_max_slot=0  ; opticks_max_photon=G1  ;;  
+   esac
+   ## max_slot:0 uses VRAM heuristic calc to set actual max_slot for each launch
+
+   export OPTICKS_MAX_SLOT=$opticks_max_slot
+   export OPTICKS_MAX_PHOTON=$opticks_max_photon    
+   ## with multi-launch and Philox running max_photon default is G1 : one billion
+
    export OPTICKS_MAX_BOUNCE=31
-   export OPTICKS_MAX_PHOTON=M1
    export OPTICKS_NUM_EVENT=1
 
    if [ "$OPTICKS_EVENT_MODE" == "DebugLite" ]; then
@@ -298,27 +327,25 @@ jok-tds(){
        ## --opticks-anamgr switches on U4RecorderAnaMgr recording Geant4 propagation into Opticks SEvt "B000,.." 
    esac
 
-
+   local gun0="opticks"   ## input photons
    local gun1="gun"
    local gun2="gun --particles gamma --momentums 2.223 --momentums-interp KineticEnergy --positions 0 0 0"
    local gun3="gun --particles gamma --momentums 22.23 --momentums-interp KineticEnergy --positions 0 0 0"
-   local trgs=""     
-   : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
+   local gun4="gun --particles mu- --momentums 214000 --positions 0 0 0"   ## 214 GeV
+   local gun5="gun --particles mu- --momentums  50000 --positions 0 0 0"   ##  50 GeV
+   ## --momentums in MeV 
 
-   #local gun=1    ## long time defalt is the base "gun"
-   local gun=0     ## GUN:0 uses input photons 
-   
-   local GUN=${GUN:-$gun}
-   case $GUN in  
-     0) trgs="$trgs opticks" ;;
-     1) trgs="$trgs $gun1" ;;
-     2) trgs="$trgs $gun2"  ;;
-     3) trgs="$trgs $gun3"  ;;
+   jok-tds-inputphoton-unset 
+
+   local trgs=""     ## "trgs" are arguments after the opts : eg "gun" or "opticks" 
+   case $TEST in  
+     GUN0) trgs="$trgs $gun0" ;  jok-tds-inputphoton ;;
+     GUN1) trgs="$trgs $gun1"  ;;
+     GUN2) trgs="$trgs $gun2"  ;;
+     GUN3) trgs="$trgs $gun3"  ;;
+     GUN4) trgs="$trgs $gun4"  ;;
+     GUN5) trgs="$trgs $gun5"  ;;
    esac
-
-   if [ "$GUN" == "0" ]; then
-       jok-tds-input-photon
-   fi 
 
 
    unlogging()
@@ -381,7 +408,7 @@ jok-tds(){
        runline="cuda-memcheck --leak-check full $runline"
    fi 
 
-   local vars="BASH_SOURCE mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
+   local vars="BASH_SOURCE TEST mode NOXJ NOSJ NOFA GUN opts trgs jokdir PWD runline"
    for var in $vars ; do printf "%25s : %s \n" "$var" "${!var}" ; done 
    env | grep OPTICKS
    env | grep __
