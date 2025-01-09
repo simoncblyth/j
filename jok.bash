@@ -50,7 +50,11 @@ jok-init()
    ## Opticks environment setup picks the opticks install to use setting OPTICKS_PREFIX
    ## hence that is where the Debug/Release selection happens
 
-   local ctx=$(TEST=ContextString sbuild_test)  ## eg Debug_Philox see sbuild.h 
+   local ctx
+   case $(uname) in
+      Darwin) ctx=Debug_Philox ;;
+       Linux) ctx=$(TEST=ContextString sbuild_test) ;;  ## eg Debug_Philox see sbuild.h
+   esac
 
    export OPTICKS_EVENT_NAME=$ctx  # used by SEventConfig::EventReldir "OPTICKS_EVENT_RELDIR"
 
