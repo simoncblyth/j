@@ -1,0 +1,108 @@
+Hi Diwash, 
+
+Thank you for giving a quick initial idea for the 
+implementation. 
+
+Your method name "DetSim1Construction::makeConesOnLSTarget" 
+is mis-leading, the Cones are in the Acrylic sphere. 
+Perhaps "makeAcrylicSphereCracks" is a better name. 
+
+I suggest that you create separate classes and headers 
+for each of your additions and use the API you declare in the headers 
+from DetSim1Construction.cc  
+
+This approach has many advantages, including:
+
+* enables standalone checking, especially if you deliberately 
+  arrange to only depend on Geant4 in your added .hh and .cc 
+ 
+* results in clearer code that is quick to understand 
+  because the dependencies between the existing code 
+  and your additions are explicit in the parameters of your API
+ 
+* avoids merge conflicts
+
+
+Other things. 
+
+1. You need controls to switch on/off the change,
+   actually better to use a config integer to enable you
+   to control all your changes : not just on/off
+ 
+2. using "#include" in the method body is only acceptable 
+   in special circumstances, there is nothing special here::
+
+      591 void
+      592 DetSim1Construction::makeConesOnLSTarget() {
+      593 
+      594     #include <iostream>
+      595     #include <fstream>
+      596     #include <vector>
+      597     #include <string>
+      598     #include <cmath>
+      599 
+      600     // Vectors to store the parameters 
+      601     std::vector<G4double> thetaValues; 
+      602     std::vector<G4double> phiValues; 
+      603     std::vector<G4double> rMaxValues; 
+      604     std::vector<G4double> heightValues; 
+      605     
+      606     // Read parameters from CSV file
+      607     std::ifstream file("cones.csv"); 
+      608     std::string line, cell; 
+      609     
+
+
+3. requiring to be within a particulr directory to read the input files
+   like "cones.csv" is not practical,  you should get the inputs relative 
+   to the data folder  
+
+4. regarding:: 
+
+     52 G4LogicalVolume*
+     53 DetSim1Construction::getLV() {
+     54     if (logicReflector) {
+     55         return logicReflector;
+     56     }
+     57     initVariables();
+     58     initMaterials();
+     59 
+     60     if (m_use_chimney) {
+     61         makeReflectorChimneyLogical();
+     62         makeWPWithChimneyLogical();
+     63         makeAcrylicWithChimneyLogical();
+     64         makeLSWithChimneyLogical();
+     65         makeConesOnLSTarget();
+            ^^^^^^
+     66     } else {
+     67         makeReflectorLogical();
+     68         makeWPLogical();
+     69         makeAcrylicLogical();
+     70         makeLSLogical();
+     71         makeConesOnLSTarget();
+            ^^^^^^
+     72     }
+     73     makeWPPhysical();
+     74     makeAcrylicPhysical();
+     75     makeLSPhysical();
+     76 
+     77     if (m_is_commissioning) {
+     78         if (m_use_chimney) {
+     79             makeCommissioningWaterWithChimneyLogical();
+     80         } else {
+     81             makeCommissioningWaterLogical();
+     82         }
+     83         makeCommissioningWaterPhysical();
+     84     }
+     85     makeConesOnLSTarget();
+            ^^^^^^
+     86     return logicReflector;
+     87 }
+
+    "makeConesOnLSTarget()" only needs one call, doing that after
+    the m_use_chimney if block (after line 72) 
+    makes most sense as it depends on the Acrylic LV 
+
+
+Simon
+    
