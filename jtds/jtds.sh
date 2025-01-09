@@ -18,13 +18,16 @@ usage(){ cat << EOU
 EOU
 }
 
-defarg="info_ana"
+defarg="info_pdb"
 arg=${1:-$defarg}
 
 name=jtds
 SDIR=$(cd $(dirname $BASH_SOURCE) && pwd)
 source $HOME/.opticks/GEOM/GEOM.sh 
-export BASE=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0
+
+reldir=ALL0_Debug_Philox
+
+export BASE=${TMP:-/tmp/$USER/opticks}/GEOM/$GEOM/jok-tds/$reldir
 
 EVT=${EVT:-000}
 export AFOLD=$BASE/A$EVT
@@ -49,10 +52,14 @@ if [ "${arg/grab}" != "$arg" ]; then
 fi 
 
 
+if [ "${arg/pdb}" != "$arg" ]; then
+   ${IPYTHON:-ipython} --pdb -i $script 
+   [ $? -ne 0 ] && echo $BASH_SOURCE pdb error && exit 1 
+fi
 
 if [ "${arg/ana}" != "$arg" ]; then
-   ${IPYTHON:-ipython} --pdb -i $script 
-   [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 1 
+   ${PYTHON:-python} $script 
+   [ $? -ne 0 ] && echo $BASH_SOURCE ana error && exit 2 
 fi
 
 

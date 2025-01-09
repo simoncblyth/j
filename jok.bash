@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash 
 # ~/j/jok.bash 
 # ~/.bash_profile > ~/.bashrc > ~/j/jok.bash
 jok-source(){ echo $BASH_SOURCE ; }
@@ -44,12 +44,26 @@ jok-init()
    #export GEOM=J_2024may20
    #export GEOM=J_2024jun14
    #export GEOM=J_2024aug27
-   export GEOM=J_2024nov27
+   #export GEOM=J_2024nov27
+   export GEOM=J_2025jan08
 
-   local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/ALL0 
+   ## Opticks environment setup picks the opticks install to use setting OPTICKS_PREFIX
+   ## hence that is where the Debug/Release selection happens
+
+   local ctx=$(TEST=ContextString sbuild_test)  ## eg Debug_Philox see sbuild.h 
+
+   export OPTICKS_EVENT_NAME=$ctx  # used by SEventConfig::EventReldir "OPTICKS_EVENT_RELDIR"
+
+   local opticks_event_reldir=ALL${VERSION:-0}_${OPTICKS_EVENT_NAME:-none}   
+   export OPTICKS_EVENT_RELDIR='ALL${VERSION:-0}_${OPTICKS_EVENT_NAME:-none}'  ## this is the default in SEventConfig
+   ## above two lines match SEventConfig::_DefaultEventReldir 
+   ## resolution of first line happens here for bash consumption, resolution of 2nd done in SEventConfig
+
+   local logdir=${TMP:-/data/$USER/opticks}/GEOM/$GEOM/jok-tds/$opticks_event_reldir
    mkdir -p $logdir
    cd $logdir     # log files are dropped in invoking directory 
    echo === $FUNCNAME  
+
    pwd
    #ls -alst
 }
@@ -142,10 +156,9 @@ jok-tds(){
    local WPC_ZERO_HOLES=1        # adhoc just dont subtract the 30+30+1+1=62 holes : translation expected to succeed 
    local WPC_MULTIUNION_HOLES=2  # instead of subtracting the 62 holes one by one, collect into multiunion and subtract together
    local WPC_HIERARCHY=3         # major simplification of WaterPoolConstruction : natural hierarchy removes need for the 62 subtractions 
+
    #export WaterPoolConstruction__CONFIG=$WPC_MULTIUNION_HOLES
    export WaterPoolConstruction__CONFIG=$WPC_HIERARCHY
-
-
 
 
 
@@ -193,13 +206,15 @@ jok-tds(){
 
    unset U4Mesh__NumberOfRotationSteps_DUMP
    export U4Mesh__NumberOfRotationSteps_DUMP=1
+
    export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480
 
    export U4Tree__MATERIAL_DEBUG=1
 
 
+   ## TODO : AVOID DUPLICATION OF GEOMETRY CHANGING ENVIRONMENT SETUP BETWEEN HERE AND OTHER SCRIPTS LIKE gxt G4CXTest_GEOM.sh
 
-
+   
 
 
    #local oim=1     # 1:opticks optical simulation only
@@ -214,6 +229,9 @@ jok-tds(){
    #local mode=Nothing     # GPU leak debug 
    #local mode=Minimal
    #local mode=Hit
+
+   export OPTICKS_MAX_SLOT=M1    ## need to be reasonable when debug arrays enabled
+                                 ## default of zero uses heuristic calc   
 
    export OPTICKS_EVENT_MODE=$mode  ## see SEventConfig::Initialize SEventConfig::EventMode
    export OPTICKS_MAX_BOUNCE=31
@@ -272,7 +290,8 @@ jok-tds(){
 
    opts="$opts $(jok-anamgr) "
    case $OPTICKS_INTEGRATION_MODE in 
-       2|3) opts="$opts --opticks-anamgr " ;;   ## switch on U4RecorderAnaMgr to record Geant4 propagtion into Opticks "B000,.." SEvt 
+       2|3) opts="$opts --opticks-anamgr " ;;   
+       ## --opticks-anamgr switches on U4RecorderAnaMgr recording Geant4 propagation into Opticks SEvt "B000,.." 
    esac
 
 
@@ -283,7 +302,7 @@ jok-tds(){
    : "trgs" are the arguments after the opts : eg "gun" or "opticks" 
 
    #local gun=1    ## long time defalt is the base "gun"
-   local gun=0     ## tryout input photons
+   local gun=0     ## GUN:0 uses input photons 
    
    local GUN=${GUN:-$gun}
    case $GUN in  
@@ -411,9 +430,9 @@ EOU
 }
 
 
-jok-grab(){     ~/j/jtds/jtds.sh grab ; }
+jok-grab(){    ~/j/jtds/jtds.sh grab ; }
 jok-scpmeta(){ ~/j/jtds/jtds.sh scpmeta ; }
-jok-ana(){  ~/j/jtds/jtds.sh $* ; }
+jok-ana(){     ~/j/jtds/jtds.sh $* ; }
 
 
 jok-gdb() 
