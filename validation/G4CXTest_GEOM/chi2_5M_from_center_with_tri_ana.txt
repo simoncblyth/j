@@ -1,3 +1,26 @@
+Opticks:Geant4 A:B validation chi2 
+====================================
+
+::
+
+    P[blyth@localhost G4CXTest_GEOM]$ jo
+    /home/blyth/junotop/junosw
+    On branch blyth-hierarchical-sticks-fastener-geometry-with-thin-water
+    Your branch is up to date with 'origin/blyth-hierarchical-sticks-fastener-geometry-with-thin-water'.
+
+    nothing to commit, working tree clean
+    P[blyth@localhost junosw]$ 
+
+
+    P[blyth@localhost junosw]$ git log -n1
+    commit ad1f657a3a7d5b1e789381bc6c67de3963d5a714 (HEAD -> blyth-hierarchical-sticks-fastener-geometry-with-thin-water, origin/blyth-hierarchical-sticks-fastener-geometry-with-thin-water)
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Fri Nov 29 15:31:42 2024 +0800
+
+        reorganize the implementation of the support sticks, adopting hierarchy approach implemented in new FastenerConstruction AdditionAcrylicConstruction and LSExpDetectorConstruction
+    P[blyth@localhost junosw]$ 
+
+
 ::
 
    g4cx/tests/G4CXTest_GEOM.sh chi2 > ~/j/validation/G4CXTest_GEOM/chi2_5M_from_center_with_tri_ana.txt 
