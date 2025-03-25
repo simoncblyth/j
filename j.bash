@@ -324,18 +324,25 @@ Make junoenv MR 55 updating junoenv-opticks.sh
 0. use web interface to create a new branch
 
    * https://code.ihep.ac.cn/JUNO/offline/junoenv/-/branches
+   * https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches
 
 1. in the working copy::
 
     git remote -v 
     git fetch origin
-    get pull   # make sure main is uptodate before jumping to brancg 
+    git pull   # make sure main is uptodate before jumping to brancg 
  
     git branch -a # list branches including remotes
 
-    branch=blyth-opticks-fix-hookup-assumption-add-prefix-flexibility-for-source-build
-    git checkout -b $branch origin/$branch
-    
+    b=blyth-opticks-fix-hookup-assumption-add-prefix-flexibility-for-source-build
+    git checkout -b $b origin/$b
+  
+
+    b=blyth-add-cicd-oj-tarball-scp-deployment
+    git checkout -b $b origin/$b
+
+
+
     # add and commit 
 
 2. use web interface to make:
