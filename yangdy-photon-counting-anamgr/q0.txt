@@ -1,0 +1,239 @@
+
+Hi Dingyong, 
+
+> I almost finished the codes, and did some test,
+> and I pushed them to gitlab, branch named yangdy-photon-counting-anamgr.
+> You can take a view at them.
+
+Good, I have taken a look at your branch.  Comments below. 
+When talking about a branch it is good to give the url:
+
+https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/yangdy-photon-counting-anamgr?ref_type=heads
+
+https://code.ihep.ac.cn/JUNO/offline/junosw/-/commits/yangdy-photon-counting-anamgr/?ref_type=heads
+
+I notice that you have been repeatedly merging main into your branch. 
+Generally for branches intended to be shortlived with little potential for clashes 
+I would not do that, leaving that to be done by the merge request. 
+The reason not to do that is it messy to review your branch when there are 
+many unrelated merges. 
+
+Once you have more experience we can do code review within merge requests. 
+But this time I will just comment on your branch.
+
+   A[blyth@localhost junosw]$ git l -n10
+    commit bd915afb7804f4feb88fd44216acdad5419934dd
+    Author: Dingyong Yang <yangdy@ihep.ac.cn>
+    Date:   Mon Apr 7 17:09:07 2025 +0800
+
+        fixed a few bugs and changed the name of vars
+
+    M       Simulation/DetSimV2/AnalysisCode/src/PhotonCountingAnaMgr.cc
+    M       Simulation/DetSimV2/PhysiSim/include/DsG4Scintillation.h
+    M       Simulation/DetSimV2/PhysiSim/include/G4Cerenkov_modified.hh
+    M       Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+    M       Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc
+
+
+Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc
+
+Your approach will get close to the number of photons
+within the gensteps but it will not exactly match, for two reasons:
+
+1. use of random sampling to split the NumTracks into nscnt buckets
+2. re-emission photons which are excluded from the genstep, because
+   re-emission is handled with a single GPU thread, unlike the CPU approach. 
+
+See below, for where you need to increment the photon count to 
+exactly match the number of photons that are handled on the GPU.  
+
+Its too soon to collect the counts and switch off photon looping here. 
+
+
+     459         // If stacking is false, then stop the generation of Scintillation photons
+     460         if (!fStackingFlag) {
+     461             // Collect NumTracks to EventScintillationNumPhotons.
+     462             EventScintillationNumPhotons = EventScintillationNumPhotons + NumTracks;
+     463 
+     464             aParticleChange.SetNumberOfSecondaries(0);
+     465 
+     466             return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
+     467         }
+
+     ...
+     550     size_t nscnt = Ratio_timeconstant->GetVectorLength();
+     551     std::vector<G4int> NumVec(nscnt);
+     552     NumVec.clear();
+     553     for(G4int i = 0 ; i < NumTracks ; i++){
+     554        G4double p = G4UniformRand();
+     555        G4double p_count = 0;
+     556        for(size_t j = 0 ; j < nscnt; j++)
+     557        {
+     558             p_count += (*Ratio_timeconstant)[j] ;
+     559             if( p < p_count ){
+     560                NumVec[j]++ ;
+     561                break;
+     562             }
+     563         }
+     564 
+     565      }
+
+Use of randoms and rounding will make it possible for sum of NumVec to not match NumTracks. 
+
+
+     575     for(size_t scnt = 0 ; scnt < nscnt ; scnt++){
+     576 
+     577          G4double ScintillationTime = 0.*ns;
+     578          G4PhysicsOrderedFreeVector* ScintillationIntegral = NULL;
+     579 
+     580          if ( scnt == 0 ){
+     581               ScintillationIntegral =
+     582                     (G4PhysicsOrderedFreeVector*)((*theFastIntegralTable)(materialIndex));
+     583          }
+     584          else{
+     585               ScintillationIntegral =
+     586                     (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
+     587          }
+     588        // std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;    
+     589 
+     590        //  G4int m_Num =G4int(NumTracks * (*Ratio_timeconstant)[scnt]);
+     591          ScintillationTime = Ratio_timeconstant->Energy(scnt);
+     592          if (!flagDecayTimeFast && scnt == 0){
+     593                ScintillationTime = 0.*ns  ;
+     594          }
+     595 
+     596          if (!flagDecayTimeSlow && scnt != 0){
+     597 
+     598                ScintillationTime = 0.*ns  ;
+     599          }
+     600 
+     601         G4int NumPhoton =  NumVec[scnt] ;
+     602 
+     603 #ifdef WITH_G4CXOPTICKS
+     604         if(flagReemission) assert( NumPhoton == 0 || NumPhoton == 1);   // expecting only 0 or 1 remission photons
+     605         bool is_opticks_genstep = NumPhoton > 0 && !flagReemission ;
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+You can move the above line to ~602 outside "#ifdef WITH_G4CXOPTICKS" 
+and sum the NumPhoton for each scnt when "is_opticks_genstep". 
+Then you will need to prevent the genstep collection and the photon loop 
+and zero the number of secondaries.
+
+By the way it is good practice to always initialize every member you add to 
+a class in the ctor.
+
+
+
+     606         if(is_opticks_genstep && (m_opticksMode == 1 || m_opticksMode == 3))
+     607         {
+     608             U4::CollectGenstep_DsG4Scintillation_r4695( &aTrack, &aStep, NumPhoton, scnt, ScintillationTime);
+     609         }
+     610 #endif
+     611 
+     612          if( m_opticksMode != 1 )
+     613          {
+     614 
+     615          for(G4int i = 0 ; i < NumPhoton ; i++) {
+     616 #ifdef WITH_G4CXOPTICKS
+     617            U4::GenPhotonBegin(i);
+     618 #endif
+
+
+
+Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc
+
+     331   // if stacking is false, then stop the generation of Cerenkov photons
+     332   if (!fStackingFlag) {
+     333      EventCherenkovNumPhotons = EventCherenkovNumPhotons + fNumPhotons;
+     334 
+     335      aParticleChange.SetNumberOfSecondaries(0);
+     336 
+     337      return pParticleChange;
+     338   }
+
+In this case what you do should exactly match the number of Cerenkov photons
+in genstep and hence on GPU. 
+
+
+
+
+
+
+
+> Python option --anamgr-photon-counting was added, and it could receive an int number as threshold.
+
+
+You need to be careful regarding other options that switch off photons::
+
+    --optical 
+    --deferred-op 
+
+and you should document in the header of your anamgr which combination of options 
+may be used togethr and which do not make sense or would cause problems::
+
+    --anamgr-photon-counting
+
+Some notes on how those other options are implemented are in::
+
+    https://code.ihep.ac.cn/blyth/j/-/blob/main/two_stage_production/non_optical_first_stage.rst?ref_type=heads   
+
+
+
+> If use the option, but no number was given,
+> it would use a default constant number which can be defined to a suitable number in JUNODetSimModule.py
+> 
+> It will generate 2 files, include run level and event level information, and photon propagation will be switched off.
+
+
+I will review the rest of your code when you have updated for my comments above. 
+
+
+> 
+> ==================================================
+> EventPhotonCounting.csv looks like
+> 
+> EventID,NCherenkovPhs,NScintillationPhs,NTotalPhs
+> 0,645164,9121677,9766841
+> 1,653119,9093329,9746448
+> 2,649056,9084877,9733933
+> ...
+> ==================================================
+> RunPhotonCounting.txt looks like
+> 
+> seed: 10000
+> nevts: 10
+> threshold: 600000
+> MaxPhotons: 9847292
+> decision: 1
+> ==================================================
+> 
+> Here are still two things:
+> 
+> 1. opticalphoton->GetProcessManager()->GetProcess() can not get Cerenkov,
+> only the 5 processes below can be got by opticalphoton:
+> Transportation, Scintillation, OpAbsorption, OpRayleigh, OpBoundary
+> So I use G4Electron* electron = G4Electron::Definition() to get both C and S process.
+> 
+> I think there is only one instance of class G4Cerenkov_modified and class DsG4Scintillation,
+> so there is no difference whether I get it by OP or electron. Am I right?
+
+Yes, that is correct. 
+
+You could verify that by incrementing a static counter within those classes 
+within the ctor and asserting there is only one. 
+
+> 
+> 2. I do not know how to get seed offset, is it A number of a series of number?
+> (consider that there are many gpus, maybe seed offset is a vector, different in different gpu?)
+
+Details are not determined yet. I hope it will be possible to calculate the GPU seed_offset
+from the CPU seed but this depends on the way production runs are done.
+I am discussing this with production experts.  
+
+Opticks currently only uses one GPU. In old Opticks, which used OptiX < 7.0 multi-GPU
+was supported easily. It is not so easy to do that in OptiX >= 7.0. 
+Depending on performance it might be something I will need to do. How to handle 
+seeds with multi-GPU is not yet determined. 
+
+Simon

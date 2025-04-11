@@ -1,0 +1,76 @@
+Hi Dingyong, 
+
+> Here are two questions of mine,
+> 1.
+> 604          if (scnt == nscnt - 1)
+> 605           {
+> 606               aParticleChange.SetNumberOfSecondaries(0);
+> 607               return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
+> 608           }
+> 609          else continue;
+> 
+> When scnt != nscnt - 1, or to say when scnt < nscnt - 1, As my understanding of continue,
+> it will stop the remaining part of the current loop and enter the next loop. 
+> And the current loop is for(size_t scnt = 0 ; scnt < nscnt ; scnt++)
+> I think it will skip the loop of for(G4int i = 0 ; i < NumPhoton ; i++) below
+> and do scnt++ then go to the next photon bucket. Why can't it prevent the generation loops?
+
+
+You are correct. When you write code that is not immediately clear you are 
+leaving a trap for future readers/editors of the code. 
+To avoid that you need to explain what you are doing in a comment, eg::
+
+
+    if (scnt == nscnt - 1)
+    {
+        aParticleChange.SetNumberOfSecondaries(0);
+        return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
+    }
+    else 
+    {
+        continue;  
+        // YDY : proceed to next iteration of scnt loop skipping  
+        // the below genstep collection and generation loop 
+    }
+
+> 2. My previous statement may have been too confusing,
+> 
+>> When opticks propagation is enabled with opticksMode 1
+>> then the G4 C+S photon generation loops on CPU are skipped. Instead the
+>> photon generation and propagation are done on GPU.
+> 
+> What I mean is that, as you say, when Opticks propagation is enabled,
+> and G4 photon generation loops on CPU are skipped, G4 will not track the photons,
+> the generation and propagation of photons will be handled on GPU,
+> and reemission will be handled within a single GPU thread.
+> Of course, if there is a reemission occurring on the CPU, it should not be uploaded to the GPU.
+
+Reemission always comes from photons of course. 
+When Opticks is handling the optical propagation there are zero optical photons on the CPU, 
+so reemission cannot occur on the CPU. 
+
+> But in this case, since G4 do not track photons, so in a step which calls DsG4Scintillation::PostStepDoIt(),
+> the current tracked particle will not be a photon, and thus, the flag of reemission named flagReemission,
+> I think it will always be false, so no need to && !flagReemission.
+
+> The above is my previous idea. But I noticed Opticks mode 3 means Opticks-and-Geant4-with-comparison-machinery.
+> So if G4 and Opticks propagation occurs both, the flag could be true.
+
+
+Your first idea is correct, however even without OpticksMode 3 
+it is important to write "obvious" code that is quick to read and understand 
+at both a small and large scale. Clarity of code is much more important than brevity
+or "cleverness". 
+
+Keeping code obvious make it easier to change in future by you/others. 
+
+When doing something that is not immediately obvious provides a solution
+that is too good not to use then make sure to leave comments 
+that explain what you are doing together with your initials "YDY" ?
+
+For the meeting tomorrow, you should probably prepare a few slides explaining this work.
+If you bring those to me this afternoon after 14:00 I can suggest improvements. 
+
+Simon
+
+ 
