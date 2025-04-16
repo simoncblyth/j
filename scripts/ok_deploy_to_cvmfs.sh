@@ -19,6 +19,7 @@ EOU
 }
 
 TAR=$1
+CVMFS=${CVMFS:-1}
 
 NAM=$(basename $TAR)
 NAM=${NAM/.tar}
@@ -31,6 +32,7 @@ LNK=Opticks-vLatest
 info(){ cat << EOI
 
 TAR : $TAR
+CVMFS : $CVMFS
 NAM : $NAM
 DOM : $DOM
 REL : $REL
@@ -59,15 +61,33 @@ if [ -f "$TAR" ]; then
    fi 
 
 
-   cvmfs_server transaction $DOM   ## start transaction to make it writable
+   if [ "$CVMFS" == "1" ]; then
+       echo "   [ cvmfs_server transaction $DOM"
+       cvmfs_server transaction $DOM   ## start transation to make it writable
+       [ $? -ne 0 ] && echo $BASH_SOURCE ERROR - ABORT && exit 1
+       echo "   ] cvmfs_server transaction $DOM"
+   fi 
+
+
    tar xvf $TAR -C $DIR            ## -C cd to the DIR before extraction
 
    cd $DIR/$ARCH && ln -sfn $NAM $LNK && cd
    [ $? -ne 0 ] && echo $BASH_SOURCE FAILED TO PLANT LNK $LNK && exit 1
 
-   cvmfs_server publish -m "$BASH_SOURCE $TAR " $DOM 
 
-   ls -l $DIR
+   if [ "$CVMFS" == "1" ]; then
+      echo "   [ cvmfs_server publish -m \"$BASH_SOURCE $TAR $RELP \" $DOM  "
+      cvmfs_server publish -m "$BASH_SOURCE $TAR $RELP " $DOM 
+      [ $? -ne 0 ] && echo $BASH_SOURCE ERROR - ABORT && exit 2
+      echo "   ] cvmfs_server publish -m \"$BASH_SOURCE $TAR $RELP \" $DOM  "
+
+      echo "   [ cvmfs_server tag $DOM"
+      cvmfs_server tag $DOM
+      date
+      echo "   ] cvmfs_server tag $DOM"
+   fi
+
+   ls -l $DIR/$ARCH
    info
 
 else
