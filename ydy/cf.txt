@@ -1,0 +1,179 @@
+Hi Dingyong, 
+
+> I learned your G4CXTest_raindrop.sh and I noticed that you use executable
+> G4CXTest to do the comparison. I am trying to use JUNOSW to compare.
+
+The techniques used by G4CXTest can also be used by O+J.
+The crucial one being use of U4Recorder to record the 
+propagation from Geant4 saving into SEvt that are persisted
+into the B000 B001 folders of .npy that look like
+the A000 A001 folders from Opticks. 
+
+
+> I am trying to compare hit.npy and seq.npy between G4 and Opticks,
+> but I didn't find out how to set G4 npy files to generate.
+
+You need to use --opticks-anamgr that switches on U4RecorderAnaMgr 
+which collects full Geant4 optical propagation info into Opticks
+SEvt which get saved to B000 B001 folders. 
+
+
+> It seems that
+> 
+> export OPTICKS_MAX_SLOT=M1
+> export OPTICKS_INTEGRATION_MODE=3
+> export OPTICKS_EVENT_MODE=DebugLite
+> export AFOLD=...
+> export BFOLD=...
+> 
+> Then you run the executable, and generate the A B npy files. But in JUNOSW it
+> seems not that simple.  I want to know how to set A and B folders and generate
+> npy files both.
+
+The default AFOLD BFOLD are normally OK, when running on cluster you will 
+likely need to change TMP and maybe HOME too to avoid AFS token complications.
+See okjob-setup from::  
+
+    https://code.ihep.ac.cn/blyth/j/-/blob/main/okjob.sh
+
+Note how that controls where the slurm output and error goes.
+Looking into the slurm output is important when reporting issues
+For example from your test.sh the slurm output gave::
+
+    4768 == ROOT IO Svc ==
+    4769 == Buffer Memory Management ==
+    4770 == Random Svc ==
+    4771 == Root Writer ==
+    4772  == PMTSimParamSvc ==
+    4773 GENTOOL MODE:  gun
+    4774 [(0, 0, 0)] None
+    4775 3inch PMT type:  Tub3inchV3
+    4776 WARNING: mac file run.mac does not exist.
+    4777 Traceback (most recent call last):
+    4778   File "/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.3.6/el9_amd64_gcc11/Wed/bin/tut_detsim.py", line 53, in <module>
+    4779     juno_application.run()
+    4780   File "/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.3.6/el9_amd64_gcc11/Wed/python/Tutorial/JUNOApplication.py", line 224, in run
+    4781     self.toptask.run()
+    4782 RuntimeError: OPTIX_ERROR_INVALID_INPUT: Optix call 'optixModuleCreate( Ctx::context, &module_compile_options, &pipeline_compile_options, ptx.c_str(), ptx.size(), log, &sizeof_log, &module )' failed: /home/blyth/opticks/CSGOptiX/PIP.cc:296)
+    4783 Log:
+    4784 
+    4785 
+    4786 junotoptask:detsimiotask.terminate  WARN: invalid state tranform ((StartUp)) => ((EndUp))
+    4787 junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    4788 junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names:
+    4789 junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: summaries:
+    4790 junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: number of measurements:  *** Break *** segmentation violation
+
+
+
+> 
+> And I want to know the difference between envvar OPTICKS_INTEGRATION_MODE and
+> python --opticks-mode
+
+Setting --opticks-mode at python level results in
+that value being passed thru to Opticks with 
+the below line 30:: 
+
+
+     01 #ifdef WITH_G4CXOPTICKS
+      2 
+      3 #include <vector>
+      4 #include <string>
+      5 
+      6 #include "G4Material.hh"
+      7 #include "Geometry/PMTParamData.h"
+      8 #include "Geometry/_PMTParamData.h"
+      9 #include "PMTSimParamSvc/PMTSimParamData.h"
+     10 #include "PMTSimParamSvc/_PMTSimParamData.h"
+     11 #include "LSExpDetectorConstruction_Opticks.hh"
+     12 #include "MultiFilmLUTMakerSvc/MultiFilmLUTMakerSvc.hh"
+     13     
+     14 #include "G4CXOpticks.hh"
+     15 #include "SSim.hh"
+     16 #include "SEvt.hh"
+     17 #include "S4Material.h" 
+     18 #include "SEventConfig.hh" 
+     19 #include "SLOG.hh"
+     20           
+     21 void LSExpDetectorConstruction_Opticks::Setup(
+     22           int opticksMode,
+     23           const G4VPhysicalVolume* world,
+     24           const G4VSensitiveDetector* sd,
+     25           PMTParamData* ppd, 
+     26           PMTSimParamData* psd,
+     27           NPFold* pmtscan
+     28           )
+     29 {   
+     30     SEventConfig::SetIntegrationMode(opticksMode);
+     31     int integrationMode = SEventConfig::IntegrationMode();
+     32     bool opticksMode_valid = 
+     33          ( opticksMode == 0 || opticksMode == 1 || opticksMode == 2 || opticksMode == 3 )  && opticksMode == integrationMode ;
+     34     LOG_IF(fatal, !opticksMode_valid )
+     35         << " UNEXPECTED "
+     36         << " opticksMode " << opticksMode
+     37         << " integrationMode " << integrationMode
+     38         ;
+     39     assert( opticksMode_valid );
+     40 
+     41     NPFold* jpmt = SerializePMT(ppd, psd, pmtscan) ; 
+     42     const NP* jlut = SerializeMultiFilmLUT();
+     43     assert(jlut);
+     44 
+     45     LOG(info) << "[ WITH_G4CXOPTICKS opticksMode " << opticksMode << " sd " << sd  ; 
+     46 
+     47     G4CXOpticks::SetGeometry_JUNO(world, sd, jpmt, jlut ); 
+     48 
+     49     LOG(info) << "] WITH_G4CXOPTICKS " ; 
+     50     DebugMultiFilmTable();
+     51 }
+
+
+Alternatively when using Opticks at C++ level without the python
+(and without the above LSExpDetectorConstruction_Opticks::Setup)
+the envvar OPTICKS_INTEGRATION_MODE is used to do the 
+same thing as the python --opticks-mode option. 
+The envvar initializes SEventConfig::IntegrationMode() 
+
+
+> I tried opticksMode 3, and I need to switch off all anamgrs to make it works.
+> It means no data saved to root files.  And JUNOSW use root file to save SimEvt
+> data, and Opticks use some npy files.  I want to know if Opticks use npy files
+> to "replace" the root file, or the root file still makes sense.
+
+The opticksMode:3 and saving of .npy are only for debugging/validation, 
+they do not replace the root files.
+ 
+The .npy give far more info than the root files. Every step (up to 32) 
+of every photon can be recorded into the record.npy making them 
+far too big for ordinary usage. As you discovered by writing almost
+a terabyte of them.  
+
+
+> 
+> Opticks translates geometry from JUNOSW, why Opticks may use different geometry
+> from JUNOSW ?
+
+1. You used two releases created at different times, so the geometry is different
+   as it changes frequently (the J25... just fixes the externals not the JSW)
+
+2. There are small change to the Geant4 geometry used by Opticks 
+   that you looked into before to enable the translated geometry to match better
+
+> I will read codes to make that things more clear to me, but I want to ask you
+> first because I don't have much time before going back to school.
+
+Feel free to ask anything. 
+When do you go back to school ?
+
+
+
+Note that the v0.3.9 OK release should now work on both 
+workstation and cluster following my commits over the 
+past few days that add support for the two GPU architectures:
+sm_70 on cluster and sm_89 on workstation. 
+
+There is no OJ release with that yet. But if you make some
+changes in a Simulation branch gitlab-ci should auto-build one. 
+
+
+Simon
