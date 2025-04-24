@@ -1,5 +1,0 @@
-
-/hpcfs/juno/junogpu/yangdingyong/datas/test/2025_04_18/test/test.sh
-
-
-

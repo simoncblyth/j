@@ -40,23 +40,18 @@ g(){ cd $G ; }
 job(){ echo $G/j/okjob.sh ; }
 
 #so(){ cd $G/gpujob ; }
-so(){ cd $G/okjob ; }
+so(){ cd $G/okjob ; ls -alst ; : directory with job outputs ; }
 sj(){ vim $(job) ; : ~/j/lxslc7.bash ; }
 sc(){ cat $(job) ; : ~/j/lxslc7.bash ; }
-sr(){ srun --partition=gpu --account=junogpu --gres=gpu:v100:1 $(job) ; }
-sb(){ sbatch $(job) ; squeue  ; }
-sq(){ squeue ; }
-squ(){ squeue -u $USER ; }
-sqw(){ watch squeue -u $USER ; }
+sr(){ srun --partition=gpu --account=junogpu --gres=gpu:v100:1 $(job) ; : interactively run the job script ;  }
+sb(){ sbatch $(job) ; squeue -u $USER ; : submit job script ; }
+sq(){ squeue -u $USER ; }
+sqa(){ squeue ; }
+sqw(){ watch squeue -u $USER ; : watch the queue ; }
 sf(){
-   typeset -f so
-   typeset -f sj
-   typeset -f sc
-   typeset -f sr
-   typeset -f sb
-   typeset -f sq
-   typeset -f squ
-   typeset -f sqw
+
+   local ff="sj sc sr sb sq sqa sqw job so"
+   for f in $ff ; do typeset -f $f ; done
 }
 
 rmcore(){ rm core.* ; }
