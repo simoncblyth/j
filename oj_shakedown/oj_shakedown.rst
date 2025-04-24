@@ -1,12 +1,13 @@
 oj_shakedown
 =============
 
-Using oj/oj.sh from oj repo for envsetup and test control
------------------------------------------------------------
+Using oj/oj.sh from oj repo (and ok/ok.sh from ok repo) for envsetup and test control
+----------------------------------------------------------------------------------------
 
 ::
 
      git@code.ihep.ac.cn:blyth/oj.git
+     git@code.ihep.ac.cn:blyth/ok.git
 
 
 check some jok.bash validations with oj release on A
@@ -24,6 +25,18 @@ oj script running issues
 -------------------------
 
 * FIXED mixed GEOM :doc:`oj_shakedown_G4CXTest_raindrop_geom_mixup` 
+
+
+oj cxt_min.sh simtrace
+-------------------------
+
+* not going to include matplotlib/pyvista : thats left to the user, but 
+  document how to use external ipython/python executables together 
+  with OJ release 
+
+HMM : little sense testing simtrace at OJ level, instead cycle at OK level
+
+
 
 
 
