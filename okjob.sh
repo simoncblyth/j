@@ -14,6 +14,8 @@ okjob-notes(){ cat << EON
 okjob-notes
 =============
 
+For slurm submission functions see lxslc7.bash "sf" function
+
 EON
 }
 
@@ -49,15 +51,21 @@ okjob-setup-ok()
     source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/python-numpy/1.23.5/bashrc
 
     #local v=0.3.8
-    local v=0.3.9
+    #local v=0.3.9
+    local v=0.4.0
+    #local v=Latest
+
     source /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v$v/bashrc
 }
 
 okjob-setup-oj()
 {
-    : OJ setup much simpler than OK as OJ collapses the generality  
+    : OJ setup much simpler than OK as OJ collapses the generality to particulate JUNOSW externals and geometry 
     type $FUNCNAME
-    source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.3.6/el9_amd64_gcc11/Fri/envset.sh  
+
+    local day=Sat
+    #local day=Latest
+    source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.0/el9_amd64_gcc11/$day/envset.sh  
     #source $HOME/junotop/bashrc.sh
 }
 
@@ -74,8 +82,8 @@ okjob-setup()
     unset CMAKE_PREFIX_PATH
     unset PKG_CONFIG_PATH
 
-    okjob-setup-ok
-    #okjob-setup-oj
+    #okjob-setup-ok
+    okjob-setup-oj
 }
 
 okjob-head(){ 
@@ -91,7 +99,7 @@ okjob-head(){
 okjob-ctest-tmp()
 {
     : prior to this getting into release do it here 
-    : workaround ctest not working from readonly dir by copying to tmp
+    : workaround ctest not working from readonly dir by copying to tmp 
 
     type $FUNCNAME
 
@@ -101,22 +109,24 @@ okjob-ctest-tmp()
     cp -r $OPTICKS_PREFIX/tests/. ${TTMP}/
 
     cd $TTMP
-    pwd
+    pwd 
 
     ctest -N
     ctest --output-on-failure
 }
 
 
+
 okjob-ctest()
 {
-   : okjob.sh : caution this runs ctests installed by opticks-install-tests now called from okdist-install-update
+   : okjob.sh : runs ctests installed by opticks-install-tests now called from okdist-install-update
+   : this simple way should work from OK v0.4.1 
    pwd
    echo === $BASH_SOURCE $FUNCNAME $PWD
-   which ctest 
-   cat $OPTICKS_PREFIX/tests/ctest.sh
 
-   $OPTICKS_PREFIX/tests/ctest.sh 
+   which ctest 
+   which ctest.sh
+   ctest.sh 
 }
 
 okjob-body()
@@ -124,12 +134,13 @@ okjob-body()
    local msg="=== $FUNCNAME:"
    echo $msg TMP $TMP
 
-   okjob-ctest-tmp
-
+   #okjob-ctest-tmp
    #okjob-ctest
+
    #opticks-t
    #jok-tds
-   #tut_detsim.py --evtmax 1 gun
+
+   tut_detsim.py --evtmax 1 gun
 
 }
 
@@ -138,7 +149,7 @@ okjob-tail(){
    echo $FUNCNAME : rc $rc              
    date  
 
-   okjob-check-tmp   
+   okjob-check-tmp
 }
 
 okjob-main(){
