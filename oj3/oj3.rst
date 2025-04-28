@@ -811,7 +811,7 @@ HMM G4CXTest not suited to OIM 1 : need to use cxs_min.sh for A side only
 
 ::
 
-    PIDX=1 OPTICKS_INTEGRATION_MODE=1 source G4CXTest_GEOM.sh dbg
+    PIDX=1 source G4CXTest_GEOM.sh dbg
 
     A[blyth@localhost ~]$ vm
     VIP_MODE : ok_local : Sun Apr 27 07:48:24 PM CST 2025
@@ -971,7 +971,500 @@ cxs_min.sh : seems not to suffer from this
 
 ::
 
-    A[blyth@localhost CSGOptiX]$ PIDX=1 cxs_min.sh dbg
+    A[blyth@localhost CSGOptiX]$ TEST=ref1 ./cxs_min.sh info_run_pdb0
+    ...
+    INFO:opticks.sysrap.sevt:SEvt.__init__  symbol a pid -1 opt  off [0. 0. 0.] 
+    SEvt symbol a pid -1 opt  off [0. 0. 0.] a.f.base /data1/blyth/tmp/GEOM/J25_3_0_Opticks_v0_3_5/CSGOptiXSMTest/ALL98_Debug_Philox_ref1/A000 
+    qtab
+    [[b'127471' b'6' b'TO AB                                                                                           ']
+     [b'74756' b'45' b'TO BT BT BT BT BT BT SD                                                                         ']
+     [b'51447' b'28' b'TO SC AB                                                                                        ']
+     [b'51427' b'1' b'TO BT BT BT BT BT BT SA                                                                         ']
+     [b'38636' b'21' b'TO SC BT BT BT BT BT BT SD                                                                      ']
+     [b'27003' b'11' b'TO SC BT BT BT BT BT BT SA                                                                      ']
+     [b'19822' b'89' b'TO SC SC AB                                                                                     ']
+     [b'18290' b'269' b'TO RE AB                                                                                        ']
+     [b'16611' b'109' b'TO SC SC BT BT BT BT BT BT SD                                                                   ']
+     [b'15546' b'32' b'TO BT BT SA                                                                                     ']]
+    not plotting as MODE 0 in environ
+
+Try to tickle issue by winding up stats::
+
+    A[blyth@localhost CSGOptiX]$ TEST=ref5 ./cxs_min.sh info_run_pdb0
+
+
+Nope working at 5M::
+
+    SEvt symbol a pid -1 opt  off [0. 0. 0.] a.f.base /data1/blyth/tmp/GEOM/J25_3_0_Opticks_v0_3_5/CSGOptiXSMTest/ALL98_Debug_Philox_ref5/A000 
+    qtab
+    [[b'636289' b'6' b'TO AB                                                                                           ']
+     [b'372411' b'45' b'TO BT BT BT BT BT BT SD                                                                         ']
+     [b'259421' b'1' b'TO BT BT BT BT BT BT SA                                                                         ']
+     [b'257289' b'28' b'TO SC AB                                                                                        ']
+     [b'192282' b'21' b'TO SC BT BT BT BT BT BT SD                                                                      ']
+     [b'136542' b'11' b'TO SC BT BT BT BT BT BT SA                                                                      ']
+     [b'99380' b'89' b'TO SC SC AB                                                                                     ']
+     [b'91133' b'269' b'TO RE AB                                                                                        ']
+     [b'82373' b'109' b'TO SC SC BT BT BT BT BT BT SD                                                                   ']
+     [b'77902' b'32' b'TO BT BT SA                                                                                     ']]
+    not plotting as MODE 0 in environ
+
+
+
+
+PIDX check for the first "'TO BT BT BT BT BT BT SD"::
+
+    A[blyth@localhost CSGOptiX]$ TEST=ref1 PIDX=45 ./cxs_min.sh info_run_pdb0
+
+    ...
+    //qsim.propagate.head idx 45 : bnc 6 cosTheta -0.67617643 
+    //qsim.propagate.head idx 45 : mom = np.array([0.47985756,0.12589210,0.86826700]) ; lmom = 0.99999982  
+    //qsim.propagate.head idx 45 : pos = np.array([8249.89746,3944.79907,17036.80664]) ; lpos = 19335.84765625 
+    //qsim.propagate.head idx 45 : nrm = np.array([(-0.71893954,0.52342767,-0.45732850]) ; lnrm = 0.99999994  
+    //qsim.propagate_to_boundary.head idx 45 : u_absorption 0.46277511 logf(u_absorption) -0.77051401 absorption_length  1562.9586 absorption_distance 1204.281494 
+    //qsim.propagate_to_boundary.head idx 45 : post = np.array([8249.89746,3944.79907,17036.80664,  98.09132]) 
+    //qsim.propagate_to_boundary.head idx 45 : distance_to_boundary     7.2128 absorption_distance  1204.2815 scattering_distance 614978355200.0000 
+    //qsim.propagate_to_boundary.head idx 45 : u_scattering     0.5407 u_absorption     0.4628 
+    //qsim.propagate_to_boundary.tail.SAIL idx 45 : post = np.array([8253.35840,3945.70703,17043.06836,  98.12807]) ;  sail_time_delta =    0.03676   
+    //qsim.propagate.body idx 45 bounce 6 command 3 flag 0 s.optical.x 33 s.optical.y 4 
+    //qsim.propagate.body.WITH_CUSTOM4 idx 45  BOUNDARY ems 4 lposcost   0.393 
+    //qsim::propagate_at_surface_CustomART idx      45 : mom = np.array([0.47985756,0.12589210,0.86826700]) ; lmom = 0.99999982 
+    //qsim::propagate_at_surface_CustomART idx      45 : pol = np.array([0.78772360,0.37392712,-0.48956093]) ; lpol = 0.99999994 
+    //qsim::propagate_at_surface_CustomART idx      45 : nrm = np.array([-0.71893954,0.52342767,-0.45732850]) ; lnrm = 0.99999994 
+    //qsim::propagate_at_surface_CustomART idx      45 : cross_mom_nrm = np.array([-0.51204902,-0.40477890,0.34167954]) ; lcross_mom_nrm = 0.73673946  
+    //qsim::propagate_at_surface_CustomART idx      45 : dot_pol_cross_mom_nrm = -0.72198391 
+    //qsim::propagate_at_surface_CustomART idx      45 : minus_cos_theta = -0.67617643 
+    //qsim::propagate_at_surface_CustomART idx 45 lpmtid 966 wl 420.000 mct  -0.676 dpcmn  -0.722 pre-ARTE 
+    //qsim::propagate_at_surface_CustomART idx 45 lpmtid 966 wl 420.000 mct  -0.676 dpcmn  -0.722 ARTE (   0.954   1.000   0.000   0.540 ) 
+    //qsim.propagate_at_surface_CustomART idx 45 lpmtid 966 ARTE (   0.954   1.000   0.000   0.540 ) u_theAbsorption    0.654 action 1 
+    //qsim.propagate_at_surface_CustomART.BREAK.SD/SA idx 45 lpmtid 966 ARTE (   0.954   1.000   0.000   0.540 ) u_theEfficiency    0.174 theEfficiency   0.540 flag 64 
+    //qsim.propagate.tail idx 45 bounce 6 command 1 flag 64 ctx.s.optical.y(ems) 4 
+    2025-04-28 15:38:16.290 INFO  [908407] [QEvent::gatherPhoton@613] [ evt.num_photon 1000000 p.sstr (1000000, 4, 4, ) evt.photon 0x7f6968000000
+    2025-04-28 15:38:18.341 INFO  [908407] [QSim::simulate@433]  eventID 0 tot_dt    0.153832 tot_ph    1000000 tot_ph/M   1.000000 tot_ht     234896 tot_ht/M   0.234896 tot_ht/tot_ph   0.234896 reset_ YES
+    2025-04-28 15:38:18.360 INFO  [908407] [SEvt::save@4020] /data1/blyth/tmp/GEOM/J25_3_0_Opticks_v0_3_5/CSGOptiXSMTest/ALL98_Debug_Philox_ref1/A000 [genstep,photon,record,seq,hit,domain,inphoton]
+
+
+
+Back to G4CXTest_GEOM.sh try TEST=small to reach error faster
+-------------------------------------------------------------------
+
+::
+
+    om-  # build env setup allows local running
+    PIDX=1 TEST=ref5 source G4CXTest_GEOM.sh dbg
+
+
+    //qsim.propagate_at_boundary.body idx 1 : c1 = 0.99999982 ; eta_c1 = 1.11101973 ; c2 = 0.99999976 ; eta_c1__c2 = 0.11101997 
+    //qsim.propagate_at_boundary.tail idx 1 : reflect 0 tir 0 TransCoeff     0.9972 u_reflect     0.4273 
+    //qsim.propagate_at_boundary.tail idx 1 : mom1 = np.array([0.92846626,-0.36991525,-0.03335834]) ; lmom1 = 0.99999982  
+    //qsim.propagate_at_boundary.tail idx 1 : pol1 = np.array([-0.03098941,0.01234645,-0.99944335]) ; lpol1 = 0.99999988 
+    //qsim.propagate.tail idx 1 bounce 1 command 2 flag 2048 ctx.s.optical.y(ems) 1 
+
+    //qsim.propagate.head idx 1 : bnc 2 cosTheta -0.79896814 
+    //qsim.propagate.head idx 1 : mom = np.array([0.92846626,-0.36991525,-0.03335834]) ; lmom = 0.99999982  
+    //qsim.propagate.head idx 1 : pos = np.array([16548.98633,-6593.37012,-594.57910]) ; lpos = 17824.00000000 
+    //qsim.propagate.head idx 1 : nrm = np.array([(-0.51899701,0.84654111,0.11836469]) ; lnrm = 0.99999994  
+    terminate called after throwing an instance of 'CUDA_Exception'
+      what():  CUDA error on synchronize with error 'an illegal memory access was encountered' (/home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1068)
+
+
+    Thread 1 "G4CXTest" received signal SIGABRT, Aborted.
+    0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    (gdb) bt
+    #0  0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #1  0x00007ffff163e686 in raise () from /lib64/libc.so.6
+    #2  0x00007ffff1628833 in abort () from /lib64/libc.so.6
+    #3  0x00007ffff1aa1b21 in __gnu_cxx::__verbose_terminate_handler() [clone .cold] () from /lib64/libstdc++.so.6
+    #4  0x00007ffff1aad52c in __cxxabiv1::__terminate(void (*)()) () from /lib64/libstdc++.so.6
+    #5  0x00007ffff1aad597 in std::terminate() () from /lib64/libstdc++.so.6
+    #6  0x00007ffff1aad7f9 in __cxa_throw () from /lib64/libstdc++.so.6
+    #7  0x00007ffff488a3a9 in CSGOptiX::launch (this=0xa38af50) at /home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1068
+
+
+
+Down to H1 photon, same issue::
+
+    om-  # build env setup allows local running
+    PIDX=1 TEST=small source G4CXTest_GEOM.sh dbg
+
+
+    //qsim.propagate_at_boundary.body idx 1 : c1 = 0.99999982 ; eta_c1 = 1.11101973 ; c2 = 0.99999976 ; eta_c1__c2 = 0.11101997 
+    //qsim.propagate_at_boundary.tail idx 1 : reflect 0 tir 0 TransCoeff     0.9972 u_reflect     0.4273 
+    //qsim.propagate_at_boundary.tail idx 1 : mom1 = np.array([0.92846626,-0.36991525,-0.03335834]) ; lmom1 = 0.99999982  
+    //qsim.propagate_at_boundary.tail idx 1 : pol1 = np.array([-0.03098941,0.01234645,-0.99944335]) ; lpol1 = 0.99999988 
+    //qsim.propagate.tail idx 1 bounce 1 command 2 flag 2048 ctx.s.optical.y(ems) 1 
+
+    //qsim.propagate.head idx 1 : bnc 2 cosTheta -0.79896814 
+    //qsim.propagate.head idx 1 : mom = np.array([0.92846626,-0.36991525,-0.03335834]) ; lmom = 0.99999982  
+    //qsim.propagate.head idx 1 : pos = np.array([16548.98633,-6593.37012,-594.57910]) ; lpos = 17824.00000000 
+    //qsim.propagate.head idx 1 : nrm = np.array([(-0.51899701,0.84654111,0.11836469]) ; lnrm = 0.99999994  
+    terminate called after throwing an instance of 'CUDA_Exception'
+      what():  CUDA error on synchronize with error 'an illegal memory access was encountered' (/home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1068)
+
+
+    Thread 1 "G4CXTest" received signal SIGABRT, Aborted.
+    0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    (gdb) 
+
+
+Try one photon, completes with no PIDX logging?::
+
+   NB : when changing script need to om to install it
+   for updates to take effect when using this invokation approach.
+
+Try one photon, completes with PIDX logging::
+
+    om-  # build env setup allows local running
+    PIDX=0 TEST=one source G4CXTest_GEOM.sh dbg
+
+    //qsim.propagate.head idx 0 : bnc 7 cosTheta 0.53130502 
+    //qsim.propagate.head idx 0 : mom = np.array([-0.72780365,-0.39712340,-0.55910182]) ; lmom = 1.00000000  
+    //qsim.propagate.head idx 0 : pos = np.array([-17592.20898,8487.99316,-1708.97949]) ; lpos = 19607.45898438 
+    //qsim.propagate.head idx 0 : nrm = np.array([(-0.89774090,0.43159965,-0.08822043]) ; lnrm = 0.99999988  
+    //qsim.propagate_to_boundary.head idx 0 : u_absorption 0.41855520 logf(u_absorption) -0.87094647 absorption_length 37213.7188 absorption_distance 32411.156250 
+    //qsim.propagate_to_boundary.head idx 0 : post = np.array([-17592.20898,8487.99316,-1708.97949, 173.28856]) 
+    //qsim.propagate_to_boundary.head idx 0 : distance_to_boundary    40.5999 absorption_distance 32411.1562 scattering_distance 36603.1523 
+    //qsim.propagate_to_boundary.head idx 0 : u_scattering     0.8138 u_absorption     0.4186 
+    //qsim.propagate_to_boundary.tail.SAIL idx 0 : post = np.array([-17621.75781,8471.87012,-1731.67896, 173.47476]) ;  sail_time_delta =    0.18621   
+    //qsim.propagate.body idx 0 bounce 7 command 3 flag 0 s.optical.x 8 s.optical.y 2 
+    //qsim.propagate.body.WITH_CUSTOM4 idx 0  BOUNDARY ems 2 lposcost  -0.088 
+    //qsim.propagate_at_surface.SA/SD.BREAK idx 0 : flag 128 
+    //qsim.propagate.tail idx 0 bounce 7 command 1 flag 128 ctx.s.optical.y(ems) 2 
+    2025-04-28 16:02:32.190 INFO  [918128] [QEvent::gatherPhoton@613] [ evt.num_photon 1 p.sstr (1, 4, 4, ) evt.photon 0x7fffb0dcfc00
+    2025-04-28 16:02:32.193 INFO  [918128] [G4CXApp::BeamOn@349] ]
+
+
+
+Try two photon, hits issue with PIDX=1 photon::
+
+    om-  # build env setup allows local running
+    PIDX=1 TEST=two source G4CXTest_GEOM.sh dbg
+
+
+    //qsim.propagate.head idx 1 : bnc 6 cosTheta -0.69404179 
+    //qsim.propagate.head idx 1 : mom = np.array([0.89099997,-0.45155698,-0.04706402]) ; lmom = 0.99999982  
+    //qsim.propagate.head idx 1 : pos = np.array([17953.57617,-7154.09961,-645.21826]) ; lpos = 19337.22656250 
+    //qsim.propagate.head idx 1 : nrm = np.array([(-0.29206914,0.94612086,0.13982496]) ; lnrm = 1.00000000  
+    //qsim.propagate_to_boundary.head idx 1 : u_absorption 0.31586072 logf(u_absorption) -1.15245378 absorption_length  1562.9586 absorption_distance 1801.237549 
+    //qsim.propagate_to_boundary.head idx 1 : post = np.array([17953.57617,-7154.09961,-645.21826,  98.09746]) 
+    //qsim.propagate_to_boundary.head idx 1 : distance_to_boundary     7.0188 absorption_distance  1801.2375 scattering_distance 170218520576.0000 
+    //qsim.propagate_to_boundary.head idx 1 : u_scattering     0.8435 u_absorption     0.3159 
+    //qsim.propagate_to_boundary.tail.SAIL idx 1 : post = np.array([17959.83008,-7157.26904,-645.54858,  98.13323]) ;  sail_time_delta =    0.03577   
+    //qsim.propagate.body idx 1 bounce 6 command 3 flag 0 s.optical.x 16 s.optical.y 4 
+    //qsim.propagate.body.WITH_CUSTOM4 idx 1  BOUNDARY ems 4 lposcost   0.391 
+    //qsim::propagate_at_surface_CustomART idx       1 : mom = np.array([0.89099997,-0.45155698,-0.04706402]) ; lmom = 0.99999982 
+    //qsim::propagate_at_surface_CustomART idx       1 : pol = np.array([-0.04472591,0.01585670,-0.99887341]) ; lpol = 0.99999994 
+    //qsim::propagate_at_surface_CustomART idx       1 : nrm = np.array([-0.29206914,0.94612086,0.13982496]) ; lnrm = 1.00000000 
+    //qsim::propagate_at_surface_CustomART idx       1 : cross_mom_nrm = np.array([-0.01861068,-0.11083809,0.71110785]) ; lcross_mom_nrm = 0.71993458  
+    //qsim::propagate_at_surface_CustomART idx       1 : dot_pol_cross_mom_nrm = -0.71123189 
+    //qsim::propagate_at_surface_CustomART idx       1 : minus_cos_theta = -0.69404179 
+    //qsim::propagate_at_surface_CustomART idx 1 lpmtid 9094 wl 420.000 mct  -0.694 dpcmn  -0.711 pre-ARTE 
+    terminate called after throwing an instance of 'CUDA_Exception'
+      what():  CUDA error on synchronize with error 'an illegal memory access was encountered' (/home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1068)
+
+
+
+Add pmt logging, seems quite likely to be the issue because getting illegal at the 2nd photon::
+
+    1779 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    1780     if( ctx.idx == base->pidx )
+    1781     printf("//qsim::propagate_at_surface_CustomART idx %d lpmtid %d wl %7.3f mct %7.3f dpcmn %7.3f pmt %p pre-ARTE \n",
+    1782            ctx.idx, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm, pmt );
+    1783 #endif
+    1784 
+    1785     float ARTE[4] ;
+    1786     if(lpmtid > -1) pmt->get_lpmtid_ARTE(ARTE, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm );
+    1787 
+    1788 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    1789     if( ctx.idx == base->pidx )
+    1790     printf("//qsim::propagate_at_surface_CustomART idx %d lpmtid %d wl %7.3f mct %7.3f dpcmn %7.3f ARTE ( %7.3f %7.3f %7.3f %7.3f ) \n",
+    1791            ctx.idx, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm, ARTE[0], ARTE[1], ARTE[2], ARTE[3] );
+    1792 #endif
+    1793 
+
+Update::
+
+    qu
+    om
+    cx
+    om
+
+YEP, pmt is indeed nil::
+
+    //qsim.propagate.body.WITH_CUSTOM4 idx 1  BOUNDARY ems 4 lposcost   0.391 
+    //qsim::propagate_at_surface_CustomART idx       1 : mom = np.array([0.89099997,-0.45155698,-0.04706402]) ; lmom = 0.99999982 
+    //qsim::propagate_at_surface_CustomART idx       1 : pol = np.array([-0.04472591,0.01585670,-0.99887341]) ; lpol = 0.99999994 
+    //qsim::propagate_at_surface_CustomART idx       1 : nrm = np.array([-0.29206914,0.94612086,0.13982496]) ; lnrm = 1.00000000 
+    //qsim::propagate_at_surface_CustomART idx       1 : cross_mom_nrm = np.array([-0.01861068,-0.11083809,0.71110785]) ; lcross_mom_nrm = 0.71993458  
+    //qsim::propagate_at_surface_CustomART idx       1 : dot_pol_cross_mom_nrm = -0.71123189 
+    //qsim::propagate_at_surface_CustomART idx       1 : minus_cos_theta = -0.69404179 
+    //qsim::propagate_at_surface_CustomART idx 1 lpmtid 9094 wl 420.000 mct  -0.694 dpcmn  -0.711 pmt (nil) pre-ARTE 
+    terminate called after throwing an instance of 'CUDA_Exception'
+      what():  CUDA error on synchronize with error 'an illegal memory access was encountered' (/home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1068)
+
+
+    Thread 1 "G4CXTest" received signal SIGABRT, Aborted.
+    0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+
+
+Add protection against pmt nullptr. qsim.h::
+
+    1785     float ARTE[4] = {} ;
+    1786     if(lpmtid > -1 && pmt != nullptr) pmt->get_lpmtid_ARTE(ARTE, lpmtid, p.wavelength, minus_cos_theta, dot_pol_cross_mom_nrm );
+
+
+With the protection get unphysical ARTE 0,0,0,0::
+
+    //qsim.propagate_to_boundary.tail.SAIL idx 1 : post = np.array([18026.88477,-7057.80273,-628.73358,  98.70751]) ;  sail_time_delta =    0.02741   
+    //qsim.propagate.body idx 1 bounce 15 command 3 flag 0 s.optical.x 16 s.optical.y 4 
+    //qsim.propagate.body.WITH_CUSTOM4 idx 1  BOUNDARY ems 4 lposcost   0.274 
+    //qsim::propagate_at_surface_CustomART idx       1 : mom = np.array([0.58324498,0.80466884,0.11105473]) ; lmom = 0.99999988 
+    //qsim::propagate_at_surface_CustomART idx       1 : pol = np.array([-0.28669685,0.33183959,-0.89871436]) ; lpol = 1.00000000 
+    //qsim::propagate_at_surface_CustomART idx       1 : nrm = np.array([-0.74721295,-0.63143313,0.20727995]) ; lnrm = 1.00000000 
+    //qsim::propagate_at_surface_CustomART idx       1 : cross_mom_nrm = np.array([0.23691535,-0.20387653,0.23297879]) ; lcross_mom_nrm = 0.38983795  
+    //qsim::propagate_at_surface_CustomART idx       1 : dot_pol_cross_mom_nrm = -0.34495857 
+    //qsim::propagate_at_surface_CustomART idx       1 : minus_cos_theta = -0.92088330 
+    //qsim::propagate_at_surface_CustomART idx 1 lpmtid 9095 wl 420.000 mct  -0.921 dpcmn  -0.345 pmt (nil) pre-ARTE 
+    //qsim::propagate_at_surface_CustomART idx 1 lpmtid 9095 wl 420.000 mct  -0.921 dpcmn  -0.345 ARTE (   0.000   0.000   0.000   0.000 ) 
+    //qsim.propagate_at_surface_CustomART idx 1 lpmtid 9095 ARTE (   0.000   0.000   0.000   0.000 ) u_theAbsorption    0.819 action 2 
+    //qsim.propagate_at_surface_CustomART.CONTINUE idx 1 lpmtid 9095 ARTE (   0.000   0.000   0.000   0.000 ) theTransmittance   0.000  
+    //propagate_at_boundary.DEBUG_PIDX ctx.idx 1 base 0x7fffb0c00000 base.pidx 1 
+    //qsim.propagate_at_boundary.head idx 1 : theTransmittance = 0.00000000 
+    //qsim.propagate_at_boundary.head idx 1 : nrm = np.array([-0.74721295,-0.63143313,0.20727995]) ; lnrm = 1.00000000  
+    //qsim.propagate_at_boundary.head idx 1 : pos = np.array([18026.88477,-7057.80273,-628.73358]) ; lpos = 19369.47265625 
+    //qsim.propagate_at_boundary.head idx 1 : mom0 = np.array([0.58324498,0.80466884,0.11105473]) ; lmom0 = 0.99999988 
+    //qsim.propagate_at_boundary.head idx 1 : pol0 = np.array([-0.28669685,0.33183959,-0.89871436]) ; lpol0 = 1.00000000 
+    //qsim.propagate_at_boundary.head idx 1 : n1,n2,eta = (1.48426318,1.00000000,1.48426318) 
+    //qsim.propagate_at_boundary.head idx 1 : c1 = 0.92088330 ; normal_incidence = 0 
+
+
+
+Check with H1, no issue::
+
+    PIDX=1 TEST=small source G4CXTest_GEOM.sh dbg
+
+Try with M5::
+
+    PIDX=1 TEST=ref5 source G4CXTest_GEOM.sh dbg
+
+
+Look for cause of nil pmt.
+
+Add check for PMT when "export QSim__REQUIRE_PMT=1"::
+
+    PIDX=1 TEST=two source G4CXTest_GEOM.sh dbg
+
+    [New Thread 0x7fffdca1a000 (LWP 947710)]
+    2025-04-28 16:54:38.499 INFO  [947542] [QRng::initStates@72] initStates<Philox> DO NOTHING : No LoadAndUpload needed  rngmax 1000000000 SEventConfig::MaxCurand 1000000000
+    2025-04-28 16:54:38.556 FATAL [947542] [QSim::init@309]  missing_PMT ABORT  missing_PMT YES has_PMT NO  QSim::pmt NO  QSim::pmt->d_pmt NO  QSim__init_REQUIRE_PMTYES
+    G4CXTest: /home/blyth/opticks/qudarap/QSim.cc:318: void QSim::init(): Assertion `missing_PMT == false' failed.
+
+    Thread 1 "G4CXTest" received signal SIGABRT, Aborted.
+    0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyr
+
+
+Fail earlier::
+
+    2025-04-28 17:09:47.457 INFO  [955500] [QRng::initStates@72] initStates<Philox> DO NOTHING : No LoadAndUpload needed  rngmax 1000000000 SEventConfig::MaxCurand 1000000000
+    2025-04-28 17:09:47.514 FATAL [955500] [QSim::UploadComponents@194]  MISSING_PMT  has_PMT NO  REQUIRE_PMT YES MISSING_PMT YES spmt_f NO  qpmt NO 
+    G4CXTest: /home/blyth/opticks/qudarap/QSim.cc:203: static void QSim::UploadComponents(const SSim*): Assertion `MISSING_PMT == false' failed.
+
+    Thread 1 "G4CXTest" received signal SIGABRT, Aborted.
+    0x00007ffff168b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+
+
+
+Why the fail, probably outdated geometry access::
+
+    0187     const NPFold* spmt_f = ssim->get_spmt_f() ;
+     188     QPMT<float>* qpmt = spmt_f ? new QPMT<float>(spmt_f) : nullptr ;
+     189 
+     190     bool has_PMT = spmt_f != nullptr && qpmt != nullptr ;
+     191     bool REQUIRE_PMT = ssys::getenvbool(_QSim__REQUIRE_PMT);
+     192     bool MISSING_PMT = REQUIRE_PMT == true && has_PMT == false ;
+
+
+    339 /**
+    340 SSim::get_spmt_f
+    341 ------------------
+    342 
+    343 This is invoked from QSim::UploadComponents and
+    344 used to instanciate QPMT for GPU uploading. 
+    345 
+    346 **/
+    347 
+    348 
+    349 const NPFold* SSim::get_spmt_f() const
+    350 {
+    351     const SPMT* spmt = get_spmt() ;
+    352     const NPFold* spmt_f = spmt ? spmt->serialize() : nullptr ;
+    353     return spmt_f ;
+    354 }
+
+
+Nope. Not so easy. Probably smth from SSim creation::
+
+    export SSim=INFO 
+
+    2025-04-28 17:31:03.312 INFO  [965091] [SSim::serialize@492] [
+    2025-04-28 17:31:03.615 INFO  [965091] [SSim::serialize@508] ]
+    [New Thread 0x7fffe8e71000 (LWP 965238)]
+    [New Thread 0x7fffdca1a000 (LWP 965239)]
+    2025-04-28 17:31:03.705 INFO  [965091] [QRng::initStates@72] initStates<Philox> DO NOTHING : No LoadAndUpload needed  rngmax 1000000000 SEventConfig::MaxCurand 1000000000
+    2025-04-28 17:31:03.748 INFO  [965091] [SSim::get_jpmt_nocopy@319]  (NPFold)top YES (NPFold)f NO 
+    2025-04-28 17:31:03.748 INFO  [965091] [SSim::get_jpmt@331]  (NPFold)f NO  (NPFold)fc NO 
+    2025-04-28 17:31:03.748 INFO  [965091] [SSim::get_spmt@343]  (NPFold)jpmt NO  (SPMT)spmt NO 
+    2025-04-28 17:31:03.748 INFO  [965091] [SSim::get_spmt_f@366]  (SPMT)spmt NO  (NPFold)spmt_f NO 
+    2025-04-28 17:31:03.748 FATAL [965091] [QSim::UploadComponents@194]  MISSING_PMT  has_PMT NO  REQUIRE_PMT YES MISSING_PMT YES spmt_f NO  qpmt NO 
+
+
+
+Canonically jpmt comes from::
+
+    085 G4CXOpticks* G4CXOpticks::SetGeometry_JUNO(const G4VPhysicalVolume* world, const G4VSensitiveDetector* sd, NPFold* jpmt, const NP* jlut )
+     86 {
+     87     LOG(LEVEL) << "[" ;
+     88 
+     89     // boot SSim adding extra juno PMT info
+     90     SSim::CreateOrReuse();   // done previously by G4CXOpticks::G4CXOpticks in opticksMode > 0 or here in opticksMode:0
+     91     SSim::AddExtraSubfold("jpmt", jpmt );
+     92     SSim::AddMultiFilm(snam::MULTIFILM, jlut);
+     93 
+     94     SEvt::CreateOrReuse() ;  // creates 1/2 SEvt depending on OPTICKS_INTEGRATION_MODE (which via above assert matches opticksMode)
+     95 
+     96 
+     97     int opticksMode = SEventConfig::IntegrationMode();
+     98     if(opticksMode == 2) SetNoGPU() ;
+     99 
+    100     LOG(info) << "[ WITH_G4CXOPTICKS opticksMode " << opticksMode << " sd " << sd  ;
+    101 
+    102     G4CXOpticks* gx = nullptr ;
+    103 
+    104     if( opticksMode == 1 || opticksMode == 3 || opticksMode == 2 )
+    105     {
+    106         gx = SetGeometry(world) ;
+    107         SaveGeometry();
+    108     }
+    109 
+    110     LOG(LEVEL) << "]" ;
+    111     return gx ;
+    112 }
+
+
+
+jpmt is persisted but G4CXTest not reading that, its creating from GDML::
+
+    A[blyth@localhost jpmt]$ pwd
+    /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.3.5/el9_amd64_gcc11/2025_04_14/.opticks/GEOM/J25_3_0_Opticks_v0_3_5/CSGFoundry/SSim/extra/jpmt
+    A[blyth@localhost jpmt]$ l
+    total 8
+    1 drwxr-xr-x. 5 cvmfs cvmfs  139 Apr 14 16:53 .
+    1 drwxr-xr-x. 3 cvmfs cvmfs  168 Apr 14 16:53 ..
+    1 -rw-r--r--. 1 cvmfs cvmfs   40 Apr 14 16:53 NPFold_index.txt
+    1 -rw-r--r--. 1 cvmfs cvmfs    0 Apr 14 16:53 NPFold_names.txt
+    1 drwxr-xr-x. 2 cvmfs cvmfs   88 Apr 14 16:53 PMTParamData
+    1 drwxr-xr-x. 2 cvmfs cvmfs  121 Apr 14 16:53 PMT_RINDEX
+    5 drwxr-xr-x. 5 cvmfs cvmfs 4096 Apr 14 16:53 PMTSimParamData
+    A[blyth@localhost jpmt]$ 
+
+
+::
+
+     01 /**
+      2 G4CXTest.cc : Standalone bi-simulation
+      3 ======================================
+      4 
+      5 **/
+      6 
+      7 #include "OPTICKS_LOG.hh"
+      8 #include "G4CXApp.h"
+      9 
+     10 int main(int argc, char** argv)
+     11 {
+     12     OPTICKS_LOG(argc, argv);
+     13     return G4CXApp::Main();
+     14 }
+     15 
+
+
+Bingo, smoking gun::
+
+    163 G4VPhysicalVolume* G4CXApp::Construct()
+    164 {
+    165     LOG(info) << "[" ;
+    166     const G4VPhysicalVolume* pv_ = U4VolumeMaker::PV() ;
+    167     LOG_IF(fatal, pv_ == nullptr)
+    168         << " FAILED TO CREATE PV : CHECK GEOM envvar "
+    169         << std::endl
+    170         << U4VolumeMaker::Desc()
+    171         ;
+    172 
+    173     if(pv_ == nullptr) std::raise(SIGINT) ;
+    174 
+    175     G4VPhysicalVolume* pv = const_cast<G4VPhysicalVolume*>(pv_);
+    176     fPV = pv ;
+    177     LOG(LEVEL) << " fPV " << ( fPV ? fPV->GetName() : "ERR-NO-PV" ) ;
+    178 
+    179     LOG(info) << "]" ;
+    180 
+    181     // Collect extra JUNO PMT info only when persisted NPFold exists.
+    182     SSim::AddExtraSubfold("jpmt", "$PMTSimParamData_BASE" );
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+    183 
+    184     if(SEventConfig::GPU_Simulation())
+    185     {
+    186         G4CXOpticks::SetGeometry(pv_) ;
+    187         G4CXOpticks::SaveGeometry() ;
+    188     }
+    189     else
+    190     {
+    191         LOG(LEVEL) << " SEventConfig::GPU_Simulation() false : SKIP G4CXOpticks::SetGeometry " ;
+    192     }
+    193 
+    194     return pv ;
+    195 }
+
+
+Correct::
+
+    163 G4VPhysicalVolume* G4CXApp::Construct()
+    164 {
+    165     LOG(info) << "[" ;
+    166     const G4VPhysicalVolume* pv_ = U4VolumeMaker::PV() ;
+    167     LOG_IF(fatal, pv_ == nullptr)
+    168         << " FAILED TO CREATE PV : CHECK GEOM envvar "
+    169         << std::endl
+    170         << U4VolumeMaker::Desc()
+    171         ;
+    172 
+    173     if(pv_ == nullptr) std::raise(SIGINT) ;
+    174 
+    175     G4VPhysicalVolume* pv = const_cast<G4VPhysicalVolume*>(pv_);
+    176     fPV = pv ;
+    177     LOG(LEVEL) << " fPV " << ( fPV ? fPV->GetName() : "ERR-NO-PV" ) ;
+    178 
+    179     LOG(info) << "]" ;
+    180 
+    181     // Collect extra JUNO PMT info only when persisted NPFold exists.
+    182     SSim::AddExtraSubfold("jpmt", "$CFBaseFromGEOM/CSGFoundry/SSim/extra/jpmt" );
+    183 
+    184 
+
+
+
+::
+
+    A[blyth@localhost tests]$ opticks-f PMTSimParamData_BASE
+    ./g4cx/tests/G4CXApp.h:    SSim::AddExtraSubfold("jpmt", "$PMTSimParamData_BASE" );
+    ./g4cx/tests/G4CXTest.sh:vars="BASH_SOURCE SDIR U4TDIR BINDIR GEOM bin ana tra geomscript BASE FOLD AFOLD BFOLD TFOLD PMTSimParamData_BASE"
+    ./u4/U4Physics.cc:    const char* path = "$PMTSimParamData_BASE" ;  // directory with PMTSimParamData subfolder
+    ./u4/tests/FewPMT.sh:#export PMTSimParamData_BASE=$HOME/.opticks/GEOM/J007/CSGFoundry/SSim/juno
+    ./u4/tests/FewPMT.sh:export PMTSimParamData_BASE=$HOME/.opticks/GEOM/V1J009/CSGFoundry/SSim/extra/jpmt
+    ./u4/tests/FewPMT_test.cc:    const char* path = "$PMTSimParamData_BASE" ; 
+    ./u4/tests/U4PMTAccessorTest.sh:export PMTSimParamData_BASE=$HOME/.opticks/GEOM/${GEOM:-J006}/CSGFoundry/SSim/juno/PMTSimParamData
+    ./u4/tests/U4PMTFastSimTest.sh:export PMTSimParamData_BASE=$HOME/.opticks/GEOM/${GEOM:-J006}/CSGFoundry/SSim/juno/PMTSimParamData
+    A[blyth@localhost opticks]$ 
 
 
 
