@@ -1,9 +1,9 @@
-oj3
-====
+oj3 : debug finding the cause of the dropouts : was due to missing WITH_CUSTOM4
+=================================================================================
 
 
-TODO : arrange for InputPhotons from release
------------------------------------------------
+DONE : arrange for InputPhotons with release running using cvmfs
+-------------------------------------------------------------------
 
 Hmm too big for adding to dist tarball::
 
