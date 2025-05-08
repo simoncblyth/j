@@ -6,10 +6,17 @@ from opticks.ana.p import cf
 
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 MODE = int(os.environ.get("MODE","3")) 
+MODE0 = MODE
 PICK = os.environ.get("PICK","A") 
+print("initial MODE:%d " % MODE)
+
 
 if MODE in [2,3]:
+    import opticks.ana.pvplt as pvp
+    print(pvp.__doc__)
     from opticks.ana.pvplt import *   
+    print("after import MODE:%d " % MODE)
+    MODE = MODE0
     # HMM this import overrides MODE, so need to keep defaults the same 
 pass
 
@@ -42,13 +49,17 @@ if __name__ == '__main__':
     pass 
 
     if not a is None and not b is None:
-        print("[--- ab = SAB(a,b) ----")
-        ab = SAB(a,b)
-        print("]--- ab = SAB(a,b) ----")
+        if "SAB" in os.environ:
+            print("[--- ab = SAB(a,b) ----")
+            ab = SAB(a,b)
+            print("]--- ab = SAB(a,b) ----")
 
-        print("[----- repr(ab) ")
-        print(repr(ab))
-        print("]----- repr(ab) ")
+            print("[----- repr(ab) ")
+            print(repr(ab))
+            print("]----- repr(ab) ")
+        else:
+            print(" NOT doing ab = SAB(a,b) # do that with : export SAB=1" )
+        pass
     pass
 
     assert PICK in ["A","B","AB","BA", "CF"]
@@ -127,20 +138,24 @@ if __name__ == '__main__':
 
         label = context + " ## " + elabel
 
-        if MODE == 3 and not pv is None:
-            pl = pvplt_plotter(label)
-            pvplt_viewpoint(pl) # sensitive EYE, LOOK, UP, ZOOM envvars eg EYE=0,-3,0 
+        if MODE == 3: 
+            if pv is None:
+                print("MODE is 3 but pv is None, get into ana environment first eg with hookup_conda_ok")
+            else:
+                pl = pvplt_plotter(label)
+                pvplt_viewpoint(pl) # sensitive EYE, LOOK, UP, ZOOM envvars eg EYE=0,-3,0 
 
-            if not upoi is None:
-                print("add_points green for the upoi : record points ") 
-                pl.add_points( upoi[:,:3], color="green", point_size=3.0 )
+                if not upoi is None:
+                    print("add_points green for the upoi : record points ") 
+                    pl.add_points( upoi[:,:3], color="green", point_size=3.0 )
+                pass
+                if not upos is None:
+                    print("add_points red  for the upos : photon/hit points ") 
+                    pl.add_points( upos[:,:3], color="red", point_size=3.0 )
+                pass
+                pl.show_grid()
+                cp = pl.show()
             pass
-            if not upos is None:
-                print("add_points red  for the upos : photon/hit points ") 
-                pl.add_points( upos[:,:3], color="red", point_size=3.0 )
-            pass
-            pl.show_grid()
-            cp = pl.show()
         pass
     pass
 

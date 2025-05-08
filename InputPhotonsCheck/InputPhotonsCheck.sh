@@ -3,25 +3,35 @@ usage(){ cat << EOU
 InputPhotonsCheck.sh
 =====================
 
-NB while it is convenient for debug to inhabit some env
-setup in .bashrc etc.. for scripts its better to use an
-almost empty env and do all setup in the script.
+NB while it is convenient for debug to inhabit some 
+sourced env setup in .bashrc etc.. for reproducibility/longevity of 
+scripts it is better to use an almost empty login env and do 
+all setup in the script.
+
+But do not let that objective stop you using source during development
+of the script to avoid repeating time consuming env setup
+for example. 
 
 AN::
 
     ~/j/InputPhotonsCheck/InputPhotonsCheck.sh
 
+    source ~/j/InputPhotonsCheck/InputPhotonsCheck.sh env
+    source ~/j/InputPhotonsCheck/InputPhotonsCheck.sh info
 
-    cd /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox
-    ~/j/InputPhotonsCheck/InputPhotonsCheck.sh chi2
-    
+Make dev easier with::
+
+     ipc(){ source ~/j/InputPhotonsCheck/InputPhotonsCheck.sh $* ; : .bashrc ;  }
+     ipcv(){ vi ~/j/InputPhotonsCheck/InputPhotonsCheck.sh ; : .bashrc ; } 
+
+     MODE=3 PICK=AB ipc pdb
+
 
 EOU
 }
 
-#cd $(dirname $(realpath $BASH_SOURCE))
-
-anascript=oj3ana.py
+cd $(dirname $(realpath $BASH_SOURCE))
+anascript=$(realpath oj3ana.py)
 
 defarg="env_info_run_ls_chi2"
 arg=${1:-$defarg}
@@ -47,7 +57,7 @@ if [ "${arg/env}" != "$arg" ]; then
     ## OPTICKS_EVENT_NAME is required to contain strings such as "Debug" and "Philox" 
     ## when those correspond to the build config as checked by sbuild::Matches
     export OPTICKS_SCRIPT=InputPhotonsCheck
-    export OPTICKS_EVENT_NAME=DebugPhilox
+    export OPTICKS_EVENT_NAME=DebugPhilox    ## TODO:expand to avoid stomping
     export VERSION=0
 
     ## convenience vars for analysis
@@ -113,6 +123,12 @@ fi
 
 if [ "${arg/chi2}" != "$arg" ] ; then
    sseq_index_test.sh info_run_ana
+fi
+
+if [ "${arg/dhi2}" != "$arg" ] ; then
+   unset sseq_index_test__DEBUG
+   #export sseq_index_test__DEBUG=1
+   DEV=1 $HOME/opticks/sysrap/tests/sseq_index_test.sh info_build_run_ana
 fi
 
 
