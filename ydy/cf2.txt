@@ -1,0 +1,70 @@
+Hi Dingyong,
+
+> I added some test last night as Ziyan requested,
+> a. 1000 1MeV gamma from center of CD using mode3
+> b. 1000 1MeV gamma from center of CD using mode1 and original JUNOSW
+> 
+> I added some figs of this test result to slides and drew a simple
+> workflow fig to show the difference between Opticks and current OPSimulator
+> which was added to the end of slides too.
+> 
+> https://juno.ihep.ac.cn/cgi-bin/Dev_DocDB/ShowDocument?docid=13807
+> 
+
+Many thanks for your report and for sharing your scripts and
+the problems you encountered. For future releases the defaults
+are changed to avoid needing these settings::
+
+    export OPTICKS_MAX_BOUNCE=31
+    export OPTICKS_EVENT_MODE=Minimal
+
+
+> p7-9 shows result of test a, and p10 shows test b.
+> 
+> As Ziyan said, 1 MeV gamma from center of CD should generate about 1650 hits,
+> and the distribution of event hits number should be a gaussian distribution
+> with mean about 1650.  In the figs, we can find out that:
+> 
+> 1. When mode3, the average hits number of Opticks and G4 are both more than
+>    that, and G4 is even more than Opticks.
+>
+> 2. When mode1, the average hits number of Opticks is about 1878 and this number
+>    seems to be approximately equal to Opticks mode3
+> 
+> Hope these can help you improve Opticks.
+
+
+Thanks again for your work on Opticks. You made rapid progress.
+I hope you will be able to return to working on Opticks in future.
+You will be able to make a valuable contribution to improving
+Opticks and making it into a standard tool for optical simulation. 
+
+My first step to debugging hit number differences will be 
+to use common input photons that target specific PMTs.  
+This can be done by replacing "gun" with "opticks" on the 
+tut_detsim.py commanline and setting some envvars to 
+configure the frame of the input photons and which input photons to use:: 
+
+   export SEvt__INPUT_PHOTON_DIR=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+   export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy 
+   export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000  
+
+If studies using common photons fed to G4 and OK do not
+reveal the problem then I will revive random aligned 
+running where I control the random numbers consumed by 
+the two simulations in addition to the input photons. 
+That allows direct step-by-step matching 
+between the simulations unclouded by statistics. 
+
+
+> And about opticksMode 0, In the release in /cvmfs now, the assertion issue
+> still exists.  but it seems running well in the newest main branch code,
+> although the place of assert code seems didn't change.
+
+Note that Release builds use compilation flags that effectively 
+remove all "assert" from the executable unlike Debug builds which
+will continue to fail at asserts.
+
+
+Simon
+
