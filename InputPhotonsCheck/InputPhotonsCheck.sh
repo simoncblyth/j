@@ -1,5 +1,4 @@
 #!/bin/bash
-
 usage(){ cat << EOU
 InputPhotonsCheck.sh
 =====================
@@ -12,17 +11,19 @@ AN::
 
     ~/j/InputPhotonsCheck/InputPhotonsCheck.sh
 
-Default output folder are like::
 
-   /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/python3.11/ALL0_no_opticks_event_name/A000/
-
+    cd /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox
+    ~/j/InputPhotonsCheck/InputPhotonsCheck.sh chi2
+    
 
 EOU
 }
 
-cd $(dirname $(realpath $BASH_SOURCE))
+#cd $(dirname $(realpath $BASH_SOURCE))
 
-defarg="env_info_run_ana"
+anascript=oj3ana.py
+
+defarg="env_info_run_ls_chi2"
 arg=${1:-$defarg}
 
 if [ "${arg/env}" != "$arg" ]; then
@@ -36,7 +37,9 @@ if [ "${arg/env}" != "$arg" ]; then
 
     ## config input photon running
     export SEvt__INPUT_PHOTON_DIR=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
-    export OPTICKS_INPUT_PHOTON=RainXZ_Z230_10k_f8.npy
+    #opticks_input_photon=RainXZ_Z230_10k_f8.npy
+    opticks_input_photon=RainXZ_Z230_1M_f8.npy
+    export OPTICKS_INPUT_PHOTON=${opticks_input_photon}
     export OPTICKS_INPUT_PHOTON_FRAME=NNVT:0:1000
 
 
@@ -48,17 +51,21 @@ if [ "${arg/env}" != "$arg" ]; then
     export VERSION=0
 
     ## convenience vars for analysis
+    export LOGDIR=$TMP/GEOM/$GEOM/$OPTICKS_SCRIPT/ALL${VERSION}_${OPTICKS_EVENT_NAME}
     export EVT=000
-    export AFOLD=$TMP/GEOM/$GEOM/$OPTICKS_SCRIPT/ALL${VERSION}_${OPTICKS_EVENT_NAME}/A$EVT
-    export BFOLD=$TMP/GEOM/$GEOM/$OPTICKS_SCRIPT/ALL${VERSION}_${OPTICKS_EVENT_NAME}/B$EVT
+    export AFOLD=$LOGDIR/A$EVT
+    export BFOLD=$LOGDIR/B$EVT
 
+    mkdir -p $LOGDIR
+    cd $LOGDIR && pwd
 
     ## HMM: getting into env takes a few seconds, can avoid that by caching the env needed for analysis into LOGDIR
+    ## actually could just use relative dirs from the LOGDIR avoiding the need to get into env
 fi
 
 
 if [ "${arg/info}" != "$arg" ]; then
-   vv="BASH_SOURCE defarg arg TMP GEOM AFOLD BFOLD"
+   vv="BASH_SOURCE defarg arg TMP GEOM LOGDIR AFOLD BFOLD IPYTHON PYTHON"
    for v in $vv ; do printf "%20s :  %s\n" "$v" "${!v}" ; done
 fi
 
@@ -85,15 +92,28 @@ if [ "${arg/run}" != "$arg" ]; then
 
     rc=$?
     echo DONE $rc
-
+    pwd
 fi
 
+
+if [ "${arg/ls}" != "$arg" ]; then
+    ff="LOGDIR AFOLD BFOLD"
+    for f in $ff ; do echo $f ${!f} && ls -alst ${!f} ; done
+fi
+
+if [ "${arg/pdb}" != "$arg" ]; then
+   ${IPYTHON:-ipython} --pdb -i $anascript
+   [ $? -ne 0 ] && echo $BASH_SOURCE pdb error
+fi
 
 if [ "${arg/ana}" != "$arg" ]; then
-
-
-    ff="AFOLD BFOLD"
-    for f in $ff ; do echo $f && ls -alst ${!f} ; done
+   ${PYTHON:-python} $anascript
+   [ $? -ne 0 ] && echo $BASH_SOURCE ana error
 fi
+
+if [ "${arg/chi2}" != "$arg" ] ; then
+   sseq_index_test.sh info_run_ana
+fi
+
 
 
