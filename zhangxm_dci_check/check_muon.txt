@@ -1,0 +1,23 @@
+
+
+/usr/bin/time -v python ${TUTORIALROOT}/share/tut_detsim.py \
+     --no-gdml \
+     --seed 2 \
+     --evtmax 5 \
+     --pmt-hit-type 2 \
+     --pmtsd-merge-twindow 1.0 \
+     --output muon_test.root \
+     --event-split \
+     gun 
+     --particles mu+ \
+     --positions 0 0 20000 \
+     --directions 0 0 -1 \
+     --momentums 20000
+
+
+I would need to review the code for the options "--pmt-hit-type 2
+--pmtsd-merge-twindow 1.0 --event-split " but the other options should work.
+But of course things never work first time. Always debugging to do.
+
+
+

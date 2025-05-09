@@ -1,0 +1,54 @@
+Xiaomei DCI Check
+==================
+
+
+Xiaomei used script::
+
+    #!/bin/bash
+    source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.1/el9_amd64_gcc11/Mon/envset.sh
+    export CUDA_VISIBLE_DEVICES=0
+    export OPTICKS_EVENT_MODE=Minimal
+    export HOME=/hpcfs/juno/junogpu/$USER
+    export TMP=/hpcfs/juno/junogpu/$USER/tmp
+    tut_detsim.py --evtmax 10 gun ## no need to python $TUTORIALROOT/share/tut_detsim.py
+
+Some errors about in the log: /afs/ihep.ac.cn/users/z/zhangxm/juno/junotest/gpu/17081073/Script1_mc.sh.log
+
+NB this release was before the change to default OPTICKS_MAX_BOUNCE from 9 to 31
+So the low numbers of hits are explicable::
+
+    U[blyth@lxlogin004 17081073]$ grep :EndOfEvent Script1_mc.sh.log
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 1 hitCollection 1284 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 1 opticksMode 1 hitCollection 1300 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 2 opticksMode 1 hitCollection 1344 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 3 opticksMode 1 hitCollection 1249 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 4 opticksMode 1 hitCollection 1264 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 5 opticksMode 1 hitCollection 1215 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 6 opticksMode 1 hitCollection 1196 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 7 opticksMode 1 hitCollection 1232 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 8 opticksMode 1 hitCollection 1292 hcMuon 0 GPU YES
+    junoSD_PMT_v2::EndOfEvent eventID 9 opticksMode 1 hitCollection 1307 hcMuon 0 GPU YES
+
+    ...
+
+    5309 Error in cling::AutoLoadingVisitor::InsertIntoAutoLoadingState:
+    5310    Missing FileEntry for Event/EventObject.h
+    5311    requested to autoload type JM::EventObject
+    5312 Error in cling::AutoLoadingVisitor::InsertIntoAutoLoadingState:
+    5313    Missing FileEntry for Event/HeaderObject.h
+    5314    requested to autoload type JM::HeaderObject
+    5315 Error in cling::AutoLoadingVisitor::InsertIntoAutoLoadingState:
+    5316    Missing FileEntry for /builds/JUNO/offline/junosw/DataModel/EDMUtil/EDMUtil/FileMetaData.h
+    5317    requested to autoload type JM::TreeMetaData
+    5318 Error in cling::AutoLoadingVisitor::InsertIntoAutoLoadingState:
+    5319    Missing FileEntry for /builds/JUNO/offline/junosw/DataModel/EDMUtil/EDMUtil/FileMetaData.h
+    5320    requested to autoload type JM::FileMetaData
+    5321 Error in cling::AutoLoadingVisitor::InsertIntoAutoLoadingState:
+    5322    Missing FileEntry for /builds/JUNO/offline/junosw/DataModel/EDMUtil/EDMUtil/JobInfo.h
+    5323    requested to autoload type JobInfo
+
+
+    5411 sdevice::Load failed read from  dirpath_ /hpcfs/juno/junogpu/dirac/.opticks/scontext dirpath /hpcfs/juno/junogpu/dirac/.opticks/scontext path /hpcfs/juno/junogpu/dirac/.opticks/scontext/sdevice.bin
+    5412 sdevice::Load failed read from  dirpath_ /hpcfs/juno/junogpu/dirac/.opticks/scontext dirpath /hpcfs/juno/junogpu/dirac/.opticks/scontext path /hpcfs/juno/junogpu/dirac/.opticks/scontext/sdevice.bin
+
+
