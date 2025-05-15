@@ -419,5 +419,365 @@ to see them all.::
 
 
 
+Try RandomSpherical1M from sTarget 
+------------------------------------
+
+::
+
+    A[blyth@localhost InputPhotonsCheck]$ ipc chi2
+    /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v0.4.1/bin/sseq_index_test.sh - using externally configured GEOM J25_3_0_Opticks_v0_4_1
+                       BASH_SOURCE : /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v0.4.1/bin/sseq_index_test.sh 
+                              SDIR : /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v0.4.1/bin 
+                              FOLD : /tmp/blyth/opticks/sseq_index_test 
+                              name : sseq_index_test 
+                               bin : sseq_index_test 
+                               DEV :  
+                          bin_note : using installed binary - built by om/CMake - use DEV=1 to use dev binary 
+                       BASH_SOURCE : /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v0.4.1/bin/sseq_index_test.sh 
+                              SDIR : /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-v0.4.1/bin 
+                              name : sseq_index_test 
+                             C2CUT : 40 
+                               MSG : Using EXTERNALLY configured AFOLD BFOLD 
+                             AFOLD : /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox_sTarget_RandomSpherical1M_f8/A000 
+                             BFOLD : /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox_sTarget_RandomSpherical1M_f8/B000 
+    a_path $AFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox_sTarget_RandomSpherical1M_f8/A000/seq.npy a_seq (1000000, 2, 2, )
+    b_path $BFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_3_0_Opticks_v0_4_1/InputPhotonsCheck/ALL0_DebugPhilox_sTarget_RandomSpherical1M_f8/B000/seq.npy b_seq (1000000, 2, 2, )
+    sseq_index_test__DEBUG:0
+    AB
+    [sseq_index_ab::desc u_size 127133 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum  1897.5539 ndf 1629.0000 sum/ndf     1.1649 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+        TO AB                                                                                            :  111833 112335 :     1.1242 : Y :       0      5 :   
+        TO BT BT BT BT BT BT SD                                                                          :  101967 101730 :     0.2757 : Y :      14      3 :   
+        TO BT BT BT BT BT BT SA                                                                          :   80729  80729 :     0.0000 : Y :      11      1 :   
+        TO SC BT BT BT BT BT BT SD                                                                       :   45851  46377 :     2.9999 : Y :       5     17 :   
+        TO SC AB                                                                                         :   41715  41634 :     0.0787 : Y :      16     46 :   
+        TO SC BT BT BT BT BT BT SA                                                                       :   37206  37170 :     0.0174 : Y :      29     39 :   
+        TO BT BT SA                                                                                      :   23450  23528 :     0.1295 : Y :      56     21 :   
+        TO SC SC BT BT BT BT BT BT SD                                                                    :   17502  17472 :     0.0257 : Y :      37      4 :   
+        TO BT BT BT BT BT BT BT SR SA                                                                    :   15713  15715 :     0.0001 : Y :      46      6 :   
+        TO SC SC AB                                                                                      :   14643  14608 :     0.0419 : Y :      51    132 :   
+        TO BT BT BT BT BT BT BT SA                                                                       :   14436  14280 :     0.8475 : Y :      82     73 :   
+        TO BT BT AB                                                                                      :   14182  14412 :     1.8500 : Y :     180     43 :   
+        TO SC SC BT BT BT BT BT BT SA                                                                    :   14256  14197 :     0.1223 : Y :       3     58 :   
+        TO BT BT BT SA                                                                                   :   13445  13126 :     3.8298 : Y :     104     23 :   
+        TO BT BT BT BT SD                                                                                :    9228   9221 :     0.0027 : Y :     327    404 :   
+        TO BT BT DR BT SA                                                                                :    8208   8225 :     0.0176 : Y :      30     41 :   
+        TO SC BT BT AB                                                                                   :    7473   7215 :     4.5319 : Y :      84     71 :   
+        TO SC BT BT BT BT BT BT BT SA                                                                    :    7022   7154 :     1.2291 : Y :       9     82 :   
+        TO BT BT BT BT BT BT BT SR SR SA                                                                 :    6706   6779 :     0.3952 : Y :      54      7 :   
+        TO SC BT BT SA                                                                                   :    6584   6596 :     0.0109 : Y :     143    168 :   
+        TO SC BT BT BT BT BT BT BT SR SA                                                                 :    6347   6192 :     1.9160 : Y :     106    373 :   
+        TO SC SC SC BT BT BT BT BT BT SD                                                                 :    6240   6303 :     0.3164 : Y :     167    154 :   
+        TO BT AB                                                                                         :    5846   6124 :     6.4565 : Y :     382     91 :   
+        TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SD                                               :    5497   5644 :     1.9396 : Y :     103    469 :   
+        TO SC SC SC BT BT BT BT BT BT SA                                                                 :    5064   5053 :     0.0120 : Y :     418     69 :   
+        TO SC SC SC AB                                                                                   :    4929   4933 :     0.0016 : Y :     146    252 :   
+        TO BT BT BT BT BT BT BT SD                                                                       :    4590   4743 :     2.5082 : Y :     675    266 :   
+        TO RE AB                                                                                         :    4612   4601 :     0.0131 : Y :     729     15 :   
+        TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SA                                               :    4501   4393 :     1.3114 : Y :      70     37 :   
+        TO SC BT BT BT SA                                                                                :    4304   4383 :     0.7184 : Y :     190     31 :   
+        TO SC BT BT BT BT SD                                                                             :    3637   3746 :     1.6092 : Y :      87    492 :   
+        TO SC BT AB                                                                                      :    3147   3383 :     8.5292 : Y :     508    489 :   
+        TO BT BT BT BT AB                                                                                :    3259   3221 :     0.2228 : Y :     267    908 :   
+        TO SC SC BT BT AB                                                                                :    3082   3008 :     0.8992 : Y :      36     76 :   
+        TO SC SC BT BT BT BT BT BT BT SA                                                                 :    2791   2864 :     0.9424 : Y :      33    152 :   
+        TO SC BT BT BT BT BT BT BT SD                                                                    :    2768   2745 :     0.0960 : Y :     456    121 :   
+        TO SC BT BT BT BT SA                                                                             :    2689   2485 :     8.0433 : Y :     102    305 :   
+        TO BT BT BT BT BT BT BT SR SR SR SA                                                              :    2524   2511 :     0.0336 : Y :      50    177 :   
+        TO SC BT BT BT BT BT BT BT SR SR SA                                                              :    2380   2383 :     0.0019 : Y :     139    109 :   
+        TO SC SC BT BT SA                                                                                :    2203   2280 :     1.3226 : Y :    1379    490 :   
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 127133 NUM_MAX 40 num 40 opt AZERO mode 1
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 127133 NUM_MAX 40 num 40 opt BZERO mode 2
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 127133 NUM_MAX 40 num 40 opt DEVIANT mode 5
+    ]sseq_index_ab::desc
+
+    pvplt MODE:2 
+    f
+
+
+
+
+    QCF qcf :  
+    a.q 1000000 b.q 1000000 lim slice(None, None, None) 
+    c2sum :  2608.4727 c2n :  2074.0000 c2per:     1.2577  C2CUT:   30 
+    c2sum/c2n:c2per(C2CUT)  2608.47/2074:1.258 (30) pv[1.000,> 0.05 : null-hyp ] 
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO AB                                                                                          ' ' 0' '111833 112335' ' 1.1242' '     0      5']
+     [' 1' 'TO BT BT BT BT BT BT SD                                                                        ' ' 1' '101967 101730' ' 0.2757' '    14      3']
+     [' 2' 'TO BT BT BT BT BT BT SA                                                                        ' ' 2' ' 80729  80729' ' 0.0000' '    11      1']
+     [' 3' 'TO SC BT BT BT BT BT BT SD                                                                     ' ' 3' ' 45851  46377' ' 2.9999' '     5     17']
+     [' 4' 'TO SC AB                                                                                       ' ' 4' ' 41715  41634' ' 0.0787' '    16     46']
+     [' 5' 'TO SC BT BT BT BT BT BT SA                                                                     ' ' 5' ' 37206  37170' ' 0.0174' '    29     39']
+     [' 6' 'TO BT BT SA                                                                                    ' ' 6' ' 23450  23528' ' 0.1295' '    56     21']
+     [' 7' 'TO SC SC BT BT BT BT BT BT SD                                                                  ' ' 7' ' 17502  17472' ' 0.0257' '    37      4']
+     [' 8' 'TO BT BT BT BT BT BT BT SR SA                                                                  ' ' 8' ' 15713  15715' ' 0.0001' '    46      6']
+     [' 9' 'TO SC SC AB                                                                                    ' ' 9' ' 14643  14608' ' 0.0419' '    51    132']
+     ['10' 'TO BT BT BT BT BT BT BT SA                                                                     ' '10' ' 14436  14280' ' 0.8475' '    82     73']
+     ['11' 'TO BT BT AB                                                                                    ' '11' ' 14182  14412' ' 1.8500' '   180     43']
+     ['12' 'TO SC SC BT BT BT BT BT BT SA                                                                  ' '12' ' 14256  14197' ' 0.1223' '     3     58']
+     ['13' 'TO BT BT BT SA                                                                                 ' '13' ' 13445  13126' ' 3.8298' '   104     23']
+     ['14' 'TO BT BT BT BT SD                                                                              ' '14' '  9228   9221' ' 0.0027' '   327    404']
+     ['15' 'TO BT BT DR BT SA                                                                              ' '15' '  8208   8225' ' 0.0176' '    30     41']
+     ['16' 'TO SC BT BT AB                                                                                 ' '16' '  7473   7215' ' 4.5319' '    84     71']
+     ['17' 'TO SC BT BT BT BT BT BT BT SA                                                                  ' '17' '  7022   7154' ' 1.2291' '     9     82']
+     ['18' 'TO BT BT BT BT BT BT BT SR SR SA                                                               ' '18' '  6706   6779' ' 0.3952' '    54      7']
+     ['19' 'TO SC BT BT SA                                                                                 ' '19' '  6584   6596' ' 0.0109' '   143    168']
+     ['20' 'TO SC BT BT BT BT BT BT BT SR SA                                                               ' '20' '  6347   6192' ' 1.9160' '   106    373']
+     ['21' 'TO SC SC SC BT BT BT BT BT BT SD                                                               ' '21' '  6240   6303' ' 0.3164' '   167    154']
+     ['22' 'TO BT AB                                                                                       ' '22' '  5846   6124' ' 6.4565' '   382     91']
+     ['23' 'TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SD                                             ' '23' '  5497   5644' ' 1.9396' '   103    469']
+     ['24' 'TO SC SC SC BT BT BT BT BT BT SA                                                               ' '24' '  5064   5053' ' 0.0120' '   418     69']
+     ['25' 'TO SC SC SC AB                                                                                 ' '25' '  4929   4933' ' 0.0016' '   146    252']
+     ['26' 'TO BT BT BT BT BT BT BT SD                                                                     ' '26' '  4590   4743' ' 2.5082' '   675    266']
+     ['27' 'TO RE AB                                                                                       ' '27' '  4612   4601' ' 0.0131' '   729     15']
+     ['28' 'TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT SA                                             ' '28' '  4501   4393' ' 1.3114' '    70     37']
+     ['29' 'TO SC BT BT BT SA                                                                              ' '29' '  4304   4383' ' 0.7184' '   190     31']
+     ['30' 'TO SC BT BT BT BT SD                                                                           ' '30' '  3637   3746' ' 1.6092' '    87    492']
+     ['31' 'TO SC BT AB                                                                                    ' '31' '  3147   3383' ' 8.5292' '   508    489']
+     ['32' 'TO BT BT BT BT AB                                                                              ' '32' '  3259   3221' ' 0.2228' '   267    908']
+     ['33' 'TO SC SC BT BT AB                                                                              ' '33' '  3082   3008' ' 0.8992' '    36     76']
+     ['34' 'TO SC SC BT BT BT BT BT BT BT SA                                                               ' '34' '  2791   2864' ' 0.9424' '    33    152']
+     ['35' 'TO SC BT BT BT BT BT BT BT SD                                                                  ' '35' '  2768   2745' ' 0.0960' '   456    121']
+     ['36' 'TO SC BT BT BT BT SA                                                                           ' '36' '  2689   2485' ' 8.0433' '   102    305']
+     ['37' 'TO BT BT BT BT BT BT BT SR SR SR SA                                                            ' '37' '  2524   2511' ' 0.0336' '    50    177']
+     ['38' 'TO SC BT BT BT BT BT BT BT SR SR SA                                                            ' '38' '  2380   2383' ' 0.0019' '   139    109']
+     ['39' 'TO SC SC BT BT SA                                                                              ' '39' '  2203   2280' ' 1.3226' '  1379    490']]
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][bzero]  ## in A but not B 
+    [['294' 'TO BT BT BT BT BR SR SA                                                                        ' '294' '   183      0' '183.0000' '  4232      0']
+     ['969' 'TO BT BT BT BT BR SA                                                                           ' '969' '    42      0' '42.0000' ' 18984      0']
+     ['1500' 'TO SC BT BT BT BT BR SR SA                                                                     ' '1500' '    25      0' ' 0.0000' '  7924      0']
+     ['1779' 'TO BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT BT SD                                          ' '1779' '    21      0' ' 0.0000' ' 20777      0']
+     ['2864' 'TO BT BT BT BT BR BR BR BT AB                                                                  ' '2864' '    12      0' ' 0.0000' '301580      0']
+     ['3128' 'TO SC BT BT BT BT BT BT BR BT BT BT BT BT BT BT BT BT SD                                       ' '3128' '    11      0' ' 0.0000' '  5351      0']]
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][azero]  ## in B but not A 
+    []
+    ]----- repr(ab) 
+    [--- abh = SABHit(a,b) ----
+    ]--- abh = SABHit(a,b) ----
+    [----- repr(abh) 
+
+
+    SABHit  a_nhit :  254080  b_nhit:  259079  a/b_nhit:  0.981  b/a_nhit:  1.020 
+
+
+    ]----- repr(abh) 
+
+
+
+Notable that with OPTICKS_MAX_BOUNCE 31 that get 2% less hits with Opticks than with Geant4.
+
+
+Try with OPTICKS_MAX_BOUNCE 63 : doing this required SEventConfig+SEvt rejig 
+------------------------------------------------------------------------------
+
+Increase in OPTICKS_MAX_BOUNCE makes the hit difference reduce to 2 per mille::
+
+    SABHit  a_nhit :  258596  b_nhit:  259079  a/b_nhit:  0.998  b/a_nhit:  1.002 
+
+Which is in agreement::
+
+    SABHit  a_nhit : (  258576 +-  508 )  b_nhit:(   259079 +-  508 )  a/b: (  0.998 +-  0.004 )  b/a: (  1.002 +-  0.004)  [assume uncorr.]
+
+
+Got that after some rejig::
+
+    unoSD_PMT_v2::Initialize eventID 0
+    2025-05-13 16:34:58.726 INFO  [617343] [U4Recorder::BeginOfEventAction_@333]  eventID 0
+    Begin of Event --> 0
+    2025-05-13 16:34:59.342 FATAL [617343] [SEvt::rjoinSeqCheck@2758]  flag_xor FAIL   
+
+    python: /home/blyth/opticks/sysrap/SEvt.cc:2759: void SEvt::rjoinSeqCheck(unsigned int) const: Assertion `flag_xor' failed.
+
+    (gdb) bt
+    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x00007fffc313ebf3 in SEvt::rjoinSeqCheck (this=0x6971c60, seq_flag=0) at /home/blyth/opticks/sysrap/SEvt.cc:2759
+    #6  0x00007fffc313e116 in SEvt::rjoinPhoton (this=0x6971c60, label=...) at /home/blyth/opticks/sysrap/SEvt.cc:2633
+    #7  0x00007fffc55f93ca in U4Recorder::PreUserTrackingAction_Optical (this=0x6971c30, track=0x1119f7550) at /home/blyth/opticks/u4/U4Recorder.cc:482
+    #8  0x00007fffc55f8a24 in U4Recorder::PreUserTrackingAction (this=0x6971c30, track=0x1119f7550) at /home/blyth/opticks/u4/U4Recorder.cc:379
+    #9  0x00007fffc23a493e in U4RecorderAnaMgr::PreUserTrackingAction (this=0x66cdda0, trk=0x1119f7550) at /home/blyth/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:37
+    #10 0x00007fffcf354d92 in MgrOfAnaElem::PreUserTrackingAction (this=0x8ee3c50, trk=0x1119f7550) at /home/blyth/junosw/Simulat
+
+
+::
+
+    2746 void SEvt::rjoinSeqCheck(unsigned seq_flag) const
+    2747 {
+    2748     dbg->rjoinSeqCheck++ ;
+    2749 
+    2750     bool flag_AB = seq_flag == BULK_ABSORB ;
+    2751     bool flag_MI = seq_flag == MISS ;
+    2752     bool flag_xor = flag_AB ^ flag_MI ;
+    2753 
+    2754     if(flag_AB)  dbg->rjoinSeqCheck_flag_AB++ ;
+    2755     if(flag_MI)  dbg->rjoinSeqCheck_flag_MI++ ;
+    2756     if(flag_xor) dbg->rjoinSeqCheck_flag_xor++ ;
+    2757 
+    2758     LOG_IF(fatal, !flag_xor) << " flag_xor FAIL " << OpticksPhoton::Abbrev(seq_flag) << std::endl ;
+    2759     assert( flag_xor );
+    2760 }
+
+
+Observe that get diffent chimney behavior : so try to plant input photon there : but seems not to work
+--------------------------------------------------------------------------------------------------------
+
+
+::
+
+     MOI=sChimneyLS:0:-1 cxr_min.sh   ## succeeds to visualize the Chimney
+
+
+BUT not working for transforming input photons::
+
+    2025-05-13 21:49:28.489 INFO  [924651] [QRng::initStates@72] initStates<Philox> DO NOTHING : No LoadAndUpload needed  rngmax 1000000000 SEventConfig::MaxCurand 1000000000
+    2025-05-13 21:49:28.737 INFO  [924651] [CSGTarget::getFrameComponents@227] (gord == -1) qptr transform will not be set, typically defaulting to identity 
+    2025-05-13 21:49:28.737 INFO  [924651] [SEvt::transformInputPhoton@694]  SEvt__transformInputPhoton_VERBOSE  SEventConfig::IsRGModeSimulate 1 hasInputPhoton 1 proceed YES
+    sframe::desc inst 0 frs sChimneyLS:0:-1
+     ekvid sframe_OPTICKS_INPUT_PHOTON_FRAME_sChimneyLS_0_-1 ek OPTICKS_INPUT_PHOTON_FRAME ev sChimneyLS:0:-1
+     ce  ( 0.000, 0.000,19787.000,1963.000)  is_zero 0
+     m2w ( 1.000, 0.000, 0.000, 0.000) ( 0.000, 1.000, 0.000, 0.000) ( 0.000, 0.000, 1.000, 0.000) ( 0.000, 0.000, 0.000, 1.000) 
+     w2m ( 1.000, 0.000, 0.000, 0.000) ( 0.000, 1.000, 0.000, 0.000) ( 0.000, 0.000, 1.000, 0.000) ( 0.000, 0.000, 0.000, 1.000) 
+     midx  137 mord    0 gord   -1
+     inst    0
+     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
+     ins     0 gas     0 sensor_identifier        0 sensor_index      0
+     propagate_epsilon    0.05000 is_hostside_simtrace NO
+
+
+    2025-05-13 21:49:29.192 INFO  [924651] [SEvt::transformInputPhoton@694]  SEvt__transformInputPhoton_VERBOSE  SEventConfig::IsRGModeSimulate 1 hasInputPhoton 1 proceed YES
+    sframe::desc inst 0 frs sChimneyLS:0:-1
+     ekvid sframe_OPTICKS_INPUT_PHOTON_FRAME_sChimneyLS_0_-1 ek OPTICKS_INPUT_PHOTON_FRAME ev sChimneyLS:0:-1
+     ce  ( 0.000, 0.000,19787.000,1963.000)  is_zero 0
+     m2w ( 1.000, 0.000, 0.000, 0.000) ( 0.000, 1.000, 0.000, 0.000) ( 0.000, 0.000, 1.000, 0.000) ( 0.000, 0.000, 0.000, 1.000) 
+     w2m ( 1.000, 0.000, 0.000, 0.000) ( 0.000, 1.000, 0.000, 0.000) ( 0.000, 0.000, 1.000, 0.000) ( 0.000, 0.000, 0.000, 1.000) 
+     midx  137 mord    0 gord   -1
+     inst    0
+     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
+     ins     0 gas     0 sensor_identifier        0 sensor_index      0
+     propagate_epsilon    0.05000 is_hostside_simtrace NO
+
+
+    2025-05-13 21:49:29.657 INFO  [924651] [G4CXOpticks::setGeometry@318] CSGOptiX::Desc Version 7 WITH_CUSTOM4 
+    2025-05-13 21:49:29.658 INFO  [924651] [LSExpDetectorConstruction_Opticks::Setup@49] ] WITH_G4CXOPTICKS 
+    /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.3.0/ExternalLibs/Geant4/10.04.p02.juno/share/Geant4-10.4.2/dat
+
+
+Pilot error need sChimneyLS:0:-2
+
+
+Very different chimney behaviour 
+----------------------------------
+
+::
+
+    /data1/blyth/local/opticks_Debug/bin/sseq_index_test.sh - using externally configured GEOM J25_3_0_opticks_Debug
+                       BASH_SOURCE : /data1/blyth/local/opticks_Debug/bin/sseq_index_test.sh 
+                              SDIR : /data1/blyth/local/opticks_Debug/bin 
+                              FOLD : /tmp/blyth/opticks/sseq_index_test 
+                              name : sseq_index_test 
+                               bin : sseq_index_test 
+                               DEV :  
+                          bin_note : using installed binary - built by om/CMake - use DEV=1 to use dev binary 
+                       BASH_SOURCE : /data1/blyth/local/opticks_Debug/bin/sseq_index_test.sh 
+                              SDIR : /data1/blyth/local/opticks_Debug/bin 
+                              name : sseq_index_test 
+                             C2CUT : 40 
+                               MSG : Using EXTERNALLY configured AFOLD BFOLD 
+                             AFOLD : /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_RandomSpherical1M_f8/A000 
+                             BFOLD : /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_RandomSpherical1M_f8/B000 
+    a_path $AFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_RandomSpherical1M_f8/A000/seq.npy a_seq (1000000, 2, 2, )
+    b_path $BFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_RandomSpherical1M_f8/B000/seq.npy b_seq (1000000, 2, 2, )
+    sseq_index_test__DEBUG:0
+     t0 1747205779941109
+     t1 1747205780069075 (t1 - t0)   127966 0.127966
+     t2 1747205780199244 (t2 - t1)   130169 0.130169
+     t3 1747205780221659 (t3 - t2)    22415 0.022415
+    AB
+    [sseq_index_ab::desc u_size 29671 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum 65549.1643 ndf 349.0000 sum/ndf   187.8200 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+    :r:`TO SA                                                                                            :  566110 560907 :    24.0202 : Y :       1      4 : DEVIANT  `
+    :r:`TO DR SA                                                                                         :  208221 204093 :    41.3287 : Y :       0      1 : DEVIANT  `
+    :r:`TO DR DR SA                                                                                      :   75235  73331 :    24.4014 : Y :      21     18 : DEVIANT  `
+    :r:`TO DR DR DR SA                                                                                   :   26978  26182 :    11.9190 : Y :      50      0 : DEVIANT  `
+    :r:`TO AB                                                                                            :   15306   5305 :  4852.7486 : Y :      25      2 : DEVIANT  `
+    :r:`TO SC SA                                                                                         :    1492  10571 :  6833.1461 : Y :     146     32 : DEVIANT  `
+        TO DR DR DR DR SA                                                                                :    9477   9216 :     3.6442 : Y :      22    274 :   
+    :r:`TO BT BT AB                                                                                      :    8089    180 :  7564.6730 : Y :     133   4259 : DEVIANT  `
+    :r:`TO DR AB                                                                                         :    7624   2665 :  2390.0944 : Y :     973    160 : DEVIANT  `
+    :r:`TO DR SC SA                                                                                      :     744   5297 :  3431.5195 : Y :     794    200 : DEVIANT  `
+    :r:`TO BT BT BT SA                                                                                   :     111   4086 :  3764.7427 : Y :    1351    133 : DEVIANT  `
+    :r:`TO SC DR SA                                                                                      :     537   3888 :  2537.6725 : Y :    6600   1176 : DEVIANT  `
+    :r:`TO DR BT BT AB                                                                                   :    3496    314 :  2657.5129 : Y :     164   3389 : DEVIANT  `
+        TO DR DR DR DR DR SA                                                                             :    3314   3180 :     2.7650 : Y :     117     41 :   
+    :r:`TO DR DR AB                                                                                      :    2895   1000 :   921.9576 : Y :    1507   4523 : DEVIANT  `
+    :r:`TO BT BT SA                                                                                      :     259   2557 :  1875.2855 : Y :    1248    199 : DEVIANT  `
+
+
+
+
+AB comparison with storch photons ? 
+-------------------------------------
+
+It is limiting to be restricted to the canned input photons, 
+but getting storch generation to work insitu just for debugging 
+is a too much effort. So as a workaround could pre-generate 
+input photons from torch gensteps using SGenerate::GeneratePhotons
+and use the input photon machinery.
+
+
+::
+
+    A[blyth@localhost ~]$ opticks-f SGenerate.h
+    ./g4cx/tests/G4CXApp.h:#include "SGenerate.h"
+    ./sysrap/CMakeLists.txt:    SGenerate.h
+    ./sysrap/SGenerate.h:SGenerate.h
+    ./sysrap/SGenerate.h:the MOCK_CURAND macro the method was moved to this header only SGenerate.h  
+    ./sysrap/SGenstep.h:sysrap/SGenerate.h
+    ./sysrap/tests/SGenerate__test.cc:#include "SGenerate.h"
+    ./sysrap/tests/SGenerate_test.cc:#include "SGenerate.h"
+    ./u4/U4VPrimaryGenerator.h:         << "compile with MOCK_CURAND to use SGenerate.h curand on CPU" << std::endl 
+    A[blyth@localhost opticks]$ 
+
+
+::
+
+    224 void G4CXApp::GeneratePrimaries(G4Event* event)
+    225 {
+    226     G4int eventID = event->GetEventID();
+    227 
+    228     LOG(LEVEL) << "[ SEventConfig::RunningModeLabel " << SEventConfig::RunningModeLabel() << " eventID " << eventID ;
+    229     SEvt* sev = SEvt::Get_ECPU();
+    230     assert(sev);
+    231 
+    232     if(SEventConfig::IsRunningModeGun())
+    233     {
+    234         LOG(fatal) << " THIS MODE NEEDS WORK ON U4PHYSICS " ;
+    235         std::raise(SIGINT);
+    236         fGun->GeneratePrimaryVertex(event) ;
+    237     }
+    238     else if(SEventConfig::IsRunningModeTorch())
+    239     {
+    240         int idx_arg = eventID ;
+    241         NP* gs = SEvent::MakeTorchGenstep(idx_arg) ;  // idx_arg > -1 implies comma delimited num_gs num_ph envvars
+    242         NP* ph = SGenerate::GeneratePhotons(gs);
+    243         U4VPrimaryGenerator::GeneratePrimaries_From_Photons(event, ph);
+    244         delete ph ;
+    245 
+    246         SEvent::SetGENSTEP(gs);  // picked up by
+    247     }
+    248     else if(SEventConfig::IsRunningModeInputPhoton())
+    249     {
+    250         NP* ph = sev->getInputPhoton();
+    251         U4VPrimaryGenerator::GeneratePrimaries_From_Photons(event, ph) ;
+    252     }
 
 
