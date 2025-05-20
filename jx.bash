@@ -174,8 +174,8 @@ jfi(){  local f="" ; for name in $* ; do f="$f -name $name   -o " ; done ;      
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 
-jcv(){ cd $JUNOTOP/junosw ; jcv- $* ; : edit files identified by stem ;  } 
-jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; } 
+jcv(){ cd ~/junosw ; jcv- $* ; : edit files identified by stem ; : ~/j/jx.bash ;   } 
+jfv(){ cd ~/junosw ; jfv- $* ; : list files identified by wildcard ;  : ~/j/jx.bash ;} 
 
 #jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; } 
 #jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
@@ -183,8 +183,8 @@ jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; }
 jgr-(){ find . -not -path "./build/*" -a -not -path "./InstallArea/*" -a -not -path "./.git/*" -type f -exec grep -H "${1:-G4CXOPTICKS}" {} \; ; } 
 jgl-(){ find . -not -path "./build/*" -a -not -path "./InstallArea/*" -a -not -path "./.git/*" -type f -exec grep -l "${1:-G4CXOPTICKS}" {} \; ; } 
 
-jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
-jgl(){ cd $JUNOTOP/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
+jgr(){ cd ~/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  } 
+jgl(){ cd ~/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; } 
  
 
 

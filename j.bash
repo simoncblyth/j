@@ -3637,19 +3637,19 @@ jlibs_reuse()
 jcv-(){ local fi=$(jcl $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 jfv-(){ local fi=$(jfi $* | sort) ; [ "$fi" != "" ] && vi $fi ; echo $fi | tr " " "\n" ;  }
 
-jcv(){ cd $JUNOTOP/junosw ; jcv- $* ; : edit files identified by stem ;  }
-jfv(){ cd $JUNOTOP/junosw ; jfv- $* ; : list files identified by wildcard ; }
+jcv(){ cd ~/junosw ; jcv- $* ; : edit files identified by stem ;  }
+jfv(){ cd ~/junosw ; jfv- $* ; : list files identified by wildcard ; }
 
 jgr-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -H "${1:-G4OPTICKS}" {} \; ; }
-jgr(){ cd $JUNOTOP/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  }
+jgr(){ cd ~/junosw ; jgr- $* ; : search files with the query string and show matches - skips are made to avoid cmt garbage ;  }
 
 jgl-(){ find . ! -path "./.svn/*"  -a ! -path '*.swp' -a ! -path './*/Linux-x86_64/*' -a ! -path '*.sh' -a ! -path '*.csh'  -type f -exec grep -l "${1:-G4OPTICKS}" {} \; ; }
-jgl(){ cd $JUNOTOP/junosw ; jgl- $* ; : search files with the query string and list matched paths - skips are made to avoid cmt garbage ; }
+jgl(){ cd ~/junosw ; jgl- $* ; : HERE search files with the query string and list matched paths - skips are made to avoid cmt garbage ; }
 
-jt(){ cd $JUNOTOP ; pwd ; }
-je(){ cd $JUNOTOP/junoenv && pwd ; }
-#jo(){ cd $JUNOTOP/junosw && pwd && git status ; }
-jo(){ cd $JUNOTOP/junosw && pwd && git status ; }
+jt(){ cd ~/junosw ; pwd ; }
+je(){ cd ~/junosw/junoenv && pwd ; }
+#jo(){ cd ~/junosw && pwd && git status ; }
+jo(){ cd ~/junosw && pwd && git status ; }
 
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; }
 js(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/$1 && pwd ; }
