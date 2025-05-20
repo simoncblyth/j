@@ -2,7 +2,7 @@ InputPhotonsCheck
 ==================
 
 
-At 10k input photon level no issues::
+At 10k input photon targetting single PMT, no issues::
 
     ## config input photon running
     export SEvt__INPUT_PHOTON_DIR=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
@@ -628,8 +628,8 @@ Got that after some rejig::
     2760 }
 
 
-Observe that get diffent chimney behavior : so try to plant input photon there : but seems not to work
---------------------------------------------------------------------------------------------------------
+Observe that get very diffent chimney behavior : so try to plant input photon there : but seems not to work
+----------------------------------------------------------------------------------------------------------------
 
 
 ::
@@ -673,6 +673,8 @@ BUT not working for transforming input photons::
 
 
 Pilot error need sChimneyLS:0:-2
+
+* currently uncertain why need -2 for input photons but -1 for viz
 
 
 Very different chimney behaviour 
@@ -748,36 +750,183 @@ and use the input photon machinery.
     A[blyth@localhost opticks]$ 
 
 
+
+
+Chimney
+-----------
+
 ::
 
-    224 void G4CXApp::GeneratePrimaries(G4Event* event)
-    225 {
-    226     G4int eventID = event->GetEventID();
-    227 
-    228     LOG(LEVEL) << "[ SEventConfig::RunningModeLabel " << SEventConfig::RunningModeLabel() << " eventID " << eventID ;
-    229     SEvt* sev = SEvt::Get_ECPU();
-    230     assert(sev);
-    231 
-    232     if(SEventConfig::IsRunningModeGun())
-    233     {
-    234         LOG(fatal) << " THIS MODE NEEDS WORK ON U4PHYSICS " ;
-    235         std::raise(SIGINT);
-    236         fGun->GeneratePrimaryVertex(event) ;
-    237     }
-    238     else if(SEventConfig::IsRunningModeTorch())
-    239     {
-    240         int idx_arg = eventID ;
-    241         NP* gs = SEvent::MakeTorchGenstep(idx_arg) ;  // idx_arg > -1 implies comma delimited num_gs num_ph envvars
-    242         NP* ph = SGenerate::GeneratePhotons(gs);
-    243         U4VPrimaryGenerator::GeneratePrimaries_From_Photons(event, ph);
-    244         delete ph ;
-    245 
-    246         SEvent::SetGENSTEP(gs);  // picked up by
-    247     }
-    248     else if(SEventConfig::IsRunningModeInputPhoton())
-    249     {
-    250         NP* ph = sev->getInputPhoton();
-    251         U4VPrimaryGenerator::GeneratePrimaries_From_Photons(event, ph) ;
-    252     }
+    A[blyth@localhost CSGFoundry]$ pwd
+    /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug/CSGFoundry
+    A[blyth@localhost CSGFoundry]$ grep Chimney  meshname.txt 
+    Upper_Chimney
+    sBotChimneySSEnclosureLS_PartI_II_III
+    sBotChimneySSEnclosure_PartI_II_III
+    sChimneyAcrylic
+    sChimneyLS
+    sChimneySteel
+
+    A[blyth@localhost CSGFoundry]$ grep Chimney  tessname.txt 
+    #Upper_Chimney
+    #sBotChimneySSEnclosureLS_PartI_II_III
+    #sBotChimneySSEnclosure_PartI_II_III
+    #sChimneyAcrylic
+    #sChimneyLS
+    #sChimneySteel
+    A[blyth@localhost CSGFoundry]$ 
+
+
+
+Add Chimney bookmarks to framespec
+--------------------------------------
+
+::
+
+    ]CSGImport::importPrim.dump_LVID:1 node.lvid 105 LVID -1 name uni1_0 soname uni1_0
+    NPFold::add_ FATAL : have_key_already [Hama_0_0.npy]
+    NPFold::descKeys kk.size 29 [Hama_0_0.npy]  [NNVT_0_0.npy]  [Hama_0_1000.npy]  [NNVT_0_1000.npy]  [sDeadWater_0_-1.npy]  [sChimneyLS_0_-1.npy]  [sChimneyAcrylic_0_-1.npy]  [sChimneySteel_0_-1.npy]  [Upper_Chimney_0_-1.npy]  [sBotChimneySSEnclosureLS_PartI_II_III_0_-1.npy]  [sBotChimneySSEnclosure_PartI_II_III_0_-1.npy]  [GZ1.A06_07_FlangeI_Web_FlangeII_15_-1.npy]  [GZ1.B06_07_FlangeI_Web_FlangeII_15_-1.npy]  [solidXJfixture_0_-1.npy]  [solidXJfixture_20_-1.npy]  [solidXJfixture_40_-1.npy]  [solidXJfixture_55_-1.npy]  [solidXJanchor_0_-1.npy]  [solidXJanchor_20_-1.npy]  [solidXJanchor_40_-1.npy]  [solidXJanchor_55_-1.npy]  [solidSJCLSanchor_0_-1.npy]  [solidSJFixture_0_-1.npy]  [solidSJReceiver_0_-1.npy]  [solidSJReceiverFastern_0_-1.npy]  [sSurftube_0V1_0_0_-1.npy]  [sSurftube_38V1_0_0_-1.npy]  [sSurftube_38V1_1_0_-1.npy]  [solidXJfixture_27_-1.npy] python: /home/blyth/opticks/sysrap/NPFold.h:1628: void NPFold::add_(const char*, const NP*): Assertion `!have_key_already' failed.
+     *** Break *** abort
+
+
+
+Updating local OJ build
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+After making changes in ~/junosw eg to Examples/Tutorial/share/opticks_juno.sh
+update OJ with:
+
+1. open new tab with empty env and setup and invoke the OJ build::
+
+    local_oj_build # ljb
+    oj_build
+
+2. open new tab with empty env and setup and invoke the OJ Opticks geom config::
+
+    local_oj_local # ljl
+    oj_local
+
+
+Frame dir::
+
+    /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug/CSGFoundry/SSim/scene/frame/
+
+
+
+"MOI=sChimneyLS:0:-1 cxr_min.sh" works but "MOI=sChimneyLS:0:-2 cxr_min.sh" does not ? WHY ?
+---------------------------------------------------------------------------------------------- 
+
+::
+
+    A[blyth@localhost CSGFoundry]$ MOI=sChimneyLS:0:-2 cxr_min.sh 
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh - External GEOM setup detected
+                     External_CFBaseFromGEOM : J25_3_0_opticks_Debug_CFBaseFromGEOM 
+        J25_3_0_opticks_Debug_CFBaseFromGEOM : /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug 
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh : USING EXTERNALLY SETUP GEOMETRY ENVIRONMENT : EG FROM OJ DISTRIBUTION
+                     bin : CSGOptiXRenderInteractiveTest 
+               which_bin : /data1/blyth/local/opticks_Debug/lib/CSGOptiXRenderInteractiveTest 
+                    GEOM : J25_3_0_opticks_Debug 
+                     MOI : sChimneyLS:0:-2 
+                     EMM :  
+                     ELV :  
+                    TMIN : 0.5 
+                     EYE : 1,0,0 
+                    LOOK : 0,0,0 
+                      UP : 0,0,1 
+                    ZOOM : 1 
+                  LOGDIR : /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/CSGOptiXRenderInteractiveTest 
+                    BASE : /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/CSGOptiXRenderInteractiveTest 
+                    PBAS : /tmp/blyth/opticks/ 
+              NAMEPREFIX : cxr_min__eye_1,0,0__zoom_1__tmin_0.5_ 
+            OPTICKS_HASH :  
+                 TOPLINE : ESCALE=extent EYE=1,0,0 TMIN=0.5 MOI=sChimneyLS:0:-2 ZOOM=1 CAM=perspective cxr_min.sh  
+                 BOTLINE : Thu May 15 01:40:49 PM CST 2025 
+    CUDA_VISIBLE_DEVICES :  
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh : run : delete prior LOG CSGOptiXRenderInteractiveTest.log
+    stree::get_frame_instanced FAIL missing_transform  lvid 137 lvid_ordinal 0 repeat_ordinal -2 w2m NO  m2w NO  ii -1
+    stree::get_frame FAIL q_spec[sChimneyLS:0:-2]
+     THIS CAN BE CAUSED BY NOT USING REPEAT_ORDINAL -1 (LAST OF TRIPLET) FOR GLOBAL GEOMETRY 
+    CSGOptiXRenderInteractiveTest: /data1/blyth/local/opticks_Debug/include/SysRap/stree.h:1864: sfr stree::get_frame(const char*) const: Assertion `get_rc == 0' failed.
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh: line 245: 1756844 Aborted                 (core dumped) $bin
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh run error
+    A[blyth@localhost CSGFoundry]$ 
+
+
+
+::
+
+    A[blyth@localhost CSGFoundry]$ MOI=sChimneyLS:0:-2 cxr_min.sh dbg
+    /data1/blyth/local/opticks_Debug/bin/cxr_min.sh - External GEOM setup detected
+                     External_CFBaseFromGEOM : J25_3_0_opticks_Debug_CFBaseFromGEOM 
+        J25_3_0_opticks_Debug_CFBaseFromGEOM : /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug 
+    ...
+    stree::get_frame_instanced FAIL missing_transform  lvid 137 lvid_ordinal 0 repeat_ordinal -2 w2m NO  m2w NO  ii -1
+    stree::get_frame FAIL q_spec[sChimneyLS:0:-2]
+     THIS CAN BE CAUSED BY NOT USING REPEAT_ORDINAL -1 (LAST OF TRIPLET) FOR GLOBAL GEOMETRY 
+    CSGOptiXRenderInteractiveTest: /data1/blyth/local/opticks_Debug/include/SysRap/stree.h:1864: sfr stree::get_frame(const char*) const: Assertion `get_rc == 0' failed.
+
+    #4  0x00007ffff4c373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x000000000046f995 in stree::get_frame (this=0x510220, q_spec=0x7fffffff1ec2 "sChimneyLS:0:-2") at /data1/blyth/local/opticks_Debug/include/SysRap/stree.h:1864
+    #6  0x0000000000444393 in main (argc=1, argv=0x7fffffff0108) at /home/blyth/opticks/CSGOptiX/tests/CSGOptiXRenderInteractiveTest.cc:85
+    (gdb) 
+
+
+Hmm failing to stree::get_frame prior to render loop::
+
+    080     const char* MOI = ssys::getenvvar("MOI", "0:0:-1" );  // default lvid 0 in remainder 
+     81     const char* PFX = "EXTENT:" ;
+     82     float extent = sstr::StartsWith(MOI, PFX) ? sstr::To<float>( MOI + strlen(PFX) ) : 0.f ;
+     83     // this extent handling is primarily for use with simple single solid test geometries
+     84 
+     85     sfr mfr = extent > 0.f ? sfr::MakeFromExtent<float>(extent) :  st->get_frame(MOI);    // HMM: what about when start from CSGMaker geometry ? 
+     86     mfr.set_idx(-2);                 // maybe should start from stree/snode/sn geometry with an streemaker.h ?  
+     87     // moved stree::get_frame prior to popping up the window, so failures 
+     88     // from bad MOI dont cause hang 
+
+
+
+    1828 inline sfr stree::get_frame(const char* q_spec ) const
+    1829 {
+    1830     int lvid ;
+    1831     int lvid_ordinal ;
+    1832     int repeat_ordinal ;
+    1833     int parse_rc = parse_spec( lvid, lvid_ordinal, repeat_ordinal, q_spec );
+    1834 
+    1835     if(parse_rc != 0) std::cerr
+    1836         << "stree::get_frame"
+    1837         << " FATAL parse_spec failed "
+    1838         << " q_spec [" << ( q_spec ? q_spec : "-" ) << "]"
+    1839         << " parse_rc " << parse_rc
+    1840         << "\n"
+    1841         ;
+    1842     assert( parse_rc == 0 );
+    1843 
+    1844     sfr f ;
+    1845     f.set_name(q_spec);
+    1846 
+    1847 
+    1848     [[maybe_unused]] int get_rc = 0 ;
+    1849     if( repeat_ordinal == -1 )
+    1850     {
+    1851         get_rc = get_frame_global(  f,  lvid, lvid_ordinal, repeat_ordinal );
+    1852     }
+    1853     else
+    1854     {
+    1855         get_rc = get_frame_instanced(f,  lvid, lvid_ordinal, repeat_ordinal );
+    1856     }
+    1857 
+    1858     if(get_rc != 0 ) std::cerr
+    1859         << "stree::get_frame FAIL q_spec[" << ( q_spec ? q_spec : "-" ) << "]\n"
+    1860         << " THIS CAN BE CAUSED BY NOT USING REPEAT_ORDINAL -1 (LAST OF TRIPLET) FOR GLOBAL GEOMETRY "
+    1861         << "\n"
+    1862         ;
+    1863 
+    1864     assert( get_rc == 0 );
+    1865     return f ;
+    1866 }
+
+
+
+
 
 

@@ -400,6 +400,11 @@ All four::
     284     // double m_TubeH = 393*cm;    // height of chimney under the water is 393*cm
     285     double m_TubeH = LowerTubeH;
     286     double m_Acrylic_H = 87.6*cm;
+
+
+               876 / 2 = 438.0 mm
+
+
     287     G4Tubs* solidWaterTube = new G4Tubs("sWaterTube",
     288                                         0,
     289                                         TubeAcrylicOuterR,
@@ -598,7 +603,9 @@ Chimney from meshname.txt
     140 sWaterTube
 
 
+::
 
+    ELV=sChimneyAcrylic,sChimneyLS,sChimneySteel,sWaterTube,Upper_Chimney,Upper_LS_tube,Upper_Steel_tube cxr_min.sh
 
 
 
@@ -719,8 +726,34 @@ ipc chi2::
         TO BT BT SC DR SA                                                                                :      -1     19 :     0.0000 : N :      -1     33 : AZERO C2EXC  
 
 
-The "TO AB" deviation looks like coincident surfaces at top of LowerChimney giving wrong material props. 
+Starting 100mm lower gives extra BT, but otherwise little difference::
 
+    AB
+    [sseq_index_ab::desc u_size 134 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum   751.5819 ndf  2.0000 sum/ndf   375.7909 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+    :r:`TO BT BT BT AB                                                                                   :     641     35 :   543.2485 : Y :       2     16 : DEVIANT  `
+        TO BT BT BT BT SA                                                                                :      -1    510 :     0.0000 : N :      -1      0 : AZERO C2EXC  
+    :r:`TO BT AB                                                                                         :     319     44 :   208.3333 : Y :       0     13 : DEVIANT  `
+        TO BT SC SA                                                                                      :      -1     64 :     0.0000 : N :      -1      7 : AZERO C2EXC  
+        TO BT BT BT SC SA                                                                                :      -1     50 :     0.0000 : N :      -1     71 : AZERO C2EXC  
+
+Even lower, not much difference::
+
+    AB
+    [sseq_index_ab::desc u_size 159 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum   751.9264 ndf  2.0000 sum/ndf   375.9632 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+    :r:`TO BT BT BT AB                                                                                   :     626     33 :   533.6100 : Y :       2      2 : DEVIANT  `
+        TO BT BT BT BT SA                                                                                :      -1    473 :     0.0000 : N :      -1      0 : AZERO C2EXC  
+    :r:`TO BT AB                                                                                         :     316     38 :   218.3164 : Y :       0      4 : DEVIANT  `
+        TO BT BT BT SC SA                                                                                :      -1     79 :     0.0000 : N :      -1     15 : AZERO C2EXC  
+        TO BT SC SA                                                                                      :      -1     57 :     0.0000 : N :      -1     24 : AZERO C2EXC  
+        TO BT BT BT SC DR SA                                                                             :      -1     28 :     0.0000 : N :      -1     26 : AZERO C2EXC  
+
+
+The "TO BT AB" deviation looks like coincident surfaces at top of LowerChimney giving wrong material props. 
+
+::
+
+    In [6]: w = a.q_startswith("TO BT AB") ; len(w)
+    Out[6]: 316
 
 
 

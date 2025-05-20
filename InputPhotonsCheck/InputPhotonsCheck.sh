@@ -103,7 +103,8 @@ if [ "${arg/env}" != "$arg" ]; then
     #opticks_input_photon=RainXZ_Z230_10k_f8.npy
     #opticks_input_photon=RainXZ_Z230_1M_f8.npy
     #opticks_input_photon=RandomSpherical1M_f8.npy
-    opticks_input_photon=SGenerate_ph_disc_M1.npy
+    #opticks_input_photon=SGenerate_ph_disc_M1.npy
+    opticks_input_photon=SGenerate_ph_disc_K1.npy  ## see 
 
     #opticks_input_photon_frame=NNVT:0:1000
     #opticks_input_photon_frame=sTarget
