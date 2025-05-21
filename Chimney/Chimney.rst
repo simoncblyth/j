@@ -757,3 +757,637 @@ The "TO BT AB" deviation looks like coincident surfaces at top of LowerChimney g
 
 
 
+For fast dev cycle and PIDX dumping get cxs_min.sh to "repeat" A side of ipc
+--------------------------------------------------------------------------------
+
+::
+
+    441 elif [ "$OPTICKS_RUNNING_MODE" == "SRM_INPUT_PHOTON" ]; then
+    442 
+    443     ## cf with ipcv : ~/j/InputPhotonsCheck/InputPhotonsCheck.sh
+    444 
+    445     #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+    446     #sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+    447     #sevt__input_photon_dir=/data1/blyth/tmp/SGenerate__test
+    448     sevt__input_photon_dir=$TMP/SGenerate__test
+    449 
+    450     #opticks_input_photon=RainXZ_Z195_1000_f8.npy      ## ok
+    451     #opticks_input_photon=RainXZ_Z230_1000_f8.npy      ## ok
+    452     #opticks_input_photon=RainXZ_Z230_10k_f8.npy       ## ok
+    453     #opticks_input_photon=RainXZ_Z230_100k_f8.npy
+    454     #opticks_input_photon=RainXZ_Z230_X700_10k_f8.npy  ## X700 to illuminate multiple PMTs
+    455     #opticks_input_photon=GridXY_X700_Z230_10k_f8.npy
+    456     #opticks_input_photon=GridXY_X1000_Z1000_40k_f8.npy
+    457     opticks_input_photon=SGenerate_ph_disc_K1.npy
+    458 
+    459     #opticks_input_photon_frame=-1
+    460     #opticks_input_photon_frame=sWorld:0:0
+    461     #opticks_input_photon_frame=NNVT:0:0
+    462     #opticks_input_photon_frame=NNVT:0:50
+    463     #opticks_input_photon_frame=NNVT:0:1000
+    464     #opticks_input_photon_frame=PMT_20inch_veto:0:1000
+    465     #opticks_input_photon_frame=sChimneyAcrylic
+    466     #opticks_input_photon_frame=sTarget
+    467     opticks_input_photon_frame=sChimneyLS:0:-2
+    468 
+    469     # SEventConfig
+    470     export SEvt__INPUT_PHOTON_DIR=${SEvt__INPUT_PHOTON_DIR:-$sevt__input_photon_dir}
+    471     export OPTICKS_INPUT_PHOTON=${OPTICKS_INPUT_PHOTON:-$opticks_input_photon};
+    472     export OPTICKS_INPUT_PHOTON_FRAME=${OPTICKS_INPUT_PHOTON_FRAME:-$opticks_input_photon_frame}
+    473 
+    474     vars="$vars SEvt__INPUT_PHOTON_DIR OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME"
+
+
+
+Change EVT.sh to use the cxs_min.sh AFOLD
+---------------------------------------------
+
+::
+
+     01 #!/bin/bash 
+      2 usage(){ cat << EON
+      3 ~/.opticks/GEOM/EVT.sh
+      4 ========================
+      5 
+      6 EON
+      7 }
+      8 
+      9 if [ "$GEOM" == "J25_3_0_opticks_Debug" ]; then
+     10     afold_0=/tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_SGenerate_ph_disc_K1/A000
+     11     afold_1=/data1/blyth/tmp/GEOM/J25_3_0_opticks_Debug/CSGOptiXSMTest/ALL98_Debug_Philox_input_photon/A000
+     12     bfold=/tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_SGenerate_ph_disc_K1/B000
+     13     export AFOLD=${AFOLD:-$afold_1}
+     14     export BFOLD=${BFOLD:-$bfold}
+     15 fi
+     16 
+
+
+
+Add desc to cxr_min.sh showing the EVT.sh change for AFOLD
+------------------------------------------------------------
+
+::
+
+    [CSGOptiXRenderInteractiveTest::desc
+     ar
+    [SRecordInfo.desc
+     lpath [/data1/blyth/tmp/GEOM/J25_3_0_opticks_Debug/CSGOptiXSMTest/ALL98_Debug_Philox_input_photon/A000/record.npy]
+                     mn (-8715.662,-8589.153,-760.825, 0.000) 
+                     mx (18643.098,5138.156,21750.006,174.987) 
+                     ce (4963.718,-1725.499,10494.591,13679.380) 
+            record.sstr (1000, 32, 4, 4, )
+           record_first 0
+           record_count 32000
+    ]SRecordInfo.desc
+
+     br
+    [SRecordInfo.desc
+     lpath [/tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_SGenerate_ph_disc_K1/B000/record.npy]
+                     mn (-23494.199,-21004.648,-21750.004, 0.000) 
+                     mx (19887.502,18617.275,48357.656,388.847) 
+                     ce (-1803.349,-1193.687,13303.826,35053.828) 
+            record.sstr (1000, 32, 4, 4, )
+           record_first 0
+           record_count 32000
+    ]SRecordInfo.desc
+
+
+SABTest.sh SABTest.py also using EVT.sh to set AFOLD BFOLD
+-----------------------------------------------------------
+
+::
+
+    A[blyth@localhost ~]$ SAB=1 SABTest.sh pdb
+
+
+    np.c_[siq,_quo,siq,sabo2,sc2,sabo1][0:40]  ## A-B history frequency chi2 comparison 
+    [[' 0' 'TO BT BT BT AB                                                                                 ' ' 0' '   626     33' '533.6100' '     2      2']
+     [' 1' 'TO BT BT BT BT SA                                                                              ' ' 1' '     0    473' '473.0000' '    -1      0']
+
+     [' 2' 'TO BT AB                                                                                       ' ' 2' '   316     38' '218.3164' '     0      4']
+                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     10x more AB in A than B : that must be incorrect material 
+
+
+     [' 3' 'TO BT BT BT SC SA                                                                              ' ' 3' '     0     79' '79.0000' '    -1     15']
+     [' 4' 'TO BT SC SA                                                                                    ' ' 4' '     0     57' '57.0000' '    -1     24']
+     [' 5' 'TO BT BT BT SC DR SA                                                                           ' ' 5' '     0     28' ' 0.0000' '    -1     26']
+     [' 6' 'TO BT BT BR BT BT AB                                                                           ' ' 6' '     0     21' ' 0.0000' '    -1     12']
+
+
+
+
+    In [3]: w = a.q_startswith("TO BT AB") ; len(w)
+    Out[3]: 316
+
+
+    In [5]: a
+    Out[5]: SEvt symbol a pid -1 opt  off [0. 0. 0.] a.f.base /data1/blyth/tmp/GEOM/J25_3_0_opticks_Debug/CSGOptiXSMTest/ALL98_Debug_Philox_input_photon/A000 
+
+    In [6]: b
+    Out[6]: SEvt symbol b pid -1 opt  off [0. 0. 0.] b.f.base /tmp/blyth/opticks/GEOM/J25_3_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_sChimneyLS:0:-2_SGenerate_ph_disc_K1/B000 
+
+
+    In [13]: a.f.record[w,:3,3,0].view(np.int32) >> 16   ## boundary for "TO BT AB"
+    Out[13]: 
+    array([[  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+           [  0, 137,  24],
+
+
+    A[blyth@localhost standard]$ pwd
+    /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug/CSGFoundry/SSim/stree/standard
+
+    A[blyth@localhost standard]$ cat.py -s 137,24 bnd_names.txt 
+    137  Water///LS
+    24   DeadWater/Implicit_RINDEX_NoRINDEX_pDeadWater_pTyvekFilm//Tyvek
+
+
+Would have expected LS///LS for first boundary ? 
+
+
+SMOKING GUN : A side thinks Tyvek what should be LS (due to coincident surface)
+---------------------------------------------------------------------------------
+
+Actually coincident boundaries at top and bottom of LowerChimney comprehensively 
+mess up simulation within LowerChimney. 
+
+::
+
+    In [17]: a.q[:10]
+    Out[17]: 
+    array([[b'TO BT AB                                                                                        '],
+           [b'TO BT AB                                                                                        '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT AB                                                                                        '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT BT BT AB                                                                                  '],
+           [b'TO BT BT BT AB                                                                                  ']], dtype='|S96')
+
+    In [18]: w[:10]
+    Out[18]: array([ 0,  1,  6, 15, 16, 18, 20, 21, 22, 23])
+
+
+
+PIDX dumping : omits boundary index and detail on material lookups needed to confirm Tyvek diagnosis
+-------------------------------------------------------------------------------------------------------
+
+::
+
+    A[blyth@localhost ~]$ PIDX=0 cxs_min.sh run
+
+
+    2025-05-21 14:12:47.057 INFO  [2700602] [QSim::simulate@436] sslice {    0,    1,      0,   1000}
+
+    //qsim.propagate.head idx 0 : bnc 0 cosTheta -1.00000000 
+    //qsim.propagate.head idx 0 : mom = np.array([0.00000000,0.00000000,1.00000000]) ; lmom = 1.00000000  
+    //qsim.propagate.head idx 0 : pos = np.array([  34.96954,  40.37925,17324.00000]) ; lpos = 17324.08203125 
+    //qsim.propagate.head idx 0 : nrm = np.array([(0.00000000,0.00000000,-1.00000000]) ; lnrm = 1.00000000  
+    //qsim.propagate_to_boundary.head idx 0 : u_absorption 0.88052022 logf(u_absorption) -0.12724234 absorption_length 37213.9219 absorption_distance 4735.186523 
+    //qsim.propagate_to_boundary.head idx 0 : post = np.array([  34.96954,  40.37925,17324.00000,   0.00000]) 
+    //qsim.propagate_to_boundary.head idx 0 : distance_to_boundary   500.0000 absorption_distance  4735.1865 scattering_distance 163243.1875 
+    //qsim.propagate_to_boundary.head idx 0 : u_scattering     0.3990 u_absorption     0.8805 
+    //qsim.propagate_to_boundary.tail.SAIL idx 0 : post = np.array([  34.96954,  40.37925,17824.00000,   2.29318]) ;  sail_time_delta =    2.29318   
+    //qsim.propagate.body idx 0 bounce 0 command 3 flag 0 s.optical.x 0 s.optical.y 1 
+    //qsim.propagate.body.WITH_CUSTOM4 idx 0  BOUNDARY ems 1 lposcost   1.000 
+    //propagate_at_boundary.DEBUG_PIDX ctx.idx 0 base 0x7f0574c00000 base.pidx 0 
+    //qsim.propagate_at_boundary.head idx 0 : theTransmittance = -1.00000000 
+    //qsim.propagate_at_boundary.head idx 0 : nrm = np.array([0.00000000,0.00000000,-1.00000000]) ; lnrm = 1.00000000  
+    //qsim.propagate_at_boundary.head idx 0 : pos = np.array([  34.96954,  40.37925,17824.00000]) ; lpos = 17824.08007812 
+    //qsim.propagate_at_boundary.head idx 0 : mom0 = np.array([0.00000000,0.00000000,1.00000000]) ; lmom0 = 1.00000000 
+    //qsim.propagate_at_boundary.head idx 0 : pol0 = np.array([0.75592810,-0.65465462,0.00000000]) ; lpol0 = 1.00000000 
+    //qsim.propagate_at_boundary.head idx 0 : n1,n2,eta = (1.35398555,1.49711537,0.90439630) 
+    //qsim.propagate_at_boundary.head idx 0 : c1 = 1.00000000 ; normal_incidence = 1 
+    //qsim.propagate_at_boundary.body idx 0 : TransCoeff = 0.99747986 ; n1c1 = 1.35398555 ; n2c2 = 1.49711537 
+    //qsim.propagate_at_boundary.body idx 0 : E2_t = np.array([0.00000000,0.94979841]) ; lE2_t = 0.94979841 
+    //qsim.propagate_at_boundary.body idx 0 : A_trans = np.array([0.75592810,-0.65465462,0.00000000]) ; lA_trans = 1.00000000 
+    //qsim.propagate_at_boundary.body idx 0 : u_reflect     0.7357 TransCoeff     0.9975 reflect 0 
+    //qsim.propagate_at_boundary.body idx 0 : mom0 = np.array([0.00000000,0.00000000,1.00000000]) ; lmom0 = 1.00000000 
+    //qsim.propagate_at_boundary.body idx 0 : pos = np.array([  34.96954,  40.37925,17824.00000]) ; lpos = 17824.08007812 
+    //qsim.propagate_at_boundary.body idx 0 : nrm = np.array([0.00000000,0.00000000,-1.00000000]) ; lnrm = 1.00000000 
+    //qsim.propagate_at_boundary.body idx 0 : n1 = 1.35398555 ; n2 = 1.49711537 ; eta = 0.90439630  
+    //qsim.propagate_at_boundary.body idx 0 : c1 = 1.00000000 ; eta_c1 = 0.90439630 ; c2 = 1.00000000 ; eta_c1__c2 = -0.09560370 
+    //qsim.propagate_at_boundary.tail idx 0 : reflect 0 tir 0 TransCoeff     0.9975 u_reflect     0.7357 
+    //qsim.propagate_at_boundary.tail idx 0 : mom1 = np.array([0.00000000,0.00000000,1.00000000]) ; lmom1 = 1.00000000  
+    //qsim.propagate_at_boundary.tail idx 0 : pol1 = np.array([0.75592810,-0.65465462,0.00000000]) ; lpol1 = 1.00000000 
+    //qsim.propagate.tail idx 0 bounce 0 command 2 flag 2048 ctx.s.optical.y(ems) 1 
+
+    //qsim.propagate.head idx 0 : bnc 1 cosTheta 1.00000000 
+    //qsim.propagate.head idx 0 : mom = np.array([0.00000000,0.00000000,1.00000000]) ; lmom = 1.00000000  
+    //qsim.propagate.head idx 0 : pos = np.array([  34.96954,  40.37925,17824.00000]) ; lpos = 17824.08007812 
+    //qsim.propagate.head idx 0 : nrm = np.array([(0.00000000,0.00000000,1.00000000]) ; lnrm = 1.00000000  
+    //qsim.propagate_to_boundary.head idx 0 : u_absorption 0.97224122 logf(u_absorption) -0.02815131 absorption_length 10000.0000 absorption_distance 281.513062 
+    //qsim.propagate_to_boundary.head idx 0 : post = np.array([  34.96954,  40.37925,17824.00000,   2.29318]) 
+    //qsim.propagate_to_boundary.head idx 0 : distance_to_boundary  3828.0000 absorption_distance   281.5131 scattering_distance 501730574336.0000 
+    //qsim.propagate_to_boundary.head idx 0 : u_scattering     0.6055 u_absorption     0.9722 
+    //qsim.propagate_to_boundary.body.BULK_ABSORB idx 0 : post = np.array([  34.96954,  40.37925,18105.51367,   3.23220]) ; absorb_time_delta = 0.93902653   
+    //qsim.propagate.body idx 0 bounce 1 command 1 flag 8 s.optical.x 0 s.optical.y 1 
+    //qsim.propagate.tail idx 0 bounce 1 command 1 flag 8 ctx.s.optical.y(ems) 1 
+    2025-05-21 14:12:47.081 INFO  [2700602] [QEvent::gatherPhoton@613] [ evt.num_photon 1000 p.sstr (1000, 4, 4, ) evt.photon 0x7f0540000000
+    2025-05-21 14:12:47.084 INFO  [2700602] [QSim::simulate@472]  eventID 0 tot_dt    0.003033 tot_ph       1000 tot_ph/M   0.001000 tot_ht          1 tot_ht/M   0.000001 tot_ht/tot_ph   0.001000 reset_ YES
+    2025-05-21 14:12:47.085 INFO  [2700602] [SEvt::save@4021] /data1/blyth/tmp/GEOM/J25_3_0_opticks_Debug/CSGOptiXSMTest/ALL98_Debug_Philox_input_photon/A000 [genstep,photon,record,seq,hit,domain,inphoton]
+    2025-05-21 14:12:47.090 INFO  [2700602] [QSim::simulate@487] 
+    SEvt__MINTIME
+
+
+Add some fill_state PIDX debug
+---------------------------------
+
+::
+
+    //qbnd.fill_state idx 0 boundary 137 line 548 wavelength   420.0000 m1_line 548 m2_line 551 su_line 549 s.optical.x 0  
+    //qbnd.fill_state idx 0 boundary 137 s.index.x(m1_index) 17 s.index.y(m2_index) 5 s.index.z(su_index) 0 
+
+    //qbnd.fill_state idx 0 boundary 24 line 96 wavelength   420.0000 m1_line 99 m2_line 96 su_line 98 s.optical.x 0  
+    //qbnd.fill_state idx 0 boundary 24 s.index.x(m1_index) 11 s.index.y(m2_index) 13 s.index.z(su_index) 0 
+
+Correct 1-based to 0-based, see sstandard::make_optical::
+
+    //qbnd.fill_state idx 0 boundary 137 line 548 wavelength   420.0000 m1_line 548 m2_line 551 su_line 549 s.optical.x 0  
+    //qbnd.fill_state idx 0 boundary 137 [s.index.x-1](m1_index) 16 [s.index.y-1](m2_index) 4 [s.index.z-1](su_index) -1 
+
+    //qbnd.fill_state idx 0 boundary 24 line 96 wavelength   420.0000 m1_line 99 m2_line 96 su_line 98 s.optical.x 0  
+    //qbnd.fill_state idx 0 boundary 24 [s.index.x-1](m1_index) 10 [s.index.y-1](m2_index) 12 [s.index.z-1](su_index) -1 
+
+
+HMM those indices look off-by-one::
+
+    A[blyth@localhost standard]$ cat.py mat_names.txt 
+    0    Air
+    1    Rock
+    2    Galactic
+    3    Steel
+    4    *LS*
+    5    Scintillator
+    6    TiO2Coating
+    7    Adhesive
+    8    Aluminium
+    9    LatticedShellSteel
+    10   *Tyvek*
+    11   vetoWater
+    12   *DeadWater*
+    13   Acrylic
+    14   PE_PA
+    15   StrutSteel
+    16   *Water*
+    17   AcrylicMask
+    18   CDReflectorSteel
+    19   Vacuum
+    20   Pyrex
+    21   Teflon
+    22   Black_HDPE
+
+
+Q: Where does the Tyvek come in ?
+
+
+Simtrace cxt_min.sh not obeying MOI 
+---------------------------------------
+
+::
+
+     587 double QSim::simtrace(int eventID)
+     588 {
+     589     sev->beginOfEvent(eventID);
+     590 
+     591     NP* igs = sev->makeGenstepArrayFromVector();
+     592     int rc = event->setGenstepUpload_NP(igs) ;
+     593 
+     594     LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : no gensteps collected : will skip cx.simtrace " ;
+     595 
+     596     sev->t_PreLaunch = sstamp::Now() ;
+     597     double dt = rc == 0 && cx != nullptr ? cx->simtrace_launch() : -1. ;
+     598     sev->t_PostLaunch = sstamp::Now() ;
+     599     sev->t_Launch = dt ;
+     600 
+     601     // see ~/o/notes/issues/cxt_min_simtrace_revival.rst
+     602     sev->gather();
+     603 
+     604     sev->topfold->concat();
+     605     sev->topfold->clear_subfold();
+     606 
+     607     sev->endOfEvent(eventID);
+     608 
+     609     return dt ;
+     610 }
+
+
+
+Investigate simtrace frame control 
+------------------------------------
+
+
+
+BP=SFrameGenstep::MakeCenterExtentGenstep cxt_min.sh 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
+
+    (gdb) bt
+    #0  SFrameGenstep::MakeCenterExtentGenstep (ce=..., cegs=std::vector of length 8, capacity 8 = {...}, gridscale=0.100000001, geotran=0x1352fbd0, ce_offset=std::vector of length 1, capacity 1 = {...}, ce_scale=true)
+        at /home/blyth/opticks/sysrap/SFrameGenstep.cc:322
+    #1  0x00007ffff5af8699 in SFrameGenstep::MakeCenterExtentGenstep_FromFrame (fr=...) at /home/blyth/opticks/sysrap/SFrameGenstep.cc:202
+    #2  0x00007ffff5b35538 in SEvt::addInputGenstep (this=0xf14b7f0) at /home/blyth/opticks/sysrap/SEvt.cc:760
+    #3  0x00007ffff5b38a01 in SEvt::beginOfEvent (this=0xf14b7f0, eventID=0) at /home/blyth/opticks/sysrap/SEvt.cc:1557
+    #4  0x00007ffff606f106 in QSim::simtrace (this=0x1352dd80, eventID=0) at /home/blyth/opticks/qudarap/QSim.cc:589
+    #5  0x00007ffff7e46177 in CSGOptiX::simtrace (this=0x13541ef0, eventID=0) at /home/blyth/opticks/CSGOptiX/CSGOptiX.cc:721
+    #6  0x00007ffff7e42b25 in CSGOptiX::SimtraceMain () at /home/blyth/opticks/CSGOptiX/CSGOptiX.cc:158
+    #7  0x0000000000404a75 in main (argc=1, argv=0x7fffffffba08) at /home/blyth/opticks/CSGOptiX/tests/CSGOptiXTMTest.cc:13
+    (gdb) 
+
+    (gdb) f 2
+    #2  0x00007ffff5b35538 in SEvt::addInputGenstep (this=0xf14b7f0) at /home/blyth/opticks/sysrap/SEvt.cc:760
+    760	        NP* gs = SFrameGenstep::MakeCenterExtentGenstep_FromFrame(frame);
+    (gdb) l
+    755	        {
+    756	            LOG(LEVEL) << " non-default frs " << frs << " passed to SEvt::SetReldir " ;
+    757	            SEventConfig::SetEventReldir(frs);
+    758	        }
+    759	
+    760	        NP* gs = SFrameGenstep::MakeCenterExtentGenstep_FromFrame(frame);
+    761	        LOG(LEVEL) << " simtrace gs " << ( gs ? gs->sstr() : "-" ) ;
+    762	        addGenstep(gs);
+    763	
+    764	        if(frame.is_hostside_simtrace()) setFrame_HostsideSimtrace();
+    (gdb) 
+
+
+
+BP=SEvt::setFrame SEvt__FRAME=1 cxt_min.sh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    (gdb) bt
+    #0  SEvt::setFrame (this=0xf14b7f0, fr=...) at /home/blyth/opticks/sysrap/SEvt.cc:668
+    #1  0x00007ffff5b37a16 in SEvt::SetFrame (fr=...) at /home/blyth/opticks/sysrap/SEvt.cc:1201
+    #2  0x00007ffff7652641 in CSGFoundry::AfterLoadOrCreate () at /home/blyth/opticks/CSG/CSGFoundry.cc:3721
+    #3  0x00007ffff764fc0c in CSGFoundry::Load () at /home/blyth/opticks/CSG/CSGFoundry.cc:3092
+    #4  0x00007ffff7e42b00 in CSGOptiX::SimtraceMain () at /home/blyth/opticks/CSGOptiX/CSGOptiX.cc:156
+    #5  0x0000000000404a75 in main (argc=1, argv=0x7fffffffb9f8) at /home/blyth/opticks/CSGOptiX/tests/CSGOptiXTMTest.cc:13
+    (gdb) 
+
+::
+
+    3698 /**
+    3699 CSGFoundry::AfterLoadOrCreate
+    3700 -------------------------------
+    3701 
+    3702 Called from some high level methods eg: CSGFoundry::Load
+    3703 
+    3704 The idea behind this is to auto connect SEvt with the frame
+    3705 from the geometry.
+    3706 
+    3707 HMM: not called after Create, see CSGOptiX::initFrame
+    3708 
+    3709 **/
+    3710 
+    3711 void CSGFoundry::AfterLoadOrCreate() // static
+    3712 {
+    3713     CSGFoundry* fd = CSGFoundry::Get();
+    3714 
+    3715     SEvt::CreateOrReuse() ;   // creates 1/2 SEvt depending on OPTICKS_INTEGRATION_MODE
+    3716 
+    3717     if(!fd) return ;
+    3718 
+    3719     sframe fr = fd->getFrameE() ;
+    3720     LOG(LEVEL) << fr ;
+    3721     SEvt::SetFrame(fr); // now only needs to be done once to transform input photons
+    3722 
+    3723 }
+
+
+    3660 sframe CSGFoundry::getFrameE() const
+    3661 {
+    3662     bool VERBOSE = ssys::getenvbool(getFrameE_VERBOSE) ;
+    3663     LOG(LEVEL) << "[" << getFrameE_VERBOSE << "] " << VERBOSE ;
+    3664 
+    3665     sframe fr = {} ;
+    3666 
+    3667     if(ssys::getenvbool("INST"))
+    3668     {
+    3669         int INST = ssys::getenvint("INST", 0);
+    3670         LOG_IF(info, VERBOSE) << " INST " << INST ;
+    3671         getFrame(fr, INST ) ;
+    3672 
+    3673         fr.set_ekv("INST");
+    3674     }
+    3675     else if(ssys::getenvbool("MOI"))
+    3676     {
+    3677         const char* MOI = ssys::getenvvar("MOI", nullptr) ;
+    3678         LOG_IF(info, VERBOSE) << " MOI " << MOI ;
+    3679         fr = getFrame() ;
+    3680         fr.set_ekv("MOI");
+    3681     }
+    3682     else
+    3683     {
+    3684         const char* ipf_ = SEventConfig::InputPhotonFrame();  // OPTICKS_INPUT_PHOTON_FRAME
+    3685         const char* ipf = ipf_ ? ipf_ : "0" ;
+    3686         LOG_IF(info, VERBOSE) << " ipf " << ipf ;
+    3687         fr = getFrame(ipf);
+    3688 
+    3689         fr.set_ekv(SEventConfig::kInputPhotonFrame, ipf );
+    3690     }
+    3691 
+    3692 
+    3693     return fr ;
+    3694 }
+
+
+Problem was using MOI of sChimneyLS:0:-1 when need sChimneyLS:0:-2 to get the frame transforms. 
+
+Now can cycle on the below to see 2D matplotlib cross sections::
+
+    (ok) A[blyth@localhost CSGOptiX]$ MOI
+    (ok) A[blyth@localhost CSGOptiX]$ cxt_min.sh 
+
+
+Hmm would be good to color the simtrace intersects with boundary/material indices
+-------------------------------------------------------------------------------------
+
+::
+
+    431     trace(
+    432         params.handle,
+    433         pos,
+    434         mom,
+    435         params.tmin,
+    436         params.tmax,
+    437         prd,
+    438         params.vizmask
+    439     );
+    440 
+    441     evt->add_simtrace( idx, p, prd, params.tmin );
+    442     // not photon_idx, needs to go from zero for photons from a slice of genstep array
+    443 }
+
+::
+
+    sevent::add_simtrace : fills simtrace[idx] with values from p, prd  
+    --------------------------------------------------------------------
+
+    NB simtrace "photon" *a* is very different from real sphoton.
+
+    a.q0.f
+        prd.q0.f normal, distance, aka "isect" 
+    a.q1
+        intersect position from pos+t*dir, 0.
+    a.q2
+        initial pos, prd.boundary (formerly tmin)
+    a.q3 
+        initial dir, prd.identity
+
+
+
+    +----+----------------+----------------+----------------+----------------+--------------------------+
+    | q  |      x         |      y         |     z          |      w         |  notes                   |
+    +====+================+================+================+================+==========================+
+    |    |  nrm.x         |  nrm.y         |  nrm.z         |  t/distance    | surface normal at isect, |
+    | q0 |                |                |                |                | ray trace distance       |
+    |    |                |                |                |                |                          |
+    +----+----------------+----------------+----------------+----------------+--------------------------+
+    |    |  pos.x         |  pos.y         | pos.z          |  tmin          | intersect_position, tmin |
+    | q1 |                |                |                |                |                          |
+    |    |                |                |                |                |                          |
+    +----+----------------+----------------+----------------+----------------+--------------------------+
+    |    |  pos0.x        |  pos0.y        |  pos0.z        | (unsigned)     | origin_position,boundary |
+    | q2 |                |                |                | boundary       |                          |
+    |    |                |                |                | (2,3)          |                          |
+    +----+----------------+----------------+----------------+----------------+--------------------------+
+    |    | dir0.x         |  dir0.y        |  dir0.z        | (unsigned)     | initial direction, id    |
+    | q3 | (3,0)          |                |                | identity       |                          |
+    |    |                |                |                | (3,3)          |                          |
+    +----+----------------+----------------+----------------+----------------+--------------------------+
+
+    NB : simtrace has almost totally different content and layout compared with photon and record
+
+
+
+
+
+
+There is old and over complicated machinery that does this kinda thing::
+
+    ana/feature.py
+    ana/simtrace_plot.py
+    CSGOptix/tests/CSGOptiXSimtraceTest.py
+
+::
+
+    lob
+    lco
+
+    cxt_min.sh pdb
+
+::
+
+    In [4]: bn = st[:,2,3].view(np.int32) ; bn
+    Out[4]: array([116, 116, 103, 103, 103, ...,  24,  24,  24,  54,  24], shape=(1254000,), dtype=int32)
+
+
+    In [6]: bn_u, bn_n, bn_x = np.unique(bn, return_counts=True, return_index=True)
+
+    In [7]: np.c_[bn_u, bn_n, bn_x]
+    Out[7]: 
+    array([[     24,   24005,  160543],
+           [     25,   24050,   17001],
+           [     54,   24000,   89521],
+           [     55,   14003,   78195],
+           [     78,   14018,   43155],
+           [     79,   14000,    8292],
+           [     80,   14005,    1383],
+           [     81,   14274,     716],
+           [     82,   16616,      89],
+           [    101,   14002,  164646],
+           [    102,     144,   24680],
+           [    103,       2,  216135],
+           [    104,  538502,    4275],
+           [    116,       0,  217008],
+           [    117,  430001,    1027],
+           [    118,  396070,     970],
+           [    119,  228055,     984],
+           [    120,  126000,   18932],
+           [    121,  126010,     700],
+           [    122,  126025,     647],
+           [    123,  126019,     120],
+           [    124,  126008,      60],
+           [    125,  128000,    1418],
+           [    126,  126003,     345],
+           [    127,  126054,    1778],
+           [    128,   52003,    1489],
+           [    129,   12000,   16919],
+           [    130, 1076039,     289],
+           [    131, 1076022,     302],
+           [    132, 1076056,     412],
+           [    133, 1076046,      78],
+           [    136,  236071,       2],
+           [    138,  532000,  123299],
+           [    295,   24026,   46590],
+           [    296,  330000,   12000]])
+
+
+
+::
+
+    In [14]: np.c_[bn_u, bn_n, bn_x, cf.bdn[bn_u]]
+    Out[14]: 
+    array([['24', '24005', '160543', 'DeadWater/Implicit_RINDEX_NoRINDEX_pDeadWater_pTyvekFilm//Tyvek'],
+           ['25', '24050', '17001', 'Tyvek//Implicit_RINDEX_NoRINDEX_pWaterPool_pTyvekFilm/vetoWater'],
+           ['54', '24000', '89521', 'Air/CDTyvekSurface//Tyvek'],
+           ['55', '14003', '78195', 'Tyvek//Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_pCentralDetector/Water'],
+           ['78', '14018', '43155', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_GLb3.up11_HBeam_phys//LatticedShellSteel'],
+           ['79', '14000', '8292', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_GLb4.up10_HBeam_phys//LatticedShellSteel'],
+           ['80', '14005', '1383', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_GLb3.up09_HBeam_phys//LatticedShellSteel'],
+           ['81', '14274', '716', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_GLb2.up08_HBeam_phys//LatticedShellSteel'],
+           ['82', '16616', '89', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_GLb2.up07_HBeam_phys//LatticedShellSteel'],
+           ['101', '14002', '164646', 'Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_pInnerReflector//Tyvek'],
+           ['102', '144', '24680', 'Tyvek//CDInnerTyvekSurface/Water'],
+           ['103', '2', '216135', 'Water///Acrylic'],
+           ['104', '538502', '4275', 'Acrylic///LS'],
+           ['116', '0', '217008', 'Water///Water'],
+           ['117', '430001', '1027', 'Water///AcrylicMask'],
+           ['118', '396070', '970', 'Water/HamamatsuMaskOpticalSurface//CDReflectorSteel'],
+           ['119', '228055', '984', 'Water///Pyrex'],
+           ['120', '126000', '18932', 'Pyrex/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf/Vacuum'],
+           ['121', '126010', '700', 'Vacuum/HamamatsuR12860_PMT_20inch_dynode_plate_opsurface//Steel'],
+           ['122', '126025', '647', 'Vacuum/HamamatsuR12860_PMT_20inch_outer_edge_opsurface//Steel'],
+           ['123', '126019', '120', 'Vacuum/HamamatsuR12860_PMT_20inch_inner_edge_opsurface//Steel'],
+           ['124', '126008', '60', 'Vacuum/HamamatsuR12860_PMT_20inch_inner_ring_opsurface//Steel'],
+           ['125', '128000', '1418', 'Vacuum/HamamatsuR12860_PMT_20inch_dynode_tube_opsurface//Steel'],
+           ['126', '126003', '345', 'Vacuum/HamamatsuR12860_PMT_20inch_grid_opsurface//Steel'],
+           ['127', '126054', '1778', 'Vacuum/HamamatsuR12860_PMT_20inch_shield_opsurface//Steel'],
+           ['128', '52003', '1489', 'Water/NNVTMaskOpticalSurface//CDReflectorSteel'],
+           ['129', '12000', '16919', 'Pyrex/NNVTMCPPMT_PMT_20inch_photocathode_mirror_logsurf/NNVTMCPPMT_PMT_20inch_photocathode_mirror_logsurf/Vacuum'],
+           ['130', '1076039', '289', 'Vacuum/NNVTMCPPMT_PMT_20inch_mcp_edge_opsurface//Steel'],
+           ['131', '1076022', '302', 'Vacuum/NNVTMCPPMT_PMT_20inch_mcp_plate_opsurface//Steel'],
+           ['132', '1076056', '412', 'Vacuum/NNVTMCPPMT_PMT_20inch_mcp_tube_opsurface//Steel'],
+           ['133', '1076046', '78', 'Vacuum/NNVTMCPPMT_PMT_20inch_mcp_opsurface//Steel'],
+           ['136', '236071', '2', 'Water/Implicit_RINDEX_NoRINDEX_PMT_3inch_log_phys_PMT_3inch_cntr_phys//Steel'],
+           ['138', '532000', '123299', 'Water/Steel_surface//Steel'],
+           ['295', '24026', '46590', 'Air///Water'],
+           ['296', '330000', '12000', 'Pyrex/PMT_20inch_veto_photocathode_mirror_logsurf/PMT_20inch_veto_photocathode_mirror_logsurf/Vacuum']], dtype='<U122')
+
+    In [15]: 
+
+
+Plotting only intersects from one BND::
+
+     1013  BND=DeadWater/Implicit_RINDEX_NoRINDEX_pDeadWater_pTyvekFilm//Tyvek ./cxt_min.sh pdb
+     1014  BND=Tyvek//Implicit_RINDEX_NoRINDEX_pWaterPool_pTyvekFilm/vetoWater ./cxt_min.sh pdb
+
+Add regexp selection of boundaries::
+
+    BND='DeadWater/.*/Tyvek$' ./cxt_min.sh pdb
+
+
+

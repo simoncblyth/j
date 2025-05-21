@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+InputPhotonsCheck.py (former name oj3ana.py where 3 referred to opticks-mode 3)
+================================================================================
+
+"""
 
 import os, logging, numpy as np
 log = logging.getLogger(__name__)
@@ -13,7 +18,7 @@ print("oj3ana.py initial MODE:%d " % MODE)
 
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 PICK = os.environ.get("PICK","A")
-INCPOI = float(os.environ.get("INCPOI","0"))
+INCPOI = float(os.environ.get("INCPOI","0"))   ## increment pyvista presentation point and line size, often need -5 
 
 
 if MODE in [2,3]:
@@ -151,7 +156,7 @@ if __name__ == '__main__':
 
         if MODE == 3:
             if pvp.pv is None:
-                print("MODE is 3 but pvp.pv is None, get into ana environment first eg with hookup_conda_ok")
+                print("MODE is 3 but pvp.pv is None, get into ana environment first eg with local_conda_ok (lco)")
             else:
                 pl = pvp.pvplt_plotter(label)
                 pvp.pvplt_viewpoint(pl) # sensitive EYE, LOOK, UP, ZOOM envvars eg EYE=0,-3,0
