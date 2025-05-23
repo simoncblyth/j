@@ -1391,3 +1391,176 @@ Add regexp selection of boundaries::
 
 
 
+
+
+cxt_min.sh Water/Tyvek/Water
+---------------------------------
+
+
+red:magenta:tomato::
+
+         .akk :   .u       .n       .x : .b 
+          red :  116  1216557        0 : Water///Water 
+      magenta :  101   980127    14002 : Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_pInnerReflector//Tyvek 
+       tomato :  102   252625      144 : Tyvek//CDInnerTyvekSurface/Water 
+         .akk :   .u       .n       .x : .b 
+
+
+magenta/tomato : thin layer of Tyvek with Water on both sides
+
+* coincident at top
+* very close on sides
+
+
+::
+
+        .
+                                         |
+                     +---+---mag+tom---------------------+------+---+
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                     |   |    <-|                        |->    |   |
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |
+                  mag  tom     red                      red   tom   mag 
+                     |   |      |                        |      |   |
+                     |   |      |                        |      |   |  
+                     | <-|    Wa|Wa                    Wa|Wa    |   |-> Water     (normal points "outside" shape)
+                     |   |      |                        |      |   |
+                  Wa |Ty |Wa    |                        |      |   |
+                   <-|   |      |                        |   Wa |Ty | Wa
+                     |   |      |                        |      |-> |
+                     |   |      |                        |      |   |
+       --------------+   |      |                        |      |   +-------------------
+                         |      |                        |      |                then curving down around circle
+       ------------------+      |                        |      +-----------------------  
+                                |                        |
+                                |                        |
+                                |                        |
+                                |                        |
+                                |                        |
+                              
+                                    
+                             
+                            
+::
+
+    A[blyth@localhost CSGOptiX]$ jgr CDInnerTyvekSurface
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:                                                                                  "CDInnerTyvekSurface", 
+                                  
+                           
+     648        // The optical surface from inner water to tyvek.
+     649        if (m_isCDInnerReflectorEnabled) {
+     650            LogInfo << "m_isCDInnerReflectorEnabled is " << m_isCDInnerReflectorEnabled
+     651                    << ", so the reflector from inner water to tyvek will be setup. "
+     652                    << std::endl;
+     653            G4OpticalSurface* inner_tyvek_surface = new G4OpticalSurface("CDInnerTyvekOpticalSurface");
+     654            inner_tyvek_surface->SetMaterialPropertiesTable(G4Material::GetMaterial("CDReflectorSteel")->GetMaterialPropertiesTable());
+     655            inner_tyvek_surface->SetModel(unified);
+     656            inner_tyvek_surface->SetType(dielectric_metal);
+     657            inner_tyvek_surface->SetFinish(ground);
+     658            inner_tyvek_surface->SetSigmaAlpha(0.2);
+     659 
+     660            G4LogicalBorderSurface* innerTyvekSurface = new G4LogicalBorderSurface(
+     661                                                                                   "CDInnerTyvekSurface",
+     662                                                                                   cd_inner_water,
+     663                                                                                   cd_inner_reflector,
+     664                                                                                   inner_tyvek_surface);
+     665 
+     666        }
+
+
+
+
+::
+
+    [IdentityTable
+    array([[       0, 16599110,        2],
+           [       1,   165400,       11],
+           [   50009,   123227,   748005],
+           [      14,    82701,   722011],
+           [   50001,    64583,    24047],
+           [   50008,    49640,   750030],
+           [      42,    38092,       15],
+           [      56,    37860,   722014],
+           [      21,    34524,       54],
+           [      41,    28329,       10],
+           [      32,    24117,   722013],
+           [      87,    22458,   722000],
+           [      70,    22073,        8],
+           [     145,    10592,       46],
+           [     125,    10564,   722049],
+           [     168,     7173,   722035],
+           [     146,     6809,       18],
+           [   50071,     6402,   752074],
+           [   50056,     5369,    24026],
+           [     243,     4764,        0],
+           [     217,     4713,   722081],
+           [     273,     4242,   722268],
+           [     244,     4121,       17],
+           [     490,     3864,       53],
+           [     454,     3751,   722057],
+           [     335,     3524,   722068],
+           [     759,     3500,   722231],
+           [     418,     3437,       81],
+           [     367,     3361,       70],
+           [     714,     3296,        1],
+           [     960,     3266,   722004],
+           [    1388,     3003,   724089],
+           [    1183,     2933,   722310],
+           [     908,     2932,      223],
+           [     531,     2761,   722188],
+           [    1126,     2745,       56],
+           [    1324,     2637,      262],
+           [    1644,     2255,   726178],
+           [     393,     2193,   722468],
+           [    1580,     2036,       19],
+           [    1905,     1641,   728047],
+           [   32674,     1397,   723864],
+           [    1961,     1349,       66],
+           [   32194,     1341,      515],
+           [    2174,     1241,   730157],
+           [   32834,     1116,   722574],
+           [   32192,     1064,      137],
+           [    2245,      966,      105],
+           [     419,      963,      774],
+           [    1779,      926,   726147],
+           [    1708,      827,      332],
+           [   32740,      819,   722293],
+           [   32159,      794,     1013],
+           [   31411,      763,   722260],
+           [   30779,      737,      802],
+           [   50116,      676,   796323],
+           [    2325,      627,   732256],
+           [    2484,      611,   732636],
+           [    2033,      604,   729078],
+           [    2246,      592,      167],
+           [    1962,      487,      238],
+           [   31430,      484,   724620],
+           [   30706,      442,      684],
+           [   50086,      439,    30203],
+           [   30786,      413,      366],
+           [   31403,      361,   724468],
+           [   32036,      309,      128],
+           [   32832,      285,   723433],
+           [    2643,      273,   736004],
+           [    2563,      269,     1241],
+
+
+
+Better simtrace identification for global ? With CSGPrim idx ?  
+---------------------------------------------------------------
+
+GAS idx and inst idx are no help... need identity within the 
+global GAS. Presumably via CSGPrim idx ? 
+Yes added globalPrimIdx to Binding and passed it out. 
+
+But is the globalPrimIdx useful at stree level ? 
+Can get name from the primname.txt
+
+
+
