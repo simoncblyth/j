@@ -1564,3 +1564,661 @@ Can get name from the primname.txt
 
 
 
+globalPrimIdx ana
+---------------------
+
+::
+
+    In [1]: bn.shape
+    Out[1]: (17432000,)
+
+    In [2]: gp.shape
+    Out[2]: (17432000,)
+
+    In [3]: bn[bn==104]
+    Out[3]: array([104, 104, 104, 104, 104, ..., 104, 104, 104, 104, 104], shape=(93347,), dtype=int32)
+
+    In [4]: gp[bn==104
+       ...: ]
+    Out[4]: array([2308, 2308, 2308, 2308, 2308, ..., 2308, 2308, 2308, 2308, 2308], shape=(93347,), dtype=int32)
+
+    In [5]: np.unique(gp[bn==104], return_index=True, return_counts=True)
+    Out[5]: (array([2308], dtype=int32), array([0]), array([93347]))
+
+    In [6]: cf.primname[2308]
+    Out[6]: np.str_('sTarget_T')
+
+
+
+sTarget_T Acrylic///LS big sphere unioned with cylinders at top and bottom
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
+
+    ELV=sTarget_T MOI=sTarget_T:0:-1 FULLSCREEN=0 cxr_min.sh
+
+
+
+KEY=blue Water///Acrylic
+--------------------------
+
+::
+
+    In [2]: np.unique( gp[bn == 103] )
+    Out[2]: array([2307, 2902, 2932, 2937], dtype=int32)
+
+    In [3]: cf.primname[np.unique( gp[bn == 103] )]
+    Out[3]: array(['sAcrylic_T', 'sChimneyAcrylic', 'mask_PMT_20inch_vetosMask', 'uni_acrylic1'], dtype='<U44')
+
+
+    ELV=sAcrylic_T MOI=sAcrylic_T:0:-1 FULLSCREEN=0 cxr_min.sh    ## another big sphere with small cylinder at top and bigger at bottom
+
+    PRESEL=PRIM:sAcrylic_T cxt_min.sh pdb    ## big circle with cylinder "flat" at top 
+
+
+
+sTarget_T Acrylic///LS and sAcrylic_T Water///Acrylic overlap at base of Chimney
+-----------------------------------------------------------------------------------
+
+::
+
+   NORMAL=1 PRESEL=PRIM:sAcrylic_T,sTarget_T cxt_min.sh pdb
+
+sAcrylic_T
+    simtrace intersects around the sphere with flat at top
+
+sTarget_T 
+    simtrace intersects only at middle on the flat
+
+jcv DetSim1Construction::
+
+     04 /* 
+      5  * Description:
+      6  *   This class setups the JUNO Central Detector.
+      7  * 
+      8  * The geometry hierarchy is as follows:
+      9  *  + outer tyvek at WP-PMT
+     10  *    + outer water pool (between the two tyvek)
+     11  *     + inner tyvek at CD-PMT
+     12  *       + inner water pool
+     13  *         + acrylic sphere
+     14  *           + LS
+     15  *         + PMTs
+     16  *         + ...
+     17  * 
+     18  * The mother of CD is WP
+
+
+
+
+
+
+sChimneyAcrylic Water///Acrylic  cylindrical tube 
+-----------------------------------------------------
+
+::
+
+     NORMAL=1 PRESEL=PRIM:sChimneyAcrylic cxt_min.sh pdb   ## NOTE NO INTERSECTS AT BOTTOM 
+
+     ELV=sChimneyAcrylic MOI=sChimneyAcrylic:0:-1 FULLSCREEN=0 cxr_min.sh
+
+
+
+
+DetSim1Construction
+---------------------
+
+
+::
+
+    (ok) A[blyth@localhost CSGFoundry]$ grep Reflector meshname.txt 
+    sInnerReflectorInCD_TSubWaterDistributor
+    sOuterReflectorInCD_TSubWaterDistributor
+
+    ELV=sOuterReflectorInCD_TSubWaterDistributor MOI=sOuterReflectorInCD_TSubWaterDistributor:0:-1 FULLSCREEN=0 cxr_min.sh
+    ELV=sInnerReflectorInCD_TSubWaterDistributor MOI=sInnerReflectorInCD_TSubWaterDistributor:0:-1 FULLSCREEN=0 cxr_min.sh
+    ## another big sphere unioned with cylinders 
+
+
+::
+
+    [gptab
+    array([['10', '3104348', '1273292', 'Upper_LS_tube'],
+           ['2904', '3000378', '532000', 'sChimneySteel'],
+           ['11', '2030047', '1278003', 'sAirTT'],
+           ['2902', '995587', '2', 'sChimneyAcrylic'],
+           ['2305', '980127', '14002', 'sInnerReflectorInCD_TSubWaterDistributor'],
+           ['205', '970980', '24005', 'sTyvek_shell'],
+           ['7', '903020', '1272000', 'PoolCoversub'],
+           ['2901', '722927', '34', 'sWaterTube'],
+           ['2307', '670650', '3', 'sAcrylic_T'],
+           ['993', '555687', '24000', 'sOuterReflectorInCD_TSubWaterDistributor'],
+           ['203', '443958', '1272186', 'sAirGap'],
+           ['206', '346266', '24050', 'sOuterWaterPool'],
+           ['2919', '340801', '1', 'HamamatsuR12860sMask_virtual'],
+           ['8', '306195', '1278515', 'Upper_Chimney'],
+           ['994', '301484', '14003', 'sOuterWaterInCD_TSubWaterDistributor'],
+           ['2306', '252625', '144', 'sInnerWater_TSubWaterDistributor'],
+           ['43', '223659', '1278002', 'sPlane'],
+           ['2931', '202498', '24026', 'mask_PMT_20inch_vetosMask_virtual'],
+           ['2910', '142452', '0', 'NNVTMCPPMTsMask_virtual'],
+           ['2308', '93347', '538502', 'sTarget_T'],
+           ['103', '72870', '2000032', 'sPlane'],
+           ['109', '72557', '1278088', 'sPlane'],
+
+
+   PRESEL=PRIM:sInnerReflectorInCD_TSubWaterDistributor,sOuterReflectorInCD_TSubWaterDistributor cxt_min.sh pdb
+
+   LINE=0,0,17000,0,0,22000 NORMAL=1 GLOBAL=1 PRESEL=PRIM:sInnerReflectorInCD_TSubWaterDistributor,sOuterReflectorInCD_TSubWaterDistributor cxt_min.sh pdb
+
+   KEY=pink NORMAL=1 GLOBAL=1 LINE=0,0,17000,0,0,22000 cxt_min.sh pdb
+   KEY=pink NORMAL=1 GLOBAL=1 LINE=0,0,17000,0,0,22000 cxt_min.sh pdb
+
+
+
+sTyvek_shell : whopper cylinder : yellow cuts across the Chimney too : DeadWater/Implicit_RINDEX_NoRINDEX_pDeadWater_pTyvekFilm//Tyvek
+----------------------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    [cf.btab KEY:yellow
+             .akk :   .u       .n       .x : .b 
+           yellow :   24   970980    24005 : DeadWater/Implicit_RINDEX_NoRINDEX_pDeadWater_pTyvekFilm//Tyvek 
+             .akk :   .u       .n       .x : .b 
+                  :        970980          : .ntot 
+    ]cf.btab
+
+    In [2]: np.unique(gp[bn==24])
+    Out[2]: array([205], dtype=int32)
+
+    In [3]: cf.primname[np.unique(gp[bn==24])]
+    Out[3]: array(['sTyvek_shell'], dtype='<U44')
+
+    ELV=sTyvek_shell MOI=sTyvek_shell cxr_min.sh
+
+    ELV=sTyvek_shell,sAcrylic_T MOI=sAcrylic_T FULLSCREEN=0 cxr_min.sh
+
+
+    [cf.btab KEY:lawngreen
+             .akk :   .u       .n       .x : .b 
+        lawngreen :   25   346266    24050 : Tyvek//Implicit_RINDEX_NoRINDEX_pWaterPool_pTyvekFilm/vetoWater 
+             .akk :   .u       .n       .x : .b 
+                  :        346266          : .ntot 
+    ]cf.btab
+    pvplt_plotter WSIZE:array([2560, 1440])
+    pvplt_add_points pos.shape (346266, 3) kwa {'color': 'lawngreen', 'label': ' lawngreen   346266 Tyvek//Implicit_RINDEX_NoRINDEX_pWaterPool_pTyvekFilm/vetoWater$'} 
+    pvplt_show title:None TITLE:KEY=lawngreen cxt_min.sh pdb 
+    pvplt_show !(GRID==1) 
+
+    In [1]: gp[bn == 25]
+    Out[1]: array([206, 206, 206, 206, 206, ..., 206, 206, 206, 206, 206], shape=(346266,), dtype=int32)
+
+    In [2]: np.unique(gp[bn == 25])
+    Out[2]: array([206], dtype=int32)
+
+    In [3]: cf.primname[np.unique(gp[bn == 25])]
+    Out[3]: array(['sOuterWaterPool'], dtype='<U44')
+
+    ELV=sOuterWaterPool,sTyvek_shell,sAcrylic_T MOI=sAcrylic_T FULLSCREEN=0 cxr_min.sh
+
+    ELV=sOuterWaterPool,sAcrylic_T MOI=sAcrylic_T FULLSCREEN=0 cxr_min.sh
+        ## sOuterWaterPool enormous cylinder coincident with sTyvek_shell on the sides, offset on the top
+
+
+
+Use PRIMTAB and key inversion to confirm overlaps and names of overlapping prim
+----------------------------------------------------------------------------------
+
+::
+
+    (ok) A[blyth@localhost CSGOptiX]$ PRIMTAB=1 NORMAL=1 NORMAL_FILTER=100 KEY=~yellow,green ./cxt_min.sh pdb
+
+::
+
+    [cf.ptab KEY:yellow,green
+                     .akk :   .u       .c       .x : .n 
+                   yellow : 2307   670650        3 : sAcrylic_T 
+                    green : 2308    93347   538502 : sTarget_T 
+                     .akk :   .u       .c       .x : .n 
+                          :        763997          : .ctot 
+    ]cf.ptab
+    pvplt_plotter WSIZE:array([2560, 1440])
+    pvplt_show title:None TITLE:PRIMTAB=1 NORMAL_FILTER=100 NORMAL=1 KEY=~yellow,green cxt_min.sh pdb 
+
+
+
+
+Screenshot_from_2025-05-27_21-13-14.png
+----------------------------------------
+
+::
+
+    (ok) A[blyth@localhost CSGOptiX]$ PRIMTAB=1 NORMAL=1 NORMAL_FILTER=1000 KEY=~yellow,green ./cxt_min.sh pdb 
+
+
+Excluding yellow and green shows that the problem at base of LowerChimney
+is all from overlap of::
+
+    green = sTarget_T$
+    yellow = sAcrylic_T$
+
+
+Screenshot_from_2025-05-27_20-26-31.png
+-------------------------------------------
+
+::
+
+    PRIMTAB=1 NORMAL=1 KEY=green,yellow cxt_min.sh pdb
+
+Overlap at base of LowerChimney between::
+
+    green = sTarget_T$
+    yellow = sAcrylic_T$
+
+
+
+U4Navigator for B side simtrace ? 
+-----------------------------------
+
+
+Review A side simtrace essentials
+------------------------------------
+
+::
+
+    0717 double CSGOptiX::simtrace(int eventID)
+     718 {
+     719     LOG(LEVEL) << "[" ;
+     720     assert(sim);
+     721     double dt = sim->simtrace(eventID) ;  // (QSim)
+     722     LOG(LEVEL) << "] " << dt  ;
+     723     return dt ;
+     724 }
+
+
+    0587 double QSim::simtrace(int eventID)
+     588 {
+     589     sev->beginOfEvent(eventID);
+     590 
+     591     NP* igs = sev->makeGenstepArrayFromVector();
+     592     int rc = event->setGenstepUpload_NP(igs) ;
+     593 
+     594     LOG_IF(error, rc != 0) << " QEvent::setGenstep ERROR : no gensteps collected : will skip cx.simtrace " ;
+     595 
+     596     sev->t_PreLaunch = sstamp::Now() ;
+     597     double dt = rc == 0 && cx != nullptr ? cx->simtrace_launch() : -1. ;
+     598     sev->t_PostLaunch = sstamp::Now() ;
+     599     sev->t_Launch = dt ;
+     600 
+     601     // see ~/o/notes/issues/cxt_min_simtrace_revival.rst
+     602     sev->gather();
+     603 
+     604     sev->topfold->concat();
+     605     sev->topfold->clear_subfold();
+     606 
+     607     sev->endOfEvent(eventID);
+     608 
+     609     return dt ;
+     610 }
+
+
+    397 static __forceinline__ __device__ void simtrace( const uint3& launch_idx, const uint3& dim, quad2* prd )
+    398 {
+    399     unsigned idx = launch_idx.x ;
+    400     sevent* evt  = params.evt ;
+    401     if (idx >= evt->num_simtrace) return;    // num_slot for multi launch simtrace ?
+    402 
+    403     unsigned genstep_idx = evt->seed[idx] ;
+    404     unsigned photon_idx  = params.photon_slot_offset + idx ;
+    405     // photon_idx same as idx for first launch, offset beyond first for multi-launch
+    406 
+    407 #if defined(DEBUG_PIDX)
+    408     if(photon_idx == 0) printf("//CSGOptiX7.cu : simtrace idx %d photon_idx %d  genstep_idx %d evt->num_simtrace %d \n", idx, photon_idx, genstep_idx, evt->num_simtrace );
+    409 #endif
+    410 
+    411     const quad6& gs = evt->genstep[genstep_idx] ;
+    412 
+    413     qsim* sim = params.sim ;
+    414     RNG rng ;
+    415     sim->rng->init(rng, 0, photon_idx) ;
+    416 
+    417     quad4 p ;
+    418     sim->generate_photon_simtrace(p, rng, gs, photon_idx, genstep_idx );
+    419 
+    420     const float3& pos = (const float3&)p.q0.f  ;
+    421     const float3& mom = (const float3&)p.q1.f ;
+    422 
+    423 #if defined(DEBUG_PIDX)
+    424     if(photon_idx == 0) printf("//CSGOptiX7.cu : simtrace idx %d pos.xyz %7.3f,%7.3f,%7.3f mom.xyz %7.3f,%7.3f,%7.3f  \n", idx, pos.x, pos.y, pos.z, mom.x, mom.y, mom.z );
+    425 #endif
+    426 
+    427     trace(
+    428         params.handle,
+    429         pos,
+    430         mom,
+    431         params.tmin,
+    432         params.tmax,
+    433         prd,
+    434         params.vizmask
+    435     );
+    436 
+    437     evt->add_simtrace( idx, p, prd, params.tmin );  // sevent
+    438     // not photon_idx, needs to go from zero for photons from a slice of genstep array
+    439 }   
+
+
+    2358 /**
+    2359 qsim::generate_photon_simtrace
+    2360 --------------------------------
+    2361 
+    2362 * NB simtrace cxs center-extent-genstep are very different to standard Cerenkov/Scintillation gensteps
+    2363 
+    2364 These gensteps are for example created in SEvent::MakeCenterExtentGensteps the below generation
+    2365 should be comparable to the CPU implementation SEvent::GenerateCenterExtentGenstepsPhotons
+    2366 
+    2367 HMM: note that the photon_id is global to the launch making it potentially a very large number
+    2368 but for identication purposes having a local to the photons of the genstep index would
+    2369 be more useful and would allow storage within much less bits.
+    2370 
+    2371 TODO: implement local index by including photon_id offset with the gensteps
+    2372 
+    2373 * NB the sxyz.h enum order is different to the python one  eg XYZ=0
+    2374 
+    2375 SEE : sevent::add_simtrace 
+    2376 
+    2377 **/
+    2378 
+    2379 inline QSIM_METHOD void qsim::generate_photon_simtrace(quad4& p, RNG& rng, const quad6& gs, unsigned photon_id, unsigned genstep_id ) const
+    2380 {
+    2381     C4U gsid ;
+    2382 
+    2383     //int gencode          = gs.q0.i.x ;
+    2384     int gridaxes           = gs.q0.i.y ;  // { XYZ, YZ, XZ, XY }
+    2385     gsid.u                 = gs.q0.i.z ;
+    2386     //unsigned num_photons = gs.q0.u.w ;
+    2387 
+    2388     p.q0.f.x = gs.q1.f.x ;   // start with genstep local frame position, typically origin  (0,0,0)
+    2389     p.q0.f.y = gs.q1.f.y ;
+    2390     p.q0.f.z = gs.q1.f.z ;
+    2391     p.q0.f.w = 1.f ;
+    2392 
+    2393     //printf("//qsim.generate_photon_simtrace gridaxes %d gs.q1 (%10.4f %10.4f %10.4f %10.4f) \n", gridaxes, gs.q1.f.x, gs.q1.f.y, gs.q1.f.z, gs.q1.f.w );
+    2394 
+    2395     float u0 = curand_uniform(&rng);
+    2396     float sinPhi, cosPhi;
+    2397 #if defined(MOCK_CURAND) || defined(MOCK_CUDA)
+    2398     __sincosf(2.f*M_PIf*u0,&sinPhi,&cosPhi);
+    2399 #else
+    2400     sincosf(2.f*M_PIf*u0,&sinPhi,&cosPhi);
+    2401 #endif
+    2402 
+    2403     float u1 = curand_uniform(&rng);
+    2404     float cosTheta = 2.f*u1 - 1.f ;
+    2405     float sinTheta = sqrtf(1.f-cosTheta*cosTheta) ;
+    2406 
+    2407     //printf("//qsim.generate_photon_simtrace u0 %10.4f sinPhi   %10.4f cosPhi   %10.4f \n", u0, sinPhi, cosPhi );
+    2408     //printf("//qsim.generate_photon_simtrace u1 %10.4f sinTheta %10.4f cosTheta %10.4f \n", u1, sinTheta, cosTheta );
+    2409     //printf("//qsim.generate_photon_simtrace  u0 %10.4f sinPhi   %10.4f cosPhi   %10.4f u1 %10.4f sinTheta %10.4f cosTheta %10.4f \n",  u0, sinPhi, cosPhi, u1, sinTheta, cosTheta );
+    2410 
+    2411     switch( gridaxes )
+    2412     {
+    2413         case YZ:  { p.q1.f.x = 0.f    ;  p.q1.f.y = cosPhi ;  p.q1.f.z = sinPhi ;  p.q1.f.w = 0.f ; } ; break ;
+    2414         case XZ:  { p.q1.f.x = cosPhi ;  p.q1.f.y = 0.f    ;  p.q1.f.z = sinPhi ;  p.q1.f.w = 0.f ; } ; break ;
+    2415         case XY:  { p.q1.f.x = cosPhi ;  p.q1.f.y = sinPhi ;  p.q1.f.z = 0.f    ;  p.q1.f.w = 0.f ; } ; break ;
+    2416         case XYZ: { p.q1.f.x = sinTheta*cosPhi ;
+    2417                     p.q1.f.y = sinTheta*sinPhi ;
+    2418                     p.q1.f.z = cosTheta        ;
+    2419                     p.q1.f.w = 0.f ; } ; break ;   // previously used XZ
+    2420     }
+    2421 
+    2422 
+    2423     qat4 qt(gs) ; // copy 4x4 transform from last 4 quads of genstep
+    2424     qt.right_multiply_inplace( p.q0.f, 1.f );   // position
+    2425     qt.right_multiply_inplace( p.q1.f, 0.f );   // direction
+    2426 
+    2427 
+    2428     unsigned char ucj = (photon_id < 255 ? photon_id : 255 ) ;
+    2429     gsid.c4.w = ucj ;
+    2430     p.q3.u.w = gsid.u ;   // WARNING : THIS GSID LOOKS TO BE STOMPED ON BY sevent::add_simtrace 
+    2431 }
+
+
+
+    (ok) A[blyth@localhost opticks]$ lo;opticks-f GenerateCenterExtentGenstepPhotons
+    ./CSG/tests/CSGFoundry_MakeCenterExtentGensteps_Test.cc:    NP* pp = SFrameGenstep::GenerateCenterExtentGenstepPhotons_( gs, fr.gridscale() );  
+    ./sysrap/SCenterExtentGenstep.cc:    SFrameGenstep::GenerateCenterExtentGenstepPhotons( pp, gs, gridscale );
+    ./sysrap/SFrameGenstep.cc:SFrameGenstep::GenerateCenterExtentGenstepPhotons
+    ./sysrap/SFrameGenstep.cc:NP* SFrameGenstep::GenerateCenterExtentGenstepPhotons_( const NP* gsa, float gridscale )
+    ./sysrap/SFrameGenstep.cc:    GenerateCenterExtentGenstepPhotons( pp, gsa, gridscale );
+    ./sysrap/SFrameGenstep.cc:SFrameGenstep::GenerateCenterExtentGenstepPhotons
+    ./sysrap/SFrameGenstep.cc:void SFrameGenstep::GenerateCenterExtentGenstepPhotons( std::vector<quad4>& pp, const NP* gsa, float gridscale )
+    ./sysrap/SFrameGenstep.hh:    static void GenerateCenterExtentGenstepPhotons( 
+    ./sysrap/SFrameGenstep.hh:    static NP* GenerateCenterExtentGenstepPhotons_(
+    ./sysrap/tests/SEventTest.cc:    SFrameGenstep::GenerateCenterExtentGenstepPhotons( pp, gsa, gridscale ); 
+    ./sysrap/tests/SEventTest.cc:    NP* ppa = SFrameGenstep::GenerateCenterExtentGenstepPhotons_( gsa, gridscale ); 
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+    745 /**
+    746 SFrameGenstep::GenerateSimtracePhotons
+    747 -----------------------------------------
+    748 
+    749 Canonical invokation is from SEvt::setFrame_HostsideSimtrace
+    750 using the genstep created by SFrameGenstep::MakeCenterExtentGensteps
+    751 
+    752 **/
+    753 
+    754 void SFrameGenstep::GenerateSimtracePhotons( std::vector<quad4>& simtrace, const std::vector<quad6>& genstep )
+    755 {
+    756     LOG(LEVEL)
+    757         << " genstep.size " << genstep.size()
+    758         << " simtrace.size " << simtrace.size()
+    759         ;
+    760 
+    761     unsigned seed = 0 ;
+    762     SRng<float> rng(seed) ;
+    763 
+    764     bool simtrace_layout = true ;
+    765     unsigned count = 0 ;
+    766 
+    767     for(unsigned i=0 ; i < genstep.size() ; i++)
+    768     {
+    769         const quad6& gs = genstep[i];
+    770         C4U gsid ;   // genstep integer grid coordinate IXYZ and IW photon index up to 255
+    771         int gencode           = gs.q0.i.x ;
+    772         int gridaxes          = gs.q0.i.y ;
+    773         gsid.u                = gs.q0.u.z ;     // formerly gs.q1.u.w
+    774         int      num_photons_ = gs.q0.i.w ;     // -ve num_photons_ doesnt use random u0 so creates phi wheels
+    775 
+    776         qat4 qt(gs) ;  // copy 4x4 transform from last 4 quads of genstep
+    777 
+    778         unsigned num_photons  = std::abs(num_photons_);
+    779         bool expect = gencode == OpticksGenstep_TORCH || gencode == OpticksGenstep_FRAME ;
+    780 
+    781         LOG_IF(error, !expect)
+    782             << "unexpected gencode " << gencode
+    783             << " OpticksGenstep_::Name " << OpticksGenstep_::Name(gencode) ;
+
+
+
+    (ok) A[blyth@localhost sysrap]$ opticks-f GenerateSimtracePhotons
+    ./qudarap/qsim.h:    SFrameGenstep::GenerateSimtracePhotons
+    ./sysrap/SEvt.cc:    SFrameGenstep::GenerateSimtracePhotons( simtrace, genstep );
+    ./sysrap/SFrameGenstep.cc:SFrameGenstep::GenerateSimtracePhotons
+    ./sysrap/SFrameGenstep.cc:void SFrameGenstep::GenerateSimtracePhotons( std::vector<quad4>& simtrace, const std::vector<quad6>& genstep )
+    ./sysrap/SFrameGenstep.hh:    static void GenerateSimtracePhotons( 
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+     845 /**
+     846 SEvt::setFrame_HostsideSimtrace
+     847 ---------------------------------
+     848 
+     849 Called from SEvt::setFrame when sframe::is_hostside_simtrace, eg at behest of X4Simtrace::simtrace
+     850 
+     851 **/
+     852 
+     853 void SEvt::setFrame_HostsideSimtrace()
+     854 {
+     855     unsigned num_photon_gs = getNumPhotonFromGenstep();
+     856     unsigned num_photon_evt = evt->num_photon ;
+     857     LOG(LEVEL)
+     858          << "frame.is_hostside_simtrace"
+     859          << " num_photon_gs " << num_photon_gs
+     860          << " num_photon_evt " << num_photon_evt
+     861          ;
+     862 
+     863     assert( num_photon_gs == num_photon_evt );
+     864     setNumSimtrace( num_photon_gs );
+     865 
+     866     LOG(LEVEL) << " before hostside_running_resize simtrace.size " << simtrace.size() ;
+     867 
+     868     hostside_running_resize();
+     869 
+     870     LOG(LEVEL) << " after hostside_running_resize simtrace.size " << simtrace.size() ;
+     871 
+     872     SFrameGenstep::GenerateSimtracePhotons( simtrace, genstep );
+     873 }
+     874 
+
+
+Looks like simtrace prep all done already::
+
+     733 /**
+     734 SEvt::addInputGenstep  (formerly addFrameGenstep)
+     735 --------------------------------------------------
+     736 
+     737 This is invoked from SEvt::beginOfEvent after invokation of SEvt::setIndex
+     738 
+     739 For hostside simtrace and input photon running this must be called
+     740 at the start of every event cycle to add the gensteps which trigger
+     741 the allocations for result vectors.
+     742 
+     743 
+     744 TODO : FIND WAY TO AVOID THE KLUDGY FEATURES OF THIS
+     745 
+     746 This branches between ECPU and EGPU because
+     747 U4VPrimaryGenerator::GeneratePrimaries needs
+     748 torch gensteps before U4Recorder::BeginOfEventAction
+     749 So have to skip the genstep setup for ECPU as it should
+     750 have been done already.
+     751 
+     752 **/
+     753 
+     754 void SEvt::addInputGenstep()
+     755 {
+     756     LOG_IF(info, LIFECYCLE) << id() ;
+     757     LOG(LEVEL);
+     758 
+     759     if(SEventConfig::IsRGModeSimtrace())
+     760     {
+     761         const char* frs = frame.get_frs() ; // nullptr when default -1 : meaning all geometry
+     762 
+     763         LOG_IF(info, FRAME)
+     764             << "[" << SEvt__FRAME << "] "
+     765             << " Simtrace:frame.get_frs " << ( frs ? frs : "-" ) ;
+     766             ;
+     767 
+     768         if(frs) SEventConfig::SetEventReldir(frs);
+     769         NP* gs = SFrameGenstep::MakeCenterExtentGenstep_FromFrame(frame);
+     770         LOG_IF(info, FRAME) << " simtrace gs " << ( gs ? gs->sstr() : "-" ) ;
+     771         addGenstep(gs);
+     772 
+     773         if(frame.is_hostside_simtrace()) setFrame_HostsideSimtrace();
+     774     }
+     775     else if(SEventConfig::IsRGModeSimulate())
+
+
+
+
+    (ok) A[blyth@localhost sysrap]$ grep is_hostside_simtrace *.*
+    SEvt.cc:        if(frame.is_hostside_simtrace()) setFrame_HostsideSimtrace();
+    SEvt.cc:Called from SEvt::setFrame when sframe::is_hostside_simtrace, eg at behest of X4Simtrace::simtrace
+    SEvt.cc:         << "frame.is_hostside_simtrace"
+    sframe.h:    bool  is_hostside_simtrace() const ; 
+    sframe.h:       << " is_hostside_simtrace " << ( is_hostside_simtrace() ? "YES" : "NO" ) 
+    sframe.h:inline bool sframe::is_hostside_simtrace() const { return aux.q1.u.y == 1u ; } 
+    SSimtrace.h:2. as frame.is_hostside_simtrace also generates simtrace "photons" 
+    (ok) A[blyth@localhost sysrap]$ 
+
+
+    487 
+    488 inline void sframe::set_propagate_epsilon(float eps){     aux.q1.f.x = eps ; }
+    489 inline void sframe::set_hostside_simtrace(){              aux.q1.u.y = 1u ; }
+    490 
+    491 inline float sframe::propagate_epsilon() const   { return aux.q1.f.x ; }
+    492 inline bool sframe::is_hostside_simtrace() const { return aux.q1.u.y == 1u ; }
+    493 
+
+
+    (ok) A[blyth@localhost sysrap]$ opticks-f set_hostside_simtrace
+    ./CSG/CSGSimtrace.cc:    frame.set_hostside_simtrace();
+    ./extg4/X4Simtrace.cc:    frame.set_hostside_simtrace();  
+    ./sysrap/SEvt.cc:    pfr.set_hostside_simtrace();
+    ./sysrap/SEvt.cc:    // set_hostside_simtrace into frame which
+    ./sysrap/SSimtrace.h:    frame.set_hostside_simtrace(); 
+    ./sysrap/SSimtrace.h:    // set_hostside_simtrace into frame which 
+    ./sysrap/sframe.h:    void set_hostside_simtrace(); 
+    ./sysrap/sframe.h:inline void sframe::set_hostside_simtrace(){              aux.q1.u.y = 1u ; }
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+     926 /**
+     927 SEvt::CreateSimtraceEvent
+     928 ---------------------------
+     929 
+     930 Experimental creation of a new SEvt
+     931 that adopts the sframe of the prior SEvt
+     932 and is configured for hostside Simtrace running.
+     933 
+     934 The appropriate place use this method is from EndOfRunAction
+     935 after standard (non-simtrace) usage of SEvt
+     936 such as saving simulation SEvt is completed.
+     937 
+     938 **/
+     939 
+     940 SEvt* SEvt::CreateSimtraceEvent()  // static
+     941 {
+     942     LOG(LEVEL) << "[" ;
+     943 
+     944     SEvt* prior = SEvt::Get(0);
+     945     if(prior == nullptr ) return nullptr ;
+     946 
+     947     sframe& pfr = prior->frame ;
+     948     pfr.set_hostside_simtrace();
+     949 
+     950     if( pfr.ce.w == 0.f )
+     951     {
+     952         pfr.ce.w = 200.f ;
+     953         LOG(LEVEL)
+     954             << " kludging frame extent, this happens with U4SimulateTest "
+     955             << " as the CSGFoundry geometry is not available causing the "
+     956             << " SEvt sframe to be default "
+     957             ;
+     958     }
+     959 
+     960     // set_hostside_simtrace into frame which
+     961     // influences the action of SEvt::setFrame
+     962     // especially SEvt::setFrame_HostsideSimtrace which
+     963     // generates simtrace photons
+     964 
+     965     SEventConfig::SetRGModeSimtrace();
+     966     LOG(LEVEL) << " SWITCH : SEventConfig::SetRGModeSimtrace " ;
+     967     SEvt* ste = new SEvt ;
+     968     ste->setFrame(pfr);
+     969 
+     970     LOG(LEVEL) << "] ste.simtrace.size " << ste->simtrace.size() ;
+     971 
+     972     return ste ;
+     973 }
+
+
+
+TODO : Use small geometry eg Raindrop to complete impl of hostside simtrace using U4Navigator
+---------------------------------------------------------------------------------------------------
+
+
