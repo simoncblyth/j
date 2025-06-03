@@ -3,6 +3,11 @@ usage(){ cat << EOU
 InputPhotonsCheck.sh
 =====================
 
+This uses tut_detsim.py with opticks-mode 3 and 
+input photons to do bi-simulation saving into 
+AFOLD and BFOLD.
+
+
 From laptop connect to workstation with empty env "A"::
 
     ipc   # source this script and invoke default commands
@@ -18,7 +23,7 @@ More cautious usage from laptop OR workstation::
 
 On workstation directly 3D(pyvista) GUI visualize photon step point positions::
 
-     cmd-alt-T         # open terminal with empty env
+     ctrl-alt-T        # open terminal with empty env
      local_conda_ok    # setup conda env
 
      ipc env_info                                # need env to set AFOLD BFOLD
@@ -68,7 +73,7 @@ EOU
 }
 
 cd $(dirname $(realpath $BASH_SOURCE))
-anascript=$(realpath oj3ana.py)
+anascript=$(realpath InputPhotonsCheck.py)
 
 defarg="env_info_run_ls_chi2_pdb"
 arg=${1:-$defarg}
@@ -103,8 +108,8 @@ if [ "${arg/env}" != "$arg" ]; then
     #opticks_input_photon=RainXZ_Z230_10k_f8.npy
     #opticks_input_photon=RainXZ_Z230_1M_f8.npy
     #opticks_input_photon=RandomSpherical1M_f8.npy
-    #opticks_input_photon=SGenerate_ph_disc_M1.npy
-    opticks_input_photon=SGenerate_ph_disc_K1.npy  ## see 
+    opticks_input_photon=SGenerate_ph_disc_M1.npy
+    #opticks_input_photon=SGenerate_ph_disc_K1.npy  
 
     #opticks_input_photon_frame=NNVT:0:1000
     #opticks_input_photon_frame=sTarget
@@ -163,10 +168,7 @@ if [ "${arg/run}" != "$arg" ]; then
     rc=$?
     echo DONE $rc
     pwd
-
-
 fi
-
 
 if [ "${arg/ls}" != "$arg" ]; then
     ff="LOGDIR AFOLD BFOLD"
@@ -193,6 +195,5 @@ if [ "${arg/dhi2}" != "$arg" ] ; then
    #export sseq_index_test__DEBUG=1
    DEV=1 $HOME/opticks/sysrap/tests/sseq_index_test.sh info_build_run_ana
 fi
-
 
 
