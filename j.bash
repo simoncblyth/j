@@ -744,6 +744,57 @@ Add Branch Using Web Interface
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/branches/new
 
 
+Return from branch to main/master
+-------------------------------------
+
+::
+
+    git remote -v
+    git fetch origin
+    git status   # are on old branch 
+
+Cannot change branch with uncommitted changes in working copy.
+But only one file changed, so simply copy it elsewhere and 
+checkout the unchanged file::
+
+    cp Examples/Tutorial/share/opticks_juno.sh ~/opticks_juno.sh
+    diff ~/opticks_juno.sh Examples/Tutorial/share/opticks_juno.sh
+
+    git checkout Examples/Tutorial/share/opticks_juno.sh
+
+    git branch # list banches
+    git checkout main  # behind by 86 commits
+
+    ## delete old branches
+    git branch -d yangdy-photon-counting-anamgr    
+    git branch -d blyth-add-cicd-oj-tarball-scp-deployment    
+    git branch -d blyth-oj-ease-of-use  ## complains not fully merged 
+    git branch -D blyth-oj-ease-of-use  ## so force the delete
+
+    git checkout main
+    git pull 
+
+Create branch in web interface::
+
+    blyth-try-gitlab-ci-OJ-build-with-new-release-J25_4_0
+
+
+Fetch it and checkout::
+
+    git fetch origin
+    git branch -a | grep blyth   ## find the branch
+
+    A[blyth@localhost junosw]$ git checkout blyth-try-gitlab-ci-OJ-build-with-new-release-J25_4_0
+    branch 'blyth-try-gitlab-ci-OJ-build-with-new-release-J25_4_0' set up to track 'origin/blyth-try-gitlab-ci-OJ-build-with-new-release-J25_4_0'.
+    Switched to a new branch 'blyth-try-gitlab-ci-OJ-build-with-new-release-J25_4_0'
+    A[blyth@localhost junosw]$  
+
+Copy in the change::
+
+    A[blyth@localhost junosw]$ cp ~/opticks_juno.sh Examples/Tutorial/share/opticks_juno.sh
+
+
+
 
 Bring branch uptodate with master
 -----------------------------------

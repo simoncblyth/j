@@ -7,6 +7,7 @@ This uses tut_detsim.py with opticks-mode 3 and
 input photons to do bi-simulation saving into 
 AFOLD and BFOLD.
 
+WIP: try using input photons with opticks-mode 0 
 
 From laptop connect to workstation with empty env "A"::
 
@@ -89,6 +90,12 @@ if [ "${arg/env}" != "$arg" ]; then
     export OPTICKS_MAX_SLOT=M5
     export OPTICKS_EVENT_MODE=DebugLite
 
+    opticks_integration_mode=0    ## added geometry convertion with zero in G4CXOpticks::SetGeometry_JUNO
+    #opticks_integration_mode=1
+    #opticks_integration_mode=2
+    #opticks_integration_mode=3
+    export OPTICKS_INTEGRATION_MODE=$opticks_integration_mode
+
     #version=0
     version=1
     export VERSION=$version
@@ -100,30 +107,55 @@ if [ "${arg/env}" != "$arg" ]; then
     export OPTICKS_MAX_BOUNCE=$opticks_max_bounce
 
 
-    ## config input photon running
-    #export SEvt__INPUT_PHOTON_DIR=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
-    #export SEvt__INPUT_PHOTON_DIR=/home/blyth/.opticks/InputPhotons
-    export SEvt__INPUT_PHOTON_DIR=/data1/blyth/tmp/SGenerate__test
 
-    #opticks_input_photon=RainXZ_Z230_10k_f8.npy
-    #opticks_input_photon=RainXZ_Z230_1M_f8.npy
-    #opticks_input_photon=RandomSpherical1M_f8.npy
-    opticks_input_photon=SGenerate_ph_disc_M1.npy
-    #opticks_input_photon=SGenerate_ph_disc_K1.npy  
+    ## [ config input photon running
 
-    #opticks_input_photon_frame=NNVT:0:1000
-    #opticks_input_photon_frame=sTarget
-    opticks_input_photon_frame=sChimneyLS:0:-2
+    test=CD
+    export TEST=${TEST:-$test}
 
+    if [ "$TEST" == "UpperChimney" ]; then
+
+       sevt__input_photon_dir=/data1/blyth/tmp/SGenerate__test
+       #opticks_input_photon=SGenerate_ph_disc_K1.npy  
+       opticks_input_photon=SGenerate_ph_disc_M1.npy
+       opticks_input_photon_frame=sChimneyLS:0:-2
+
+    elif [ "$TEST" == "PMT" ]; then
+
+       #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+       sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
+       #opticks_input_photon=RainXZ_Z230_10k_f8.npy
+       opticks_input_photon=RainXZ_Z230_1M_f8.npy
+       opticks_input_photon_frame=NNVT:0:1000
+
+    elif [ "$TEST" == "CD" ]; then
+
+       #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+       sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
+       opticks_input_photon=RandomSpherical1M_f8.npy    ## assert < MAX_PARTICLES:10k when using GenEvtInfoAnaMgr::PostUserTrackingAction
+       opticks_input_photon_frame=sTarget
+
+    fi
+
+    export SEvt__INPUT_PHOTON_DIR=${SEvt__INPUT_PHOTON_DIR:-$sevt__input_photon_dir}
     export OPTICKS_INPUT_PHOTON=${opticks_input_photon}
     export OPTICKS_INPUT_PHOTON_FRAME=${opticks_input_photon_frame}
     export SEvt__transformInputPhoton_VERBOSE=1
+
+    path=$SEvt__INPUT_PHOTON_DIR/$OPTICKS_INPUT_PHOTON
+    if [ ! -f "$path" ]; then
+       echo $BASH_SOURCE : FATAL : INPUT PHOTONS MIS-CONFIGURED path $path 
+       return 1 
+    fi 
+
+    ## ] config input photon running
+
 
     ## below env adapts the output directory for .npy arrays
     ## OPTICKS_EVENT_NAME is required to contain strings such as "Debug" and "Philox"
     ## when those correspond to the build config as checked by sbuild::Matches
     export OPTICKS_SCRIPT=InputPhotonsCheck
-    export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INPUT_PHOTON_FRAME}_${OPTICKS_INPUT_PHOTON/.npy}
+    export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INTEGRATION_MODE}_${OPTICKS_INPUT_PHOTON_FRAME}_${OPTICKS_INPUT_PHOTON/.npy}
 
     ## convenience vars for analysis
     export TMP=/tmp/$USER/opticks
@@ -138,7 +170,10 @@ fi
 
 
 if [ "${arg/info}" != "$arg" ]; then
-   vv="BASH_SOURCE defarg arg TMP GEOM LOGDIR AFOLD BFOLD IPYTHON PYTHON SEvt__INPUT_PHOTON_DIR OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME OPTICKS_MAX_BOUNCE OPTICKS_PREFIX"
+   vv=""
+   vv="$vv BASH_SOURCE defarg arg TMP GEOM TEST LOGDIR AFOLD BFOLD IPYTHON PYTHON SEvt__INPUT_PHOTON_DIR"
+   vv="$vv OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME OPTICKS_MAX_BOUNCE OPTICKS_PREFIX"
+   vv="$vv OPTICKS_INTEGRATION_MODE"
    for v in $vv ; do printf "%30s :  %s\n" "$v" "${!v}" ; done
 fi
 
@@ -147,23 +182,42 @@ if [ "${arg/run}" != "$arg" ]; then
 
     cd $LOGDIR && pwd
     source dbg__.sh
-    dbg__ \
-        $(which python) \
-        $(which tut_detsim.py) \
-        --opticks-mode 3 \
-        --opticks-anamgr \
-        --no-anamgr-normal \
-        --no-anamgr-genevt \
-        --no-anamgr-edm-v2 \
-        --no-anamgr-grdm \
-        --no-anamgr-deposit \
-        --no-anamgr-deposit-tt \
-        --no-anamgr-interesting-process \
-        --no-anamgr-optical-parameter \
-        --no-anamgr-timer \
-        --evtmax 1 \
-        --seed 42 \
-        opticks
+
+    if [ "$OPTICKS_INTEGRATION_MODE" == "3" -o "$OPTICKS_INTEGRATION_MODE" == "2" ]; then
+
+        dbg__ \
+            $(which python) \
+            $(which tut_detsim.py) \
+            --opticks-mode $OPTICKS_INTEGRATION_MODE \
+            --opticks-anamgr \
+            --no-anamgr-normal \
+            --no-anamgr-genevt \
+            --no-anamgr-edm-v2 \
+            --no-anamgr-grdm \
+            --no-anamgr-deposit \
+            --no-anamgr-deposit-tt \
+            --no-anamgr-interesting-process \
+            --no-anamgr-optical-parameter \
+            --no-anamgr-timer \
+            --evtmax 1 \
+            --seed 42 \
+            opticks
+
+         #  --pmt-dbtype File \
+
+    elif [ "$OPTICKS_INTEGRATION_MODE" == "0" -o "$OPTICKS_INTEGRATION_MODE" == "1" ]; then
+
+        dbg__ \
+            $(which python) \
+            $(which tut_detsim.py) \
+            --opticks-mode $OPTICKS_INTEGRATION_MODE \
+            --evtmax 1 \
+            --seed 42 \
+            opticks
+
+        #  --pmt-dbtype File \
+    fi 
+
 
     rc=$?
     echo DONE $rc

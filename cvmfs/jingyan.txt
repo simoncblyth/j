@@ -1,0 +1,53 @@
+Dear Jingyan, 
+
+Following setup of gitlab CI builds for Opticks+JUNO
+I have noted some warnings when publishing to /cvmfs/opticks.ihep.ac.cn/oj/releases/
+
+    WARNING: catalog at / has more than 200000 entries (1226094). 
+    Large catalogs stress the CernVM-FS transport infrastructure. 
+    Please split it into nested catalogs or increase the limit.
+
+As there is almost daily publishing, I fear the catalog 
+will just keep growing without taking some action.
+Googling that warning yields https://cvmfs-contrib.github.io/cvmfs-tutorial-2021/04_publishing/
+which suggests adding .cvmfscatalog OR .cvmfsdirtab files to the catalog to make the split.  
+
+I recall from several months ago that reads from CVMFS were
+a factor of two slower than local reads. I just how did 
+some quick checks and find that reads are now 
+a factor of six slower than local disk. Possibly the warning 
+and the slow downs could be related.  
+
+These timings are after "warm up", the first CVMFS read 
+after not having read from a CVMFS directory for 
+several months takes > 60s  
+
+2025-06-04 16:36:36.928 INFO  [2004233] [SSim::load_@458] [ top.load [/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug/CSGFoundry/SSim]
+2025-06-04 16:36:37.499 INFO  [2004233] [SSim::load_@464] ] top.load [/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_3_0_opticks_Debug/CSGFoundry/SSim] toploadtime/1e6  0.571576
+    Local disk ~0.6s 
+
+2025-06-04 16:32:27.892 INFO  [2003988] [SSim::load_@458] [ top.load [/cvmfs/opticks.ihep.ac.cn/.opticks/GEOM/J_2024nov27/CSGFoundry/SSim]
+2025-06-04 16:32:31.406 INFO  [2003988] [SSim::load_@464] ] top.load [/cvmfs/opticks.ihep.ac.cn/.opticks/GEOM/J_2024nov27/CSGFoundry/SSim] toploadtime/1e6  3.514793
+    CVMFS (after warm up)   ~3.5s
+
+
+Anecdotally Tao has also commented that that cvmfs 
+using builds have been taking much longer recently.
+
+I wonder who is the cvmfs expert who has experience and can 
+advise on the best approach to avoid cvmfs problems
+such as slow downs ? Also what is the best way to split catalogs ? 
+
+Simon
+
+
+
+
+
+
+
+
+
+
+
+
