@@ -90,10 +90,10 @@ if [ "${arg/env}" != "$arg" ]; then
     export OPTICKS_MAX_SLOT=M5
     export OPTICKS_EVENT_MODE=DebugLite
 
-    opticks_integration_mode=0    ## added geometry convertion with zero in G4CXOpticks::SetGeometry_JUNO
+    #opticks_integration_mode=0    ## added geometry convertion with zero in G4CXOpticks::SetGeometry_JUNO
     #opticks_integration_mode=1
     #opticks_integration_mode=2
-    #opticks_integration_mode=3
+    opticks_integration_mode=3
     export OPTICKS_INTEGRATION_MODE=$opticks_integration_mode
 
     #version=0
@@ -110,7 +110,8 @@ if [ "${arg/env}" != "$arg" ]; then
 
     ## [ config input photon running
 
-    test=CD
+    #test=CD
+    test=PMT
     export TEST=${TEST:-$test}
 
     if [ "$TEST" == "UpperChimney" ]; then

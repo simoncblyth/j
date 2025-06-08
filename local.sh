@@ -149,6 +149,7 @@ local_oj_build()
    export VIP_MODE=oj_build
    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
 
+
    : JUNOTOP defines the versions of externals used by both JUNOSW and Opticks
    : 2025/06/04 
    :    JLatest symbolic link no longer latest - currently J25.3.0
@@ -159,7 +160,9 @@ local_oj_build()
 
    #export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest
    export JUNO_OPTICKS_PREFIX=/data1/blyth/local/opticks_Debug
-   # WIP: local ok external rather than the cvmfs release for easier changing
+   : WIP: want to build agaist here built ok external rather than the cvmfs release
+   : HMM : despite the prefix change still building against the cvmfs release of opticks
+   : try ./build_Debug.sh after nuclear removal of build InstallConfig and InstallArea
 
    export JUNO_OFFLINE_OFF=1
    export OPTICKS_SETUP_VERBOSE=1
