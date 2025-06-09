@@ -413,10 +413,6 @@ Big difference : NNVT and NNVT-hi-qe are being lumped together ?
 
 
 
-
-
-
-
 Potential for enum value changes from JUNOSW to cause problem here::
 
      514 /**
@@ -456,16 +452,6 @@ Potential for enum value changes from JUNOSW to cause problem here::
      548     assert( lcat >= 0 );
      549     return lcat ;
      550 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -743,7 +729,14 @@ B side hit culling
      437      }
      438 
      439     double f_angle_response = 1.0;
+
      440     double de = qe*ce*f_angle_response ;
+
+          /// NB with m_enable_optical_model:true WHICH IS STANDARD   de = ce 
+          /// SO THIS IS JUST DECIDING ON COLLECT OR CULL 
+          /// IT IS NOT DOING ANYTHING WITH QE 
+          ///  
+
      441     if (de>1.0){
      442         std::cout<<"junoSD_PMT_v2:: de is larger than 1.0"<<std::endl;
      443     }
@@ -1331,5 +1324,327 @@ lposcost
 
 
 
+
+CECOS landed
+------------
+
+::
+
+    A[blyth@localhost CECOStheta]$ pwd
+    /home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/extra/jpmt/PMTSimParamData/CECOStheta
+
+    A[blyth@localhost CECOStheta]$ f
+    Python 3.13.2 | packaged by Anaconda, Inc. | (main, Feb  6 2025, 18:56:02) [GCC 11.2.0]
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 9.1.0 -- An enhanced Interactive Python. Type '?' for help.
+    Tip: `?` alone on a line will brings up IPython's help
+    f
+
+    CMDLINE:/home/blyth/np/fold.py
+    f.base:.
+
+      : f.CECOS_R12860                                     :               (9, 2) : 0:05:17.959316 
+      : f.CECOS_NNVTMCP                                    :               (9, 2) : 0:05:17.959316 
+      : f.CECOS_NNVTMCP_HiQE                               :               (9, 2) : 0:05:17.959316 
+      : f.CECOS_WP_PMT                                     :               (9, 2) : 0:05:17.959316 
+      : f.NPFold_index                                     :                 (4,) : 0:05:17.959316 
+      : f.NPFold_names                                     :                 (0,) : 0:05:17.959316 
+
+     min_stamp : 2025-06-09 20:59:32.569722 
+     max_stamp : 2025-06-09 20:59:32.569722 
+     dif_stamp : 0:00:00 
+     age_stamp : 0:05:17.959316 
+
+    In [1]: f.CECOS_R12860
+    Out[1]: 
+    array([[0.   , 0.273],
+           [0.087, 0.626],
+           [0.191, 0.909],
+           [0.407, 0.93 ],
+           [0.574, 0.923],
+           [0.755, 0.929],
+           [0.883, 0.922],
+           [0.974, 0.911],
+           [1.   , 0.911]])
+
+    In [2]: f.CECOS_NNVTMCP
+    Out[2]: 
+    array([[0.   , 0.734],
+           [0.087, 0.884],
+           [0.216, 0.927],
+           [0.391, 0.925],
+           [0.574, 0.893],
+           [0.737, 0.91 ],
+           [0.866, 0.945],
+           [0.97 , 1.   ],
+           [1.   , 1.   ]])
+
+    In [3]: f.CECOS_NNVTMCP_HiQE
+    Out[3]: 
+    array([[0.   , 0.734],
+           [0.087, 0.91 ],
+           [0.216, 0.945],
+           [0.391, 0.97 ],
+           [0.574, 0.97 ],
+           [0.737, 0.972],
+           [0.866, 0.977],
+           [0.97 , 1.   ],
+           [1.   , 1.   ]])
+
+    In [4]: f.CECOS_WP_PMT
+    Out[4]: 
+    array([[0.   , 0.734],
+           [0.087, 0.884],
+           [0.216, 0.927],
+           [0.391, 0.925],
+           [0.574, 0.893],
+           [0.737, 0.91 ],
+           [0.866, 0.945],
+           [0.97 , 1.   ],
+           [1.   , 1.   ]])
+
+
+    A[blyth@localhost CECOStheta]$ cd ../CEtheta/
+    A[blyth@localhost CEtheta]$ f
+    Python 3.13.2 | packaged by Anaconda, Inc. | (main, Feb  6 2025, 18:56:02) [GCC 11.2.0]
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 9.1.0 -- An enhanced Interactive Python. Type '?' for help.
+    Tip: You can use `%hist` to view history, see the options with `%history?`
+    f
+
+    CMDLINE:/home/blyth/np/fold.py
+    f.base:.
+
+      : f.CE_R12860                                        :               (9, 2) : 0:08:36.018767 
+      : f.CE_NNVTMCP                                       :               (9, 2) : 0:08:36.018767 
+      : f.CE_NNVTMCP_HiQE                                  :               (9, 2) : 0:08:36.018767 
+      : f.CE_WP_PMT                                        :               (9, 2) : 0:08:36.018767 
+      : f.NPFold_index                                     :                 (4,) : 0:08:36.018767 
+      : f.NPFold_names                                     :                 (0,) : 0:08:36.018767 
+
+     min_stamp : 2025-06-09 20:59:32.569722 
+     max_stamp : 2025-06-09 20:59:32.569722 
+     dif_stamp : 0:00:00 
+     age_stamp : 0:08:36.018767 
+
+    In [1]: f.CE_R12860
+    Out[1]: 
+    array([[0.   , 0.911],
+           [0.227, 0.911],
+           [0.489, 0.922],
+           [0.716, 0.929],
+           [0.96 , 0.923],
+           [1.152, 0.93 ],
+           [1.379, 0.909],
+           [1.484, 0.626],
+           [1.571, 0.273]])
+
+    In [2]: f.CE_NNVTMCP
+    Out[2]: 
+    array([[0.   , 1.   ],
+           [0.244, 1.   ],
+           [0.524, 0.945],
+           [0.742, 0.91 ],
+           [0.96 , 0.893],
+           [1.169, 0.925],
+           [1.353, 0.927],
+           [1.484, 0.884],
+           [1.571, 0.734]])
+
+    In [3]: f.CE_NNVTMCP_HiQE
+    Out[3]: 
+    array([[0.   , 1.   ],
+           [0.244, 1.   ],
+           [0.524, 0.977],
+           [0.742, 0.972],
+           [0.96 , 0.97 ],
+           [1.169, 0.97 ],
+           [1.353, 0.945],
+           [1.484, 0.91 ],
+           [1.571, 0.734]])
+
+    In [4]: f.CE_WP_PMT
+    Out[4]: 
+    array([[0.   , 1.   ],
+           [0.244, 1.   ],
+           [0.524, 0.945],
+           [0.742, 0.91 ],
+           [0.96 , 0.893],
+           [1.169, 0.925],
+           [1.353, 0.927],
+           [1.484, 0.884],
+           [1.571, 0.734]])
+
+    In [5]: 
+
+
+
+
+
+qsim.h propagate : single bit flag ? 
+-------------------------------------
+
+TAIL of propagate::
+
+    2249             command = propagate_at_surface( flag, rng, ctx ) ;
+    2250         }
+    2251         else if( ems == smatsur_Surface_zplus_sensor_A )
+    2252         {
+    2253             command = propagate_at_surface_Detect( flag, rng, ctx ) ;
+    2254         }
+    2255         else if( ems == smatsur_Surface_zplus_sensor_CustomART )
+    2256         {
+    2257 #if defined(WITH_CUSTOM4)
+    2258             command = propagate_at_surface_CustomART( flag, rng, ctx ) ;
+    2259             //command = base->custom_lut == 0u ? propagate_at_surface_CustomART( flag, rng, ctx ) : propagate_at_surface_MultiFilm(flag, rng, ctx );
+    2260 
+    2261 #endif
+    2262         }
+    2263     }
+    2264     ctx.p.set_flag(flag);
+    2265     // Q: Does flag need to be single bit at this point OR can multiple "flags" be OR-ed together here ? 
+    2266     // A: 
+    2267 
+    2268 
+    2269 #if !defined(PRODUCTION) && defined(DEBUG_PIDX)
+    2270     if( ctx.idx == base->pidx )
+    2271     printf("//qsim.propagate.tail idx %d bounce %d command %d flag %d ctx.s.optical.y(ems) %d \n",
+    2272              ctx.idx, bounce, command, flag, ctx.s.optical.y  );
+    2273 #endif
+    2274 
+    2275     return command ;
+    2276 }   
+
+
+
+flagmask
+----------
+
+::
+
+    (ok) A[blyth@localhost qudarap]$ opticks-f flagmask
+    ./ana/p.py:     64     unsigned flagmask ;       // p.view(np.uint32)[3,3]
+    ./ana/p.py:flagmask_ = lambda p:p.view(np.uint32)[3,3]
+    ./ana/p.py:flagdesc_ = lambda p:" idx(%6d) prd(b%3d p%4d i%5d o%1d ii:%5d) %3s  %15s " % ( idx_(p),  boundary_(p),primIdx_(p),instanceId_(p), orient_(p), iindex_(p), hm.label(flag_(p)),hm.label( flagmask_(p) ))
+    ./ana/p.py:flagmask__ = lambda p:p.view(np.uint32)[:,3,3]
+    ./ana/p.py:hit__      = lambda p,msk:p[np.where( ( flagmask__(p) & msk ) == msk)]    
+    ./optickscore/tests/OpticksFlagsTest.cc:        << " flagmask(abbrev) " << OpticksPhoton::FlagMask(msk, true) 
+    ./optickscore/tests/OpticksFlagsTest.cc:        << " flagmask " << OpticksPhoton::FlagMask(msk, false)
+    ./sysrap/OpticksPhoton.hh:    static bool HasCerenkovFlag(const unsigned flagmask); 
+    ./sysrap/OpticksPhoton.hh:    static bool HasScintillationFlag(const unsigned flagmask); 
+    ./sysrap/OpticksPhoton.hh:    static bool HasTorchFlag(const unsigned flagmask); 
+    ./sysrap/OpticksPhoton.hh:inline bool OpticksPhoton::HasCerenkovFlag(const unsigned flagmask)
+    ./sysrap/OpticksPhoton.hh:    return ( flagmask & CERENKOV ) != 0 ;  
+    ./sysrap/OpticksPhoton.hh:inline bool OpticksPhoton::HasScintillationFlag(const unsigned flagmask)
+    ./sysrap/OpticksPhoton.hh:    return ( flagmask & SCINTILLATION ) != 0 ;  
+    ./sysrap/OpticksPhoton.hh:inline bool OpticksPhoton::HasTorchFlag(const unsigned flagmask)
+    ./sysrap/OpticksPhoton.hh:    return ( flagmask & TORCH ) != 0 ;  
+    ./sysrap/SEvt.cc:    bool flagmask_one_bit = ctx.p.flagmask_count() == 1  ;
+    ./sysrap/SEvt.cc:    LOG_IF(error, !flagmask_one_bit )
+    ./sysrap/SEvt.cc:        << " not flagmask_one_bit "
+    ./sysrap/SEvt.cc:        << " : should only be a single bit in the flagmask at this juncture "
+    ./sysrap/SEvt.cc:    assert( flagmask_one_bit );
+    ./sysrap/SEvt.cc:        current_photon.flagmask &= ~BULK_ABSORB  ; // scrub BULK_ABSORB from flagmask
+    ./sysrap/SEvt.cc:        current_photon.set_flag(BULK_REEMIT) ;     // gets OR-ed into flagmask
+    ./sysrap/SEvt.cc:        rjoin_record.flagmask &= ~BULK_ABSORB ; // scrub BULK_ABSORB from flagmask
+    ./sysrap/SEvt.cc:    unsigned flagmask = ph.flagmask ;
+    ./sysrap/SEvt.cc:    bool flagmask_AB = flagmask & BULK_ABSORB  ;
+    ./sysrap/SEvt.cc:    bool flagmask_MI = flagmask & MISS ;
+    ./sysrap/SEvt.cc:    bool flagmask_or = flagmask_AB | flagmask_MI ;
+    ./sysrap/SEvt.cc:    if(flagmask_AB) dbg->rjoinPhotonCheck_flagmask_AB++ ;
+    ./sysrap/SEvt.cc:    if(flagmask_MI) dbg->rjoinPhotonCheck_flagmask_MI++ ;
+    ./sysrap/SEvt.cc:    if(flagmask_or) dbg->rjoinPhotonCheck_flagmask_or++ ;
+    ./sysrap/SEvt.cc:    bool expect = flag_xor && flagmask_or ;
+    ./sysrap/SEvt.cc:        << "rjoinPhotonCheck : unexpected flag/flagmask"
+    ./sysrap/SEvt.cc:        << " flagmask_AB " << flagmask_AB
+    ./sysrap/SEvt.cc:        << " flagmask_MI " << flagmask_MI
+    ./sysrap/SEvt.cc:        << " flagmask_or " << flagmask_or
+    ./sysrap/SEvt.cc:    bool first_flag = ctx.p.flagmask_count() == 1 ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_AB ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_MI ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_or ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_AB ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_MI ;
+    ./sysrap/sdebug.h:    int rjoinPhotonCheck_flagmask_or ;
+    ./sysrap/squad.h:    SQUAD_METHOD unsigned flagmask() const ;
+    ./sysrap/squad.h:    q3.u.w |= flag ;    // bitwise-OR into flagmask
+    ./sysrap/squad.h:SQUAD_METHOD unsigned quad4::flagmask() const
+    ./sysrap/squad.h:    SQUAD_METHOD bool operator() (const quad4& p) const { return ( p.flagmask() & hitmask ) == hitmask  ; }   // require all bits of the mask to be set
+    ./sysrap/squad.h:    SQUAD_METHOD bool operator() (const T& p) const { return ( p.flagmask() & hitmask ) == hitmask  ; }   // require all bits of the mask to be set
+    ./sysrap/squad.h:    flagmask_ = lambda p:p.view(np.uint32)[3,3]
+    ./sysrap/squad.h:    flagdesc_ = lambda p:" %4d %10s id:%6d ori:%d idx:%6d %10s " % ( boundary_(p), hm.label(flag_(p)), identity_(p), orient_(p), idx_(p), hm.label( flagmask_(p) ))
+    ./sysrap/sphoton.h:|    | boundary_flag  |  identity      |  orient_idx    |  flagmask      |  (unsigned)              |
+    ./sysrap/sphoton.h:flagmask (32 bit)
+    ./sysrap/sphoton.h:    flagmask_ = lambda p:p.view(np.uint32)[3,3]
+    ./sysrap/sphoton.h:    unsigned flagmask ; 
+    ./sysrap/sphoton.h:    unsigned flagmask ; 
+    ./sysrap/sphoton.h:    SPHOTON_METHOD void     set_flag(unsigned flag) {         boundary_flag = ( boundary_flag & 0xffff0000u ) | ( flag & 0xffffu ) ; flagmask |= flag ;  } // clear flag bits then set them  
+    ./sysrap/sphoton.h:    SPHOTON_METHOD void zero_flags() { boundary_flag = 0u ; identity = 0u ; orient_idx = 0u ; flagmask = 0u ; } 
+    ./sysrap/sphoton.h:       boundary_flag = 0u ; identity = 0u ; orient_idx = 0u ; flagmask = 0u ;  
+    ./sysrap/sphoton.h:    SPHOTON_METHOD bool is_cerenkov()  const { return (flagmask & CERENKOV) != 0 ; }
+    ./sysrap/sphoton.h:    SPHOTON_METHOD bool is_reemit() const {    return (flagmask & BULK_REEMIT) != 0 ; }
+    ./sysrap/sphoton.h:    SPHOTON_METHOD unsigned flagmask_count() const ; 
+    ./sysrap/sphoton.h:SPHOTON_METHOD unsigned sphoton::flagmask_count() const 
+    ./sysrap/sphoton.h:    return std::bitset<32>(flagmask).count() ;   // NB counting bits, not nibbles with bits
+    ./sysrap/sphoton.h:        << " fm " << std::hex << flagmask  << std::dec 
+    ./sysrap/sphoton.h:       << " flagmask " << OpticksPhoton::FlagMask(flagmask)
+    ./sysrap/sphoton.h:           a.flagmask == b.flagmask 
+    ./sysrap/sphoton.h:    SPHOTON_METHOD bool operator() (const sphoton& p) const { return ( p.flagmask  & hitmask ) == hitmask  ; }   // require all bits of the mask to be set 
+    ./sysrap/sphoton.h:    SPHOTON_METHOD bool operator() (const sphoton* p) const { return ( p->flagmask & hitmask ) == hitmask  ; }   // require all bits of the mask to be set 
+    ./sysrap/sphoton.h:    unsigned long long flagmask ; 
+    ./sysrap/sphoton.h:    d.flagmask      = ull(s.flagmask) ;  
+    ./sysrap/tests/OpticksPhotonTest.cc:            << " flagmask(abbrev) " << std::setw(20) << OpticksPhoton::FlagMask(msk, true) 
+    ./sysrap/tests/OpticksPhotonTest.cc:            << " flagmask " << OpticksPhoton::FlagMask(msk, false)
+    ./sysrap/tests/SUTest.cc:Zeros pp photon array and for a third of the entries sets the flagmask entry 
+    ./sysrap/tests/sphoton_test.cc:    static void change_flagmask();
+    ./sysrap/tests/sphoton_test.cc:void sphoton_test::change_flagmask()
+    ./sysrap/tests/sphoton_test.cc:    unsigned flagmask = 0u ;         dump("zero", flagmask );  
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= CERENKOV ;           dump("|= CERENKOV", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SCINTILLATION ;      dump("|= SCINTILLATION", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= MISS ;               dump("|= MISS", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= BULK_ABSORB ;        dump("|= BULK_ABSORB", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= BULK_REEMIT ;        dump("|= BULK_REEMIT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= BULK_SCATTER ;       dump("|= BULK_SCATTER", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SURFACE_DETECT ;     dump("|= SURFACE_DETECT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SURFACE_ABSORB ;     dump("|= SURFACE_ABSORB", flagmask );   
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SURFACE_DREFLECT ;   dump("|= SURFACE_DREFLECT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SURFACE_SREFLECT ;   dump("|= SURFACE_SREFLECT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= BOUNDARY_REFLECT ;   dump("|= BOUNDARY_REFLECT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= BOUNDARY_TRANSMIT ;  dump("|= BOUNDARY_TRANSMIT", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= TORCH ;              dump("|= TORCH", flagmask); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= NAN_ABORT ;          dump("|= NAN_ABORT", flagmask );  
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= EFFICIENCY_CULL ;    dump("|= EFFICIENCY_CULL", flagmask ); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= EFFICIENCY_COLLECT ; dump("|= EFFICIENCY_COLLECT", flagmask) ;  
+    ./sysrap/tests/sphoton_test.cc:    flagmask &= ~BULK_ABSORB ;       dump("&= ~BULK_ABSORB", flagmask); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask &= ~BULK_REEMIT ;       dump("&= ~BULK_REEMIT", flagmask); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |=  BULK_REEMIT ;       dump("|=  BULK_REEMIT", flagmask); 
+    ./sysrap/tests/sphoton_test.cc:    flagmask |=  BULK_ABSORB ;       dump("|=  BULK_ABSORB", flagmask); 
+    ./sysrap/tests/sphoton_test.cc:    else if(strcmp(TEST, "change_flagmask")==0)    change_flagmask(); 
+    ./u4/U4HitGet.h:    hit.flag_mask = global.flagmask ; 
+    ./u4/U4Recorder.cc:Can get that by counting bits in the flagmask, as only the first step will have only
+    ./u4/U4Recorder.cc:    // first_flag identified by the flagmask having a single bit (all genflag are single bits, set in beginPhoton)
+    ./u4/U4Recorder.cc:    bool first_flag = current_photon.flagmask_count() == 1 ;
+    ./u4/tests/U4RecorderTest.py:    flagmask_u, flagmask_c = np.unique(p.view(np.uint32)[:,3,3], return_counts=True)    
+    ./u4/tests/U4RecorderTest.py:    print("flagmask_u:%s " % str(flagmask_u))
+    ./u4/tests/U4RecorderTest.py:    print("flagmask_c:%s " % str(flagmask_c))
+    ./u4/tests/U4SimulateTest_mt.py:    flagmask = t.photon[:,3,3].view(np.int32) 
+    ./u4/tests/U4SimulateTest_mt.py:    sd = flagmask & SURFACE_DETECT != 0 
+    ./u4/tests/U4SimulateTest_mt.py:    sa = flagmask & SURFACE_ABSORB != 0 
+    ./u4/tests/U4SimulateTest_ph.py:    flagmask = t.photon[:,3,3].view(np.int32) 
+    ./u4/tests/U4SimulateTest_ph.py:    sd = flagmask & SURFACE_DETECT
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+
+hitmask
+-----------
+
+::
+
+    175     static constexpr const char* kHitMask      = "OPTICKS_HIT_MASK" ;
+
+
+    unsigned SEventConfig::_HitMask  = OpticksPhoton::GetHitMask(ssys::getenvvar(kHitMask, _HitMaskDefault )) ;
 
 
