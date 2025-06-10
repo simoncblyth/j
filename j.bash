@@ -3703,7 +3703,7 @@ je(){ cd ~/junosw/junoenv && pwd ; }
 jo(){ cd ~/junosw && pwd && git status ; }
 
 jk(){ cd $JUNOTOP/opticks && pwd && git status ; }
-js(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/$1 && pwd ; }
+#js(){ cd $JUNOTOP/junosw/Simulation/DetSimV2/$1 && pwd ; }
 jr(){ echo CMAKE_PREFIX_PATH ; echo $CMAKE_PREFIX_PATH | tr ":" "\n" ; echo OPTICKS_PREFIX $OPTICKS_PREFIX ;  }
 
 psi(){ js PMTSIM/src ; }

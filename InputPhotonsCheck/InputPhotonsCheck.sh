@@ -175,6 +175,7 @@ if [ "${arg/info}" != "$arg" ]; then
    vv="$vv BASH_SOURCE defarg arg TMP GEOM TEST LOGDIR AFOLD BFOLD IPYTHON PYTHON SEvt__INPUT_PHOTON_DIR"
    vv="$vv OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME OPTICKS_MAX_BOUNCE OPTICKS_PREFIX"
    vv="$vv OPTICKS_INTEGRATION_MODE"
+   vv="$vv anascript"
    for v in $vv ; do printf "%30s :  %s\n" "$v" "${!v}" ; done
 fi
 

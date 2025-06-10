@@ -78,7 +78,7 @@ if __name__ == '__main__':
         print("]----- repr(abh) ")
     pass
 
-    assert PICK in ["A","B","AB","BA", "CF"]
+    assert PICK in ["A","B","AB","BA", "CF", "X"]
     if PICK == "A":
         ee = [a,]
     elif PICK == "B":
@@ -87,13 +87,14 @@ if __name__ == '__main__':
         ee = [a,b,]
     elif PICK == "BA":
         ee = [b,a,]
-    elif PICK == "CF":
+    elif PICK == "CF" or PICK == "X":
         ee = []
     pass
 
     context = "PICK=%s MODE=%d  ~/j/jtds/jtds.sh " % (PICK, MODE )
     print(context)
 
+    ## use PICK=CF to skip the below plotting
     pl = None
     for e in ee:
         if e is None:continue

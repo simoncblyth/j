@@ -1648,3 +1648,704 @@ hitmask
     unsigned SEventConfig::_HitMask  = OpticksPhoton::GetHitMask(ssys::getenvvar(kHitMask, _HitMaskDefault )) ;
 
 
+
+Mode 3 A:B hits matched before impl of CE cull GPU side  : confirmed due to pre-CE comparison
+----------------------------------------------------------------------------------------------
+
+A side
+    qsim.h assigns SURFACE_DETECT flag following QE culling only   
+
+B side
+    U4StepPoint::BoundaryFlag translates "Detection" from the boundary process 
+    (which is with QE culling only) to SURFACE_DETECT. 
+
+
+
+
+::
+
+    234 unsigned U4StepPoint::BoundaryFlag(unsigned status) // BT BR NA SA SD SR DR 
+    235 {
+    236     unsigned flag = 0 ;
+    237     switch(status)
+    238     {
+    239         case FresnelRefraction:
+    240         case SameMaterial:
+    241         case Transmission:
+    242                                flag=BOUNDARY_TRANSMIT;
+    243                                break;
+    244         case TotalInternalReflection:
+    245         case       FresnelReflection:
+    246                                flag=BOUNDARY_REFLECT;
+    247                                break;
+    248         case StepTooSmall:
+    249                                flag=NAN_ABORT;
+    250                                break;
+    251         case Absorption:
+    252                                flag=SURFACE_ABSORB ;
+    253                                break;
+    254         case Detection:
+    255                                flag=SURFACE_DETECT ;
+    256                                break;
+    257         case SpikeReflection:
+    258                                flag=SURFACE_SREFLECT ;
+    259                                break;
+    260         case LobeReflection:
+    261         case LambertianReflection:
+    262                                flag=SURFACE_DREFLECT ;
+    263                                break;
+    264         case NoRINDEX:
+    265                                flag=SURFACE_ABSORB ;
+    266                                //flag=NAN_ABORT;
+    267                                break;
+    268         case Undefined:
+    269         case BackScattering:
+    270         case NotAtBoundary:
+    271         case PolishedLumirrorAirReflection:
+    272         case PolishedLumirrorGlueReflection:
+
+
+
+
+SURFACE_DETECT
+-----------------
+
+::
+
+
+    ok) A[blyth@localhost tests]$ opticks-f SURFACE_DETECT
+    ./ana/debug/types.py:        SURFACE_DETECT = 0x1 << 2
+    ./ana/debug/types.py:        detected = np.where( flags & SURFACE_DETECT  )
+    ./ana/ht.py:    ht = np.load("ht.npy") # ht are a selection of the ox:photons with SD:SURFACE_DETECT flag set  
+    ./ana/ht.py:    # and knowledge that hit selection requires SD:SURFACE_DETECT 
+    ./boostrap/BRegex.cc:    SURFACE_DETECT         = 0x1 << 2,
+    ./boostrap/brap.bash:                    SURFACE_DETECT : 7 :         64 :         40
+    ./boostrap/brap.bash:    SURFACE_DETECT         = 0x1 << 2,
+    ./cfg4/CPhoton.cc:    bool flag_done = ( _flag & (BULK_ABSORB | SURFACE_ABSORB | SURFACE_DETECT | MISS)) != 0 ;
+    ./cfg4/CRec.cc:    bool surfaceAbsorb = (postFlag & (SURFACE_ABSORB | SURFACE_DETECT)) != 0 ;
+    ./cfg4/CRecorder.cc:        bool lastPost = (postFlag & (BULK_ABSORB | SURFACE_ABSORB | SURFACE_DETECT | MISS )) != 0 ;
+    ./cfg4/CRecorder.cc:        bool surfaceAbsorb = (postFlag & (SURFACE_ABSORB | SURFACE_DETECT)) != 0 ;
+    ./cfg4/CRecorder.cc:        SD = (postFlag & SURFACE_DETECT) != 0 ;
+    ./cfg4/CRecorderLive.cc:    bool lastPost = (postFlag & (BULK_ABSORB | SURFACE_ABSORB | SURFACE_DETECT | MISS)) != 0 ;
+    ./cfg4/CRecorderLive.cc:    bool surfaceAbsorb = (postFlag & (SURFACE_ABSORB | SURFACE_DETECT)) != 0 ;
+    ./cfg4/OpStatus.cc:    return (flag & (BULK_ABSORB | SURFACE_ABSORB | SURFACE_DETECT | MISS )) != 0 ;
+    ./cfg4/OpStatus.cc:                               flag=SURFACE_DETECT ; 
+    ./cfg4/OpStatus.cc:                               flag=SURFACE_DETECT ; 
+    ./cfg4/OpStatus.cc:        flag = OpStatus::OpBoundaryFlag(bst) ; // BOUNDARY_TRANSMIT/BOUNDARY_REFLECT/NAN_ABORT/SURFACE_ABSORB/SURFACE_DETECT/SURFACE_DREFLECT/SURFACE_SREFLECT
+    ./examples/Geant4/BoundaryStandalone/G4OpBoundaryProcessTest.cc:        case Detection:               st = SURFACE_DETECT    ; break ; 
+    ./examples/Geant4/OpticalApp/OpticalRecorder.h:    SURFACE_DETECT    = 0x1 <<  6,  
+    ./examples/Geant4/OpticalApp/OpticalRecorder.h:    static constexpr const char* _SURFACE_DETECT    = "SD" ;
+    ./examples/Geant4/OpticalApp/OpticalRecorder.h:        case SURFACE_DETECT:   str=_SURFACE_DETECT ;break;
+    ./examples/Geant4/OpticalApp/OpticalRecorder.h:                               flag=SURFACE_DETECT ; 
+    ./g4ok/G4Opticks.cc:    have SURFACE_DETECT flag 
+    ./ggeo/GPho.cc:    return ( pflg & SURFACE_DETECT) != 0 ; 
+    ./npy/Types.cpp:    s["SURFACE_DETECT"]    = "SD" ;
+    ./ok/tests/flagsTest.cc:    DUMP(SURFACE_DETECT);
+    ./okop/tests/compactionTest.cc:    unsigned hitmask = SURFACE_DETECT ; 
+    ./optickscore/OpticksEvent.cc:    unsigned hitmask = SURFACE_DETECT ;   // TODO: this is an input, not a constant 
+    ./optickscore/SensorLib.cc:    that already have SURFACE_DETECT 
+    ./optickscore/okc.bash:* add extra SkinSurface and OpticalSurface objects to DAE level geometry in order to be transformed into sensitive surfaces needed for chroma SURFACE_DETECT
+    ./optixrap/OEvent.cc:    2021-01-25 23:16:19.422 INFO  [4926544] [OEvent::downloadHits@443]  nhit 87 --dbghit N hitmask 0x40 SD SURFACE_DETECT
+    ./optixrap/cu/generate.cu:    unsigned trivial_flags = photon_id % 1000 == 0 ? SURFACE_DETECT : 0u ; 
+    ./optixrap/cu/generate.cu:            if(command == BREAK)    break ;       // SURFACE_DETECT/SURFACE_ABSORB
+    ./optixrap/cu/generate.cu:    //if( bounce == bounce_max && ( s.flag == SURFACE_DETECT || s.flag == SURFACE_ABSORB ))
+    ./optixrap/cu/generate.cu:    if( s.flag == SURFACE_DETECT ) 
+    ./optixrap/cu/generate.cu:    //  kludged this with s.index.y -> s.index.x in propagate for SURFACE_ABSORB and SURFACE_DETECT
+    ./optixrap/cu/generate.cu:   //if(p.flags.i.w & SURFACE_DETECT )
+    ./optixrap/cu/propagate.h:* BREAK(SURFACE_DETECT) 
+    ./optixrap/cu/propagate.h:        s.flag = SURFACE_DETECT ;
+  
+
+
+    ./qudarap/qsim.h:        flag = u_theEfficiency < theEfficiency ? SURFACE_DETECT : SURFACE_ABSORB ;
+    ./qudarap/qsim.h:|   SURFACE_DETECT    |    BREAK         |                                                         |              |
+    ./qudarap/qsim.h:   0--SURFACE_ABSORB---|--SURFACE_DETECT---|--SURFACE_DREFLECT---|--SURFACE_SREFLECT------1
+    ./qudarap/qsim.h:        flag = u_surface < absorb ? SURFACE_ABSORB : SURFACE_DETECT  ;
+    ./qudarap/qsim.h:    flag = SURFACE_DETECT ;
+    ./qudarap/qsim.h:        flag = u_theEfficiency < theEfficiency ? SURFACE_DETECT : SURFACE_ABSORB ;
+    ./qudarap/qsim.h:        unsigned ce_flag = flag == SURFACE_DETECT
+
+    ./sysrap/OpticksPhoton.cc:        "SURFACE_DETECT":"purple",
+    ./sysrap/OpticksPhoton.h:    SURFACE_DETECT    = 0x1 <<  6,
+    ./sysrap/OpticksPhoton.hh:    static constexpr const char* SURFACE_DETECT_ = "SURFACE_DETECT" ;
+    ./sysrap/OpticksPhoton.hh:    static constexpr const char* _SURFACE_DETECT    = "SD" ;
+    ./sysrap/OpticksPhoton.hh:    return (flag & (BULK_ABSORB | SURFACE_ABSORB | SURFACE_DETECT | MISS )) != 0 ;
+    ./sysrap/OpticksPhoton.hh:    return (flag & (SURFACE_DETECT | SURFACE_ABSORB | SURFACE_DREFLECT | SURFACE_SREFLECT | BOUNDARY_REFLECT | BOUNDARY_TRANSMIT )) != 0 ; 
+    ./sysrap/OpticksPhoton.hh:    return (flag & (SURFACE_DETECT | SURFACE_ABSORB)) != 0  ; 
+    ./sysrap/OpticksPhoton.hh:    return flag == SURFACE_DETECT ; 
+    ./sysrap/OpticksPhoton.hh:        case SURFACE_DETECT:   s=SURFACE_DETECT_ ;break; 
+    ./sysrap/OpticksPhoton.hh:        case SURFACE_DETECT:   s=_SURFACE_DETECT ;break; 
+    ./sysrap/OpticksPhoton.hh:    pairs.push_back(KV(SURFACE_DETECT_ , _SURFACE_DETECT)); 
+
+    ./sysrap/tests/OpticksPhotonTest.cc:    unsigned x_mask = TORCH | SURFACE_DETECT | BOUNDARY_TRANSMIT ;
+    ./sysrap/tests/sphoton_test.cc:    p.set_flag( SURFACE_DETECT );
+    ./sysrap/tests/sphoton_test.cc:    p.add_flagmask( SURFACE_DETECT );
+    ./sysrap/tests/sphoton_test.cc:    std::cout << "add_flagmask.1 SURFACE_DETECT : " << p.descFlag() << "\n" ;
+    ./sysrap/tests/sphoton_test.cc:        |= SURFACE_DETECT 00000000000000000000000001111111  7
+    ./sysrap/tests/sphoton_test.cc:    flagmask |= SURFACE_DETECT ;     dump("|= SURFACE_DETECT", flagmask );
+    ./sysrap/tests/sseq_test.cc:       SURFACE_DETECT,
+    ./sysrap/tests/sseq_test.cc:       SURFACE_DETECT,
+    ./sysrap/tests/sseq_test.cc:       SURFACE_DETECT,
+    ./sysrap/tests/SEvtTest.cc:       SURFACE_DETECT
+
+    ./thrustrap/TBuf_.cu:     69    //m_hitmask(SURFACE_DETECT),
+    ./thrustrap/TIsHit.hh:Canonically only a single bit is set in the mask with SURFACE_DETECT.  
+    ./thrustrap/TIsHit.hh:* photon flags such as SURFACE_DETECT are assigned to s.flag by oxrap-/cu/propagate.h
+    ./thrustrap/TIsHit.hh:In [43]: TORCH | SURFACE_DETECT | BOUNDARY_TRANSMIT
+    ./thrustrap/TIsHit.hh:n [47]: ( TORCH | SURFACE_DETECT | BOUNDARY_TRANSMIT | BULK_SCATTER  )
+    ./thrustrap/tests/TBuf2x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+    ./thrustrap/tests/TBuf4x4Test.cu:    NPY<float>* ph = DummyPhotonsNPY::Make(num_photons, SURFACE_DETECT );
+    ./thrustrap/tests/TBuf4x4Test.cu:    NPY<float>* ph = DummyPhotonsNPY::Make(num_photons, SURFACE_DETECT );
+    ./thrustrap/tests/TBuf4x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+    ./thrustrap/tests/TBuf4x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+    ./thrustrap/tests/TBuf4x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+    ./thrustrap/tests/TBuf4x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+    ./thrustrap/tests/TBuf4x4Test.cu:    unsigned hitmask = SURFACE_DETECT ; 
+
+    ./u4/U4StepPoint.cc:                               flag=SURFACE_DETECT ; 
+    ./u4/U4Recorder.cc:           case 'D': flag = SURFACE_DETECT    ; break ;
+
+    ./u4/U4Touchable.h:for step points classified as SURFACE_DETECT "SD". 
+
+    ./u4/tests/U4SimulateTest_mt.py:SURFACE_DETECT = 0x1 << 6 
+    ./u4/tests/U4SimulateTest_mt.py:SD = SURFACE_DETECT.bit_length()
+    ./u4/tests/U4SimulateTest_mt.py:    sd = flagmask & SURFACE_DETECT != 0 
+    ./u4/tests/U4SimulateTest_ph.py:    SURFACE_DETECT = 0x1 << 6 
+    ./u4/tests/U4SimulateTest_ph.py:    sd = flagmask & SURFACE_DETECT
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+
+
+How to plant EC/EX into sphoton flag/flagmask on B side with U4Recorder ?
+-----------------------------------------------------------------------------
+
+
+jcv junoSD_PMT_v2 ProcessHits::
+
+     428     // Now we use PMTSimParamSvc to get real QE and CE ), so only CE is important.
+     429     // = DE: Detection Efficiency
+     430     if(m_use_pmtsimsvc){
+     431         qe = (m_enable_optical_model && PMT::Is20inch(pmtID)) ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+     432         ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+     433      }
+     434      else{
+     435         std::string volname = track->GetVolume()->GetName();
+     436     GetQEandCEByOldWay(qe , ce , pmtID,  volname, local_pos);
+     437      }
+     438 
+     439     double f_angle_response = 1.0;
+     440     double de = qe*ce*f_angle_response ;
+     441     if (de>1.0){
+     442         std::cout<<"junoSD_PMT_v2:: de is larger than 1.0"<<std::endl;
+     443     }
+     444     bool de_cull = G4UniformRand() > de ;
+     445 
+     446 
+
+Need to communicate de_cull from ProcessHits to the U4Recorder ?
+
+U4Recorder::
+
+     937 **How to incorporate info from ProcessHits into the SEvt ?**
+     938 
+     939 g4-cls G4SteppingManager::
+     940 
+     941     230 // Send G4Step information to Hit/Dig if the volume is sensitive
+     942     231    fCurrentVolume = fStep->GetPreStepPoint()->GetPhysicalVolume();
+     943     232    StepControlFlag =  fStep->GetControlFlag();
+     944     233    if( fCurrentVolume != 0 && StepControlFlag != AvoidHitInvocation) {
+     945     234       fSensitive = fStep->GetPreStepPoint()->
+     946     235                                    GetSensitiveDetector();
+     947     236       if( fSensitive != 0 ) {
+     948     237         fSensitive->Hit(fStep);
+     949     238       }
+     950     239    }
+     951     240
+     952     241 // User intervention process.
+     953     242    if( fUserSteppingAction != 0 ) {
+     954     243       fUserSteppingAction->UserSteppingAction(fStep);
+     955     244    }
+     956 
+     957 * G4VSensitive::Hit/G4VSensitive::ProcessHits happens before UserSteppingAction
+     958   so if plant the ProcessHits enum into the track label
+     959   can then copy that into the current_aux
+     960 
+
+* could use the track info label 
+
+
+eph enumeration precisely whats needed ?
+--------------------------------------------
+
+::
+
+     35 struct spho
+     36 {
+     37     static constexpr const int N = 4 ;
+     38 
+     39     int gs ; // 0-based genstep index within the event
+     40     int ix ; // 0-based photon index within the genstep
+     41     int id ; // 0-based photon identity index within the event
+     42 
+     43     spho_uchar4 uc4 ;
+     44     // uc4.x : gen : 0-based reemission index incremented at each reemission
+     45     // uc4.y : eph : eg junoSD_PMT_v2::ProcessHits eph enumeration
+     46     // uc4.z : ext : unused
+     47     // uc4.w : photon point flag TO/BT/BR/SC/AB/SD/SR/... etc
+     48 
+     49     unsigned uc4packed() const ;
+     50 
+     51     int gen() const ;
+     52     int eph() const ;
+     53     int ext() const ;
+     54     int flg() const ;
+     55 
+     56     void set_gen(int gn) ;
+     57     void set_eph(int ep) ;
+     58     void set_ext(int ex) ;
+     59     void set_flg(int fg) ;
+
+
+Not quite thats only within G4CXOPTICKS_DEBUG but the machinery can be adapted
+to do something similar within:: 
+
+     310 #ifdef WITH_G4CXOPTICKS_DEBUG
+     311 G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
+     312 {
+     313     G4bool is_hit = ProcessHits_(step, nullptr) ;
+     314     m_jpmt_dbg->add( m_eph, is_hit );
+     315 
+     316     G4Track* track = step->GetTrack() ;
+     317     int label_id = C4Track::GetLabelID(track);
+     318 
+     319     C4Track::SetLabelEph(track, m_eph);
+     320     C4Track::IncrementLabelExt(track) ;
+     321 
+     322     LOG_IF(LEVEL, (label_id % 1000) == 0) << " label " << C4Track::Desc(track)  << " m_eph " << EPH::Name(m_eph) ;
+     323 
+     324     return is_hit ;
+     325 }
+     326 
+     327 junoSD_PMT_v2_Debug* junoSD_PMT_v2::getProcessHitsDebug() const
+     328 {
+     329     return m_jpmt_dbg ;
+     330 }
+     331 
+     332 
+     333 #endif
+
+
+
+
+The flag wont fit in the char slots of the label, so will need::
+
+    unsigned flg = OpticksPhoton::BitPos(flag);   // where flg is < 32 
+
+
+HMM : might as well use the EPH machinery always within WITH_G4CXOPTICKS::
+
+    jcv junoSD_PMT_v2_Debug
+
+
+    int eph = C4Track::GetLabelEph(track) ; // BUT with spho ? 
+
+
+
+WITH_G4CXOPTICKS_DEBUG
+-------------------------
+
+::
+
+    ok) A[blyth@localhost junosw]$ jgr G4CXOPTICKS_DEBUG
+    ./Doc/oum/source/releasenotes/J22.2.md:    * collect more debug fields into U4Scintillation_Debug hidden behind WITH_G4CXOPTICKS_DEBUG, plus avoid compilation warnings (see MR !24 and !27)
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_DEBUG
+
+          Adds shim ProcessHits_
+
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+
+
+Does stuff beyond m_eph::
+
+     919 #ifdef WITH_G4CXOPTICKS_DEBUG
+     920     LOG(LEVEL) << " pmtID "  << std::setw(7) << pmtID ;
+     921     U4Hit_Debug hit_dbg ;
+     922     hit_dbg.label = U4PhotonInfo::Get(track);
+     923     hit_dbg.add();
+     924 #endif
+
+
+
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+ 
+         ## collects using U4Scintillation_Debug
+         ## thats too extreme to move to WITH_G4CXOPTICKS
+
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+    ./Simulation/DetSimV2/PhysiSim/src/G4Cerenkov_modified.cc:#ifdef WITH_G4CXOPTICKS_DEBUG
+
+         ## collects using U4Cerenkov_Debug.hh
+         ## again too extreme to move to WITH_G4CXOPTICKS
+
+    (ok) A[blyth@localhost junosw]$ 
+
+
+
+ADDED WITH_G4CXOPTICKS_EPH to house just the m_eph collection
+---------------------------------------------------------------
+
+::
+
+    (ok) A[blyth@localhost u4]$ jgr WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#define WITH_G4CXOPTICKS_EPH 1
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:#ifdef WITH_G4CXOPTICKS_EPH
+    (ok) A[blyth@localhost junosw]$ 
+
+
+
+::
+
+     310 #ifdef WITH_G4CXOPTICKS_EPH
+     311 G4bool junoSD_PMT_v2::ProcessHits(G4Step * step,G4TouchableHistory*)
+     312 {
+     313     G4bool is_hit = ProcessHits_(step, nullptr) ;
+     314     m_jpmt_dbg->add( m_eph, is_hit );
+     315 
+     316     G4Track* track = step->GetTrack() ;
+     317     int label_id = C4Track::GetLabelID(track);
+     318 
+     319     C4Track::SetLabelEph(track, m_eph);
+     320     C4Track::IncrementLabelExt(track) ;
+     321 
+     322     LOG_IF(LEVEL, (label_id % 1000) == 0) << " label " << C4Track::Desc(track)  << " m_eph " << EPH::Name(m_eph) ;
+     323 
+     324     return is_hit ;
+     325 }
+
+
+
+WHERE TO GET EPH ? U4Recorder::PostUserTrackingAction_Optical_ -> SEvt::finalPhoton  
+------------------------------------------------------------------------------------
+
+The label gets passed to SEvt::finalPhoton::
+
+    0809 void U4Recorder::PostUserTrackingAction_Optical_(const G4Track* track, int* label)
+     810 {
+     811     spho& ulabel = reinterpret_cast<spho&>(*label);
+     812     if(!Enabled(ulabel)) return ; // EIDX, GIDX skipping
+     813 
+     814     G4TrackStatus tstat = track->GetTrackStatus();
+     815     LOG(LEVEL) << U4TrackStatus::Name(tstat) ;
+     816 
+     817     bool is_fStopAndKill = tstat == fStopAndKill ;
+     818     bool is_fSuspend     = tstat == fSuspend ;
+     819     bool is_fStopAndKill_or_fSuspend = is_fStopAndKill || is_fSuspend  ;
+     820     LOG_IF(info, !is_fStopAndKill_or_fSuspend ) << " not is_fStopAndKill_or_fSuspend  post.tstat " << U4TrackStatus::Name(tstat) ;
+     821     assert( is_fStopAndKill_or_fSuspend );
+     822 
+     823 
+     824     if(is_fStopAndKill)
+     825     {
+     826         SEvt* sev = SEvt::Get_ECPU();
+     827         U4Random::SetSequenceIndex(-1);
+     828         sev->finalPhoton(ulabel);
+     829         transient_fSuspend_track = nullptr ;
+     830 #ifndef PRODUCTION
+     831         bool PIDX_DUMP = ulabel.id == PIDX && PIDX_ENABLED ;
+     832         sseq& seq = sev->current_ctx.seq ;
+
+
+
+    2940 void SEvt::finalPhoton(const spho& label)
+    2941 {
+    2942     dbg->finalPhoton++ ;
+    2943     LOG(LEVEL) << label.desc() ;
+    2944     assert( label.isSameLineage(current_pho) );
+    2945 
+    2946     int eph = label.eph();
+    2947     const char* eph_name = EPH::Name(eph);
+    2948     LOG(info) << " eph " << std::setw(2) << eph << " eph_name " << ( eph_name ? eph_name : "-" ) ;
+    2949 
+    2950     unsigned idx = label.id ;
+    2951     sctx& ctx = current_ctx ;
+    2952     assert( ctx.idx == idx );
+
+::
+
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph 11 eph_name EPH_SAVENORM
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  3 eph_name EPH_NEDEP
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  3 eph_name EPH_NEDEP
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph 11 eph_name EPH_SAVENORM
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  3 eph_name EPH_NEDEP
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  0 eph_name EPH_UNSET
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph 11 eph_name EPH_SAVENORM
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph 11 eph_name EPH_SAVENORM
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  3 eph_name EPH_NEDEP
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph 11 eph_name EPH_SAVENORM
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  0 eph_name EPH_UNSET
+    2025-06-10 16:47:13.371 INFO  [3140501] [SEvt::finalPhoton@2948]  eph  3 eph_name EPH_NEDEP
+
+
+::
+
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  4 ext  1 flg  0 eph_ EPH_NBOUND is_eph_collect NO  is_eph_cull NO  eph_flag 0 eph_flag_ .
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() AB eph_flag_   
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  3 ext  1 flg  0 eph_ EPH_NEDEP is_eph_collect NO  is_eph_cull NO  eph_flag 0 eph_flag_ .
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SA eph_flag_   
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph 10 ext  1 flg  0 eph_ EPH_SAVENORM is_eph_collect YES is_eph_cull NO  eph_flag 32768 eph_flag_ EFFICIENCY_COLLECT
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SD eph_flag_ EC
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  7 ext  1 flg  0 eph_ EPH_NDECULL is_eph_collect NO  is_eph_cull YES eph_flag 16384 eph_flag_ EFFICIENCY_CULL
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SD eph_flag_ EX
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph 10 ext  1 flg  0 eph_ EPH_SAVENORM is_eph_collect YES is_eph_cull NO  eph_flag 32768 eph_flag_ EFFICIENCY_COLLECT
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SD eph_flag_ EC
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph 10 ext  1 flg  0 eph_ EPH_SAVENORM is_eph_collect YES is_eph_cull NO  eph_flag 32768 eph_flag_ EFFICIENCY_COLLECT
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SD eph_flag_ EC
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  3 ext  1 flg  0 eph_ EPH_NEDEP is_eph_collect NO  is_eph_cull NO  eph_flag 0 eph_flag_ .
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SA eph_flag_   
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph 10 ext  1 flg  0 eph_ EPH_SAVENORM is_eph_collect YES is_eph_cull NO  eph_flag 32768 eph_flag_ EFFICIENCY_COLLECT
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SD eph_flag_ EC
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  3 ext  1 flg  0 eph_ EPH_NEDEP is_eph_collect NO  is_eph_cull NO  eph_flag 0 eph_flag_ .
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SA eph_flag_   
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton_eph_flag@3007]  gen  0 eph  3 ext  1 flg  0 eph_ EPH_NEDEP is_eph_collect NO  is_eph_cull NO  eph_flag 0 eph_flag_ .
+    2025-06-10 21:49:17.300 INFO  [4016991] [SEvt::finalPhoton@2954]  before:ctx.p.abbrev_() SA eph_flag_   
+
+
+
+DONE : pass eph_stats via U4RecorderAnaMgr to U4Recorder
+-----------------------------------------------------------------------------
+
+::
+ 
+    327 SProcessHits_EPH* junoSD_PMT_v2::getProcessHitsDebug() const
+    328 {
+    329     return m_eph_stats ;
+    330 }
+
+    (ok) A[blyth@localhost junosw]$ jgr getProcessHitsDebug
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        SProcessHits_EPH* getProcessHitsDebug() const ;  
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:SProcessHits_EPH* junoSD_PMT_v2::getProcessHitsDebug() const 
+    (ok) A[blyth@localhost junosw]$ 
+
+
+
+::
+
+     96 inline int spho::gen() const { return int(uc4.x); }
+     97 inline int spho::eph() const { return int(uc4.y); }
+     98 inline int spho::ext() const { return int(uc4.z); }
+     99 inline int spho::flg() const { return int(uc4.w); }
+
+
+
+
+DONE : ipc A:B iterate to get the EC/EX flagmask to correspond  
+----------------------------------------------------------------
+
+Currently are putting the EC EX into photon.flagmask on A side only. 
+
+* DONE: use the EPH info to do the same on the B side
+
+  * start by getting eph_stats metadata into the SEvt 
+
+* after flagmask is agreeing can move to flag 
+
+
+::
+
+    In [7]: a.fmtab[:20]
+    Out[7]: 
+    array([['TO|BT|SA', '326185'],
+
+           ['EC|TO|BT|SD', '312177'],
+
+           ['TO|BT|SR|SA', '56805'],
+           ['TO|BT|BR|SR|SA', '53334'],
+           ['TO|BT|BR|SA', '42888'],
+           ['TO|BT|BR|AB', '37716'],
+           ['EC|TO|BT|BR|SD', '21709'],
+           ['TO|BT|BR|SA|SC', '20683'],
+           ['TO|BT|BR|SC|AB', '15776'],
+           ['EC|TO|BT|BR|SD|SC', '13679'],
+           ['TO|BT|AB', '12490'],
+           ['TO|BT|BR|SR|SA|SC', '8668'],
+
+           ['EX|TO|BT|SD', '7448'],                 ## 312177 + 7448 = 319625
+
+           ['TO|BT|BR|SD', '6431'],
+           ['TO|BT|SR|AB', '5622'],
+           ['TO|BT|BR|DR|SA', '4305'],
+           ['TO|BT|SR|SA|SC', '3756'],
+           ['TO|BT|BR|SR|AB', '3594'],
+           ['TO|BT|BR|SR|DR|SA', '3313'],
+           ['TO|BT|BR|DR|SA|SC', '3167']], dtype='<U26')
+
+
+Before implementing the EC/EX from ProcessHits info::
+
+    In [8]: b.fmtab[:20]
+    Out[8]: 
+    array([['TO|BT|SA', '327349'],
+
+           ['TO|BT|SD', '319936'],             ####################### ^^^^^^
+
+           ['TO|BT|SR|SA', '56405'],
+           ['TO|BT|BR|SR|SA', '52585'],
+           ['TO|BT|BR|SA', '42904'],
+           ['TO|BT|BR|AB', '36283'],
+           ['TO|BT|BR|SD', '29433'],
+           ['TO|BT|BR|SA|SC', '21160'],
+           ['TO|BT|BR|SC|AB', '15927'],
+           ['TO|BT|BR|SD|SC', '15915'],
+           ['TO|BT|AB', '12574'],
+           ['TO|BT|BR|SR|SA|SC', '8949'],
+           ['TO|BT|SR|AB', '5599'],
+           ['TO|BT|BR|DR|SA', '4343'],
+           ['TO|BT|BR|SR|AB', '3628'],
+           ['TO|BT|SR|SA|SC', '3544'],
+           ['TO|BT|BR|SR|DR|SA', '3489'],
+           ['TO|BT|BR|DR|SA|SC', '3259'],
+           ['TO|BT|BR|SR|SD', '2971'],
+           ['TO|BT|BR|SR|SC|AB', '2883']], dtype='<U23')
+
+
+
+
+DONE : ipc onto PMT shows flagmask agreement using the ProcessHits_EPH setting of EC/EX
+-----------------------------------------------------------------------------------------
+
+::
+
+    In [1]: a.fmtab[:20]
+    Out[1]: 
+    array([['TO|BT|SA', '326185'],
+           ['EC|TO|BT|SD', '312177'],
+           ['TO|BT|SR|SA', '56805'],
+           ['TO|BT|BR|SR|SA', '53334'],
+           ['TO|BT|BR|SA', '42888'],
+           ['TO|BT|BR|AB', '37716'],
+           ['EC|TO|BT|BR|SD', '21709'],
+           ['TO|BT|BR|SA|SC', '20683'],
+           ['TO|BT|BR|SC|AB', '15776'],
+           ['EC|TO|BT|BR|SD|SC', '13679'],
+           ['TO|BT|AB', '12490'],
+           ['TO|BT|BR|SR|SA|SC', '8668'],
+           ['EX|TO|BT|SD', '7448'],
+           ['TO|BT|BR|SD', '6431'],
+           ['TO|BT|SR|AB', '5622'],
+           ['TO|BT|BR|DR|SA', '4305'],
+           ['TO|BT|SR|SA|SC', '3756'],
+           ['TO|BT|BR|SR|AB', '3594'],
+           ['TO|BT|BR|SR|DR|SA', '3313'],
+           ['TO|BT|BR|DR|SA|SC', '3167']], dtype='<U26')
+
+    In [2]: b.fmtab[:20]
+    Out[2]: 
+    array([['TO|BT|SA', '327349'],
+           ['EC|TO|BT|SD', '312604'],
+           ['TO|BT|SR|SA', '56405'],
+           ['TO|BT|BR|SR|SA', '52585'],
+           ['TO|BT|BR|SA', '42904'],
+           ['TO|BT|BR|AB', '36283'],
+           ['EC|TO|BT|BR|SD', '23149'],
+           ['TO|BT|BR|SA|SC', '21160'],
+           ['TO|BT|BR|SC|AB', '15927'],
+           ['EC|TO|BT|BR|SD|SC', '13965'],
+           ['TO|BT|AB', '12574'],
+           ['TO|BT|BR|SR|SA|SC', '8949'],
+           ['EX|TO|BT|SD', '7332'],
+           ['EX|TO|BT|BR|SD', '6284'],
+           ['TO|BT|SR|AB', '5599'],
+           ['TO|BT|BR|DR|SA', '4343'],
+           ['TO|BT|BR|SR|AB', '3628'],
+           ['TO|BT|SR|SA|SC', '3544'],
+           ['TO|BT|BR|SR|DR|SA', '3489'],
+           ['TO|BT|BR|DR|SA|SC', '3259']], dtype='<U26')
+
+
+
+MAYBE : SD scrubbing in the flagmask ?
+---------------------------------------
+
+
+
+
+WIP : Getting the EPH stats saved with the SEvt
+--------------------------------------------------
+
+::
+
+    jcv PMTSDMgr
+
+    BP=junoSD_PMT_v2::junoSD_PMT_v2 ipc run
+
+    (gdb) bt
+    #0  junoSD_PMT_v2::junoSD_PMT_v2 (this=0xa2722e0, name="PMTSDMgr", opticksMode=3) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:80
+    #1  0x00007fffbd68bdec in PMTSDMgr::getSD (this=0x6684130) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc:92
+    #2  0x00007fffbdd66514 in LSExpDetectorConstruction::getPMTSD (this=0xa231030, sd_name="PMTSDMgr") at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:1133
+    #3  0x00007fffbdd60230 in LSExpDetectorConstruction::Construct (this=0xa231030) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:283
+    #4  0x00007fffc680792e in G4RunManager::InitializeGeometry() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #5  0x00007fffc6807afc in G4RunManager::Initialize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #6  0x00007fffd485eb1b in DetSimAlg::initialize (this=0x65d2e70) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:80
+    #7  0x00007fffd0adeb56 in DleSupervisor::initialize() () from /cvmfs/juno.ihep.a
+
+    gdb) f 0
+    #0  junoSD_PMT_v2::junoSD_PMT_v2 (this=0xa2722e0, name="PMTSDMgr", opticksMode=3) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:80
+    80	    ,m_jpmt_opticks(new junoSD_PMT_v2_Opticks(this))
+    (gdb) f 1
+    #1  0x00007fffbd68bdec in PMTSDMgr::getSD (this=0x6684130) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc:92
+    92	        junoSD_PMT_v2* sd = new junoSD_PMT_v2(objName(), m_opticksMode);
+    (gdb) f 2
+    #2  0x00007fffbdd66514 in LSExpDetectorConstruction::getPMTSD (this=0xa231030, sd_name="PMTSDMgr") at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:1133
+    1133	            sd = sde->getSD();
+    (gdb) f 3
+    #3  0x00007fffbdd60230 in LSExpDetectorConstruction::Construct (this=0xa231030) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:283
+    283	      G4VSensitiveDetector* not_a_leak = getPMTSD("PMTSDMgr");
+    (gdb) f 4
+    #4  0x00007fffc680792e in G4RunManager::InitializeGeometry() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    (gdb) 
+
+
+
+
