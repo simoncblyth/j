@@ -77,11 +77,15 @@ cd $(dirname $(realpath $BASH_SOURCE))
 anascript=$(realpath InputPhotonsCheck.py)
 
 defarg="env_info_run_ls_chi2_pdb"
+[ -n "$BP" ] && defarg="env_info_run_ls"
+
 arg=${1:-$defarg}
 
 if [ "${arg/env}" != "$arg" ]; then
 
     ## see A:~/.bashrc oj_build + oj_local
+
+    ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
     source /home/blyth/junosw/InstallArea/envset.sh
     #PYTHONPATH=/data1/blyth/local/opticks_Debug/py:$PYTHONPATH
     export VIP_DESC="local OJ /home/blyth/junosw/InstallArea/envset.sh with release opticks python overridden"
@@ -89,6 +93,9 @@ if [ "${arg/env}" != "$arg" ]; then
     export CUDA_VISIBLE_DEVICES=0
     export OPTICKS_MAX_SLOT=M5
     export OPTICKS_EVENT_MODE=DebugLite
+    export OPTICKS_HIT_MASK=EC   ## EC:EFFICIENCY_COLLECT / SD:SURFACE_DETECT
+
+    export EVTMAX=10
 
     #opticks_integration_mode=0    ## added geometry convertion with zero in G4CXOpticks::SetGeometry_JUNO
     #opticks_integration_mode=1
@@ -201,7 +208,7 @@ if [ "${arg/run}" != "$arg" ]; then
             --no-anamgr-interesting-process \
             --no-anamgr-optical-parameter \
             --no-anamgr-timer \
-            --evtmax 1 \
+            --evtmax $EVTMAX \
             --seed 42 \
             opticks
 
@@ -213,7 +220,7 @@ if [ "${arg/run}" != "$arg" ]; then
             $(which python) \
             $(which tut_detsim.py) \
             --opticks-mode $OPTICKS_INTEGRATION_MODE \
-            --evtmax 1 \
+            --evtmax $EVTMAX \
             --seed 42 \
             opticks
 

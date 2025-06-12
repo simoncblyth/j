@@ -3397,6 +3397,7 @@ jcv junoSD_PMT_v2
 
 jcv junoSD_PMT_v2_Debug
 
+jcv U4RecorderAnaMgr
 
 EOC
 }

@@ -4,7 +4,9 @@ efficiency_review
 Summary
 -----------
 
-Missing CE scaledown of hits. 
+* FIXED : Missing CE scaledown of hits on GPU
+* next :doc:`hitCollection`
+
 
 
 LSExpDetectorConstruction_Opticks::Setup gets PMT data from PMTParamData and PMTSimParamData that are serialized into jpmt
@@ -2347,5 +2349,968 @@ WIP : Getting the EPH stats saved with the SEvt
     (gdb) 
 
 
+
+Doing this from::
+
+    jcv U4RecorderAnaMgr
+
+    049 void U4RecorderAnaMgr::EndOfEventAction(const G4Event* evt)
+     50 {
+     51     junoSD_PMT_v2_Opticks* jpmt_ok = junoSD_PMT_v2_Opticks::Get();
+     52     SProcessHits_EPH* eph_stats = jpmt_ok ? jpmt_ok->getProcessHits_EPH() : nullptr ;
+     53     NP* eph_meta = eph_stats ? eph_stats->get_meta_array() : nullptr ;
+     54     std::cout
+     55         << "U4RecorderAnaMgr::EndOfEventAction"
+     56         << " eph_meta "  << ( eph_meta  ? eph_meta->sstr() : "-"   ) << "\n"
+     57         << " eph_stats " << ( eph_stats ? "YES"            : "NO " ) << "\n"
+     58         << ( eph_stats ? eph_stats->desc() : "" )
+     59         << "\n"
+     60         ;
+     61     
+     62     if(eph_meta) m_recorder->addProcessHits_EPH(eph_meta);
+     63 }
+
+
+Problem is thats called after the SEvt::save.
+
+
+
+junoSD_PMT_v2::EndOfEvent
+----------------------------
+
+That "hitCollection 742977" looks too much::
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 742977 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4RecorderAnaMgr::EndOfEventAction eph_meta (1, )
+     eph_stats YES
+    SProcessHits_EPH::desc
+     ProcessHits_count   2542310
+     ProcessHits_true     363159
+     ProcessHits_false   2179151
+     SaveNormHit_count    363159
+     SaveMuonHit_count         0
+               EPH_UNSET       0
+                EPH_NDIS       0
+                EPH_NOPT       0
+               EPH_NEDEP 2156552
+              EPH_NBOUND    5153
+               EPH_NPROC       0
+             EPH_NDETECT       0
+             EPH_NDECULL   17446
+              EPH_YMERGE       0
+               EPH_YSAVE       0
+            EPH_SAVENORM  363159
+            EPH_SAVEMUON       0
+
+
+::
+
+    363159 + 363159*1.2 = 798949.8
+
+    In [1]: 363159 + 363159*1.2
+    Out[1]: 798949.8
+
+    In [2]: 742977/363159
+    Out[2]: 2.0458724690837897
+
+
+
+Added some stats collection : shows that are adding both CPU and GPU hits into the collection in mode 3
+----------------------------------------------------------------------------------------------------------
+
+
+export OPTICKS_HIT_MASK=SD  ## current default
+--------------------------------------------------
+
+::
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 742977 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4RecorderAnaMgr::EndOfEventAction eph_meta (1, )
+     eph_stats YES
+    SProcessHits_EPH::desc
+                 ProcessHits_count 2542310
+                  ProcessHits_true  363159
+                 ProcessHits_false 2179151
+                 SaveNormHit_count  363159
+                 SaveMuonHit_count       0
+                         EPH_UNSET       0
+                          EPH_NDIS       0
+                          EPH_NOPT       0
+                         EPH_NEDEP 2156552
+                        EPH_NBOUND    5153
+                         EPH_NPROC       0
+                       EPH_NDETECT       0
+                       EPH_NDECULL   17446
+                        EPH_YMERGE       0
+                         EPH_YSAVE       0
+                      EPH_SAVENORM  363159
+                      EPH_SAVEMUON       0
+         EndOfEvent_Simulate_count       1
+      EndOfEvent_Simulate_EGPU_hit  379818
+    EndOfEvent_hitCollection_entries0  363159
+    EndOfEvent_hitCollection_entries1  742977
+
+
+    In [2]: 363159 + 379818
+    Out[2]: 742977
+
+    In [3]: 379818/363159
+    Out[3]: 1.0458724690837897
+
+
+
+export OPTICKS_HIT_MASK=EC
+----------------------------
+
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 723521 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+    U4RecorderAnaMgr::EndOfEventAction eph_meta (1, )
+     eph_stats YES
+    SProcessHits_EPH::desc
+                 ProcessHits_count 2542310
+                  ProcessHits_true  363159
+                 ProcessHits_false 2179151
+                 SaveNormHit_count  363159
+                 SaveMuonHit_count       0
+                         EPH_UNSET       0
+                          EPH_NDIS       0
+                          EPH_NOPT       0
+                         EPH_NEDEP 2156552
+                        EPH_NBOUND    5153
+                         EPH_NPROC       0
+                       EPH_NDETECT       0
+                       EPH_NDECULL   17446
+                        EPH_YMERGE       0
+                         EPH_YSAVE       0
+                      EPH_SAVENORM  363159
+                      EPH_SAVEMUON       0
+         EndOfEvent_Simulate_count       1
+      EndOfEvent_Simulate_EGPU_hit  360362
+    EndOfEvent_hitCollection_entries0  363159
+    EndOfEvent_hitCollection_entries1  723521
+
+
+::
+
+    ----- repr(abh) 
+
+
+    SABHit  a_nhit : (  360362 +-  600 )  b_nhit:(   363159 +-  602 )  a/b: (  0.992 +-  0.003 )  b/a: (  1.008 +-  0.003)  [assume uncorr.]
+
+
+    ]----- repr(abh) 
+
+
+
+HUH : MOVING FROM U4RecorderAnaMgr TO  junoSD_PMT_v2_Opticks MAKES EndOfEvent_hitCollection_entries1 GO TO ZERO ? 
+--------------------------------------------------------------------------------------------------------------------
+
+* PILOT error the save happened before the count 
+
+::
+
+    junoSD_PMT_v2_Opticks::EndOfEvent_Simulate_recordStats eventID 0 recorder YES eph_meta (1, )
+    SProcessHits_EPH::desc
+                 ProcessHits_count 2542310
+                  ProcessHits_true  363159
+                 ProcessHits_false 2179151
+                 SaveNormHit_count  363159
+                 SaveMuonHit_count       0
+                         EPH_UNSET       0
+                          EPH_NDIS       0
+                          EPH_NOPT       0
+                         EPH_NEDEP 2156552
+                        EPH_NBOUND    5153
+                         EPH_NPROC       0
+                       EPH_NDETECT       0
+                       EPH_NDECULL   17446
+                        EPH_YMERGE       0
+                         EPH_YSAVE       0
+                      EPH_SAVENORM  363159
+                      EPH_SAVEMUON       0
+        Initialize_G4HCofThisEvent       1
+       EndOfEvent_Simulate_eventID       0
+         EndOfEvent_Simulate_count       1
+      EndOfEvent_Simulate_EGPU_hit  360362
+    EndOfEvent_hitCollection_entries0  363159
+    EndOfEvent_hitCollection_entries1       0    ## HUH : WHY THIS GONE TO ZERO ? 
+    EndOfEvent_Simulate_merged_count       0
+    EndOfEvent_Simulate_savehit_count  360362
+    EndOfEvent_Simulate_merged_total       0
+    EndOfEvent_Simulate_savehit_total  360362
+
+
+
+
+
+How does collection clearing happen between events ? 
+-----------------------------------------------------
+
+::
+
+    81         void setMerger(PMTHitMerger* phm) { m_pmthitmerger=phm; }
+
+    (ok) A[blyth@localhost g4cx]$ jgr setMerger
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        void setMerger(PMTHitMerger* phm) { m_pmthitmerger=phm; }
+    ./Simulation/DetSimV2/PMTSim/src/PMTSDMgr.cc:        sd->setMerger(pmthitmerger);
+    (ok) A[blyth@localhost junosw]$ 
+
+
+::
+
+    011 class PMTSDMgr: public ISensitiveDetectorElement,
+     12                 public ToolBase {
+     13 public:
+     14     PMTSDMgr(const std::string& name);
+     15     ~PMTSDMgr();
+     16 
+     17     // can only call once
+     18     virtual G4VSensitiveDetector* getSD();
+     19     // return the Hit Merger;
+     20     PMTHitMerger* getPMTMerger() { return m_pmthitmerger; }
+     21     IPMTParamSvc* gerPMTParSvc(){ return m_pmt_param_svc;}
+     22     IPMTSimParamSvc* getPMTSimParamSvc() {return m_pmt_sim_param_svc; }
+     23 private:
+
+
+
+     91     } else if (m_pmt_sd == "junoSD_PMT_v2") {
+     92         junoSD_PMT_v2* sd = new junoSD_PMT_v2(objName(), m_opticksMode);
+     93         // As a merger is attached to a specific SD, so also create new merger for the new SD.
+     94         PMTHitMerger* pmthitmerger = new PMTHitMerger();
+     95 
+     96         if (m_pmthitmerger) {
+     97             G4cout << "WARNING: PMTSDMgr::m_pmthitmerger already exists." << G4endl;
+     98         }
+     99 
+    100         m_pmthitmerger = pmthitmerger;
+    101 
+    102         sd->setCEMode(m_ce_mode);
+    103         // if flat mode
+    104         sd->setCEFlatValue(m_ce_flat_value);
+    105         // func mode
+    106         sd->setCEFunc(m_ce_func, m_ce_func_params);
+    107         sd->setMergeFlag(m_merge_flag);
+    108         sd->setMergeWindows(m_time_window);
+    109         sd->setMerger(pmthitmerger);
+    110         sd->setPMTParamSvc(m_pmt_param_svc);
+    111         sd->setPMTSimParamSvc(m_pmt_sim_param_svc);
+    112         sd->setHitType(m_hit_type);
+    113         //use pmt sim svc
+    114         sd->setUsePmtSimSvc(m_use_pmtsimsvc);
+    115         // configure the merger
+    116         pmthitmerger->setMergeFlag(m_merge_flag);
+    117         pmthitmerger->setTimeWindow(m_time_window);
+    118 
+
+
+jcv JCV
+---------
+
+::
+
+    jcv PMTHitMerger
+    jcv U4RecorderAnaMgr
+    jcv PMTSDMgr          ## where SD and merger created
+    jcv junoHit_PMT       ## collection typedef   junoHit_PMT_Collection : G4THitsCollection<junoHit_PMT>
+
+    jcv junoSD_PMT_v2
+    jcv junoSD_PMT_v2_Opticks
+  
+    jcv U4RecorderAnaMgr junoSD_PMT_v2 junoSD_PMT_v2_Opticks
+
+
+How to handle GPU and CPU hits in mode 3/2/1/0 ?  
+--------------------------------------------------
+
+* https://geant4.kek.jp/lxr/search?string=collectionName
+* https://geant4.kek.jp/lxr/source/digits_hits/detector/include/G4CollectionNameVector.hh
+
+::
+
+     37 class G4CollectionNameVector : public std::vector<G4String>
+     38 {
+     39  public:
+     40   G4CollectionNameVector() {}
+     41   virtual ~G4CollectionNameVector() {}
+     42 
+     43   void insert(const G4String& str) { push_back(str); }
+     44 };
+     45 
+
+
+
+How is merger connected to collection ? It saves to one associated collection
+--------------------------------------------------------------------------------
+
+* junoSD_PMT_v2::Initialize associates merger to collection controlled by m_hit_type 
+
+* HMM: in mode 1 or mode 2 there is no problem with current approach of GPU, CPU
+  hits going to "hitCollection"
+
+* in mode 3 currently both GPU and CPU hits go to "hitCollection" doubling up
+ 
+  * in mode 3 need to collect into "hitCollection" and "hitCollection_alt"
+    
+
+
+::
+
+    BP=PMTHitMerger::init ipc 
+
+::
+
+    (gdb) bt
+    #0  PMTHitMerger::init (this=0xa67fac0, hitcol=0xf33c08c0) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/PMTHitMerger.cc:128
+    #1  0x00007fffbd6f28b6 in junoSD_PMT_v2::Initialize (this=0xa272600, HCE=0xf33c0420) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:194
+    #2  0x00007fffc4d71cfa in G4SDStructure::Initialize(G4HCofThisEvent*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #3  0x00007fffc4d6f6bc in G4SDManager::PrepareNewEvent() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #4  0x00007fffc676b289 in G4EventManager::DoProcessing(G4Event*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #5  0x00007fffe1a6c68e in G4SvcRunManager::SimulateEvent (this=0x65dea00, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+
+
+
+     168 void junoSD_PMT_v2::Initialize(G4HCofThisEvent *HCE)
+     169 {
+     170     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
+     171     m_eventID = event->GetEventID() ;
+     172 
+     173     m_merge_count = 0 ;
+     174     if (m_debug) {
+     175         G4cout << "junoSD_PMT_v2::Initialize eventID " << m_eventID << G4endl;
+     176     }
+     177     hitCollection = new junoHit_PMT_Collection(SensitiveDetectorName,collectionName[0]);
+     178     hitCollection_muon = new junoHit_PMT_muon_Collection(SensitiveDetectorName,collectionName[1]);
+     179 
+     180     // changed from a static variable to a normal variable by Jillings, August 2, 2006
+     181     int HCID = -1;
+     182     if(HCID<0) HCID = G4SDManager::GetSDMpointer()->GetCollectionID(hitCollection);
+     183     HCE->AddHitsCollection( HCID, hitCollection );
+     184 
+     185     HCID = -1;
+     186     if(HCID<0) HCID = G4SDManager::GetSDMpointer()->GetCollectionID(hitCollection_muon);
+     187     HCE->AddHitsCollection( HCID, hitCollection_muon );
+     188 
+     189     m_pmtid2idincol.clear();
+     190     assert( m_pmtid2idincol.size() == 0 );
+     191 
+     192     if (m_pmthitmerger) {
+     193         if (m_hit_type == 1) {
+     194             m_pmthitmerger->init(hitCollection);
+     195         } else if (m_hit_type == 2) {
+     196             // TODO
+     197             m_pmthitmerger->init(hitCollection_muon);
+     198         } else {
+     199             G4cout << "unknown hit type [" << m_hit_type << "]" << G4endl;
+     200         }
+     201     }
+     202     // make sure the PMT merger exists.
+     203     assert(m_pmthitmerger);
+     204 
+     205 
+     206 #ifdef WITH_G4CXOPTICKS
+     207     m_jpmt_opticks->Initialize(HCE, m_eventID);
+     208 #endif
+     209 #ifdef WITH_G4CXOPTICKS_EPH
+     210     m_eph_stats->Initialize_G4HCofThisEvent += 1 ;
+     211 #endif
+     212 
+     213 
+     214 }
+
+
+
+
+
+
+    125 bool
+    126 PMTHitMerger::init(junoHit_PMT_Collection* hitcol) {
+    127 
+    128   assert(m_time_window > 0);
+    129 
+    130   // during event begin, retrieve the hit collection
+    131   hitCollection = hitcol;
+    132 
+    133   // clear all vectors but saving pmts number
+    134 
+    135   std::map<int, std::vector<junoHit_PMT*> >::iterator pmt = m_PMThit.begin();
+    136   for ( ; pmt != m_PMThit.end(); ++pmt) pmt->second.clear();
+    137 
+    138   return true;
+    139 }
+
+
+     79 bool
+     80 PMTHitMerger::saveHit(junoHit_PMT* hit_photon) {
+     81   if (not hasNormalHitType()) {
+     82     std::cerr << "WARN: PMTHitMerger don't use normal hit type, however a normal hit is inserted."
+     83           << std::endl;
+     84     return false;
+     85   }
+     86 
+     87   if (m_merge_flag) {
+     88     int pmtid = hit_photon->GetPMTID();
+     89     std::map<int, std::vector<junoHit_PMT*> >::iterator pmt = m_PMThit.find(pmtid);
+     90     if (pmt == m_PMThit.end()) {
+     91       m_PMThit[pmtid].clear();
+     92       m_PMThit[pmtid].push_back(hit_photon);
+     93     }
+     94     else pmt->second.push_back(hit_photon);
+     95   }
+     96   hitCollection->insert(hit_photon);
+     97 
+     98   return true;
+     99 }
+
+
+
+* Where is the bulk hit collection::
+
+    248 void junoSD_PMT_v2_Opticks::collectHit(const U4Hit* hit, const U4HitExtra* hit_extra, int& merged_count, int& savehit_count )
+    249 {
+    250     bool merged = m_merger->getMergeFlag() ? m_merger->doMerge(hit->sensor_identifier, hit->time) : false ;
+    251     if(merged)
+    252     {
+    253         merged_count += 1 ;
+    254     }
+    255     else
+    256     {
+    257         junoHit_PMT* hit_photon = convertHit(hit, hit_extra );
+    258         savehit_count += 1 ;
+    259         m_merger->saveHit(hit_photon);
+    260     }
+    261 }
+
+
+
+ 
+
+HMM : DONT RELY ON --opticks-anamgr U4RecorderAnaMgr
+------------------------------------------------------
+
+
+
+Where do hits get deleted ?  By deletion of G4HCofThisEvent by G4Event 
+-----------------------------------------------------------------------
+
+::
+
+    BP="junoHit_PMT::operator delete" ipc
+
+    gdb) bt
+    #0  junoHit_PMT::operator delete (aHit=0x675bbb0) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/include/junoHit_PMT.hh:163
+    #1  0x00007fffbd6dcb62 in junoHit_PMT::~junoHit_PMT (this=0x675bbb0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/junoHit_PMT.cc:32
+    #2  0x00007fffbd6f10aa in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xf33bda50, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:165
+    #3  0x00007fffbd6f111c in G4THitsCollection<junoHit_PMT>::~G4THitsCollection (this=0xf33bda50, __in_chrg=<optimized out>)
+        at /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/include/Geant4/G4THitsCollection.hh:168
+    #4  0x00007fffc4d7b0fb in G4HCofThisEvent::~G4HCofThisEvent() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4digits_hits.so
+    #5  0x00007fffc676a0d3 in G4Event::~G4Event() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #6  0x00007fffc68096b8 in G4RunManager::StackPreviousEvent(G4Event*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #7  0x00007fffe1a6c6db in G4SvcRunManager::SimulateEvent (this=0x65ab4a0, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:32
+    #8  0x00007fffd485ed3e in DetSimAlg::execute (this=0x6610b40) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+    #9  0x00007fffd0af44b1 in Task::execute() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #10 0x00007fffd0af8bbd in TaskWatchDog::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #11 0x00007fffd0af4054 in Task::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+    gdb) f 7
+    #7  0x00007fffe1a6c6db in G4SvcRunManager::SimulateEvent (this=0x65ab4a0, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:32
+    32	    StackPreviousEvent(currentEvent);
+    (gdb) list
+    27	bool G4SvcRunManager::SimulateEvent(int i_event) {
+    28	    currentEvent = GenerateEvent(i_event);
+    29	    eventManager->ProcessOneEvent(currentEvent);
+    30	    AnalyzeEvent(currentEvent);
+    31	    UpdateScoring();
+    32	    StackPreviousEvent(currentEvent);
+    33	    currentEvent = 0;
+    34	
+    35	    if(runAborted) return false;
+    36	    return true;
+    (gdb) 
+
+
+
+
+junoHit_PMT_Collection : G4THitsCollection<junoHit_PMT> wants to be deleted
+----------------------------------------------------------------------------------
+
+
+::
+
+    A[blyth@localhost junosw]$ jgr junoHit_PMT_Collection
+    ./Simulation/DetSimV2/AnalysisCode/src/DataModelWriter.cc:    junoHit_PMT_Collection* col = 0;
+    ./Simulation/DetSimV2/AnalysisCode/src/DataModelWriter.cc:        col = (junoHit_PMT_Collection*)(HCE->GetHC(CollID));
+    ./Simulation/DetSimV2/AnalysisCode/src/DataModelWriterWithSplit.cc:    junoHit_PMT_Collection* col = (junoHit_PMT_Collection*)(HCE->GetHC(CollID));
+    ./Simulation/DetSimV2/AnalysisCode/src/DataModelWriterWithSplit.cc:    junoHit_PMT_Collection* col = (junoHit_PMT_Collection*)(HCE->GetHC(CollID));
+    ./Simulation/DetSimV2/AnalysisCode/src/MuonToySim.cc:    junoHit_PMT_Collection* col = (junoHit_PMT_Collection*)(HCE->GetHC(CollID));
+    ./Simulation/DetSimV2/AnalysisCode/src/NormalAnaMgr.cc:    junoHit_PMT_Collection* col = 0;
+    ./Simulation/DetSimV2/AnalysisCode/src/NormalAnaMgr.cc:        col = (junoHit_PMT_Collection*)(HCE->GetHC(CollID));
+    ./Simulation/DetSimV2/PMTSim/include/PMTHitMerger.hh:    bool init(junoHit_PMT_Collection* hitcol);
+    ./Simulation/DetSimV2/PMTSim/include/PMTHitMerger.hh:  junoHit_PMT_Collection* hitCollection;
+    ./Simulation/DetSimV2/PMTSim/include/junoHit_PMT.hh:// junoHit_PMT_Collection is a vector of hits
+    ./Simulation/DetSimV2/PMTSim/include/junoHit_PMT.hh:typedef G4THitsCollection<junoHit_PMT> junoHit_PMT_Collection;
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT.hh:    junoHit_PMT_Collection* hitCollection;
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        junoHit_PMT_Collection*      getHitCollection(){      return hitCollection ; }
+    ./Simulation/DetSimV2/PMTSim/include/junoSD_PMT_v2.hh:        junoHit_PMT_Collection* hitCollection;
+    ./Simulation/DetSimV2/PMTSim/src/PMTHitMerger.cc:PMTHitMerger::init(junoHit_PMT_Collection* hitcol) {
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT.cc:  hitCollection = new junoHit_PMT_Collection(SensitiveDetectorName,collectionName[0]);
+    ./Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:    hitCollection = new junoHit_PMT_Collection(SensitiveDetectorName,collectionName[0]);
+    A[blyth@localhost junosw]$ 
+
+
+::
+
+    146 // junoHit_PMT_Collection is a vector of hits
+    147 typedef G4THitsCollection<junoHit_PMT> junoHit_PMT_Collection;
+
+
+
+* https://apc.u-paris.fr/~franco/g4doxy/html/classG4THitsCollection.html
+
+
+
+
+NEED control for opticksMode:3 to pick between GPU and CPU hits  
+----------------------------------------------------------------
+
+HMM : I thought that was there previously. 
+
+
+
+HCE : Initialize CALL ORDER 
+-----------------------------
+
+::
+
+    0175 void junoSD_PMT_v2::Initialize(G4HCofThisEvent *HCE)
+     176 {
+     177     const G4Event* event = G4RunManager::GetRunManager()->GetCurrentEvent() ;
+     178     m_eventID = event->GetEventID() ;
+     179 
+     180     m_merge_count = 0 ;
+     181     if (m_debug) {
+     182         G4cout << "junoSD_PMT_v2::Initialize eventID " << m_eventID << G4endl;
+     183     }
+     184     hitCollection = new junoHit_PMT_Collection(SensitiveDetectorName,collectionName[0]);
+     185     hitCollection_muon = new junoHit_PMT_muon_Collection(SensitiveDetectorName,collectionName[1]);
+     186 
+     187     // changed from a static variable to a normal variable by Jillings, August 2, 2006
+     188     int HCID = -1;
+     189     if(HCID<0) HCID = G4SDManager::GetSDMpointer()->GetCollectionID(hitCollection);
+     190     HCE->AddHitsCollection( HCID, hitCollection );
+     191 
+     192     HCID = -1;
+     193     if(HCID<0) HCID = G4SDManager::GetSDMpointer()->GetCollectionID(hitCollection_muon);
+     194     HCE->AddHitsCollection( HCID, hitCollection_muon );
+     195 
+     196     m_pmtid2idincol.clear();
+     197     assert( m_pmtid2idincol.size() == 0 );
+     198 
+     199     if (m_pmthitmerger) {
+     200         if (m_hit_type == 1) {
+     201             m_pmthitmerger->init(hitCollection);
+     202         } else if (m_hit_type == 2) {
+     203             // TODO
+     204             m_pmthitmerger->init(hitCollection_muon);
+     205         } else {
+     206             G4cout << "unknown hit type [" << m_hit_type << "]" << G4endl;
+     207         }
+     208     }
+     209     // make sure the PMT merger exists.
+     210     assert(m_pmthitmerger);
+     211 
+     212 
+     213 #ifdef WITH_G4CXOPTICKS
+     214     m_jpmt_opticks->Initialize(HCE, m_eventID);
+     215 #endif
+     216 
+     217 }
+
+
+    115 void junoSD_PMT_v2_Opticks::Initialize(G4HCofThisEvent* /*HCE*/, G4int eventID)
+    116 {
+    117     G4CXOpticks* gx = G4CXOpticks::Get() ;
+    118     gx->SensitiveDetector_Initialize(eventID) ;
+    119 
+    120     //if( (m_opticksMode == 0) or (m_opticksMode == 1) ) SEvt::Get_ECPU()->beginOfEvent(eventID);
+    121 
+    122     LOG(LEVEL)
+    123         << " opticksMode " << m_opticksMode
+    124         << " eventID " << eventID
+    125         << " LEVEL " << LEVEL << ":" << plog::severityToString(LEVEL)
+    126         ;
+    127 }
+
+    609 void G4CXOpticks::SensitiveDetector_Initialize(int eventID)
+    610 {
+    611     LOG(LEVEL) << " eventID " << eventID ;
+    612     U4Recorder* recorder = U4Recorder::Get();
+    613     if(recorder)
+    614     {
+    615         recorder->BeginOfEventAction_(eventID);
+    616     }
+    617 }
+
+
+     345 void U4Recorder::BeginOfEventAction(const G4Event*)
+     346 {
+     347     LOG(fatal) << "CHANGE TO U4Recorder::BeginOfEventAction_ : see G4CXOpticks::SensitiveDetector_EndOfEvent " ;
+     348     assert(0);
+     349 }
+
+     357 void U4Recorder::BeginOfEventAction_(int eventID_)
+     358 {
+     359     eventID = eventID_ ;
+     360     LOG(info) << " eventID " << eventID ;
+     361     LOG_IF(info, SEvt::LIFECYCLE ) << " eventID " << eventID ;
+     362     sev->beginOfEvent(eventID);
+     363 }
+
+
+    1556 void SEvt::beginOfEvent(int eventID)
+    1557 {
+    1558     if(isFirstEvtInstance() && eventID == 0) BeginOfRun() ;
+    1559     if(eventID == 0) SetRunProf( isEGPU() ? "SEvt__beginOfEvent_FIRST_EGPU" : "SEvt__beginOfEvent_FIRST_ECPU" ) ;
+    1560 
+    1561     setStage(SEvt__beginOfEvent);
+    1562     sprof::Stamp(p_SEvt__beginOfEvent_0);
+    1563 
+    1564     LOG(LEVEL) << " eventID " << eventID ;   // 0-based
+    1565     setIndex(eventID);
+    1566 
+    1567 
+    1568     LOG_IF(info, LIFECYCLE) << id() ;
+    1569 
+    1570     clear_output();   // output vectors and fold : excluding gensteps as thats input
+    1571 
+    1572     addInputGenstep();  // does genstep setup for simtrace, input photon and torch running
+    1573 
+    1574     setMeta<int>("NumPhotonCollected", numphoton_collected );
+    1575     setMeta<int>("NumGenstepCollected", numgenstep_collected );
+    1576     setMeta<int>("MaxBounce", evt->max_bounce );
+    1577 
+    1578     LOG_IF(info, LIFECYCLE)
+    1579         << " NumPhotonCollected " << numphoton_collected
+    1580         << " NumGenstepCollected " << numgenstep_collected
+    1581         << " MaxBounce " << evt->max_bounce
+    1582         ;
+    1583 
+    1584     sprof::Stamp(p_SEvt__beginOfEvent_1);
+    1585 }
+
+
+
+
+HCE : EndOfEvent CALL ORDER 
+-----------------------------
+
+
+::
+
+    1080 void junoSD_PMT_v2::EndOfEvent(G4HCofThisEvent* HCE)
+    1081 {
+    1082 #ifdef WITH_G4CXOPTICKS
+    1083     m_jpmt_opticks->EndOfEvent(HCE, m_eventID );
+    1084 #endif
+    1085     G4cout << "junoSD_PMT_v2::EndOfEvent" << desc() << G4endl ;
+    1086 }
+
+
+    147 void junoSD_PMT_v2_Opticks::EndOfEvent(G4HCofThisEvent*, int eventID )
+    148 {
+    149     G4CXOpticks* gx = G4CXOpticks::Get() ;
+    150     gx->SensitiveDetector_EndOfEvent(eventID) ;
+    151     
+    152     if(m_merger == nullptr) m_merger = m_jpmt->getMerger();
+    153 
+    154     LOG(LEVEL) << "[ " << m_jpmt->desc() ;
+    155 
+    156     LOG(LEVEL) << std::endl << m_jpmt->descHitCollection() ;
+    157 
+    158     
+    159     if(m_gpu_simulation)
+    160     {
+    161         EndOfEvent_Simulate(eventID) ;
+    162     }
+    163 
+    164     LOG(LEVEL) << "] " << m_jpmt->desc() ;
+    165 }
+
+
+    669 void G4CXOpticks::SensitiveDetector_EndOfEvent(int eventID)
+    670 {
+    671     LOG(LEVEL) << " eventID " << eventID ;
+    672     U4Recorder* recorder = U4Recorder::Get();
+    673     if(recorder)
+    674     {
+    675         recorder->EndOfEventAction_(eventID);
+    676     }
+    677 }
+
+
+    0374 void U4Recorder::EndOfEventAction_(int eventID_)
+     375 {
+     376     assert( eventID == eventID_ );
+     377     LOG_IF(info, SEvt::LIFECYCLE ) << " eventID " << eventID ;
+     378 
+     379     #if defined(WITH_PMTSIM) && defined(POM_DEBUG)
+     380         NP* mtda = PMTSim::ModelTrigger_Debug_Array();
+     381         std::string name = mtda->get_meta<std::string>("NAME", "MTDA.npy") ;
+     382         sev->add_array( name.c_str(), mtda );
+     383     #else
+     384         LOG(LEVEL) << "not-(WITH_PMTSIM and POM_DEBUG)"  ;
+     385     #endif
+     386 
+     387 
+     388     // adding to extrafold
+     389     sev->add_array("TRS.npy", U4VolumeMaker::GetTransforms() );
+     390     sev->add_array("U4R.npy", MakeMetaArray() );
+     391     sev->addEventConfigArray();
+     392 
+     393     sev->gather() ;             // now gathers into fold, separate from topfold
+     394 
+     395     // ~/j/issues/jok-tds-B-side-missing-NPFold-concat.rst
+     396     sev->topfold->concat();         // in this trivial one fold case just copies pointers and arranges skipdelete on fold arrays
+     397     sev->topfold->clear_subfold();
+     398 
+     399     sev->endOfEvent(eventID_);  // does save and clear
+     400 
+     401     const char* savedir = sev->getSaveDir() ;
+     402     LOG(LEVEL) << " savedir " << ( savedir ? savedir : "-" );
+     403     SaveMeta(savedir);
+     404 }
+
+
+    177 void junoSD_PMT_v2_Opticks::EndOfEvent_Simulate(int eventID )
+    178 {
+    179     G4CXOpticks* gx = G4CXOpticks::Get() ;
+    180 
+    181     bool reset_ = false ;
+    182     gx->simulate(eventID, reset_ ) ;
+    183 
+    184     assert( m_merger );
+    185 
+    186     std::stringstream ss ;
+    187     unsigned num_hit = SEvt::GetNumHit_EGPU() ;
+    188     LOG(LEVEL)
+    189         << "[ eventID " << eventID
+    190         << " " << gx->descSimulate()
+    191         << " num_hit " << num_hit
+    192         ;
+    193 
+    194     int merged_count(0);
+    195     int savehit_count(0);
+    196     bool way_enabled = false ;
+    197 
+    198     U4Hit hit ;
+    199     U4HitExtra hit_extra ;
+    200     U4HitExtra* hit_extra_ptr = way_enabled ? &hit_extra : nullptr ;
+    201     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    202     {
+    203         U4HitGet::FromEvt_EGPU(hit, idx);
+    204         collectHit(&hit, hit_extra_ptr, merged_count, savehit_count );
+    205         if(idx < 20 && LEVEL == info) ss << descHit(idx, &hit, hit_extra_ptr ) << std::endl ;
+    206     }
+    207     LOG_IF(LEVEL, LEVEL == info) << std::endl << ss.str() ;
+    208     LOG(LEVEL)
+    209         << "]"
+    210         << " num_hit " << num_hit
+    211         << ( merged_count > 0 ? " MERGED " : "" )
+    212         << " merged_count  " << merged_count 
+    213         << " savehit_count  " << savehit_count
+    214         << " m_merged_total " << m_merged_total
+    215         << " m_savehit_total " << m_savehit_total
+    216         << " m_opticksMode " << m_opticksMode
+    217         ;
+    218 
+    219     m_merged_total += merged_count ;
+    220     m_savehit_total += savehit_count ;
+    221     
+    222     gx->reset(eventID) ;
+    223 }
+
+
+
+
+
+FIXED : directory of extra is messed up
+-----------------------------------------
+
+::
+
+    A[blyth@localhost ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8]$ cd B000/
+    A[blyth@localhost B000]$ l
+    total 12
+    0 drwxr-xr-x. 2 blyth blyth 125 Jun 11 10:12 .
+    4 -rw-r--r--. 1 blyth blyth 245 Jun 11 10:12 SProcessHits_EPH_meta.txt
+    4 -rw-r--r--. 1 blyth blyth 130 Jun 11 10:12 SProcessHits_EPH_names.txt
+    4 -rw-r--r--. 1 blyth blyth 132 Jun 11 10:12 SProcessHits_EPH.npy
+    0 drwxr-xr-x. 3 blyth blyth  18 Jun 11 09:59 ..
+    0 -rw-r--r--. 1 blyth blyth   0 Jun 11 09:59 SProcessHits_EPH
+    A[blyth@localhost B000]$ cat SProcessHits_EPH_names.txt
+    EPH_UNSET
+    EPH_NDIS
+    EPH_NOPT
+    EPH_NEDEP
+    EPH_NBOUND
+    EPH_NPROC
+    EPH_NDETECT
+    EPH_NDECULL
+    EPH_YMERGE
+    EPH_YSAVE
+    EPH_SAVENORM
+    EPH_SAVEMUON
+    A[blyth@localhost B000]$ cat SProcessHits_EPH_meta.txt
+    ProcessHits_count:2542310
+    ProcessHits_true:363159
+    ProcessHits_false:2179151
+    SaveNormHit_count:363159
+    SaveMuonHit_count:0
+    UNSET:0
+    NDIS:0
+    NOPT:0
+    NEDEP:2156552
+    NBOUND:5153
+    NPROC:0
+    NDETECT:0
+    NDECULL:17446
+    YMERGE:0
+    YSAVE:0
+    SAVENORM:363159
+    SAVEMUON:0
+    A[blyth@localhost B000]$ pwd
+    /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8/B000/ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8/B000
+    A[blyth@localhost B000]$ pwd
+    /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8/B000/ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8/B000
+    A[blyth@localhost B000]$ 
+
+
+
+
+
+call order complications may have been stepped on by changes to U4RecorderAnaMgr
+----------------------------------------------------------------------------------
+
+::
+
+    620 /**
+    621 G4CXOpticks::SensitiveDetector_EndOfEvent
+    622 -------------------------------------------
+    623 
+    624 Optional lifecycle method intended to be called from Geant4 integration
+    625 G4VSensitiveDetector::EndOfEvent
+    626 
+    627 The Geant4 call order gleaned from g4-cls G4EventManager
+    628 with the related calls to G4CXOpticks and U4Recorder
+    629 that were used previously::
+    630 
+    631     G4VSensitiveDetector::Initialize
+    632 
+    633     G4UserEventAction::BeginOfEventAction  ==> U4Recorder::BeginOfEventAction
+    634 
+    635 
+    636     G4VSensitiveDetector::EndOfEvent       ==> G4CXOpticks::simulate : AS HITS NEEDED HERE
+    637 
+    638     G4UserEventAction::EndOfEventAction    ==> U4Recorder::EndOfEventAction
+    639 
+    640 
+    641 The old call order presented complications as the simulate call needs the gensteps
+    642 from the SEvt::ECPU that is only wrapped up at U4Recorder::EndOfEventAction.
+    643 This SensitiveDetector pair of methods enables rearranging the order::
+    644 
+    645     G4VSensitiveDetector::Initialize       ==> U4Recorder::BeginOfEventAction
+    646 
+    647     G4UserEventAction::BeginOfEventAction
+    648 
+    649 
+    650     G4VSensitiveDetector::EndOfEvent       ==> U4Recorder::EndOfEventAction,
+    651                                            ==> G4CXOpticks::simulate : AS HITS NEEDED HERE
+    652 
+    653     G4UserEventAction::EndOfEventAction
+    654 
+    655 Note that the Stepping and Tracking actions handled by
+    656 the U4Recorder can proceed unchanged by this.
+    657 
+    658 **/
+    659 
+    660 void G4CXOpticks::SensitiveDetector_EndOfEvent(int eventID)
+    661 {
+    662     LOG(LEVEL) << " eventID " << eventID ;
+    663     U4Recorder* recorder = U4Recorder::Get();
+    664     if(recorder)
+    665     {
+    666         recorder->EndOfEventAction_(eventID);
+    667     }
+    668 }
+
+
+EVTMAX 10
+----------
+
+::
+
+    A[blyth@localhost ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8]$ grep hit B00?/SProcessHits_EPH_meta.txt
+    B000/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360362
+    B000/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363159
+    B000/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723521
+    B000/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360362
+    B000/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:360362
+    B001/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360426
+    B001/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363147
+    B001/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723573
+    B001/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360426
+    B001/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:720788
+    B002/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360078
+    B002/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363974
+    B002/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:724052
+    B002/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360078
+    B002/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:1080866
+    B003/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360223
+    B003/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:362195
+    B003/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:722418
+    B003/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360223
+    B003/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:1441089
+    B004/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360275
+    B004/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363036
+    B004/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723311
+    B004/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360275
+    B004/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:1801364
+    B005/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360103
+    B005/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363158
+    B005/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723261
+    B005/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360103
+    B005/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:2161467
+    B006/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:361349
+    B006/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363474
+    B006/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:724823
+    B006/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:361349
+    B006/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:2522816
+    B007/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360493
+    B007/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:362955
+    B007/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723448
+    B007/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360493
+    B007/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:2883309
+    B008/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360465
+    B008/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:363225
+    B008/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723690
+    B008/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360465
+    B008/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:3243774
+    B009/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_EGPU_hit:360684
+    B009/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries0:362660
+    B009/SProcessHits_EPH_meta.txt:EndOfEvent_hitCollection_entries1:723344
+    B009/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_count:360684
+    B009/SProcessHits_EPH_meta.txt:EndOfEvent_Simulate_savehit_total:3604458
+    A[blyth@localhost ALL1_DebugPhilox_3_NNVT:0:1000_RainXZ_Z230_1M_f8]$ 
+
+
+Overview
+-----------
+
+* next :doc:`hitCollection`
 
 
