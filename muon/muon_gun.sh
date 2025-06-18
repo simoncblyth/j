@@ -1,13 +1,26 @@
 #!/bin/bash
 
 usage(){ cat << EOU
+muon_gun.sh
+================
 
-
-Haosen get SEGV at 5th event
+Haosen reports SEGV at 5th event
 
 EOU
 }
 
+path=$(realpath $BASH_SOURCE)
+name=$(basename $path)
+stem=${name/.sh}
+fold=$(basename $(dirname $path))
+
+tmp=/tmp/$USER/opticks
+export TMP=${TMP:-$tmp}
+DIR=$TMP/j/$fold/$stem
+mkdir -p $DIR
+cd $DIR
+
+vv="BASH_SOURCE path name stem fold tmp TMP DIR PWD"
 
 source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
 export CUDA_VISIBLE_DEVICES=0
@@ -15,6 +28,10 @@ export OPTICKS_MAX_BOUNCE=63
 export OPTICKS_EVENT_MODE=Minimal
 #export HOME=/hpcfs/juno/junogpu/zhanghaosen
 #export TMP=/hpcfs/juno/junogpu/zhanghaosen/Test1/GPU2/mode1_muon_gun/tmp
+
+vv="$vv GEOM RC"
+pvv(){ for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done ; }
+pvv
 
 
 source dbg__.sh
@@ -34,4 +51,9 @@ dbg__
    --positions 0 0 20000 \
    --directions 0 8 -1 \
    --momentums 20000;
+
+RC=$?
+
+pvv
+
 
