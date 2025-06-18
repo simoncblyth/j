@@ -29,9 +29,21 @@ export OPTICKS_EVENT_MODE=Minimal
 #export HOME=/hpcfs/juno/junogpu/zhanghaosen
 #export TMP=/hpcfs/juno/junogpu/zhanghaosen/Test1/GPU2/mode1_muon_gun/tmp
 
+export QSim__SAVE_IGS_EVENTID=4
+
+
 vv="$vv GEOM RC"
 pvv(){ for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done ; }
 pvv
+
+cat << EOB > /dev/null
+
+   --output oj_edm.root \
+   --user-output oj_user.root \
+
+EOB
+
+export QSim=INFO
 
 
 source dbg__.sh
@@ -42,8 +54,7 @@ dbg__
    --no-gdml \
    --pmtsd-merge-twindow 1.0 \
    --event-split \
-   --output oj_edm.root \
-   --user-output oj_user.root \
+   --no-anamgr-deposit \
    --evtmax 5 \
    --seed 42 \
    gun \

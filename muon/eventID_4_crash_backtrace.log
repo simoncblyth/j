@@ -83,3 +83,50 @@ A[blyth@localhost muon]$
 
 
 
+Running with "--no-anamgr-deposit" gives another error from RootFileWriter::close::
+
+    Begin of Event --> 4
+    junotoptask.execute            ERROR: std::bad_array_new_length
+    junotoptask.finalize            WARN: invalid state tranform ((Running)) => ((Finalized))
+    [2025-06-18 10:27:05,151] p2024503 {/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+     *** Break *** segmentation violation
+
+    ...
+
+    #7  0x00007f688ae70eae in RootFileWriter::close (this=0x54bcfb0) at /builds/JUNO/offline/junosw/RootIO/RootIOUtil/src/RootFileWriter.cc:274
+    #8  0x00007f688aec8761 in RootOutputStream::close (this=0x54bcf50) at /builds/JUNO/offline/junosw/RootIO/RootIOSvc/src/RootOutputStream.cc:50
+    #9  0x00007f688aec9597 in RootOutputSvc::finalize (this=0x7090cf0) at /builds/JUNO/offline/junosw/RootIO/RootIOSvc/src/RootOutputSvc.cc:62
+    #10 0x00007f68a1fd0d3a in DleSupervisor::finalize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #11 0x00007f68a1fe5d7a in Task::finalize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #12 0x00007f68a1fe9611 in TaskWatchDog::finalize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #13 0x00007f68a1fe9bb8 in TaskWatchDog::terminate() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #14 0x00007f68a1fe6f64 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #15 0x00007f68a1fe7049 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #16 0x00007f68a1fd1513 in DleSupervisor::clear() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #17 0x00007f68a1fd16aa in DleSupervisor::~DleSupervisor() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #18 0x00007f68a1fed6c2 in TopTask::~TopTask() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+        270 bool RootFileWriter::close()
+        271 {
+        272     if (!m_initialized) return true;
+        273     // Reset current directory
+        274     m_dir->cd();
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        275     // Write trees and lazy-loading data
+        276     m_headerTree->write();
+        277     m_headerTree->writeUID(m_file);
+        278     String2TreeHandle::iterator it, end = m_eventTrees.end();
+        279     for (it = m_eventTrees.begin(); it != end; ++it) {
+        280         it->second->write();
+        281         it->second->writeUID(m_file);
+        282         JM::TreeMetaData* md = it->second->getTreeMetaData();
+        283         if (md) {
+        284             m_treeMetaDatas.push_back(md);
+        285         }
+        286         delete it->second;
+        287     }
+
+
+
+
