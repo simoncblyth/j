@@ -17,6 +17,9 @@ Started from Haosen::
 
     generation_opticks_mode1_muon.sh
 
+/tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/python3.11/ALL0_no_opticks_event_name
+
+
 EOU
 }
 
@@ -43,21 +46,32 @@ if [ "${arg/ctx}" != "$arg" ]; then
     nvidia-smi
 fi
 
+logging(){
+    type $FUNCNAME
+    export QSim=INFO
+    export CSGOptiX=INFO
+    export QSim__CONCAT=1
+    export SEvt__RUNMETA=1
+}
+
+
 if [ "${arg/env}" != "$arg" ]; then
 
     #source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
-    source /home/blyth/junosw/InstallArea/envset.sh
+    #source /home/blyth/junosw/InstallArea/envset.sh
 
-    export QSim=INFO
-    export CSGOptiX=INFO 
-    #export QSim__SAVE_IGS_EVENTID=6
-    export QSim__CONCAT=1
+    source  /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
 
+    ## save gensteps for eventID 6
+    ## export QSim__SAVE_IGS_EVENTID=6
 
-    #export OPTICKS_MAX_SLOT=M10    
+    ## Using OPTICKS_MAX_SLOT smaller than the number of photons
+    ## makes multiple CUDA launces be used
+
+    export OPTICKS_MAX_SLOT=M10
     #export OPTICKS_MAX_SLOT=M1
-    #export OPTICKS_MAX_SLOT=H1  ## 0.1 million  K100
-    export OPTICKS_MAX_SLOT=K1   ## 
+    #export OPTICKS_MAX_SLOT=H1   ## 0.1 million  K100
+    #export OPTICKS_MAX_SLOT=K1   ## 1000 only
 
 
     export CUDA_VISIBLE_DEVICES=0
@@ -67,18 +81,20 @@ if [ "${arg/env}" != "$arg" ]; then
     #export HOME=/hpcfs/juno/junogpu/zhanghaosen
     #export TMP=/hpcfs/juno/junogpu/zhanghaosen/Test1/GPU/mode1_muon/tmp
 
-    #export BP="DsG4Scintillation::PostStepDoIt DsG4Scintillation::DsG4Scintillation"
+    ## make gdb debugger stop at these breakpoint
+    ## export BP="DsG4Scintillation::PostStepDoIt DsG4Scintillation::DsG4Scintillation"
 
+    ##  the below line causes CUDA crash for a 34M photon event 
+    ## [ -n "$CRASH" ] && export CSGOptiX__optixpath=$OPTICKS_PREFIX/ptx/objects-Debug/CSGOptiXOPTIX/CSGOptiX7.ptx
 
-    export CSGOptiX__optixpath=$OPTICKS_PREFIX/ptx/objects-Debug/CSGOptiXOPTIX/CSGOptiX7.ptx
-
+    [ -n "$LOG" ] && logging
 
 fi
 
 
 if [ "${arg/info}" != "$arg" ]; then
     for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done
-fi 
+fi
 
 if [ "${arg/run}" != "$arg" ]; then
 
@@ -101,3 +117,4 @@ if [ "${arg/run}" != "$arg" ]; then
     touch done_flag
 fi
 
+echo  DIR $DIR

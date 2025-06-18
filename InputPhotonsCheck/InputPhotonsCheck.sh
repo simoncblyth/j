@@ -3,11 +3,11 @@ usage(){ cat << EOU
 InputPhotonsCheck.sh
 =====================
 
-This uses tut_detsim.py with opticks-mode 3 and 
-input photons to do bi-simulation saving into 
+This uses tut_detsim.py with opticks-mode 3 and
+input photons to do bi-simulation saving into
 AFOLD and BFOLD.
 
-WIP: try using input photons with opticks-mode 0 
+WIP: try using input photons with opticks-mode 0
 
 From laptop connect to workstation with empty env "A"::
 
@@ -95,7 +95,7 @@ if [ "${arg/env}" != "$arg" ]; then
     export OPTICKS_EVENT_MODE=DebugLite
     export OPTICKS_HIT_MASK=EC   ## EC:EFFICIENCY_COLLECT / SD:SURFACE_DETECT
 
-    export EVTMAX=10
+    export EVTMAX=1
 
     #opticks_integration_mode=0    ## added geometry convertion with zero in G4CXOpticks::SetGeometry_JUNO
     #opticks_integration_mode=1
@@ -118,23 +118,40 @@ if [ "${arg/env}" != "$arg" ]; then
     ## [ config input photon running
 
     #test=CD
-    test=PMT
+    #test=NNVT
+    test=Hama
+    #test=WP_PMT
+
     export TEST=${TEST:-$test}
 
     if [ "$TEST" == "UpperChimney" ]; then
 
        sevt__input_photon_dir=/data1/blyth/tmp/SGenerate__test
-       #opticks_input_photon=SGenerate_ph_disc_K1.npy  
+       #opticks_input_photon=SGenerate_ph_disc_K1.npy
        opticks_input_photon=SGenerate_ph_disc_M1.npy
        opticks_input_photon_frame=sChimneyLS:0:-2
 
-    elif [ "$TEST" == "PMT" ]; then
+    elif [ "$TEST" == "NNVT" ]; then
 
        #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
        sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
        #opticks_input_photon=RainXZ_Z230_10k_f8.npy
        opticks_input_photon=RainXZ_Z230_1M_f8.npy
        opticks_input_photon_frame=NNVT:0:1000
+
+    elif [ "$TEST" == "Hama" ]; then
+
+       #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+       sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
+       #opticks_input_photon=RainXZ_Z230_10k_f8.npy
+       opticks_input_photon=RainXZ_Z230_1M_f8.npy
+       opticks_input_photon_frame=Hama:0:0
+
+    elif [ "$TEST" == "WP_PMT" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+       opticks_input_photon=RainXZ_Z230_100k_f8.npy
+       opticks_input_photon_frame=PMT_20inch_veto:0:1000
 
     elif [ "$TEST" == "CD" ]; then
 
@@ -152,9 +169,9 @@ if [ "${arg/env}" != "$arg" ]; then
 
     path=$SEvt__INPUT_PHOTON_DIR/$OPTICKS_INPUT_PHOTON
     if [ ! -f "$path" ]; then
-       echo $BASH_SOURCE : FATAL : INPUT PHOTONS MIS-CONFIGURED path $path 
-       return 1 
-    fi 
+       echo $BASH_SOURCE : FATAL : INPUT PHOTONS MIS-CONFIGURED path $path
+       return 1
+    fi
 
     ## ] config input photon running
 
@@ -171,6 +188,10 @@ if [ "${arg/env}" != "$arg" ]; then
     export EVT=000
     export AFOLD=$LOGDIR/A$EVT
     export BFOLD=$LOGDIR/B$EVT
+
+
+    export SSim__stree_level=1
+
 
     mkdir -p $LOGDIR
     cd $LOGDIR && pwd
@@ -225,7 +246,7 @@ if [ "${arg/run}" != "$arg" ]; then
             opticks
 
         #  --pmt-dbtype File \
-    fi 
+    fi
 
 
     rc=$?

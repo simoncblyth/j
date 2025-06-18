@@ -22,6 +22,39 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+Fri 13 June 2025 : "fetch origin" "rebase main" and "push -f" to add dev from main into my branch and redo the merge request
+-----------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    A[blyth@localhost junosw]$ git rebase main
+    Successfully rebased and updated refs/heads/blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc.
+
+    A[blyth@localhost junosw]$ git s
+    On branch blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc
+    Your branch and 'origin/blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc' have diverged,
+    and have 8 and 4 different commits each, respectively.
+      (use "git pull" if you want to integrate the remote branch with yours)
+
+    nothing to commit, working tree clean
+
+    A[blyth@localhost junosw]$ git push -f
+    Enumerating objects: 87, done.
+    Counting objects: 100% (87/87), done.
+    Delta compression using up to 56 threads
+    Compressing objects: 100% (57/57), done.
+    Writing objects: 100% (58/58), 15.76 KiB | 5.25 MiB/s, done.
+    Total 58 (delta 43), reused 0 (delta 0), pack-reused 0
+    remote: 
+    remote: View merge request for blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/879
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw.git
+     + ce12f902...c44b53ee blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc -> blyth-add-CE-theta-to-PMTSimParamData-PMTSimParamSvc (forced update)
+
+
+
+
 Wed 22 May 2024 : workstation from scratch build of latest JUNOSW against the J24.1.0-rc0 externals on /cvmfs 
 ----------------------------------------------------------------------------------------------------------------
 
