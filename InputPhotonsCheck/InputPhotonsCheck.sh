@@ -119,7 +119,8 @@ if [ "${arg/env}" != "$arg" ]; then
 
     #test=CD
     #test=NNVT
-    test=Hama
+    #test=Hama
+    test=SPMT
     #test=WP_PMT
 
     export TEST=${TEST:-$test}
@@ -152,6 +153,13 @@ if [ "${arg/env}" != "$arg" ]; then
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
+
+    elif [ "$TEST" == "SPMT" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+       #opticks_input_photon=RainXZ_Z230_100k_f8.npy    # too long for tiny SPMT
+       opticks_input_photon=RainXZ_Z230_X25_100k_f8.npy
+       opticks_input_photon_frame=PMT_3inch:0:0
 
     elif [ "$TEST" == "CD" ]; then
 
@@ -190,12 +198,19 @@ if [ "${arg/env}" != "$arg" ]; then
     export BFOLD=$LOGDIR/B$EVT
 
 
-    export SSim__stree_level=1
-
 
     mkdir -p $LOGDIR
     cd $LOGDIR && pwd
 fi
+
+
+logging(){
+   type $FUNCNAME
+   : export SSim__stree_level=1
+   : export SEvt__EPH=1 
+}
+[ -n "$LOG" ] && logging
+
 
 
 if [ "${arg/info}" != "$arg" ]; then

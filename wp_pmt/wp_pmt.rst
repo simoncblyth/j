@@ -82,6 +82,262 @@ A side NA : NAN_ABORT
 
 
 
+
+qpmt::get_lpmtid_ATQC : What is needed to add WP_PMT to this ?
+------------------------------------------------------------------
+
+::
+
+    512 template<typename F>
+    513 inline QPMT_METHOD void qpmt<F>::get_lpmtid_ATQC(
+    514     F* ATQC,
+    515     int lpmtid,
+    516     F wavelength_nm,
+    517     F minus_cos_theta,
+    518     F dot_pol_cross_mom_nrm,
+    519     F lposcost ) const
+    520 {
+    521     const F energy_eV = hc_eVnm/wavelength_nm ;
+    522 
+    523     F spec[16] ;
+    524 
+    525     get_lpmtid_stackspec_ce_acosf( spec, lpmtid, energy_eV, lposcost );
+    526   //get_lpmtid_stackspec_ce(       spec, lpmtid, energy_eV, lposcost );
+    527 
+    528 
+
+
+    215 template<typename F>
+    216 inline QPMT_METHOD void qpmt<F>::get_lpmtid_stackspec_ce_acosf( F* spec, int lpmtid, F energy_eV, F lposcost ) const
+    217 {
+    218     const int& lpmtcat = i_lcqs[lpmtid*2+0] ;
+    219 
+    220     const F& qe_scale = lcqs[lpmtid*2+1] ;
+    221     const F qe_shape = qeshape_prop->interpolate( lpmtcat, energy_eV ) ;
+    222     const F qe = qe_scale*qe_shape ;
+    223 
+    224     const F theta_radians = acosf(lposcost);
+    225     const F ce = cetheta_prop->interpolate( lpmtcat, theta_radians );
+    226 
+    227     spec[0*4+3] = lpmtcat ;       //  3
+    228     spec[1*4+3] = ce ;            //  7
+    229     spec[2*4+3] = qe_shape ;      // 11
+    230     spec[3*4+3] = qe ;            // 15
+    231 
+    232     get_lpmtcat_stackspec( spec, lpmtcat, energy_eV );
+    233 
+
+
+lcqs
+~~~~
+
+::
+
+    120 template<typename T>
+    121 inline QPMT<T>::QPMT(const NPFold* jpmt )
+    122     :
+    123     ExecutableName(sproc::ExecutableName()),
+    124     src_rindex(   jpmt->get("rindex")),
+    125     src_thickness(jpmt->get("thickness")),
+    126     src_qeshape(  jpmt->get("qeshape")),
+    127     src_cetheta(  jpmt->get("cetheta")),
+    128     src_cecosth(  jpmt->get("cecosth")),
+    129     src_lcqs(     jpmt->get_optional("lcqs")),
+    130     rindex3(  NP::MakeCopy3D(src_rindex)),   // make copy and change shape to 3D
+    131     rindex(   NP::MakeWithType<T>(rindex3)), // adopt template type, potentially narrowing
+    132     rindex_prop(new QProp<T>(rindex)),
+    133     qeshape(   NP::MakeWithType<T>(src_qeshape)), // adopt template type, potentially narrowing
+    134     qeshape_prop(new QProp<T>(qeshape)),
+    135     cetheta(   NP::MakeWithType<T>(src_cetheta)), // adopt template type, potentially narrowing
+    136     cetheta_prop(new QProp<T>(cetheta)),
+    137     cecosth(   NP::MakeWithType<T>(src_cecosth)), // adopt template type, potentially narrowing
+    138     cecosth_prop(new QProp<T>(cecosth)),
+    139     thickness(NP::MakeWithType<T>(src_thickness)),
+    140     lcqs(src_lcqs ? NP::MakeWithType<T>(src_lcqs) : nullptr),
+    141     i_lcqs( lcqs ? (int*)lcqs->cvalues<T>() : nullptr ),    // CPU side lookup lpmtid->lpmtcat 0/1/2
+    142     pmt(new qpmt<T>()),                    // host-side qpmt.h instance
+    143     d_pmt(nullptr)                         // device-side pointer set at upload in init
+    144 {
+    145     init();
+    146 }
+
+
+
+
+/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/extra/jpmt/PMTSimParamData
+---------------------------------------------------------------------------------------------------------------
+
+::
+
+    A[blyth@localhost PMTSimParamData]$ f
+    Python 3.13.2 | packaged by Anaconda, Inc. | (main, Feb  6 2025, 18:56:02) [GCC 11.2.0]
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 9.1.0 -- An enhanced Interactive Python. Type '?' for help.
+    Tip: Use `object?` to see the help on `object`, `object??` to view its source
+    f
+
+    CMDLINE:/home/blyth/np/fold.py
+    f.base:.
+
+      : f.pmtID                                            :           (45612, 1) : 7 days, 23:13:52.230958 
+      : f.qeScale                                          :           (45612, 1) : 7 days, 23:13:52.230958 
+      : f.lpmtCat                                          :           (17612, 1) : 7 days, 23:13:52.229958 
+      : f.lpmtCat_meta                                     :                    4 : 7 days, 23:13:52.229958 
+      : f.pmtCat                                           :           (45612, 2) : 7 days, 23:13:52.229958 
+      : f.pmtCatName                                       :                 (5,) : 7 days, 23:13:52.229958 
+      : f.pmtCatName_names                                 :                 (5,) : 7 days, 23:13:52.229958 
+      : f.pmtCatVec                                        :           (45612, 1) : 7 days, 23:13:52.229958 
+      : f.spmtData                                         :          (25600, 10) : 7 days, 23:13:52.229958 
+      : f.spmtData_meta                                    :                    4 : 7 days, 23:13:52.228958 
+      : f.lpmtData                                         :           (20012, 9) : 7 days, 23:13:52.228958 
+      : f.pmtTotal                                         :                 (4,) : 7 days, 23:13:52.227958 
+      : f.pmtTotal_names                                   :                 (4,) : 7 days, 23:13:52.227958 
+      : f.NPFold_index                                     :                (14,) : 7 days, 23:13:52.227958 
+      : f.MPT                                              :                 None : 10 days, 21:11:05.562260 
+      : f.CONST                                            :                 None : 10 days, 21:11:05.562260 
+      : f.QEshape                                          :                 None : 10 days, 21:11:05.562260 
+      : f.CEtheta                                          :                 None : 10 days, 21:11:05.562260 
+      : f.NPFold_names                                     :                 (0,) : 7 days, 23:13:52.226958 
+      : f.CECOStheta                                       :                 None : 8 days, 18:33:19.332685 
+
+     min_stamp : 2025-06-07 18:21:46.340147 
+     max_stamp : 2025-06-10 16:18:59.675449 
+     dif_stamp : 2 days, 21:57:13.335302 
+     age_stamp : 7 days, 23:13:52.226958 
+
+
+::
+
+    In [3]: pc = f.PMTParamData.pmtCat
+
+
+    In [31]: pc[:,1]
+    Out[31]: array([1, 3, 1, 3, 1, ..., 0, 3, 3, 3, 0], shape=(45612,), dtype=int32)
+
+    In [26]: pc0 = f.PMTSimParamData.lpmtCat[:,0]
+
+    In [32]: pc0
+    Out[32]: array([1, 3, 1, 3, 1, ..., 1, 3, 1, 1, 1], shape=(17612,), dtype=int32)
+
+    In [33]: np.all( pc0 == pc[:17612,1] )
+    Out[33]: np.True_
+
+
+
+
+    In [8]: pc[:17612]
+    Out[8]: 
+    array([[    0,     1],
+           [    1,     3],
+           [    2,     1],
+           [    3,     3],
+           [    4,     1],
+           ...,
+           [17607,     1],
+           [17608,     3],
+           [17609,     1],
+           [17610,     1],
+           [17611,     1]], shape=(17612, 2), dtype=int32)
+
+    In [9]: np.unique( pc[:17612,1], return_counts=True )
+    Out[9]: (array([0, 1, 3], dtype=int32), array([2738, 4955, 9919]))
+
+    In [10]: np.c_[np.unique( pc[:17612,1], return_counts=True )]
+    Out[10]: 
+    array([[   0, 2738],
+           [   1, 4955],
+           [   3, 9919]])
+
+    In [11]: np.c_[np.unique( pc[:17612,1], return_counts=True )][:,1].sum()
+    Out[11]: np.int64(17612)
+
+
+    In [13]: np.c_[np.unique( pc[17612:,1], return_counts=True )]
+    Out[13]: 
+    array([[    0,  1836],
+           [    2, 25600],
+           [    3,   564]])
+
+    In [14]: 1836+564
+    Out[14]: 2400
+
+
+    In [16]: pc[17612:17612+25600]
+    Out[16]: 
+    array([[20000,     2],
+           [20001,     2],
+           [20002,     2],
+           [20003,     2],
+           [20004,     2],
+           ...,
+           [45595,     2],
+           [45596,     2],
+           [45597,     2],
+           [45598,     2],
+           [45599,     2]], shape=(25600, 2), dtype=int32)
+
+    In [17]: np.c_[np.unique( pc[17612:17612+25600,1], return_counts=True )]
+    Out[17]: array([[    2, 25600]])
+
+
+    In [19]: np.c_[np.unique( pc[17612+25600:,1], return_counts=True )]
+    Out[19]: 
+    array([[   0, 1836],
+           [   3,  564]])
+
+
+    In [20]: pc[17612+25600:]
+    Out[20]: 
+    array([[50000,     3],
+           [50001,     0],
+           [50002,     0],
+           [50003,     3],
+           [50004,     0],
+           ...,
+           [52395,     0],
+           [52396,     3],
+           [52397,     3],
+           [52398,     3],
+           [52399,     0]], shape=(2400, 2), dtype=int32)
+
+
+
+lpmtid to contiguous index ordered such that have LPMT, WP
+--------------------------------------------------------------
+
+::
+
+     [0:17612]                      LPMT
+     [17612:17612+25600]            SPMT
+     [17612+25600:17612+25600+2400] WP      17612+25600+2400 = 45612
+
+Unfortunately SPMT in the middle::
+
+     start with premise that lpmtid >=0 && lpmtid < 45612 
+
+
+
+     int lpmtidx = lpmtid < 17612 ? 
+                                        lpmtid 
+                                  : 
+                                       ( lpmtid > 17612+25600 ? lpmtid - 25600 : -1 ) 
+                                  ;  
+
+
+
+
+
+
+Added SPMT_Total to SPMT.h and revived SPMT_test.sh 
+--------------------------------------------------------
+
+
+
+
+
+
+
+
 cxs_min.sh # wp_pmt with qsim.h NAN_ABORT uncommented
 --------------------------------------------------------
 
@@ -226,6 +482,86 @@ So less reason to use contiguous index.
       45610 sid    52398
       45611 sid    52399
     ]]stree::postcreate
+
+
+
+
+sensor_id from stree
+-----------------------
+
+::
+
+
+    In [9]: pwd
+    Out[9]: '/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/stree'
+
+
+    n [6]: f.sensor_id
+    Out[6]: 
+    array([[    0],
+           [    1],
+           [    2],
+           [    3],
+           [    4],
+           ...,
+           [52395],
+           [52396],
+           [52397],
+           [52398],
+           [52399]], shape=(45612, 1), dtype=int32)
+
+    In [7]: f.base
+    Out[7]: '.'
+
+
+
+
+        In [2]: f.sensor_id[:17612]
+        Out[2]: 
+        array([[    0],
+               [    1],
+               [    2],
+               [    3],
+               [    4],
+               ...,
+               [17607],
+               [17608],
+               [17609],
+               [17610],
+               [17611]], shape=(17612, 1), dtype=int32)
+
+        In [3]: f.sensor_id[17612:17612+25600]
+        Out[3]: 
+        array([[20000],
+               [20001],
+               [20002],
+               [20003],
+               [20004],
+               ...,
+               [45595],
+               [45596],
+               [45597],
+               [45598],
+               [45599]], shape=(25600, 1), dtype=int32)
+
+        In [4]: 45599 + 1 - 20000
+        Out[4]: 25600
+
+        In [5]: f.sensor_id[17612+25600:]
+        Out[5]: 
+        array([[50000],
+               [50001],
+               [50002],
+               [50003],
+               [50004],
+               ...,
+               [52395],
+               [52396],
+               [52397],
+               [52398],
+               [52399]], shape=(2400, 1), dtype=int32)
+
+        In [6]: 
 
 
 

@@ -22,7 +22,9 @@ cd $DIR
 
 vv="BASH_SOURCE path name stem fold tmp TMP DIR PWD"
 
-source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
+#source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
+source $HOME/junosw/InstallArea/envset.sh
+
 export CUDA_VISIBLE_DEVICES=0
 export OPTICKS_MAX_BOUNCE=63
 export OPTICKS_EVENT_MODE=Minimal
@@ -44,11 +46,11 @@ cat << EOB > /dev/null
 EOB
 
 export QSim=INFO
-
+export U4=INFO
 
 source dbg__.sh
 
-dbg__
+dbg__ \
    $(which python) \
    $(which tut_detsim.py) \
    --no-gdml \

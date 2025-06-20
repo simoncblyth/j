@@ -3432,6 +3432,22 @@ jcv junoSD_PMT_v2_Debug
 
 jcv U4RecorderAnaMgr
 
+jcv Tub3inchPMTV3Manager
+
+jcv PMTSimParamSvc
+
+jcv PMTSimParamData
+
+jcv _PMTSimParamData
+
+jcv PMTParamSvc
+
+jcv PMTParamData
+
+jcv _PMTParamData
+
+
+
 EOC
 }
 

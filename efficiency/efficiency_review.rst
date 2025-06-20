@@ -1205,7 +1205,7 @@ Setting the flag is good idea, OpticksPhoton.h::
 
 
 
-TODO : CE collection and use from qsim.h, heavy lifting in qpmt.h QPMT.cc
+DONE : CE collection and use from qsim.h, heavy lifting in qpmt.h QPMT.cc
 ---------------------------------------------------------------------------
 
 
