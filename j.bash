@@ -3446,6 +3446,9 @@ jcv PMTParamData
 
 jcv _PMTParamData
 
+jcv DsG4Scintillation
+
+jcv G4Cerenkov_modified
 
 
 EOC

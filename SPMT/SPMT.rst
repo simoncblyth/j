@@ -49,6 +49,112 @@ WOW, that make the issue stand out::
 
 
 
+after getting SPMT info to GPU and using in qsim::propagate_at_surface
+--------------------------------------------------------------------------
+
+::
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 21919 hitCollectionAlt 27296 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+
+    ABHit  a_nhit : (   27296 +-  165 )  b_nhit:(    21919 +-  148 )  a/b: (  1.245 +-  0.016 )  b/a: (  0.803 +-  0.010)  [assume uncorr.]
+
+
+    AB
+    [sseq_index_ab::desc u_size 286 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum   780.9223 ndf  6.0000 sum/ndf   130.1537 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+    :r:`TO BT BT EX                                                                                      :   71884  77187 :   188.6471 : Y :       0      0 : DEVIANT  `
+    :r:`TO BT BT EC                                                                                      :   27222  21843 :   589.7002 : Y :       3      2 : DEVIANT  `
+        TO AB                                                                                            :     456    486 :     0.9554 : Y :      25     76 :   
+        TO BT BT AB                                                                                      :     119    110 :     0.3537 : Y :    2121    261 :   
+        TO BT AB                                                                                         :      36     41 :     0.3247 : Y :    3833    420 :   
+        TO BT BR BT BT BT AB                                                                             :      30     38 :     0.9412 : Y :    2867   6191 :   
+        TO BT BR BT BT BT SC BT BT BT BT BT BT EC                                                        :      16     14 :     0.0000 : N :    5229   7937 : C2EXC  
+        TO SC BT BT BT BT EC                                                                             :      13     14 :     0.0000 : N :    8966  28955 : C2EXC  
+        TO SC BT BT BT BT SA                                                                             :       8     12 :     0.0000 : N :    6692   9608 : C2EXC  
+
+
+EX+EC sum is matching but A side collecing 25% more ?::
+
+    In [1]: 71884 + 27222  // A : EX+EC   A side collecting 25% too much
+    Out[1]: 99106
+
+    In [2]: 77187 + 21843  // B : EX+EC
+    Out[2]: 99030
+
+
+HMM : probably need to scale the qe down into the reduced probability range ?
+
+* NOPE, not that as detect is 1. 
+
+::
+
+    27222/21843
+    In [5]: 27222/21843
+    Out[5]: 1.2462573822277159
+
+    In [3]: 27222/99106
+    Out[3]: 0.2746755998627732
+
+    In [4]: 21843/99030
+    Out[4]: 0.22056952438654953
+
+
+
+PIDX=0 cxs_min.sh::
+
+    //qsim.propagate.body pidx       0 bounce 2 command 3 flag 0 s.optical.x 20 s.optical.y 2 
+    //qsim.propagate.body.WITH_CUSTOM4 pidx       0  BOUNDARY ems 2 lposcost   0.555 
+    //qsim.propagate_at_surface.BREAK.is_spmtid pidx       0 : pmtid 20000 energy_eV   2.818 qe_shape   0.249 qe_scale   1.099 qe   0.274 detect   1.000 absorb   0.000 reflect_specular   0.000 reflect_diffuse   0.000 
+    //qsim.propagate_at_surface.SA/SD.BREAK pidx       0 : flag 16384 
+    //qsim.propagate.tail pidx       0 bounce 2 command 1 flag 16384 ctx.s.optical.y(ems) 2 
+    2025-06-23 21:45:24.823 INFO  [3219434] [QEvent::gatherPhoton@628] [ evt.num_photon 100000 p.sstr (100000, 4, 4, ) evt.photon 0x7f4500000000
+    2025-06-23 21:45:25.014 INFO  [3219434] [QSim::simulate@492]  eventID 0 tot_dt    0.004757 tot_ph     100000 tot_ph/M   0.100000 tot_ht      27296 tot_ht/M   0.027296 tot_ht/tot_ph   0.272960 reset_ YES
+
+
+
+
+::
+
+    In [6]: np.interp( 2.818, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )
+    Out[6]: np.float64(0.24930848206507444)
+
+
+
+Tub3inchPMTV3Manager photocathode_3inch
+-----------------------------------------
+
+::
+
+    [blyth@localhost qudarap]$ jcv Tub3inchPMTV3Manager
+    2 files to edit
+    ./Simulation/DetSimV2/PMTSim/include/Tub3inchPMTV3Manager.hh
+    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Manager.cc
+    A[blyth@localhost junosw]$ jgr photocathode_3inch
+    ./Simulation/DetSimV2/AnalysisCode/src/OpticalParameterAnaMgr.cc:    //photocathode_3inch
+    ./Simulation/DetSimV2/AnalysisCode/src/OpticalParameterAnaMgr.cc:    G4Material* mat_photocathode_3inch = G4Material::GetMaterial("photocathode_3inch");
+    ./Simulation/DetSimV2/AnalysisCode/src/OpticalParameterAnaMgr.cc:        G4MaterialPropertiesTable* tbl_PC3in = mat_photocathode_3inch->GetMaterialPropertiesTable();
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:    G4Material* Photocathode_mat_3inch = G4Material::GetMaterial("photocathode_3inch", any_warnings); 
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        G4cout << "photocathode_3inch is constructed from the GDML file" << G4endl;
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        G4cout << "photocathode_3inch is constructed from the code" << G4endl;   
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        Photocathode_mat_3inch = new G4Material("photocathode_3inch",density,1);
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        G4cout << "Setup photocathode_3inch Material Tables from MCParamsSvc" << G4endl;
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        helper_mpt(PhotocathodeMPT_3inch, "RINDEX", mcgt.data(), "Material.photocathode_3inch.RINDEX");
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        helper_mpt(PhotocathodeMPT_3inch, "KINDEX", mcgt.data(), "Material.photocathode_3inch.KINDEX");
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        helper_mpt(PhotocathodeMPT_3inch, "REFLECTIVITY", mcgt.data(), "Material.photocathode_3inch.REFLECTIVITY");
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        helper_mpt(PhotocathodeMPT_3inch, "THICKNESS", mcgt.data(), "Material.photocathode_3inch.THICKNESS");
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        bool st = mcgt->Get("Material.photocathode_3inch.scale", s_map);
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:          helper_mpt(PhotocathodeMPT_3inch, "EFFICIENCY", mcgt.data(), "Material.photocathode_3inch.EFFICIENCY_v2");
+    ./Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstructionMaterial.icc:        Photocathode_opsurf_3inch->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_3inch")->GetMaterialPropertiesTable() );
+    ./Simulation/DetSimV2/PMTSim/src/Hello3inchPMTManager.cc:     Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_3inch")->GetMaterialPropertiesTable() );
+    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTManager.cc:     Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_3inch")->GetMaterialPropertiesTable() );
+    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV2Manager.cc:     Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_3inch")->GetMaterialPropertiesTable() );
+    ./Simulation/DetSimV2/PMTSim/src/Tub3inchPMTV3Manager.cc:     Photocathode_opsurf->SetMaterialPropertiesTable(G4Material::GetMaterial("photocathode_3inch")->GetMaterialPropertiesTable() );
+    A[blyth@localhost junosw]$ 
+
+
+
+
+
 
 
 
@@ -85,9 +191,17 @@ jcv junoSD_PMT_v2::
      493     }
 
 
+Need qpmt.h versions of the below for S_PMT "spmtid"->"spmtidx"::
+
+     qe = m_PMTSimParsvc->get_pmtid_qe(pmtID,edep)
+     ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+
+
 
 where to do A side COLLECT/CULL ?
 -------------------------------------
+
+* within WITH_CUSTOM4 block of qsim.h
 
 ::
 
