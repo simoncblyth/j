@@ -120,8 +120,8 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=CD
     #test=NNVT
     #test=Hama
-    test=SPMT
-    #test=WP_PMT
+    test=WP_PMT
+    #test=SPMT
 
     export TEST=${TEST:-$test}
 
@@ -139,6 +139,7 @@ if [ "${arg/env}" != "$arg" ]; then
        #opticks_input_photon=RainXZ_Z230_10k_f8.npy
        opticks_input_photon=RainXZ_Z230_1M_f8.npy
        opticks_input_photon_frame=NNVT:0:1000
+       observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363159 hitCollectionAlt 362580 hcMuon 0 GPU YES"
 
     elif [ "$TEST" == "Hama" ]; then
 
@@ -147,12 +148,17 @@ if [ "${arg/env}" != "$arg" ]; then
        #opticks_input_photon=RainXZ_Z230_10k_f8.npy
        opticks_input_photon=RainXZ_Z230_1M_f8.npy
        opticks_input_photon_frame=Hama:0:0
+       observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 331746 hitCollectionAlt 331799 hcMuon 0 GPU YES"
 
     elif [ "$TEST" == "WP_PMT" ]; then
 
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
+       observation="B side sees no hits, like diff geom, TODO:try B side simtrace"
+
+       export U4Recorder__EndOfRunAction_Simtrace=1 
+       export U4Simtrace__level=2
 
     elif [ "$TEST" == "SPMT" ]; then
 
@@ -160,6 +166,7 @@ if [ "${arg/env}" != "$arg" ]; then
        #opticks_input_photon=RainXZ_Z230_100k_f8.npy     # too long for tiny SPMT
        opticks_input_photon=RainXZ_Z230_X25_100k_f8.npy  # +-25mm in X to target tiny SPMT
        opticks_input_photon_frame=PMT_3inch:0:0
+       observation="A and B now matching"
 
     elif [ "$TEST" == "CD" ]; then
 
@@ -211,6 +218,7 @@ logging(){
 }
 [ -n "$LOG" ] && logging
 
+[ -n "$EOR_SIMTRACE" ] && export U4Recorder__EndOfRunAction_Simtrace=1 
 
 
 if [ "${arg/info}" != "$arg" ]; then

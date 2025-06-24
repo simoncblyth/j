@@ -3450,6 +3450,8 @@ jcv DsG4Scintillation
 
 jcv G4Cerenkov_modified
 
+jcv GtOpticksTool
+
 
 EOC
 }

@@ -16,6 +16,31 @@ InputPhotonsCheck_CD
     SABHit  a_nhit : (  258576 +-  508 )  b_nhit:(   259079 +-  508 )  a/b: (  0.998 +-  0.004 )  b/a: (  1.002 +-  0.004)  [assume uncorr.]
 
 
+After including CE scale down, SPMT fix
+-------------------------------------------
+
+::
+
+    unoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 217961 hitCollectionAlt 217101 hcMuon 0 GPU YE
+
+    SABHit  a_nhit : (  217101 +-  465 )  b_nhit:(   217961 +-  466 )  a/b: (  0.996 +-  0.004 )  b/a: (  1.004 +-  0.004)  [assume uncorr.]
+
+::
+
+    [sseq_index_ab::desc u_size 129074 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum  1861.5612 ndf 1631.0000 sum/ndf     1.1414 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+        TO AB                                                                                            :  111833 111950 :     0.0612 : Y :       0     27 :   
+        TO BT BT BT BT BT BT EC                                                                          :   90826  91776 :     4.9424 : Y :      14      9 :   
+        TO BT BT BT BT BT BT SA                                                                          :   87693  87476 :     0.2688 : Y :      11      7 :   
+        TO SC AB                                                                                         :   41715  41264 :     2.4512 : Y :      16     25 :   
+        TO SC BT BT BT BT BT BT EC                                                                       :   40527  40473 :     0.0360 : Y :       5      1 :   
+        TO SC BT BT BT BT BT BT SA                                                                       :   40240  40080 :     0.3187 : Y :      29     14 :   
+        TO BT BT SA                                                                                      :   23450  23573 :     0.3217 : Y :      56     21 :   
+        TO SC SC BT BT BT BT BT BT SA                                                                    :   15429  15400 :     0.0273 : Y :       3      0 :   
+
+
+
+
+
 
 opticksMode 0, not converting geometry
 ----------------------------------------
