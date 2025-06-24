@@ -49,6 +49,32 @@ WOW, that make the issue stand out::
 
 
 
+after qe_scale contiguous/oldcontiguous bugfix : have perfect match for input photons onto one S_PMT
+--------------------------------------------------------------------------------------------------------
+
+::
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 21919 hitCollectionAlt 21893 hcMuon 0 GPU YES
+
+    SABHit  a_nhit : (   21893 +-  147 )  b_nhit:(    21919 +-  148 )  a/b: (  0.999 +-  0.013 )  b/a: (  1.001 +-  0.014)  [assume uncorr.]
+
+
+    AB
+    [sseq_index_ab::desc u_size 286 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum     2.6529 ndf  6.0000 sum/ndf     0.4422 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+        TO BT BT EX                                                                                      :   77287  77187 :     0.0647 : Y :       0      0 :   
+        TO BT BT EC                                                                                      :   21819  21843 :     0.0132 : Y :       3      2 :   
+        TO AB                                                                                            :     456    486 :     0.9554 : Y :      25     76 :   
+        TO BT BT AB                                                                                      :     119    110 :     0.3537 : Y :    2121    261 :   
+        TO BT AB                                                                                         :      36     41 :     0.3247 : Y :    3833    420 :   
+        TO BT BR BT BT BT AB                                                                             :      30     38 :     0.9412 : Y :    2867   6191 :   
+        TO BT BR BT BT BT SC BT BT BT BT BT BT EC                                                        :      16     14 :     0.0000 : N :    5229   7937 : C2EXC  
+        TO SC BT BT BT BT EC                                                                             :      13     14 :     0.0000 : N :    8966  28955 : C2EXC  
+        TO SC BT BT BT BT SA                                                                             :       8     12 :     0.0000 : N :    6692   9608 : C2EXC  
+        TO BT BR BT BT BT SC BT BT BT BT BT BT SA                                                        :       9     11 :     0.0000 : N :   10946  34936 : C2EXC  
+        TO BT BR BT BT BT BT BT BT BT BT BT EC                                                           :      10     11 :     0.0000 : N :   33607   7618 : C2EXC  
+
+
+
 after getting SPMT info to GPU and using in qsim::propagate_at_surface
 --------------------------------------------------------------------------
 
@@ -82,23 +108,6 @@ EX+EC sum is matching but A side collecing 25% more ?::
     Out[2]: 99030
 
 
-HMM : probably need to scale the qe down into the reduced probability range ?
-
-* NOPE, not that as detect is 1. 
-
-::
-
-    27222/21843
-    In [5]: 27222/21843
-    Out[5]: 1.2462573822277159
-
-    In [3]: 27222/99106
-    Out[3]: 0.2746755998627732
-
-    In [4]: 21843/99030
-    Out[4]: 0.22056952438654953
-
-
 
 PIDX=0 cxs_min.sh::
 
@@ -111,12 +120,523 @@ PIDX=0 cxs_min.sh::
     2025-06-23 21:45:25.014 INFO  [3219434] [QSim::simulate@492]  eventID 0 tot_dt    0.004757 tot_ph     100000 tot_ph/M   0.100000 tot_ht      27296 tot_ht/M   0.027296 tot_ht/tot_ph   0.272960 reset_ YES
 
 
+qe_shape matches but qe_scale does not::
+
+    In [6]: np.interp( 2.818, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )
+    Out[6]: np.float64(0.24930848206507444)
+
+
+
+BP=junoSD_PMT_v2::ProcessHits_ ipc
+------------------------------------
+
+::
+
+    Thread 1 "python" hit Breakpoint 3, junoSD_PMT_v2::ProcessHits_ (this=0xa243ec0, step=0x68703f0) at /home/blyth/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2.cc:401
+    401	    if (edep<=0.0) {
+    (gdb) p edep
+    $2 = 2.8178227113797455e-06
+
+    (gdb) p 1239.84198433200208455673/2.8178227113797455
+    $3 = 439.9999969213514
+
+
+    gdb) list
+    462	    int pmtID = get_pmtid(track);
+    463	    // = final DE = QE * CE,
+    464	    // but QE is already applied (this is old implementation,
+    465	    // Now we use PMTSimParamSvc to get real QE and CE ), so only CE is important.
+    466	    // = DE: Detection Efficiency
+    467	    if(m_use_pmtsimsvc){
+    468	        qe = (m_enable_optical_model && PMT::Is20inch(pmtID)) ? 1.0 : m_PMTSimParsvc->get_pmtid_qe(pmtID,edep);
+    469	        ce = m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta());
+    470	     }
+    471	     else{
+    (gdb) p pmtID
+    $4 = 20000
+    (gdb) p m_use_pmtsimsvc
+    $5 = true
+    (gdb) p m_enable_optical_model
+    $6 = true
+    (gdb) p PMT::Is20inch(pmtID)
+    $7 = false
+
+    (gdb) p m_PMTSimParsvc
+    $8 = (IPMTSimParamSvc *) 0x65853c0
+
+    (gdb) p m_PMTSimParsvc->get_pmtid_qe(pmtID,edep)
+    $9 = 0.22096722445789505   ## A SIDE qe_shape 0.274  ??? PRECISELY THE ISSUE ???
+
+    (gdb) p m_PMTSimParsvc->get_pmtid_ce(pmtID,local_pos.theta())
+    $10 = 1
+
+
+
+    (gdb) b PMTSimParamSvc::get_pmtid_qe
+
+
+    (gdb) list
+    1067	}
+    1068	
+    1069	double PMTSimParamSvc::get_pmtid_qe(int pmtid, double energy) const
+    1070	{
+    1071	 
+    1072	  int pmtcat = m_PMTParamSvc->getPMTCategory(pmtid) ;
+    1073	  assert( pmtcat >= (int)kPMT_Unknown && pmtcat <= (int)kPMT_NNVT_HighQE && pmtcat + 1 >= 0 ); 
+    1074	  double qe = get_pmtcat_qe(pmtcat, energy);
+    1075	  double qe_scale = get_pmt_qe_scale(pmtid);
+    1076	  qe = qe*qe_scale;
+    (gdb) b 1076
+    Breakpoint 7 at 0x7fffbebd6c49: file /home/blyth/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc, line 1076.
+    (gdb) p pmtid
+    $11 = 20000
+    (gdb) p m_PMTParamSvc->getPMTCategory(pmtid)
+    $12 = 2
+    (gdb) p kPMT_Unknown
+    $13 = kPMT_Unknown
+    (gdb) p (int)kPMT_Unknown
+    $14 = -1
+    (gdb) p (int)kPMT_NNVT_HighQE
+    $15 = 3
+    (gdb) b PMTSimParamSvc::get_pmtcat_qe
+    Breakpoint 8 at 0x7fffbebd6af0: file /home/blyth/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc, line 1062.
+    (gdb) b PMTSimParamSvc::get_pmt_qe_scale
+    Breakpoint 9 at 0x7fffbebd6cb6: file /home/blyth/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc, line 1083.
+    (gdb) 
+
+
+
+
+
+    (gdb) b 1076
+    Breakpoint 3 at 0x7fffbebd6c49: file /home/blyth/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc, line 1076.
+    (gdb) c
+    Continuing.
+
+    Thread 1 "python" hit Breakpoint 3, PMTSimParamSvc::get_pmtid_qe (this=0x65bdf20, pmtid=20000, energy=2.8178227113797455e-06) at /home/blyth/junosw/Simulation/SimSvc/PMTSimParamSvc/src/PMTSimParamSvc.cc:1076
+    1076	  qe = qe*qe_scale;
+    (gdb) p qe
+    $1 = 0.24930611765217103
+
+
+QEShape interpolation matches::
+
+    In [8]: np.interp( 2.8178227113797455, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )
+    Out[8]: np.float64(0.2493061113567255)
+
+
+QEScale different::
+
+    (gdb) p qe_scale
+    $2 = 0.88632892982668765
+
+B side qe_scale from debugger matches the qeScale array::
+
+    In [8]: pwd
+    Out[8]: '/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/extra/jpmt/PMTSimParamData'
+
+    In [9]: f.qeScale[17612+2400,0]
+    Out[9]: np.float64(0.8863289298266877)
+
+
+    In [6]: f.pmtID[17612+2400:17612+2400+25600,0]
+    Out[6]: array([20000, 20001, 20002, 20003, 20004, ..., 45595, 45596, 45597, 45598, 45599], shape=(25600,), dtype=int32)
+
+    In [7]: f.qeScale[17612+2400:17612+2400+25600,0]
+    Out[7]: array([0.886, 0.962, 1.029, 1.025, 0.978, ..., 0.981, 0.979, 1.009, 0.965, 0.979], shape=(25600,))
+
+
+
+But that does not match SPMT_test.sh pdb::
+
+    In [1]: s.s_qescale
+    Out[1]: 
+    array([[1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           ...,
+           [0.991],
+           [0.989],
+           [1.003],
+           [1.029],
+           [0.939],
+           [0.996],
+           [1.005],
+           [0.981],
+           [1.118],
+           [1.003],
+           [0.951],
+           [1.002],
+           [0.987],
+           [1.048],
+           [1.032],
+           [1.045]], shape=(25600, 1), dtype=float32)
+
+    In [3]: t.get_s_qescale_from_spmtid
+    Out[3]: 
+    array([[1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           [1.099],
+           ...,
+           [0.991],
+           [0.989],
+           [1.003],
+           [1.029],
+           [0.939],
+           [0.996],
+           [1.005],
+           [0.981],
+           [1.118],
+           [1.003],
+           [0.951],
+           [1.002],
+           [0.987],
+           [1.048],
+           [1.032],
+           [1.045]], shape=(25600, 1), dtype=float32)
+
+
+Must be bug at SPMT.h level because the Data level looks OK::
+
+    In [6]: f.pmtID[17612+2400:17612+2400+25600,0]
+    Out[6]: array([20000, 20001, 20002, 20003, 20004, ..., 45595, 45596, 45597, 45598, 45599], shape=(25600,), dtype=int32)
+
+    In [7]: f.qeScale[17612+2400:17612+2400+25600,0]
+    Out[7]: array([0.886, 0.962, 1.029, 1.025, 0.978, ..., 0.981, 0.979, 1.009, 0.965, 0.979], shape=(25600,))
+
+
+BINGO : ITS THE s_pmt::contiguousidx choice of CD_LPMT, SPMT, WP should be CD_PMT, WP, SPMT 
+
+
+After fix the bug by distinguishing "oldcontigious" and "contiguous" in s_pmt.h::
+
+    In [2]: t.get_s_qescale_from_spmtid
+    Out[2]: 
+    array([[0.886],
+           [0.962],
+           [1.029],
+           [1.025],
+           [0.978],
+           [0.991],
+           [0.989],
+           [0.986],
+           [0.983],
+           [0.994],
+           [0.971],
+           [1.013],
+           [0.986],
+           [1.005],
+           [0.96 ],
+           [0.979],
+           ...,
+           [0.944],
+           [1.027],
+           [0.972],
+           [0.958],
+           [0.982],
+           [0.985],
+           [1.004],
+           [0.996],
+           [0.974],
+           [0.985],
+           [0.954],
+           [0.981],
+           [0.979],
+           [1.009],
+           [0.965],
+           [0.979]], shape=(25600, 1), dtype=float32)
+
+
+
+
+
+
+
+
+
 
 
 ::
 
-    In [6]: np.interp( 2.818, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )
-    Out[6]: np.float64(0.24930848206507444)
+     032 PMTSimParamSvc::PMTSimParamSvc(const std::string& name)
+      33     :
+      34     SvcBase(name),
+      35     m_all_pmtID(m_data.m_all_pmtID),
+      36     m_all_pmtID_qe_scale(m_data.m_all_pmtID_qe_scale),
+      37     m_db_path_SPMT(),
+
+
+     47 struct PMTSimParamData
+     48 {
+     49     const char*                    loaddir ;
+     50     std::vector<int>               m_all_pmtID;
+     51     std::vector<double>            m_all_pmtID_qe_scale ;
+     52     std::unordered_map<int, int>   m_map_pmt_category ; // NB not all, only LPMT
+     53     std::unordered_map<int, int>   m_all_pmt_category ;
+     54     std::vector<int>               m_all_pmt_catvec ;
+     55 
+     56     int                            m_PmtTotal_SPMT ;
+     57     std::unordered_map<int, PmtSimData_SPMT> pd_map_SPMT;
+     58 
+     59     int                            m_PmtTotal ;  // _LPMT
+     60     std::vector<PmtSimData_LPMT>   pd_vector;
+     61 
+     62     int                            m_PmtTotal_ALL ;
+     63     int                            m_PmtTotal_WP ;
+     64 
+
+
+
+
+::
+
+    In [1]: 0.249/1.099
+    Out[1]: 0.22656960873521384
+
+
+    In [8]: np.interp( 2.8178227113797455, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )
+    Out[8]: np.float64(0.2493061113567255)
+
+    In [9]: np.interp( 2.8178227113797455, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )/p.s_qescale[0,0]
+    Out[9]: np.float64(0.22686855024623634)
+
+    In [10]: np.interp( 2.8178227113797455, p.s_qeshape[0, :-1,0], p.s_qeshape[0,:-1,1] )*p.s_qescale[0,0]
+    Out[10]: np.float64(0.2739627731228168)
+
+
+
+
+
+
+    (ok) A[blyth@localhost qudarap]$ PIDX=0 cxs_min.sh run
+
+
+    //qsim.propagate.body pidx       0 bounce 2 command 3 flag 0 s.optical.x 20 s.optical.y 2 
+    //qsim.propagate.body.WITH_CUSTOM4 pidx       0  BOUNDARY ems 2 lposcost   0.555 
+    //qsim.propagate_at_surface.BREAK.is_spmtid pidx       0 : pmtid 20000 energy_eV   2.818 qe_shape   0.249 qe_scale   1.099 qe   0.274 detect   1.000 absorb   0.000 reflect_specular   0.000 reflect_diffuse   0.000 
+    //qsim.propagate_at_surface.SA/SD.BREAK pidx       0 : flag 16384 
+    //qsim.propagate.tail pidx       0 bounce 2 command 1 flag 16384 ctx.s.optical.y(ems) 2 
+    2025-06-24 14:56:12.962 INFO  [3250386] [QEvent::gatherPhoton@628] [ evt.num_photon 100000 p.sstr (100000, 4, 4, ) evt.photon 0x7f6d2a000000
+    2025-06-24 14:56:13.141 INFO  [3250386] [QSim::simulate@492]  eventID 0 tot_dt    0.005440 tot_ph     100000 tot_ph/M   0.100000 tot_ht      27296 tot_ht/M   0.027296 tot_ht/tot_ph   0.272960 reset_ YES
+    2025-06-24 14:56:13.144 INFO  [3250386] [SEvt::save@4158] /data1/blyth/tmp/GEOM/J25_4_0_opticks_Debug/CSGOptiXSMTest/ALL98_Debug_Philox_input_photon_s_pmt/A000 [genstep,photon,record,seq,hit,domain,inphoton]
+    2025-06-24 14:56:14.240 INFO  [3250386] [QSim::simulate@507] 
+    SEvt__MINTIME
+     (TAIL - HEAD)/M   1.310225 (head to tail of QSim::simulate method) 
+     (LEND - LBEG)/M   0.210318 (multilaunch loop begin to end) 
+     (PCAT - LEND)/M   0.000030 (topfold concat and clear subfold) 
+     (TAIL - BRES)/M   1.099342 (QSim::reset which saves hits) 
+     tot_idt/M         0.005470 (sum of kernel execution int64_t stamp differences in microseconds)
+     tot_dt            0.005440 int(tot_dt*M)         5439 (sum of kernel execution double chrono stamp differences in seconds, and scaled to ms) 
+     tot_gdt/M         0.184147 (sum of SEvt::gather int64_t stamp differences in microseconds)
+
+    2025-06-24 14:56:14.349  349822130 : ]/data1/blyth/local/opticks_Debug/bin/cxs_min.sh 
+    (ok) A[blyth@localhost qudarap]$ 
+    (ok) A[blyth@localhost qudarap]$ 
+    (ok) A[blyth@localhost qudarap]$ 
+
+
+After qe_scale oldcontiguous/contiguous bugfix  : get the expected qe_scale and qe
+-----------------------------------------------------------------------------------------
+
+::
+
+    PIDX=0 cxs_min.sh run
+
+
+    /qsim.propagate.body pidx       0 bounce 2 command 3 flag 0 s.optical.x 20 s.optical.y 2 
+    //qsim.propagate.body.WITH_CUSTOM4 pidx       0  BOUNDARY ems 2 lposcost   0.555 
+    //qsim.propagate_at_surface.BREAK.is_spmtid pidx       0 : pmtid 20000 energy_eV   2.818 qe_shape   0.249 qe_scale   0.886 qe   0.221 detect   1.000 absorb   0.000 reflect_specular   0.000 reflect_diffuse   0.000 
+    //qsim.propagate_at_surface.SA/SD.BREAK pidx       0 : flag 16384 
+    //qsim.propagate.tail pidx       0 bounce 2 command 1 flag 16384 ctx.s.optical.y(ems) 2 
+    2025-06-24 17:35:58.982 INFO  [3282148] [QEvent::gatherPhoton@628] [ evt.num_photon 100000 p.sstr (100000, 4, 4, ) evt.photon 0x7fb258000000
+
+
+
+
+
+
+
+ipc EPH numbers
+----------------
+
+::
+
+    jcv junoSD_PMT_v2
+
+
+    BP=junoSD_PMT_v2::ProcessHits ipc
+    BP=junoSD_PMT_v2::ProcessHits_ ipc
+
+
+::
+
+    2025-06-24 10:58:14.982 INFO  [3241588] [QSim::simulate@448]    0 : sslice {     0,     1,       0,  100000}
+    2025-06-24 10:58:15.044 INFO  [3241588] [QEvent::gatherPhoton@628] [ evt.num_photon 100000 p.sstr (100000, 4, 4, ) evt.photon 0x7ffecc000000
+    junoSD_PMT_v2_Opticks::EndOfEvent_recordStats eventID 0 recorder YES eph_meta (1, )
+    [SProcessHits_EPH::desc
+                                     ProcessHits_count   99845
+                                      ProcessHits_true   21919
+                                     ProcessHits_false   77926         # 21919 + 77926 = 99845
+                                     SaveNormHit_count   21919
+                                     SaveMuonHit_count       0
+
+                                             EPH_UNSET       0
+                                              EPH_NDIS       0
+                                              EPH_NOPT       0
+                                             EPH_NEDEP     610
+                                            EPH_NBOUND     114
+                                             EPH_NPROC       0
+                                           EPH_NDETECT       0
+                                           EPH_NDECULL   77202        # 77202 + 114 + 610 = 77926
+
+                                            EPH_YMERGE       0
+                                             EPH_YSAVE       0
+                                          EPH_SAVENORM   21919
+                                          EPH_SAVEMUON       0
+                Initialize_G4HCofThisEvent_opticksMode       3
+                      Initialize_G4HCofThisEvent_count       1
+                           EndOfEvent_Simulate_eventID       0
+                             EndOfEvent_Simulate_count       1
+                          EndOfEvent_Simulate_EGPU_hit   27296
+                     EndOfEvent_hitCollection_entries0   21919
+                     EndOfEvent_hitCollection_entries1   21919
+                  EndOfEvent_hitCollectionAlt_entries0       0
+                  EndOfEvent_hitCollectionAlt_entries1   27296
+                      EndOfEvent_Simulate_merged_count       0
+                     EndOfEvent_Simulate_savehit_count   27296
+                      EndOfEvent_Simulate_merged_total       0
+                     EndOfEvent_Simulate_savehit_total   27296
+    ]SProcessHits_EPH::desc
+
+    junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 21919 hitCollectionAlt 27296 hcMuon 0 GPU YES
+    hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+
+
+
+
+    SABHit  a_nhit : (   27296 +-  165 )  b_nhit:(    21919 +-  148 )  a/b: (  1.245 +-  0.016 )  b/a: (  0.803 +-  0.010)  [assume uncorr.]
+
+
+    In [3]: a.q_find("EC")
+    Out[3]: array([    3,     7,    10,    14,    19, ..., 99974, 99975, 99978, 99981, 99999], shape=(27296,))
+
+    In [4]: a.q_find("EX")
+    Out[4]: array([    0,     1,     2,     4,     5, ..., 99994, 99995, 99996, 99997, 99998], shape=(71889,))
+
+    In [9]: a.q_find_or_("EC,EX")
+    Out[9]: array([    0,     1,     2,     3,     4, ..., 99995, 99996, 99997, 99998, 99999], shape=(99185,))
+
+
+
+
+    In [5]: b.q_find("EC")
+    Out[5]: array([    2,     3,     9,    12,    14, ..., 99976, 99981, 99987, 99994, 99996], shape=(21916,))
+    ## slight difference of 3 compared to 21919 could be from truncation as hit decision made on flagmask not seq
+
+    In [6]: b.q_find("EX")
+    Out[6]: array([    0,     1,     4,     5,     6, ..., 99992, 99995, 99997, 99998, 99999], shape=(77202,))
+
+    In [7]: b.q_find_or_("EC,EX")
+    Out[7]: array([    0,     1,     2,     3,     4, ..., 99995, 99996, 99997, 99998, 99999], shape=(99118,))
+
+    In [8]: 77202 + 21916
+    Out[8]: 99118
+
+
+Can view the difference as more culling (less collection) on the B side::
+
+    In [10]: 77202/99118
+    Out[10]: 0.7788898081075082   # B side cull fraction 
+
+    In [12]: 1 - 0.7788898081075082
+    Out[12]: 0.22111019189249181
+
+
+
+    In [11]: 71889/99185
+    Out[11]: 0.7247970963351313   # A side cull fraction
+
+    In [13]: 1 - 0.7247970963351313
+    Out[13]: 0.27520290366486866
+
+
+
+
+
+
+
+
+    In [2]: a.qtab
+    Out[2]:                # 27222 + 16 + 13 + 10 = 27261   .... the qtab selects the 10 most frequent so does not add up to total
+    array([[b'71884', b'0', b'TO BT BT EX                                                                                     '],
+           [b'27222', b'3', b'TO BT BT EC                                                                                     '],
+           [b'456', b'25', b'TO AB                                                                                           '],
+           [b'119', b'2121', b'TO BT BT AB                                                                                     '],
+           [b'36', b'3833', b'TO BT AB                                                                                        '],
+           [b'30', b'2867', b'TO BT BR BT BT BT AB                                                                            '],
+           [b'16', b'5229', b'TO BT BR BT BT BT SC BT BT BT BT BT BT EC                                                       '],
+           [b'13', b'8966', b'TO SC BT BT BT BT EC                                                                            '],
+           [b'10', b'33607', b'TO BT BR BT BT BT BT BT BT BT BT BT EC                                                          '],
+           [b'10', b'8104', b'TO BT BR BT BT BT BT BT BT BT BT BT SA                                                          ']], dtype='|S96')
+
+    In [3]: b.qtab
+    Out[3]: 
+    array([[b'77187', b'0', b'TO BT BT EX                                                                                     '],
+           [b'21843', b'2', b'TO BT BT EC                                                                                     '],
+           [b'486', b'76', b'TO AB                                                                                           '],
+           [b'110', b'261', b'TO BT BT AB                                                                                     '],
+           [b'41', b'420', b'TO BT AB                                                                                        '],
+           [b'38', b'6191', b'TO BT BR BT BT BT AB                                                                            '],
+           [b'14', b'28955', b'TO SC BT BT BT BT EC                                                                            '],
+           [b'14', b'7937', b'TO BT BR BT BT BT SC BT BT BT BT BT BT EC                                                       '],
+           [b'12', b'9608', b'TO SC BT BT BT BT SA                                                                            '],
+           [b'11', b'34936', b'TO BT BR BT BT BT SC BT BT BT BT BT BT SA                                                       ']], dtype='|S96')
+
+
+    
+
+
+
+
+
+
+OJ build
+-----------
+
+::
+
+    [ 83%] Built target MuonWaveRec
+    /builds/JUNO/offline/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc: In member function 'std::string junoSD_PMT_v2_Opticks::descHit(unsigned int, const U4Hit*, const U4HitExtra*) const':
+    /builds/JUNO/offline/junosw/Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc:366:51: error: 'FlagMask' is not a member of 'OpticksPhoton'
+      366 |         << " " << std::setw(20) << OpticksPhoton::FlagMask(hit->flag_mask, true)
+          |                                                   ^~~~~~~~
+
 
 
 
