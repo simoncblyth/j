@@ -157,8 +157,8 @@ if [ "${arg/env}" != "$arg" ]; then
     elif [ "$TEST" == "SPMT" ]; then
 
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
-       #opticks_input_photon=RainXZ_Z230_100k_f8.npy    # too long for tiny SPMT
-       opticks_input_photon=RainXZ_Z230_X25_100k_f8.npy
+       #opticks_input_photon=RainXZ_Z230_100k_f8.npy     # too long for tiny SPMT
+       opticks_input_photon=RainXZ_Z230_X25_100k_f8.npy  # +-25mm in X to target tiny SPMT
        opticks_input_photon_frame=PMT_3inch:0:0
 
     elif [ "$TEST" == "CD" ]; then
