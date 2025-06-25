@@ -100,6 +100,49 @@ Big gun : U4Recorder__EndOfRunAction_Simtrace
 
 
 
+HMM doing simtrace after an input photon run asserts... TODO: make simtrace take precedence rather than asserting
+--------------------------------------------------------------------------------------------------------------------------
+
+::
+
+    2025-06-24 21:12:18.144 INFO  [3292039] [SEvt::transformInputPhoton@724]  SEvt__transformInputPhoton_VERBOSE  SEventConfig::IsRGModeSimulate 0 hasInputPhoton 1 proceed NO 
+    sframe::desc inst 0 frs PMT_20inch_veto:0:1000
+     ekvid sframe_OPTICKS_INPUT_PHOTON_FRAME_PMT_20inch_veto_0_1000 ek OPTICKS_INPUT_PHOTON_FRAME ev PMT_20inch_veto:0:1000
+     ce  (3294.766,20310.441,734.451,261.940)  is_zero 0
+     m2w ( 0.006, 0.035,-0.999, 0.000) (-0.987, 0.160, 0.000, 0.000) ( 0.160, 0.986, 0.036, 0.000) (3280.836,20224.570,731.346, 1.000) 
+     w2m ( 0.006,-0.987, 0.160, 0.000) ( 0.035, 0.160, 0.986, 0.000) (-0.999,-0.000, 0.036, 0.000) (-0.004,-0.010,-20502.000, 1.000) 
+     midx  301 mord    0 gord 1000
+     inst    0
+     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
+     ins     0 gas     0 sensor_identifier        0 sensor_index      0
+     propagate_epsilon    0.05000 is_hostside_simtrace YES
+
+
+    2025-06-24 21:12:18.146 FATAL [3292039] [SEvt::addGenstep@2103] input_photon_with_normal_genstep 1 MIXING input photons with other gensteps is not allowed  for example avoid defining OPTICKS_INPUT_PHOTON when doing simtrace
+    python: /home/blyth/opticks/sysrap/SEvt.cc:2108: sgs SEvt::addGenstep(const quad6&): Assertion `input_photon_with_normal_genstep == false' failed.
+
+    Thread 1 "python" received signal SIGABRT, Aborted.
+    0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+
+
+    (gdb) bt
+    #0  0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #1  0x00007ffff743e686 in raise () from /lib64/libc.so.6
+    #2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+    #3  0x00007ffff742875b in __assert_fail_base.cold () from /lib64/libc.so.6
+    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x00007fffbe745d21 in SEvt::addGenstep (this=0xd1113260, q_=...) at /home/blyth/opticks/sysrap/SEvt.cc:2108
+    #6  0x00007fffbe745924 in SEvt::addGenstep (this=0xd1113260, a=0xcb893be0) at /home/blyth/opticks/sysrap/SEvt.cc:2071
+    #7  0x00007fffbe74048a in SEvt::addInputGenstep (this=0xd1113260) at /home/blyth/opticks/sysrap/SEvt.cc:799
+    #8  0x00007fffbe74390b in SEvt::beginOfEvent (this=0xd1113260, eventID=998) at /home/blyth/opticks/sysrap/SEvt.cc:1610
+    #9  0x00007fffc0ee308b in U4Simtrace::Scan (tree=0x0) at /home/blyth/opticks/u4/U4Simtrace.h:47
+    #10 0x00007fffc0ee301e in U4Simtrace::EndOfRunAction (tree=0x0) at /home/blyth/opticks/u4/U4Simtrace.h:36
+    #11 0x00007fffc0ed1d12 in U4Recorder::EndOfRunAction (this=0x6801580) at /home/blyth/opticks/u4/U4Recorder.cc:338
+    #12 0x00007fffbd999e22 in U4RecorderAnaMgr::EndOfRunAction (this=0x65e1b80, run=0xb95b0400) at /home/blyth/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:36
+    #13 0x00007fffd486995a in MgrOfAnaElem::EndOfRunAction (this=0xa280950, run=0xb95b0400) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:39
+
+
+
 
 jcv GtOpticksTool 
 -------------------

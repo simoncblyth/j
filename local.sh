@@ -14,27 +14,35 @@ After making changes in ~/opticks update OK with:
 
 1. open new tab with empty env and get into env and build::
 
-    local_ok_build   # lob
+    local_ok_build   ## lob 
+                     ## alternatively use "lo" which does conda setup too
+
     oo
     opticks-t
 
 
 
-Updating local OJ build
-------------------------
+Updating local OJ build (equivalent of gitlab CI OJ build)
+------------------------------------------------------------
 
 After making changes in ~/junosw eg to Examples/Tutorial/share/opticks_juno.sh
 update OJ with:
 
-1. open new tab with empty env and setup and invoke the OJ build::
+* open new tab with empty env and setup and invoke the OJ build::
 
     local_oj_build # ljb
     oj_build
+    ## alternatively use "ljbb" to do both the above
 
-2. open new tab with empty env and setup and invoke the OJ Opticks geom config::
+
+Setup geomdir (equivalent of gitlab CI OJ test)
+-------------------------------------------------
+
+* open new tab with empty env and setup and invoke the OJ Opticks geom config::
 
     local_oj_local # ljl
     oj_local
+    ## alternatively use "ljlb" to do both the above
 
 
 EOU
@@ -140,8 +148,17 @@ local_ok_local()
 ljb()
 {
    : ~/local.sh
+   : use this in fresh tab to setup env ready to perform oj_build
    local_oj_build
 }
+ljbb()
+{
+   : ~/local.sh
+   : use this in fresh tab to setup env and perform the build
+   local_oj_build
+   oj_build
+}
+
 
 local_oj_build()
 {
@@ -211,8 +228,19 @@ local_oj_build()
 ljl()
 {
    : ~/local.sh
+   : setup environment to prepare geomdir with oj_local
    local_oj_local
 }
+
+ljlb()
+{
+   : ~/local.sh
+   : setup environment to prepare geomdir and then invoke oj_local doing so
+   local_oj_local
+   oj_local 
+}
+
+
 local_oj_local()
 {
    : ~/local.sh

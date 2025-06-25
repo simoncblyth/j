@@ -1,0 +1,152 @@
+
+Hi Haosen,
+
+Regarding the issue with running your muon script
+
+    zhanghaosen/Test1/GPU/mode1_muon/generation_opticks_mode1_muon.sh
+
+with::
+
+    source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
+
+As we discussed via WeChat the first “igs_null” issue was
+due to there being no gensteps collected and Opticks not expecting
+to see events without any gensteps.
+That is fixed in Opticks release v0.4.5
+
+
+However I found a subsequent issue with eventID 6 (muon event with ~34M photons) 
+causing the below CUDA error::
+
+
+    2025-06-12 16:01:29.091 INFO  [3957937] [QSim::simulate@438]  igs (149247, 6, 4, ) MaxSlot 262000000 sslice::Desc(igs_slice)
+    sslice::Desc num_slice 1 TotalPhoton 34205002
+      0 : sslice {    0,149247,      0,34205002}
+                  start stop  offset   count
+     num_slice 1
+    2025-06-12 16:01:29.091 INFO  [3957937] [QSim::simulate@454] sslice {    0,149247,      0,34205002}
+
+    junotoptask.execute            ERROR: CUDA error on synchronize with error 'an illegal memory access was encountered' (/home/blyth/opticks/CSGOptiX/CSGOptiX.cc:1034)
+    junotoptask.finalize            WARN: invalid state tranform ((Running)) => ((Finalized))
+
+
+I got the same problem with my OJ build on the workstation::
+
+    source /home/blyth/junosw/InstallArea/envset.sh
+
+The problem was caused by the CSGOptiX__optixpath override you had in your script::
+
+   [ -n "$CRASH" ] && export CSGOptiX__optixpath=$OPTICKS_PREFIX/ptx/objects-Debug/CSGOptiXOPTIX/CSGOptiX7.ptx
+
+Overriding the default optixpath is a dangerous thing to do because it
+can mean that you are using a CUDA kernel that was compiled against 
+old versions of headers which will differ from the headers that 
+other objects are compiled against. That is a potential cause for difficult 
+to find bugs because it will work for some changes and fail for others.
+
+Removing the override with my local OJ build allows my modified version of your
+muon script to complete.
+
+I just now made Opticks release v0.4.5 and a JUNOSW merge request to go with
+it that adds collection efficiency serialization and using the CE on GPU.
+
+   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/879
+
+As a result of that MR the automatic v0.4.5 OJ release was added::
+
+    /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
+    /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.4/el9_amd64_gcc11/Fri/envset.sh 
+                                                               ^
+CAUTION there is already a v0.4.4 OJ release today, which does NOT have the CE addition,
+or the muon with no genstep fixes. Do not use that one or earlier releases.
+
+It would be good if you could redo your recent checks with this J25.4.0_Opticks-v0.4.5
+release. Namely:
+
+* hit comparison between Geant4 and Opticks
+* muon running
+
+Note that in opticksMode 3 the GPU hits are now collected
+into hitCollectionAlt which can be saved into root files
+with the below tut_detsim.py option::
+
+   --anamgr-hitcollection  hitCollectionAlt
+
+Regards muon checking the below script just completed
+for me on workstation.
+
+Simon
+
+
+
+
+#!/bin/bash
+
+######## Part 1 #########
+#SBATCH --partition=gpu
+#SBATCH --qos=normal
+#SBATCH --account=junogpu
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=16000
+#SBATCH --gpus=v100:1
+#SBATCH --job-name=Mode1
+
+######## Part 2 #########
+
+path=$(realpath $BASH_SOURCE)
+name=$(basename $path)
+stem=${name/.sh}
+fold=$(basename $(dirname $path))
+
+tmp=/tmp/$USER/opticks
+export TMP=${TMP:-$tmp}
+DIR=$TMP/j/$fold/$stem
+mkdir -p $DIR
+cd $DIR
+
+vv=""
+vv="$vv BASH_SOURCE path name stem fold tmp TMP DIR PWD"
+pvv(){ for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
+pvv
+
+
+lscpu
+nvidia-smi
+
+source  /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
+
+export CUDA_VISIBLE_DEVICES=0
+export OPTICKS_MAX_BOUNCE=63
+export OPTICKS_EVENT_MODE=Minimal
+export OPTICKS_HIT_MASK=EC  ## EC:EFFICIENCY_COLLECT changed from default SD:SURFACE_DETECT
+
+source dbg__.sh
+
+dbg__ \
+        $(which python) \
+        $(which tut_detsim.py) \
+        --no-gdml \
+        --pmtsd-merge-twindow 1.0 \
+        --event-split \
+        --output oj_edm.root \
+        --user-output oj_user.root \
+        --evtmax 100 \
+        --seed 42 \
+        hepevt \
+        --exe Muon;
+
+touch done_flag
+pvv
+
+
+
+
+
+
+
+
+
+
+
+
+

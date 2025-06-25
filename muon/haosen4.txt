@@ -1,0 +1,52 @@
+Hi Haosen, 
+
+Many thanks for your checks and for sharing your muon scripts.
+The OJ release using Opticks v0.4.8 that was just auto-built and deployed 
+from MR https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/879
+is now available at::
+
+    /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.8/el9_amd64_gcc11/2025_06_25/envset.sh
+
+That release fixes several issues:
+
+* muon crashes from non-optical particles crossing sensitive detectors that 
+  caused corruption of Geant4 UserTrackInformation from point of view of 
+  DepositEnergyAnaMgr or other AnaMgr
+
+* incorrect qe_scale on GPU that caused more SPMT hits with Opticks than with JUNOSW
+
+
+This release also has the prior fixes:
+
+* WP_PMT hits should now be collected with collection efficiency culling applied
+
+* collection efficiency culling of CD_LPMT hits applied, so hit counts 
+  should closely match between Opticks and JUNOSW
+
+
+
+Regarding manual settings::
+
+    export CUDA_VISIBLE_DEVICES=0  ## still needed 
+
+    export OPTICKS_MAX_BOUNCE=63   ## controls truncation of photon simulation
+    export OPTICKS_MAX_TIME=1000   ##? (ns) also controls truncation 
+
+       ## MAX_TIME may be preferable to MAX_BOUNCE, it needs testing 
+       ## to find appropiate value that balances matching JUNOSW
+       ## and not causing reduced performance to simulating 
+       ## uninteresting long time tail photons
+
+    ##export OPTICKS_EVENT_MODE=Minimal   ## Minimal is Opticks default, so not needed 
+    export OPTICKS_HIT_MASK=EC            ## Still needed, next releases will not need this
+
+
+CAUTION the sheduled OJ build which will start soon ~17:00 will deploy to the below, 
+BUT that install will not include the fixes from my branch yet.
+
+    /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.8/el9_amd64_gcc11/Wed/envset.sh
+
+Simon
+
+
+
