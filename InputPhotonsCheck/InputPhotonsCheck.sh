@@ -90,6 +90,8 @@ if [ "${arg/env}" != "$arg" ]; then
     #PYTHONPATH=/data1/blyth/local/opticks_Debug/py:$PYTHONPATH
     export VIP_DESC="local OJ /home/blyth/junosw/InstallArea/envset.sh with release opticks python overridden"
 
+    cxtscript=$(which cxt_min.py)
+
     export CUDA_VISIBLE_DEVICES=0
     export OPTICKS_MAX_SLOT=M5
     export OPTICKS_EVENT_MODE=DebugLite
@@ -155,10 +157,13 @@ if [ "${arg/env}" != "$arg" ]; then
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
-       observation="B side sees no hits, like diff geom, TODO:try B side simtrace"
+       observation="B side sees no hits, like diff geom, HMM:B side simtrace works as expected"
 
-       export U4Recorder__EndOfRunAction_Simtrace=1 
+       export U4Recorder__EndOfRunAction_Simtrace=1
        export U4Simtrace__level=2
+
+
+
 
     elif [ "$TEST" == "SPMT" ]; then
 
@@ -203,8 +208,7 @@ if [ "${arg/env}" != "$arg" ]; then
     export EVT=000
     export AFOLD=$LOGDIR/A$EVT
     export BFOLD=$LOGDIR/B$EVT
-
-
+    export MFOLD=$LOGDIR/M998
 
     mkdir -p $LOGDIR
     cd $LOGDIR && pwd
@@ -223,10 +227,10 @@ logging(){
 
 if [ "${arg/info}" != "$arg" ]; then
    vv=""
-   vv="$vv BASH_SOURCE defarg arg TMP GEOM TEST LOGDIR AFOLD BFOLD IPYTHON PYTHON SEvt__INPUT_PHOTON_DIR"
+   vv="$vv BASH_SOURCE defarg arg TMP GEOM TEST LOGDIR AFOLD BFOLD MFOLD IPYTHON PYTHON SEvt__INPUT_PHOTON_DIR"
    vv="$vv OPTICKS_INPUT_PHOTON OPTICKS_INPUT_PHOTON_FRAME OPTICKS_MAX_BOUNCE OPTICKS_PREFIX"
    vv="$vv OPTICKS_INTEGRATION_MODE"
-   vv="$vv anascript"
+   vv="$vv anascript cxtscript"
    for v in $vv ; do printf "%30s :  %s\n" "$v" "${!v}" ; done
 fi
 
@@ -285,6 +289,11 @@ fi
 if [ "${arg/pdb}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $anascript
    [ $? -ne 0 ] && echo $BASH_SOURCE pdb error
+fi
+
+if [ "${arg/cxt}" != "$arg" ]; then
+   ${IPYTHON:-ipython} --pdb -i $cxtscript
+   [ $? -ne 0 ] && echo $BASH_SOURCE cxt error
 fi
 
 if [ "${arg/ana}" != "$arg" ]; then
