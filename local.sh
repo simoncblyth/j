@@ -4,7 +4,7 @@ local_usage(){ cat << EOU
 .bash_profile > .bashrc > local.sh : local_usage
 ==================================================
 
-local.sh is the environment control script developed on Ada workstation (A). 
+local.sh is the environment control script developed on Ada workstation (A).
 
 
 Updating local OK build
@@ -14,7 +14,7 @@ After making changes in ~/opticks update OK with:
 
 1. open new tab with empty env and get into env and build::
 
-    local_ok_build   ## lob 
+    local_ok_build   ## lob
                      ## alternatively use "lo" which does conda setup too
 
     oo
@@ -45,6 +45,17 @@ Setup geomdir (equivalent of gitlab CI OJ test)
     ## alternatively use "ljlb" to do both the above
 
 
+
+BUILD ORDER WHEN CHANGING CUSTOM4 VERSION : C4, OK, OJ
+-------------------------------------------------------
+
+
+1. local_c4_externals ; c4_build
+2. lob ; om-clean ; om-conf ; oo
+3. local_oj_build ; oj_build
+
+
+
 EOU
 }
 
@@ -56,7 +67,7 @@ local_vip()
    case ${VIP_MODE:-none} in
           none) local_none ;;
 
-  ok_externals) local_ok_externals ;; 
+  ok_externals) local_ok_externals ;;
       ok_build) local_ok_build ;;
       ok_local) local_ok_local ;;
 
@@ -86,6 +97,44 @@ local_none()
    export VIP_DESC="empty env"
 }
 
+
+local_c4_prefix()
+{
+    #echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
+    #echo /data1/blyth/local/custom4_Debug/0.1.9
+    echo /data1/blyth/local/custom4_Debug/0.1.8
+}
+
+
+local_c4_externals()
+{
+   : ~/local.sh
+   : setup externals needed to build Custom4
+   : using J25.4.0 standard versions of externals copied from JUNOTOP/bashrc.sh
+   : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/bashrc.sh
+
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Xercesc/3.2.4/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/CLHEP/2.4.7.1/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+
+   c4_build()
+   {
+      : ~/local.sh
+
+      : NB returned v0.1.8 in transient branch with
+      :
+      :      git checkout -b v0.1.8_transient v0.1.8
+      :
+
+      cd $HOME/customgeant4
+      export CUSTOM4_PREFIX=$(local_c4_prefix)
+      ./build_Debug.sh
+
+      source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
+      JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
+   }
+}
+
 local_ok_externals()
 {
    : ~/local.sh
@@ -94,29 +143,56 @@ local_ok_externals()
 
    local_unset
 
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Xercesc/3.2.4/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/CLHEP/2.4.7.1/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Geant4/10.04.p02.juno/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/custom4/0.1.8/bashrc
+   local_c4_externals
+   source $(local_c4_prefix)/bashrc
 
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/Python/3.9.19/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x/ExternalLibs/python-numpy/1.23.5/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Python/3.11.10/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/python-numpy/1.26.4/bashrc
 
    export VIP_MODE=ok_externals
    export VIP_DESC="Opticks JUNOSW externals in common manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
 }
 
+
+local_JUNOTOP_setup()
+{
+
+   : JUNOTOP defines the versions of externals used by both JUNOSW
+   : Opticks grabs the same versions of those externals it needs
+   :
+   : 2025/06/04
+   :    JLatest symbolic link no longer latest - currently J25.3.0
+   :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0
+
+   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+   source $JUNOTOP/setup.sh
+
+   : change PATH LD_LIBRARY_PATH PKG_CONFIG_PATH CPATH MANPATH CMAKE_PREFIX_PATH
+   : in order to use different prefix of an external
+
+   source ~/j/JUNOTOP/JUNOTOP_change_paths.sh
+   JUNOTOP_change_paths custom4 $(local_c4_prefix)
+
+   : HMM when building JUNOSW against different Custom4 will need to
+   : also build Opticks against that same Custom4 FIRST
+}
+
+
+
+
+
 local_ok_build()
 {
    : ~/local.sh
    local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
+
    source ~/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
    om-
-
    export VIP_MODE=ok_build
    export VIP_DESC="env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
 
-  :  noticed that need to  om- to get setup 
+  :  noticed that need to  om- to get setup
 }
 lob()
 {
@@ -126,7 +202,7 @@ lob()
 
 lo()
 {
-   : ~/local.sh  env for Opticks build test and analysis 
+   : ~/local.sh  env for Opticks build test and analysis
    local_ok_build
    local_conda_ok
 }
@@ -145,6 +221,10 @@ local_ok_local()
 
 
 
+
+
+
+
 ljb()
 {
    : ~/local.sh
@@ -160,20 +240,14 @@ ljbb()
 }
 
 
+
 local_oj_build()
 {
    : ~/local.sh
    export VIP_MODE=oj_build
    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
 
-
-   : JUNOTOP defines the versions of externals used by both JUNOSW and Opticks
-   : 2025/06/04 
-   :    JLatest symbolic link no longer latest - currently J25.3.0
-   :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0 
-
-   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest  
-   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+   local_JUNOTOP_setup
 
    #export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest
    export JUNO_OPTICKS_PREFIX=/data1/blyth/local/opticks_Debug
@@ -184,7 +258,6 @@ local_oj_build()
    export JUNO_OFFLINE_OFF=1
    export OPTICKS_SETUP_VERBOSE=1
 
-   source $JUNOTOP/setup.sh
    if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
 
    oj_build_info(){
@@ -192,6 +265,14 @@ local_oj_build()
        local vv="JUNOTOP JUNO_OPTICKS_PREFIX JUNO_OFFLINE_OFF OPTICKS_SETUP_VERBOSE"
        for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done
    }
+
+   oj_build_nuclean()
+   {
+      : when changing externals need nuclear rebuild
+      cd $HOME/junosw
+      rm -rf InstallArea build
+   }
+
 
    oj_build_pre(){
        : ~/local.sh
@@ -237,7 +318,7 @@ ljlb()
    : ~/local.sh
    : setup environment to prepare geomdir and then invoke oj_local doing so
    local_oj_local
-   oj_local 
+   oj_local
 }
 
 

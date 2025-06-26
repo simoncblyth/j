@@ -22,6 +22,26 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+Thu 26th June 2025 : return to Custom4 v0.1.8 on fixes branch in case of throwaway changes
+---------------------------------------------------------------------------------------------
+
+* motivation to return to v0.1.8 is to do a Debug build
+
+::
+
+     git tag                ## list tags
+     #git checkout v0.1.8   ## that enters detached HEAD state, so cannot easily commit changes
+     #git checkout main     ## recovers from the detached HEAD
+
+     git checkout -b v0.1.8_transient v0.1.8
+
+::
+
+    A[blyth@localhost customgeant4]$ git checkout -b v0.1.8_transient v0.1.8
+    Switched to a new branch 'v0.1.8_transient'
+
+
+
 Fri 13 June 2025 : "fetch origin" "rebase main" and "push -f" to add dev from main into my branch and redo the merge request
 -----------------------------------------------------------------------------------------------------------------------------
 
