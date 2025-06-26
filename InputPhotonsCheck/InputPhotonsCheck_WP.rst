@@ -100,56 +100,275 @@ Big gun : U4Recorder__EndOfRunAction_Simtrace
 
 
 
-HMM doing simtrace after an input photon run asserts... TODO: make simtrace take precedence rather than asserting
---------------------------------------------------------------------------------------------------------------------------
+HMM doing simtrace after an input photon run asserts... FIXED: make simtrace running ignore input photons
+---------------------------------------------------------------------------------------------------------------
+
+::
+    
+    TEST=WP_PMT ipc
 
 ::
 
-    2025-06-24 21:12:18.144 INFO  [3292039] [SEvt::transformInputPhoton@724]  SEvt__transformInputPhoton_VERBOSE  SEventConfig::IsRGModeSimulate 0 hasInputPhoton 1 proceed NO 
-    sframe::desc inst 0 frs PMT_20inch_veto:0:1000
-     ekvid sframe_OPTICKS_INPUT_PHOTON_FRAME_PMT_20inch_veto_0_1000 ek OPTICKS_INPUT_PHOTON_FRAME ev PMT_20inch_veto:0:1000
-     ce  (3294.766,20310.441,734.451,261.940)  is_zero 0
-     m2w ( 0.006, 0.035,-0.999, 0.000) (-0.987, 0.160, 0.000, 0.000) ( 0.160, 0.986, 0.036, 0.000) (3280.836,20224.570,731.346, 1.000) 
-     w2m ( 0.006,-0.987, 0.160, 0.000) ( 0.035, 0.160, 0.986, 0.000) (-0.999,-0.000, 0.036, 0.000) (-0.004,-0.010,-20502.000, 1.000) 
-     midx  301 mord    0 gord 1000
-     inst    0
-     ix0     0 ix1     0 iy0     0 iy1     0 iz0     0 iz1     0 num_photon    0
-     ins     0 gas     0 sensor_identifier        0 sensor_index      0
-     propagate_epsilon    0.05000 is_hostside_simtrace YES
+    153     elif [ "$TEST" == "WP_PMT" ]; then
+    154 
+    155        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+    156        opticks_input_photon=RainXZ_Z230_100k_f8.npy
+    157        opticks_input_photon_frame=PMT_20inch_veto:0:1000
+    158        observation="B side sees no hits, like diff geom, WIP:B side simtrace"
+    159 
+    160        export U4Recorder__EndOfRunAction_Simtrace=1   ## CONFIG B SIDE SIMTRACE RUNNING 
+    161        export U4Simtrace__level=2
 
 
-    2025-06-24 21:12:18.146 FATAL [3292039] [SEvt::addGenstep@2103] input_photon_with_normal_genstep 1 MIXING input photons with other gensteps is not allowed  for example avoid defining OPTICKS_INPUT_PHOTON when doing simtrace
-    python: /home/blyth/opticks/sysrap/SEvt.cc:2108: sgs SEvt::addGenstep(const quad6&): Assertion `input_photon_with_normal_genstep == false' failed.
 
-    Thread 1 "python" received signal SIGABRT, Aborted.
-    0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+U4Simtrace.h
+----------------
+
+::
+
+    [U4Simtrace::Scan num_simtrace 627000
+    -U4Simtrace::Scan  t    243.847 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t    191.493 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t   1137.920 valid YES nidx    67472 prim   1952 prn GLb2.equ_FlangeI_Web_FlangeII pv0 pOuterWaterInCD pv1 GLb2.equ_HBeam_phys so1 GLb2.equ_FlangeI_Web_FlangeII
+    -U4Simtrace::Scan  t    196.329 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t   1391.094 valid YES nidx    67825 prim   2305 prn sInnerReflectorInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pInnerReflector so1 sInnerReflectorInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t    129.171 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t    149.218 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t   1051.329 valid YES nidx    67472 prim   1952 prn GLb2.equ_FlangeI_Web_FlangeII pv0 pOuterWaterInCD pv1 GLb2.equ_HBeam_phys so1 GLb2.equ_FlangeI_Web_FlangeII
+    -U4Simtrace::Scan  t  20728.076 valid YES nidx    65724 prim    204 prn sDeadWater_shell pv0 pWaterPool pv1 pDeadWater so1 sDeadWater_shell
+    -U4Simtrace::Scan  t  44341.332 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t   1160.103 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t   1124.530 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t   3722.088 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t  23460.886 valid YES nidx    65724 prim    204 prn sDeadWater_shell pv0 pWaterPool pv1 pDeadWater so1 sDeadWater_shell
+    -U4Simtrace::Scan  t  42259.146 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t   1277.814 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t  28531.898 valid YES nidx    65724 prim    204 prn sDeadWater_shell pv0 pWaterPool pv1 pDeadWater so1 sDeadWater_shell
+    -U4Simtrace::Scan  t   1493.678 valid YES nidx    65726 prim    206 prn sOuterWaterPool pv0 pWaterPool pv1 pWaterPool so1 sOuterWaterPool
+    -U4Simtrace::Scan  t  22565.644 valid YES nidx    65724 prim    204 prn sDeadWater_shell pv0 pWaterPool pv1 pDeadWater so1 sDeadWater_shell
+    -U4Simtrace::Scan  t    225.499 valid YES nidx    66514 prim    994 prn sOuterWaterInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pOuterWaterInCD so1 sOuterWaterInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t    727.271 valid YES nidx    67825 prim   2305 prn sInnerReflectorInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pInnerReflector so1 sInnerReflectorInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t  24802.953 valid YES nidx    67742 prim   2222 prn GLb3.bt09_FlangeI_Web_FlangeII pv0 pOuterWaterInCD pv1 GLb3.bt09_HBeam_phys so1 GLb3.bt09_FlangeI_Web_FlangeII
+    -U4Simtrace::Scan  t   1771.699 valid YES nidx    66513 prim    993 prn sOuterReflectorInCD_TSubWaterDistributor pv0 pOuterWaterInCD pv1 pCentralDetector so1 sOuterReflectorInCD_TSubWaterDistributor
+    -U4Simtrace::Scan  t  22852.487 valid YES nidx    67202 prim   1682 prn GLb3.up09_FlangeI_Web_FlangeII pv0 pOuterWaterInCD pv1 GLb3.up09_HBeam_phys so1 GLb3.up09_FlangeI_Web_FlangeII
 
 
-    (gdb) bt
-    #0  0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
-    #1  0x00007ffff743e686 in raise () from /lib64/libc.so.6
-    #2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
-    #3  0x00007ffff742875b in __assert_fail_base.cold () from /lib64/libc.so.6
-    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
-    #5  0x00007fffbe745d21 in SEvt::addGenstep (this=0xd1113260, q_=...) at /home/blyth/opticks/sysrap/SEvt.cc:2108
-    #6  0x00007fffbe745924 in SEvt::addGenstep (this=0xd1113260, a=0xcb893be0) at /home/blyth/opticks/sysrap/SEvt.cc:2071
-    #7  0x00007fffbe74048a in SEvt::addInputGenstep (this=0xd1113260) at /home/blyth/opticks/sysrap/SEvt.cc:799
-    #8  0x00007fffbe74390b in SEvt::beginOfEvent (this=0xd1113260, eventID=998) at /home/blyth/opticks/sysrap/SEvt.cc:1610
-    #9  0x00007fffc0ee308b in U4Simtrace::Scan (tree=0x0) at /home/blyth/opticks/u4/U4Simtrace.h:47
-    #10 0x00007fffc0ee301e in U4Simtrace::EndOfRunAction (tree=0x0) at /home/blyth/opticks/u4/U4Simtrace.h:36
-    #11 0x00007fffc0ed1d12 in U4Recorder::EndOfRunAction (this=0x6801580) at /home/blyth/opticks/u4/U4Recorder.cc:338
-    #12 0x00007fffbd999e22 in U4RecorderAnaMgr::EndOfRunAction (this=0x65e1b80, run=0xb95b0400) at /home/blyth/junosw/Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc:36
-    #13 0x00007fffd486995a in MgrOfAnaElem::EndOfRunAction (this=0xa280950, run=0xb95b0400) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/MgrOfAnaElem.cc:39
+::
+
+    A[blyth@localhost opticks]$ l /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_PMT_20inch_veto:0:1000_RainXZ_Z230_100k_f8/M998/
+    total 39264
+        0 drwxr-xr-x. 2 blyth blyth      157 Jun 25 20:38 .
+        4 -rw-r--r--. 1 blyth blyth       25 Jun 25 20:38 NPFold_index.txt
+        4 -rw-r--r--. 1 blyth blyth      562 Jun 25 20:38 NPFold_meta.txt
+        0 -rw-r--r--. 1 blyth blyth        0 Jun 25 20:38 NPFold_names.txt
+        4 -rw-r--r--. 1 blyth blyth      176 Jun 25 20:38 sframe_meta.txt
+        4 -rw-r--r--. 1 blyth blyth      384 Jun 25 20:38 sframe.npy
+        0 drwxr-xr-x. 5 blyth blyth      137 Jun 25 20:38 ..
+       60 -rw-r--r--. 1 blyth blyth    60320 Jun 25 20:38 genstep.npy
+    39188 -rw-r--r--. 1 blyth blyth 40128128 Jun 25 20:38 simtrace.npy
+    A[blyth@localhost opticks]$ 
 
 
+
+Can I simtrace plot without creating yet another simtrace script ?
+----------------------------------------------------------------------
+
+YES, use most recent installed simtrace script cxt_min.py from ipcv::
+
+    093     cxtscript=$(which cxt_min.py)
+
+    294 if [ "${arg/cxt}" != "$arg" ]; then
+    295    ${IPYTHON:-ipython} --pdb -i $cxtscript
+    296    [ $? -ne 0 ] && echo $BASH_SOURCE cxt error
+    297 fi
+
+
+::
+
+   (ok) A[blyth@localhost opticks]$ ls -alst `!!`
+    ls -alst `find . -name '*.py' -exec grep -l simtrace {} \;`
+    12 -rw-r--r--. 1 blyth blyth  9248 May 29 16:55 ./CSGOptiX/cxt_min.py
+     4 -rw-r--r--. 1 blyth blyth  3073 May 29 16:38 ./g4cx/tests/G4CXTest_raindrop_simtrace.py
+    36 -rw-r--r--. 1 blyth blyth 36650 May 27 21:19 ./CSG/CSGFoundry.py
+    36 -rw-r--r--. 1 blyth blyth 34313 May 27 21:07 ./ana/pvplt.py
+     8 -rw-r--r--. 1 blyth blyth  7541 May 21 17:12 ./CSGOptiX/tests/CSGOptiXSimtraceTest.py
+    16 -rw-r--r--. 1 blyth blyth 13824 Apr  3 21:16 ./u4/tests/U4SimtraceSimpleTest.py
+     8 -rw-r--r--. 1 blyth blyth  7446 Dec 15  2024 ./ana/simtrace_positions.py
+     4 -rw-r--r--. 1 blyth blyth  1177 Aug 29  2024 ./u4/tests/U4SimtracePlot.py
+    16 -rw-r--r--. 1 blyth blyth 13765 Aug 29  2024 ./u4/tests/U4SimtraceTest.py
+     4 -rw-r--r--. 1 blyth blyth   302 Aug 29  2024 ./sysrap/tests/SSimtrace_check.py
+     8 -rw-r--r--. 1 blyth blyth  4536 Aug 29  2024 ./g4cx/tests/cf_G4CXSimtraceTest.py
+     4 -rw-r--r--. 1 blyth blyth  3019 Aug 29  2024 ./g4cx/tests/G4CXSimtraceMinTest.py
+     8 -rw-r--r--. 1 blyth blyth  7862 Aug 29  2024 ./g4cx/tests/G4CXSimtraceTest.py
+     4 -rw-r--r--. 1 blyth blyth  1994 Aug 29  2024 ./extg4/tests/X4SimtraceTest.py
+    12 -rw-r--r--. 1 blyth blyth  9405 Aug 29  2024 ./extg4/tests/X4IntersectVolumeTest.py
+    12 -rw-r--r--. 1 blyth blyth 11339 Aug 29  2024 ./ana/simtrace_plot.py
+    16 -rw-r--r--. 1 blyth blyth 13324 Aug 29  2024 ./ana/feature.py
+     8 -rw-r--r--. 1 blyth blyth  6138 Aug 29  2024 ./ana/framegensteps.py
+     8 -rw-r--r--. 1 blyth blyth  5657 Aug 29  2024 ./CSG/tests/CSGSimtraceTest.py
+     4 -rw-r--r--. 1 blyth blyth  1106 Aug 29  2024 ./CSG/tests/CSGIntersectComparisonTest.py
+     4 -rw-r--r--. 1 blyth blyth   810 Aug 29  2024 ./CSG/tests/CSGNodeScanTest.py
+    (ok) A[blyth@localhost opticks]$ 
+
+
+The B side simtrace plot needs some work to have some identity color but looks like 
+the expected slice through the geometry with GSGRID on the WP_PMT. 
+
+* So the B side simulation mystery remains. 
 
 
 jcv GtOpticksTool 
 -------------------
 
-Difficult to see anything special on the B side : perplexing 
+::
 
-* its the same code preparing the input photons ? 
+    126     else if( ebyte == sizeof(double) )
+    127     {
+    128         sphotond p ;   
+    129         sphotond::Get(p, m_input_photon, idx );  
+    130         post.set(p.pos.x,p.pos.y,p.pos.z,p.time); 
+    131         dir.set(p.mom.x, p.mom.y, p.mom.z);  
+    132         pol.set(p.pol.x, p.pol.y, p.pol.z);  
+    133         wavelength_nm = p.wavelength  ; 
+    134     }
+    135     else
+    136     {
+    137         std::cerr
+    138             << "GtOpticksTool::add_optical_photon" 
+    139             << " FATAL "
+    140             << " no input_photon OR invalid type "
+    141             << " ebyte " << ebyte 
+    142             << std::endl 
+    143             ;
+    144         assert(0);  
+    145     }
+    146 
+    147     G4double wavelength = wavelength_nm * CLHEP::nm ; 
+    148     G4double energy = h_Planck*c_light/wavelength ;
+    149 
+    150     HepMC::GenVertex* vertex = new HepMC::GenVertex(post) ; 
+    151     HepMC::FourVector momentum(dir.x()*energy, dir.y()*energy, dir.z()*energy, energy );  
+    152     HepMC::Polarization polarization(pol); 
+    153 
+    154     int pdg_id = 20022 ; // optical photon 
+    155     int status = 1 ;  // ?
+    156     HepMC::GenParticle* particle = new HepMC::GenParticle(momentum, pdg_id, status);
+    157 
+    158     particle->set_polarization(polarization);
+    159     vertex->add_particle_out(particle);
+    160     event.add_vertex(vertex); 
+    161 
+
+
+
+
+HMM nothing special for WP_PMT on B side : perplexing 
+
+* its the same GtOpticksTool code converting input photons into Geant4 ? 
+* only geometry that the B side input photons "see" is sOuterWaterPool,
+  that could be no-RINDEX SA
+
+
+BP=C4OpBoundaryProcess::PostStepDoIt ipc run
+---------------------------------------------
+
+::
+
+   ipc env_info
+   BP=C4OpBoundaryProcess::PostStepDoIt ipc run
+
+
+    (gdb) bt
+    #0  0x00007fffc10d1610 in C4OpBoundaryProcess::PostStepDoIt(G4Track const&, G4Step const&) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8/lib64/libCustom4.so
+    #1  0x00007fffc6727519 in G4SteppingManager::InvokePSDIP(unsigned long) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #2  0x00007fffc672791b in G4SteppingManager::InvokePostStepDoItProcs() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #3  0x00007fffc6725154 in G4SteppingManager::Stepping() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #4  0x00007fffc673070f in G4TrackingManager::ProcessOneTrack(G4Track*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #5  0x00007fffc676b565 in G4EventManager::DoProcessing(G4Event*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #6  0x00007fffe1a6c68e in G4SvcRunManager::SimulateEvent (this=0x661ab70, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+    #7  0x00007fffd485ed3e in DetSimAlg::execute (this=0x65a8e00) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+    #8  0x00007fffd0af44b1 in Task::execute() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #9  0x00007fffd0af8bbd in TaskWatchDog::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+    #10 0x00007fffd0af4054 in Task::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+
+Need JUNOSW debug build using debug version of Custom4 external
+-------------------------------------------------------------------
+
+Where is the version of Custom4 configured for the local junosw build ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    163 local_oj_build()
+    164 {
+    165    : ~/local.sh
+    166    export VIP_MODE=oj_build
+    167    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
+    168
+    169
+    170    : JUNOTOP defines the versions of externals used by both JUNOSW and Opticks
+    171    : 2025/06/04
+    172    :    JLatest symbolic link no longer latest - currently J25.3.0
+    173    :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0
+    174
+    175    #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+    176    export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+    ...
+    184    export JUNO_OFFLINE_OFF=1
+    185    export OPTICKS_SETUP_VERBOSE=1
+    186
+    187    source $JUNOTOP/setup.sh
+
+
+JUNOTOP/bashrc::
+
+     29 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/CLHEP/2.4.7.1/bashrc
+     30 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/xrootd/5.7.3/bashrc
+     31 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/bashrc
+     32 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/HepMC/2.06.11/bashrc
+     33 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+     34 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8/bashrc
+     35 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/genie/3.04.02/bashrc
+     36 source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/nuwro/21.09.2/bashrc
+
+
+
+What they do::
+
+    if [ -z "${JUNOTOP}" ]; then
+    export JUNO_EXTLIB_custom4_HOME=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J24.2.0/ExternalLibs/custom4/0.1.8
+    else
+    export JUNO_EXTLIB_custom4_HOME=${JUNOTOP}/ExternalLibs/custom4/0.1.8
+    fi
+
+    export PATH=${JUNO_EXTLIB_custom4_HOME}/bin:${PATH}
+    if [ -d ${JUNO_EXTLIB_custom4_HOME}/lib ];
+    then
+    export LD_LIBRARY_PATH=${JUNO_EXTLIB_custom4_HOME}/lib:${LD_LIBRARY_PATH}
+    fi
+    if [ -d ${JUNO_EXTLIB_custom4_HOME}/lib/pkgconfig ];
+    then
+    export PKG_CONFIG_PATH=${JUNO_EXTLIB_custom4_HOME}/lib/pkgconfig:${PKG_CONFIG_PATH}
+    fi
+    if [ -d ${JUNO_EXTLIB_custom4_HOME}/lib64 ];
+    then
+    export LD_LIBRARY_PATH=${JUNO_EXTLIB_custom4_HOME}/lib64:${LD_LIBRARY_PATH}
+    fi
+    if [ -d ${JUNO_EXTLIB_custom4_HOME}/lib64/pkgconfig ];
+    then
+    export PKG_CONFIG_PATH=${JUNO_EXTLIB_custom4_HOME}/lib64/pkgconfig:${PKG_CONFIG_PATH}
+    fi
+    export CPATH=${JUNO_EXTLIB_custom4_HOME}/include:${CPATH}
+    export MANPATH=${JUNO_EXTLIB_custom4_HOME}/share/man:${MANPATH}
+
+    # For CMake search path
+    export CMAKE_PREFIX_PATH=${JUNO_EXTLIB_custom4_HOME}:${CMAKE_PREFIX_PATH}
+
+
+
+
 
 
 

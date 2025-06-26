@@ -18,6 +18,64 @@ Overview
     can change from (G4Track*)trk parameter to (int4*)label 
 
 
+
+jcv U4RecorderAnaMgr
+-----------------------
+
+On earlier branch::
+
+    [blyth@localhost junosw]$ git s
+    On branch blyth-NormalTrackInfo-C4Pho-label-Opticks-integration
+    Your branch is up to date with 'origin/blyth-NormalTrackInfo-C4Pho-label-Opticks-integration'.
+
+    nothing to commit, working tree clean
+    A[blyth@localhost junosw]$ 
+
+
+    [blyth@localhost junosw]$ git l -n5
+    commit 22ee7520d9f22046aacc6c07e4cb0e92e102e480 (HEAD -> blyth-NormalTrackInfo-C4Pho-label-Opticks-integration, origin/blyth-NormalTrackInfo-C4Pho-label-Opticks-integration)
+    Author: Simon C Blyth <simoncblyth@gmail.com>
+    Date:   Sat Jun 7 16:40:23 2025 +0800
+
+        changing NormalTrackInfo has difficulties, so defer the spearate label approach
+
+    M       Simulation/DetSimV2/AnalysisCode/include/U4RecorderAnaMgr.hh
+    M       Simulation/DetSimV2/AnalysisCode/src/U4RecorderAnaMgr.cc
+
+
+
+    int* U4RecorderAnaMgr::LabelData( const G4Track* trk )  // static
+    +{
+    +#ifdef WITH_NORMAL_LABEL
+    +    NormalTrackInfo* ui = (NormalTrackInfo*)(trk->GetUserInformation());
+    +    int* label_data =  ui ? ui->getLabelData() : nullptr ;
+    +#else
+    +    int* label_data = nullptr ; 
+    +#endif
+    +    return label_data ;
+    +}
+
+
+
+
+
+u4/U4Recorder has int* arg label interface to workaround dependency conundrum
+---------------------------------------------------------------------------------
+
+::
+
+    113     void PreUserTrackingAction(const G4Track* );
+    114     void PostUserTrackingAction(const G4Track* );
+    115 
+    116     void PreUserTrackingAction_( const G4Track*, int* label );
+    117     void PostUserTrackingAction_(const G4Track*, int* label );
+    118 
+    119     void PreUserTrackingAction_Optical(const G4Track*);
+    120     void PreUserTrackingAction_Optical_(const G4Track*, int* label );
+
+
+
+
 Create branch : blyth-NormalTrackInfo-C4Pho-label-Opticks-integration
 ------------------------------------------------------------------------
 
