@@ -57,10 +57,10 @@ logging(){
 
 if [ "${arg/env}" != "$arg" ]; then
 
-    #source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
-    #source /home/blyth/junosw/InstallArea/envset.sh
+    #source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.8/el9_amd64_gcc11/2025_06_25/envset.sh 
+    #source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh
+    source /home/blyth/junosw/InstallArea/envset.sh
 
-    source  /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
 
     ## save gensteps for eventID 6
     ## export QSim__SAVE_IGS_EVENTID=6

@@ -154,19 +154,8 @@ local_ok_externals()
 }
 
 
-local_JUNOTOP_setup()
+local_JUNOTOP_override()
 {
-
-   : JUNOTOP defines the versions of externals used by both JUNOSW
-   : Opticks grabs the same versions of those externals it needs
-   :
-   : 2025/06/04
-   :    JLatest symbolic link no longer latest - currently J25.3.0
-   :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0
-
-   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
-   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
-   source $JUNOTOP/setup.sh
 
    : change PATH LD_LIBRARY_PATH PKG_CONFIG_PATH CPATH MANPATH CMAKE_PREFIX_PATH
    : in order to use different prefix of an external
@@ -247,7 +236,20 @@ local_oj_build()
    export VIP_MODE=oj_build
    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
 
-   local_JUNOTOP_setup
+
+   : JUNOTOP defines the versions of externals used by both JUNOSW
+   : Opticks grabs the same versions of those externals it needs
+   :
+   : 2025/06/04
+   :    JLatest symbolic link no longer latest - currently J25.3.0
+   :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0
+
+   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+   source $JUNOTOP/setup.sh
+
+   local_JUNOTOP_override
+
 
    #export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest
    export JUNO_OPTICKS_PREFIX=/data1/blyth/local/opticks_Debug
