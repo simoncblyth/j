@@ -86,8 +86,25 @@ if [ "${arg/env}" != "$arg" ]; then
     ## see A:~/.bashrc oj_build + oj_local
 
     ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
-    source /home/blyth/junosw/InstallArea/envset.sh
-    #PYTHONPATH=/data1/blyth/local/opticks_Debug/py:$PYTHONPATH
+    ##source /home/blyth/junosw/InstallArea/envset.sh
+    source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh
+
+
+    ASIS=0 
+    ZERO_HOLES=1
+    MULTIUNION_HOLES=2
+    HIERARCHY=3
+
+    #export WaterPoolConstruction__CONFIG=$ASIS                # ASIS crashes in geometry conversion with enormous bt
+    #export WaterPoolConstruction__CONFIG=$ZERO_HOLES          # same crash 
+    #export WaterPoolConstruction__CONFIG=$MULTIUNION_HOLES
+    export WaterPoolConstruction__CONFIG=$HIERARCHY           # HIERARCHY is set by oj_geomsetup
+
+
+    export U4Solid__IsFlaggedName=sDeadWater
+
+
+
     export VIP_DESC="local OJ /home/blyth/junosw/InstallArea/envset.sh with release opticks python overridden"
 
     cxtscript=$(which cxt_min.py)

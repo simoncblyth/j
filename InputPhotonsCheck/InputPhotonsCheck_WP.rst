@@ -269,12 +269,12 @@ HMM nothing special for WP_PMT on B side : perplexing
   that could be no-RINDEX SA
 
 
-BP=C4OpBoundaryProcess::PostStepDoIt ipc run
----------------------------------------------
+BP=C4OpBoundaryProcess::PostStepDoIt ipc env_info_run
+---------------------------------------------------------
 
 ::
 
-   ipc env_info
+   BP=C4OpBoundaryProcess::PostStepDoIt ipc env_info_run
    BP=C4OpBoundaryProcess::PostStepDoIt ipc run
 
 
@@ -290,6 +290,107 @@ BP=C4OpBoundaryProcess::PostStepDoIt ipc run
     #8  0x00007fffd0af44b1 in Task::execute() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
     #9  0x00007fffd0af8bbd in TaskWatchDog::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
     #10 0x00007fffd0af4054 in Task::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+Argh after rebuild still not using the Debug Custom4::
+
+egin of Event --> 0
+
+    (gdb) bt
+    #0  0x00007fffc10d1610 in C4OpBoundaryProcess::PostStepDoIt(G4Track const&, G4Step const&) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8/lib64/libCustom4.so
+    #1  0x00007fffc6727519 in G4SteppingManager::InvokePSDIP(unsigned long) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #2  0x00007fffc672791b in G4SteppingManager::InvokePostStepDoItProcs() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #3  0x00007fffc6725154 in G4SteppingManager::Stepping() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #4  0x00007fffc673070f in G4TrackingManager::ProcessOneTrack(G4Track*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    #5  0x00007fffc676b565 in G4EventManager::DoProcessing(G4Event*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+    #6  0x00007fffe1a6c68e in G4SvcRunManager::SimulateEvent (this=0x674fde0, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+    #7  0x00007fffd485ed3e in DetSimAlg::execute (this=0x65b31f0) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+
+
+Need to change runtime env as well as build env::
+
+    [blyth@localhost InputPhotonsCheck]$ cat /home/blyth/junosw/InstallArea/envset.sh
+    #!/bin/bash
+    # generated from .gitlab-ci.yml of 
+    # .gitlab-ci/oj_helper.sh EMIT_ENVSET
+
+    HERE=$(dirname $(realpath $BASH_SOURCE))
+    DEFAULT_PREFIX=$HERE
+    PREFIX=${OJ_PREFIX:-$DEFAULT_PREFIX}
+
+    source $PREFIX/ENV.bash             ## define JUNOTOP and JUNO_OPTICKS_PREFIX 
+    source $JUNOTOP/setup.sh            ## hookup many JUNOSW externals excluding Opticks
+    source $JUNO_OPTICKS_PREFIX/bashrc  ## hookup for Opticks and its externals
+
+    source $PREFIX/bin/opticks_juno.sh  ## oj bash functions 
+    oj_geomsetup
+
+
+Added envset_Debug_custom4.sh with::
+
+    #!/bin/bash
+    # generated from .gitlab-ci.yml of 
+    # .gitlab-ci/oj_helper.sh EMIT_ENVSET
+
+    HERE=$(dirname $(realpath $BASH_SOURCE))
+    DEFAULT_PREFIX=$HERE
+    PREFIX=${OJ_PREFIX:-$DEFAULT_PREFIX}
+
+    source $PREFIX/ENV.bash             ## define JUNOTOP and JUNO_OPTICKS_PREFIX 
+    source $JUNOTOP/setup.sh            ## hookup many JUNOSW externals excluding Opticks
+
+
+    #[ non-standard change to use Debug Custom4
+        source ~/j/JUNOTOP/JUNOTOP_change_paths.sh
+        JUNOTOP_change_paths custom4 /data1/blyth/local/custom4_Debug/0.1.8
+    #] non-standard change to use Debug Custom4
+
+
+    source $JUNO_OPTICKS_PREFIX/bashrc  ## hookup for Opticks and its externals
+
+    source $PREFIX/bin/opticks_juno.sh  ## oj bash functions 
+    oj_geomsetup
+
+    export CMAKE_PREFIX_PATH=$PREFIX:${CMAKE_PREFIX_PATH}
+    export PATH=$PREFIX/bin:${PATH}
+    export LD_LIBRARY_PATH=$PREFIX/lib64:${LD_LIBRARY_PATH}
+    export PYTHONPATH=$PREFIX/lib64:${PYTHONPATH}
+    export PYTHONPATH=$PREFIX/python:${PYTHONPATH}
+
+
+
+
+::
+
+    (gdb) b 207
+    Breakpoint 2 at 0x7fffc10c76fc: file /home/blyth/customgeant4/C4OpBoundaryProcess.cc, line 207.
+    (gdb) c
+    Continuing.
+
+    Thread 1 "python" hit Breakpoint 2, C4OpBoundaryProcess::PostStepDoIt (this=0x2c801490, aTrack=..., aStep=...) at /home/blyth/customgeant4/C4OpBoundaryProcess.cc:207
+    207	        theStatus = Undefined;
+    (gdb) p m_track_label
+    $1 = (C4Pho *) 0x2c7caef0
+    (gdb) p m_track_label->id
+    $2 = 99999
+    (gdb) p aTrack
+    $3 = (const G4Track &) @0xcebf14a0: {fCurrentStepNumber = 1, fPosition = {static ToleranceTicks = 100, data = {-3466.772558980093, -21370.63377685142, -1022.9566710082902}}, fGlobalTime = 195.59464864719899, fLocalTime = 195.49464864570888, 
+      fTrackLength = 0, fParentID = 0, fTrackID = 100000, fVelocity = 216.9098374062423, fpTouchable = {fObj = 0x6735780}, fpNextTouchable = {fObj = 0x6735790}, fpOriginTouchable = {fObj = 0x6735780}, fpDynamicParticle = 0xcebf0e28, fTrackStatus = fAlive, 
+      fBelowThreshold = false, fGoodForTracking = false, fStepLength = 42404.712451531181, fWeight = 1, fpStep = 0x6726630, fVtxPosition = {static ToleranceTicks = 100, data = {3319.070068359375, 20460.26171875, 489.7098388671875}}, 
+      fVtxMomentumDirection = {static ToleranceTicks = 100, data = {-0.16002567250268995, -0.98646808520195395, -0.035672132233049894}}, fVtxKineticEnergy = 2.817822667394958e-06, fpLVAtVertex = 0xa4ddda0, fpCreatorProcess = 0x0, fCreatorModelIndex = -1, 
+      fpUserInformation = 0x2c7caee0, prev_mat = 0xa4b3ef0, groupvel = 0xa4b3ca0, prev_velocity = 216.9098374062423, prev_momentum = 2.817822667394958e-06, is_OpticalPhoton = true, useGivenVelocity = true, fpAuxiliaryTrackInformationMap = 0x0}
+    (gdb) 
+
+
+    Thread 1 "python" hit Breakpoint 7, C4OpBoundaryProcess::PostStepDoIt (this=0x2c801490, aTrack=..., aStep=...) at /home/blyth/customgeant4/C4OpBoundaryProcess.cc:272
+    272	        G4int hNavId = G4ParallelWorldProcess::GetHypNavigatorID();
+    (gdb) p theGlobalPoint
+    $12 = {static ToleranceTicks = 100, data = {-3466.772558980093, -21370.63377685142, -1022.9566710082902}}
+    (gdb) 
+
+
+
+
 
 
 
@@ -365,6 +466,86 @@ What they do::
 
     # For CMake search path
     export CMAKE_PREFIX_PATH=${JUNO_EXTLIB_custom4_HOME}:${CMAKE_PREFIX_PATH}
+
+
+
+
+
+
+BP=C4OpBoundaryProcess::PostStepDoIt ipc env_info_run
+---------------------------------------------------------
+
+
+First point in PostStepDoIt is on the other side::
+
+
+    gdb) p m_track_label->id
+    $2 = 99999
+    (gdb) p aTrack
+    $3 = (const G4Track &) @0xcebf14a0: {fCurrentStepNumber = 1, fPosition = {static ToleranceTicks = 100, data = {-3466.772558980093, -21370.63377685142, -1022.9566710082902}}, fGlobalTime = 195.59464864719899, fLocalTime = 195.49464864570888, 
+      fTrackLength = 0, fParentID = 0, fTrackID = 100000, fVelocity = 216.9098374062423, fpTouchable = {fObj = 0x6735780}, fpNextTouchable = {fObj = 0x6735790}, fpOriginTouchable = {fObj = 0x6735780}, fpDynamicParticle = 0xcebf0e28, fTrackStatus = fAlive, 
+      fBelowThreshold = false, fGoodForTracking = false, fStepLength = 42404.712451531181, fWeight = 1, fpStep = 0x6726630, fVtxPosition = {static ToleranceTicks = 100, data = {3319.070068359375, 20460.26171875, 489.7098388671875}}, 
+      fVtxMomentumDirection = {static ToleranceTicks = 100, data = {-0.16002567250268995, -0.98646808520195395, -0.035672132233049894}}, fVtxKineticEnergy = 2.817822667394958e-06, fpLVAtVertex = 0xa4ddda0, fpCreatorProcess = 0x0, fCreatorModelIndex = -1, 
+      fpUserInformation = 0x2c7caee0, prev_mat = 0xa4b3ef0, groupvel = 0xa4b3ca0, prev_velocity = 216.9098374062423, prev_momentum = 2.817822667394958e-06, is_OpticalPhoton = true, useGivenVelocity = true, fpAuxiliaryTrackInformationMap = 0x0}
+    (gdb) p aTrack.prev_mat
+    $4 = (G4Material *) 0xa4b3ef0
+
+
+
+    (gdb) c
+    Continuing.
+
+    Thread 1 "python" hit Breakpoint 7, C4OpBoundaryProcess::PostStepDoIt (this=0x2c801490, aTrack=..., aStep=...) at /home/blyth/customgeant4/C4OpBoundaryProcess.cc:272
+    272	        G4int hNavId = G4ParallelWorldProcess::GetHypNavigatorID();
+    (gdb) p theGlobalPoint
+    $12 = {static ToleranceTicks = 100, data = {-3466.772558980093, -21370.63377685142, -1022.9566710082902}}
+    (gdb) b 300
+
+
+
+    Thread 1 "python" hit Breakpoint 8, C4OpBoundaryProcess::PostStepDoIt (this=0x2c801490, aTrack=..., aStep=...) at /home/blyth/customgeant4/C4OpBoundaryProcess.cc:300
+    300	        if (valid) {
+    (gdb) p haveEnteredDaughter
+    $13 = false
+    (gdb) p theRecoveredNormal
+    $14 = {static ToleranceTicks = 100, data = {-0.16012806277044306, -0.98709624835341414, -0}}
+    (gdb) 
+
+
+    (gdb) p Rindex1
+    $18 = 1.3529723513319996
+    (gdb) 
+
+
+    (gdb) p Rindex
+    $29 = (G4MaterialPropertyVector *) 0x0
+    (gdb) b 596
+    Breakpoint 20 at 0x7fffc10c8b4c: file /home/blyth/customgeant4/C4OpBoundaryProcess.cc, line 596.
+    (gdb) c
+    Continuing.
+
+    Thread 1 "python" hit Breakpoint 20, C4OpBoundaryProcess::PostStepDoIt (this=0x2c801490, aTrack=..., aStep=...) at /home/blyth/customgeant4/C4OpBoundaryProcess.cc:596
+    596	                 return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
+    (gdb) p theStatus
+    $30 = NoRINDEX
+    (gdb) 
+
+
+
+::
+
+    (gdb) p m_track_label
+    $31 = (C4Pho *) 0x2c7caef0
+    (gdb) p m_track_label->id
+    $32 = 99998
+    (gdb) p aTrack
+    $33 = (const G4Track &) @0xcebf12a0: {fCurrentStepNumber = 1, fPosition = {static ToleranceTicks = 100, data = {-3466.772558980093, -21370.63377685142, -1022.9516661254777}}, fGlobalTime = 195.59464864719899, 
+      fLocalTime = 195.49464864570888, fTrackLength = 0, fParentID = 0, fTrackID = 99999, fVelocity = 216.9098374062423, fpTouchable = {fObj = 0x67357a0}, fpNextTouchable = {fObj = 0x6735780}, fpOriginTouchable = {fObj = 0x67357a0}, 
+      fpDynamicParticle = 0xcebf0d90, fTrackStatus = fAlive, fBelowThreshold = false, fGoodForTracking = false, fStepLength = 42404.712451531181, fWeight = 1, fpStep = 0x6726630, fVtxPosition = {static ToleranceTicks = 100, data = {
+          3319.070068359375, 20460.26171875, 489.71484375}}, fVtxMomentumDirection = {static ToleranceTicks = 100, data = {-0.16002567250268995, -0.98646808520195395, -0.035672132233049894}}, fVtxKineticEnergy = 2.817822667394958e-06, 
+      fpLVAtVertex = 0xa4ddda0, fpCreatorProcess = 0x0, fCreatorModelIndex = -1, fpUserInformation = 0x2c7caee0, prev_mat = 0xa4b3ef0, groupvel = 0xa4b3ca0, prev_velocity = 216.9098374062423, prev_momentum = 2.817822667394958e-06, 
+      is_OpticalPhoton = true, useGivenVelocity = true, fpAuxiliaryTrackInformationMap = 0x0}
+    (gdb) 
 
 
 
@@ -518,5 +699,260 @@ iindex
 
 
 
+
+try changing WaterPoolConstruction_CONFIG
+--------------------------------------------
+
+
+::
+
+    084 if [ "${arg/env}" != "$arg" ]; then
+     85 
+     86     ## see A:~/.bashrc oj_build + oj_local
+     87 
+     88     ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
+     89     ##source /home/blyth/junosw/InstallArea/envset.sh
+     90     source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh
+     91 
+     92 
+     93     ASIS=0
+     94     ZERO_HOLES=1
+     95     MULTIUNION_HOLES=2
+     96     HIERARCHY=3
+     97 
+     98     #export WaterPoolConstruction__CONFIG=$HIERARCHY  # HIERARCHY is set by oj_geomsetup
+     99     export WaterPoolConstruction__CONFIG=$ASIS        # override 
+    100 
+
+
+::
+
+     ipc env_info_run_cxt
+
+
+
+ASIS : crashes in geometry conversion of lvid:18 with enormous backtrace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+
+    [U4Tree::initSolids
+    sn::increase_zmax_ lvid 18 _zmax -21652.00 dz    1.00 new_zmax -21651.00
+    sn::increase_zmax_ lvid 18 _zmax 21652.00 dz    1.00 new_zmax 21653.00
+    sn::setBB BAD BOUNDING BOX 
+     x0 -0 x1 0
+     y0 -0 y1 0
+     z0 -21750 z1 -21652
+    python: /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2674: void sn::setBB(double, double, double, double, double, double): Assertion `!bad_bbox' failed.
+
+    Thread 1 "python" received signal SIGABRT, Aborted.
+    (gdb) bt
+    #0  0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #1  0x00007ffff743e686 in raise () from /lib64/libc.so.6
+    #2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+    #3  0x00007ffff742875b in __assert_fail_base.cold () from /lib64/libc.so.6
+    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x00007fffc10106dc in sn::setBB (this=0xc6f6a50, x0=-0, y0=-0, z0=-21750, x1=0, y1=0, z1=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2674
+    #6  0x00007fffc1011080 in sn::Cylinder (radius=0, z1=-21750, z2=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2802
+    #7  0x00007fffc0fd8172 in U4Polycone::collectPrims (this=0x7ffffffe17b0, prims=std::vector of length 0, capacity 0, outside=false) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:455
+    #8  0x00007fffc102be2c in U4Polycone::init_inner (this=0x7ffffffe17b0) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:401
+    #9  0x00007fffc102b756 in U4Polycone::init (this=0x7ffffffe17b0) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:270
+    #10 0x00007fffc102b4c1 in U4Polycone::U4Polycone (this=0x7ffffffe17b0, polycone_=0xa4db790, lvid_=18, depth_=64, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:236
+    #11 0x00007fffc102aa0a in U4Polycone::Convert (polycone=0xa4db790, lvid=18, depth=64, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:151
+    #12 0x00007fffc102e405 in U4Solid::init_Polycone (this=0x7ffffffe1aa0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:797
+    #13 0x00007fffc102cc8e in U4Solid::init_Constituents (this=0x7ffffffe1aa0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:400
+    #14 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe1aa0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #15 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe1aa0, solid_=0xa4db790, lvid_=18, depth_=64, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    #16 0x00007fffc102c91c in U4Solid::Convert (solid=0xa4db790, lvid=18, depth=64, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:343
+    #17 0x00007fffc102eafd in U4Solid::init_BooleanSolid (this=0x7ffffffe1cc0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:965
+    #18 0x00007fffc102e82c in U4Solid::init_SubtractionSolid (this=0x7ffffffe1cc0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:864
+    #19 0x00007fffc102ccf0 in U4Solid::init_Constituents (this=0x7ffffffe1cc0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:407
+    #20 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe1cc0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #21 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe1cc0, solid_=0xa4dc4a0, lvid_=18, depth_=63, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    #22 0x00007fffc102c91c in U4Solid::Convert (solid=0xa4dc4a0, lvid=18, depth=63, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:343
+    #23 0x00007fffc102eafd in U4Solid::init_BooleanSolid (this=0x7ffffffe1ee0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:965
+    #24 0x00007fffc102e82c in U4Solid::init_SubtractionSolid (this=0x7ffffffe1ee0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:864
+    #25 0x00007fffc102ccf0 in U4Solid::init_Constituents (this=0x7ffffffe1ee0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:407
+    #26 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe1ee0) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #27 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe1ee0, solid_=0xa4dc640, lvid_=18, depth_=62, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    #28 0x00007fffc102c91c in U4Solid::Convert (solid=0xa4dc640, lvid=18, depth=62, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:343
+    #29 0x00007fffc102eafd in U4Solid::init_BooleanSolid (this=0x7ffffffe2100) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:965
+    #30 0x00007fffc102e82c in U4Solid::init_SubtractionSolid (this=0x7ffffffe2100) at /data1/blyth/local/opticks_
+    ...
+    #406 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc28cd40, pv=0xa4daa60) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #407 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc28cd40, pv=0xa4c7230) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #408 0x00007fffc10324cc in U4Tree::initSolids (this=0xc28cd40) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:611
+    #409 0x00007fffc1030cc0 in U4Tree::init (this=0xc28cd40) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:296
+    #410 0x00007fffc10306f7 in U4Tree::U4Tree (this=0xc28cd40, st_=0x68cf810, top_=0xa4c7230, sid_=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:267
+    #411 0x00007fffc102fc3e in U4Tree::Create (st=0x68cf810, top=0xa4c7230, sid=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:224
+    #412 0x00007fffc0fd9fee in G4CXOpticks::setGeometry (this=0xc28cbd0, world=0xa4c7230) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:302
+    #413 0x00007fffc0fd8919 in G4CXOpticks::SetGeometry (world=0xa4c7230) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:70
+    #414 0x00007fffc0fd8bc8 in G4CXOpticks::SetGeometry_JUNO (world=0xa4c7230, sd=0xa223960, jpmt=0xc1a85e0, jlut=0xc288fe0) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:108
+    #415 0x00007fffbdd99ee8 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=3, world=0xa4c7230, sd=0xa223960, ppd=0x658a010, psd=0x66ecbb0, pmtscan=0x0)
+        at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:47
+    #416 0x00007fffbdd5ff76 in LSExpDetectorConstruction::setupOpticks (this=0xa23a3d0, world=0xa4c7230) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:457
+    #417 0x00007fffbdd5f816 in LSExpDetectorConstruction::Construct (this=0xa23a3d0) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:378
+    #418 0x00007fffc680792e in G4RunManager::InitializeGeometry() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #419 0x00007fffc6807afc in G4RunManager::Initialize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+
+
+ZERO_HOLES : lvid 18 crash with shorter bt from zero radius cylinder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    (gdb) bt
+    #0  0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #1  0x00007ffff743e686 in raise () from /lib64/libc.so.6
+    #2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+    #3  0x00007ffff742875b in __assert_fail_base.cold () from /lib64/libc.so.6
+    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x00007fffc10106dc in sn::setBB (this=0xc6e72e0, x0=-0, y0=-0, z0=-21750, x1=0, y1=0, z1=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2674
+    #6  0x00007fffc1011080 in sn::Cylinder (radius=0, z1=-21750, z2=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2802
+
+    zero radius cylinder::
+
+        2797	inline sn* sn::Cylinder(double radius, double z1, double z2) // static
+        2798	{   
+        2799	    assert( z2 > z1 );  
+        2800	    sn* nd = Create(CSG_CYLINDER); 
+        2801	    nd->setPA( 0.f, 0.f, 0.f, radius, z1, z2)  ;   
+        2802	    nd->setBB( -radius, -radius, z1, +radius, +radius, z2 );
+        2803	    return nd ;
+        2804	}
+        2805	inline sn* sn::Cone(double r1, double z1, double r2, double z2)  // static
+        2806	{   
+        (gdb) p radius
+        $1 = 0
+        (gdb) p z1
+        $2 = -21750
+        (gdb) p z2
+        $3 = -21652
+
+        2657	inline void sn::setBB( double x0, double y0, double z0, double x1, double y1, double z1 )
+        2658	{
+        2659	    bool bad_bbox =  x0 >= x1 || y0 >= y1 || z0 >= z1  ;
+        2660	    if(bad_bbox) std::cerr 
+        2661	          << "sn::setBB BAD BOUNDING BOX "
+        2662	          << "\n"
+        2663	          << " x0 " << x0
+        2664	          << " x1 " << x1
+        (gdb) p x0
+        $4 = -0
+        (gdb) p x1
+        $5 = 0
+        (gdb) p x0 > x1
+        $6 = false
+        (gdb) p y0
+        $7 = -0
+        (gdb) p y1
+        $8 = 0
+        (gdb) p y0 > y1
+        $9 = false
+        (gdb) p z0
+        $10 = -21750
+        (gdb) p z1
+        $11 = -21652
+        (gdb) p z0 >= z1
+        $12 = false
+        (gdb) p x0 >= x1
+        $13 = true
+        (gdb) p y0 >= y1
+        $14 = true
+        (gdb) p z0 >= z1
+        $15 = false
+        (gdb) p x0 == x1
+        $16 = true
+        (gdb) p y0 == y1
+        $17 = true
+        (gdb) p z0 == z1
+        $18 = false
+        (gdb) 
+
+
+
+
+
+
+
+    #7  0x00007fffc0fd8172 in U4Polycone::collectPrims (this=0x7ffffffe9730, prims=std::vector of length 0, capacity 0, outside=false) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:455
+    #8  0x00007fffc102be2c in U4Polycone::init_inner (this=0x7ffffffe9730) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:401
+    #9  0x00007fffc102b756 in U4Polycone::init (this=0x7ffffffe9730) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:270
+    #10 0x00007fffc102b4c1 in U4Polycone::U4Polycone (this=0x7ffffffe9730, polycone_=0xa4db790, lvid_=18, depth_=4, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:236
+    #11 0x00007fffc102aa0a in U4Polycone::Convert (polycone=0xa4db790, lvid=18, depth=4, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:151
+    #12 0x00007fffc102e405 in U4Solid::init_Polycone (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:797
+    #13 0x00007fffc102cc8e in U4Solid::init_Constituents (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:400
+    #14 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #15 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe9a20, solid_=0xa4db790, lvid_=18, depth_=4, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    #16 0x00007fffc102c91c in U4Solid::Convert (solid=0xa4db790, lvid=18, depth=4, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:343
+    #17 0x00007fffc102eafd in U4Solid::init_BooleanSolid (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:965
+    #18 0x00007fffc102e82c in U4Solid::init_SubtractionSolid (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:864
+    #19 0x00007fffc102ccf0 in U4Solid::init_Constituents (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:407
+    #20 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #21 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe9c40, solid_=0xa4dc4a0, lvid_=18, depth_=3, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    ...
+    #42 0x00007fffc103271e in U4Tree::initSolid (this=0xc27e4d0, lv=0xa4dd5a0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:671
+    #43 0x00007fffc10326b4 in U4Tree::initSolids_r (this=0xc27e4d0, pv=0xa4dd650) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:664
+    #44 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc27e4d0, pv=0xa52d0d0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #45 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc27e4d0, pv=0xa4daa00) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #46 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc27e4d0, pv=0xa4daa60) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #47 0x00007fffc103264f in U4Tree::initSolids_r (this=0xc27e4d0, pv=0xa4c7230) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:661
+    #48 0x00007fffc10324cc in U4Tree::initSolids (this=0xc27e4d0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:611
+    #49 0x00007fffc1030cc0 in U4Tree::init (this=0xc27e4d0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:296
+    #50 0x00007fffc10306f7 in U4Tree::U4Tree (this=0xc27e4d0, st_=0x68cf810, top_=0xa4c7230, sid_=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:267
+    #51 0x00007fffc102fc3e in U4Tree::Create (st=0x68cf810, top=0xa4c7230, sid=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:224
+    #52 0x00007fffc0fd9fee in G4CXOpticks::setGeometry (this=0xc27e360, world=0xa4c7230) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:302
+    #53 0x00007fffc0fd8919 in G4CXOpticks::SetGeometry (world=0xa4c7230) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:70
+    #54 0x00007fffc0fd8bc8 in G4CXOpticks::SetGeometry_JUNO (world=0xa4c7230, sd=0xa223960, jpmt=0xc199d70, jlut=0xc27a770) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:108
+    #55 0x00007fffbdd99ee8 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=3, world=0xa4c7230, sd=0xa223960, ppd=0x658a010, psd=0x66ecbb0, pmtscan=0x0)
+        at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:47
+    #56 0x00007fffbdd5ff76 in LSExpDetectorConstruction::setupOpticks (this=0xa23a3d0, world=0xa4c7230) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:457
+    #57 0x00007fffbdd5f816 in LSExpDetectorConstruction::Construct (this=0xa23a3d0) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction.cc:378
+    #58 0x00007fffc680792e in G4RunManager::InitializeGeometry() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+    #59 0x00007fffc6807afc in G4RunManager::Initialize() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4run.so
+
+
+
+MULTUNION_HOLES
+~~~~~~~~~~~~~~~~~~
+
+::
+
+    [U4Tree::initSolids
+    sn::increase_zmax_ lvid 18 _zmax -21652.00 dz    1.00 new_zmax -21651.00
+    sn::increase_zmax_ lvid 18 _zmax 21652.00 dz    1.00 new_zmax 21653.00
+    sn::setBB BAD BOUNDING BOX 
+     x0 -0 x1 0
+     y0 -0 y1 0
+     z0 -21750 z1 -21652
+    python: /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2674: void sn::setBB(double, double, double, double, double, double): Assertion `!bad_bbox' failed.
+
+    Thread 1 "python" received signal SIGABRT, Aborted.
+    0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-3.el9_5.1.x86_64 freetype-2.10.4-9.el9.alma.2.x86_64 glib2-2.68.4-14.el9_4.1.x86_64 glibc-2.34-125.el9_5.3.alma.1.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-4.el9_5.x86_64 libICE-1.0.10-8.el9.x86_64 libSM-1.2.3-10.el9.x86_64 libX11-1.7.0-9.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-5.el9.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libgcc-11.5.0-5.el9_5.alma.1.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libpsl-0.21.1-5.el9.x86_64 libselinux-3.6-1.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libstdc++-11.5.0-5.el9_5.alma.1.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-20.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libzstd-1.5.1-2.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9.x86_64 openssl-libs-3.2.2-6.el9_5.1.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+    (gdb) bt
+    #0  0x00007ffff748b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #1  0x00007ffff743e686 in raise () from /lib64/libc.so.6
+    #2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+    #3  0x00007ffff742875b in __assert_fail_base.cold () from /lib64/libc.so.6
+    #4  0x00007ffff74373c6 in __assert_fail () from /lib64/libc.so.6
+    #5  0x00007fffc10106dc in sn::setBB (this=0xc6ea890, x0=-0, y0=-0, z0=-21750, x1=0, y1=0, z1=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2674
+    #6  0x00007fffc1011080 in sn::Cylinder (radius=0, z1=-21750, z2=-21652) at /data1/blyth/local/opticks_Debug/include/SysRap/sn.h:2802
+    #7  0x00007fffc0fd8172 in U4Polycone::collectPrims (this=0x7ffffffe9730, prims=std::vector of length 0, capacity 0, outside=false) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:455
+    #8  0x00007fffc102be2c in U4Polycone::init_inner (this=0x7ffffffe9730) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:401
+    #9  0x00007fffc102b756 in U4Polycone::init (this=0x7ffffffe9730) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:270
+    #10 0x00007fffc102b4c1 in U4Polycone::U4Polycone (this=0x7ffffffe9730, polycone_=0xa4db790, lvid_=18, depth_=4, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:236
+    #11 0x00007fffc102aa0a in U4Polycone::Convert (polycone=0xa4db790, lvid=18, depth=4, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Polycone.h:151
+    #12 0x00007fffc102e405 in U4Solid::init_Polycone (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:797
+    #13 0x00007fffc102cc8e in U4Solid::init_Constituents (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:400
+    #14 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe9a20) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #15 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe9a20, solid_=0xa4db790, lvid_=18, depth_=4, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
+    #16 0x00007fffc102c91c in U4Solid::Convert (solid=0xa4db790, lvid=18, depth=4, level=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:343
+    #17 0x00007fffc102eafd in U4Solid::init_BooleanSolid (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:965
+    #18 0x00007fffc102e82c in U4Solid::init_SubtractionSolid (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:864
+    #19 0x00007fffc102ccf0 in U4Solid::init_Constituents (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:407
+    #20 0x00007fffc102cb3e in U4Solid::init (this=0x7ffffffe9c40) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:375
+    #21 0x00007fffc102ca10 in U4Solid::U4Solid (this=0x7ffffffe9c40, solid_=0xa4dc640, lvid_=18, depth_=3, level_=-1) at /data1/blyth/local/opticks_Debug/include/U4/U4Solid.h:362
 
 
