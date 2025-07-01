@@ -12,10 +12,18 @@ InputPhotonsCheck_WP
 
 
 
-Overview
------------
 
-* lack of identity info on B side makes this difficult to debug from record and photon arrays
+FIXED : Issue : no intersects on B side for WP_PMT 
+-------------------------------------------------------
+
+* Problem was with WaterPoolConstruction::inject in CONFIG:3 theLV was not appropriate
+  fix branch blyth-WaterPoolConstruction-fix-theLV-injection-bug-for-HIERARCHY-CONFIG
+
+* Following fix observe 10% more SA for A for WP PMTs :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_10percent_more_SA_for_A`
+
+* lack of identity info on B side makes this difficult to debug from record and photon arrays :
+  actually with severely broken geometry identity info not much help
+
 
 
 Big gun : U4Recorder__EndOfRunAction_Simtrace

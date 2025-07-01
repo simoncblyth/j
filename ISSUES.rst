@@ -1,13 +1,10 @@
 ISSUES
 ==========
 
-* B side WP_PMT input photons get minimal intersects
+* speed discrepancy for some photons bounced off PMT_20inch_veto:0:1000 
+  heading up towards pool cover
 
-  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP`
-  * only geometry "seen" by input photons on B side is sOuterWaterPool 
-  * this is bizarre as B side works fine from other positions ? 
-  * TODO: default gamma near WP_PMT
-
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_deviant`
 
 * Geant4 track label compatibility to enable opticksMode:3 and 
   EPH monitoring to not force switching off all other AnaMgr 
@@ -17,24 +14,67 @@ ISSUES
     and within JUNOSW often without the precaution of using dynamic_cast 
     so the track info can easily cause crashes  
 
-* gitlab runner with GPU to enable starting a collection of 
-  many automated A:B tests 
-
-* Chimney : major detector geometry overhaul
-
 
 * running with array recording eg with DebugLite is prone to VRAM OOM
-  requining manual setting of eg::
+  requiring manual setting of eg::
 
         export OPTICKS_MAX_SLOT=M10
 
-  * need to automatically reduce MAX_SLOT when running with array recording
+  * automatically reduce MAX_SLOT when running with array recording
   * :doc:`muon/OOM_with_debug_arrays_enabled`
 
 
 
+* gitlab runner with GPU to enable starting a collection of 
+  many automated A:B tests 
+
+
+* Chimney : major detector geometry overhaul
+
+
+
+
+
+WP_WALL WP_ATM addition caused SPMT.h assert
+----------------------------------------------
+
+::
+
+    503 inline NP* _PMTSimParamData::serialize_pmtTotal() const
+    504 {
+    505     NPX::KV<int> kv ;
+    506     kv.add("PmtTotal",      data.m_PmtTotal);
+    507     kv.add("PmtTotal_SPMT", data.m_PmtTotal_SPMT );
+    508     kv.add("PmtTotal_WP",   data.m_PmtTotal_WP );
+    509     kv.add("PmtTotal_ALL",  data.m_PmtTotal_ALL );
+    510     return kv.values() ;
+    511 }
+
+
 FIXED ISSUES
 --------------
+
+* FIXED : WP PMT : more SA on A side
+ 
+  * Caused by another SPMT.h qeScale_v indexing bug
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_10percent_more_SA_for_A` 
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP`
+  * :doc:`WaterPoolConstruction/WaterPoolConstruction`
+
+
+* FIXED : B side WP_PMT input photons get minimal intersects
+
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP`
+  * only geometry "seen" by input photons on B side is sOuterWaterPool 
+  * this is bizarre as B side works fine from other positions ? 
+  * suspect this must be caused by the WaterPoolConstruction_CONFIG=3 
+    changing heirarchy in way that the PMT injection does not like ?  
+  * TODO: default gamma near WP_PMT
+  * :doc:`WaterPoolConstruction/WaterPoolConstruction`
+
+
+
+
 
 * FIXED : muon record animation debug : bizarre moving line issue. Why photons 
   resulting from muon have issue but other animations do not ?

@@ -50,8 +50,19 @@ BUILD ORDER WHEN CHANGING CUSTOM4 VERSION : C4, OK, OJ
 -------------------------------------------------------
 
 
-1. local_c4_externals ; c4_build
-2. lob ; om-clean ; om-conf ; oo
+Check C4 branch::
+
+    cd ~/customgeant4
+    git status  # check are on the 0.1.8_transient branch
+
+NB do not want to make major changes in the transient branch, as may be 
+problematic to get into main. But changing debug output is acceptable. 
+
+
+Do each of the below setup and build in separate clean tabs:
+
+1. local_c4_build ; c4_build
+2. local_ok_build ; ok_build
 3. local_oj_build ; oj_build
 
 
@@ -106,10 +117,10 @@ local_c4_prefix()
 }
 
 
-local_c4_externals()
+local_c4_build()
 {
    : ~/local.sh
-   : setup externals needed to build Custom4
+   : setup externals needed to c4_build
    : using J25.4.0 standard versions of externals copied from JUNOTOP/bashrc.sh
    : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/bashrc.sh
 
@@ -133,6 +144,7 @@ local_c4_externals()
       source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
       JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
    }
+   type c4_build
 }
 
 local_ok_externals()
@@ -143,7 +155,7 @@ local_ok_externals()
 
    local_unset
 
-   local_c4_externals
+   local_c4_build  # setup c4 externals
    source $(local_c4_prefix)/bashrc
 
    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Python/3.11.10/bashrc
@@ -180,6 +192,17 @@ local_ok_build()
    om-
    export VIP_MODE=ok_build
    export VIP_DESC="env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
+
+
+   ok_build()
+   {
+       cd ~/opticks
+       #om-clean
+       #om-conf 
+       om 
+ 
+   }
+   type ok_build
 
   :  noticed that need to  om- to get setup
 }
@@ -305,6 +328,8 @@ local_oj_build()
        oj_build_
        oj_build_post
    }
+
+   type oj_build
 }
 
 
@@ -342,6 +367,9 @@ local_oj_local()
        oj_initialize_framespec           ## write the framespec bookmark strings
        oj_initialize_geomdir             ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to persist the OJ_GEOMDIR geometry dir with chosen tesselation
    }
+
+   type oj_local
+
 }
 
 

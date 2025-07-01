@@ -87,7 +87,7 @@ if [ "${arg/env}" != "$arg" ]; then
 
     ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
     ##source /home/blyth/junosw/InstallArea/envset.sh
-    source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh
+    source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
 
 
     ASIS=0 
@@ -139,8 +139,9 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=CD
     #test=NNVT
     #test=Hama
-    test=WP_PMT
+    #test=WP_PMT
     #test=SPMT
+    test=POOLCOVER
 
     export TEST=${TEST:-$test}
 
@@ -174,13 +175,20 @@ if [ "${arg/env}" != "$arg" ]; then
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
-       observation="B side sees no hits, like diff geom, HMM:B side simtrace works as expected"
+       observation=" A and B"
 
-       export U4Recorder__EndOfRunAction_Simtrace=1
-       export U4Simtrace__level=2
+       #export U4Recorder__EndOfRunAction_Simtrace=1
+       #export U4Simtrace__level=2
 
+       export C4OpBoundaryProcess__PIDX_ENABLED=1
+       export PIDX=99999
 
+    elif [ "$TEST" == "POOLCOVER" ]; then
 
+      sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+      opticks_input_photon=UpXZ1000_f8.npy
+      opticks_input_photon_frame=3345.569,20623.73,21500
+      #export PIDX=99999
 
     elif [ "$TEST" == "SPMT" ]; then
 
