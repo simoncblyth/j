@@ -21,7 +21,6 @@ After making changes in ~/opticks update OK with:
     opticks-t
 
 
-
 Updating local OJ build (equivalent of gitlab CI OJ build)
 ------------------------------------------------------------
 
@@ -35,13 +34,13 @@ update OJ with:
     ## alternatively use "ljbb" to do both the above
 
 
-Setup geomdir (equivalent of gitlab CI OJ test)
+Initialize geomdir (equivalent of gitlab CI OJ test)
 -------------------------------------------------
 
 * open new tab with empty env and setup and invoke the OJ Opticks geom config::
 
-    local_oj_local # ljl
-    oj_local
+    local_oj_init # lji
+    oj_init
     ## alternatively use "ljlb" to do both the above
 
 
@@ -61,10 +60,10 @@ problematic to get into main. But changing debug output is acceptable.
 
 Do each of the below setup and build in separate clean tabs:
 
-1. local_c4_build ; c4_build   ## not needed when using default c4
+1. local_c4_build ; c4_build   ## does nothing when using default c4
 2. local_ok_build ; ok_build
 3. local_oj_build ; oj_build
-
+4. local_oj_init  ; oj_init
 
 
 EOU
@@ -83,7 +82,8 @@ local_vip()
       ok_local) local_ok_local ;;
 
       oj_build) local_oj_build ;;
-      oj_local) local_oj_local ;;
+      oj_init)  local_oj_init ;;
+
     oj_release) local_oj_release ;;
 
          conda) local_conda ;;
@@ -352,23 +352,23 @@ local_oj_build()
 }
 
 
-ljl()
+lji()
 {
    : ~/local.sh
-   : setup environment to prepare geomdir with oj_local
-   local_oj_local
+   : setup environment to prepare geomdir with oj_init
+   local_oj_init
 }
 
-ljlb()
+ljii()
 {
    : ~/local.sh
    : setup environment to prepare geomdir and then invoke oj_local doing so
-   local_oj_local
-   oj_local
+   local_oj_init
+   oj_init
 }
 
 
-local_oj_local()
+local_oj_init()
 {
    : ~/local.sh
    local desc="usage of oj_build created envset.sh adapting .gitlab-ci.yml Opticks+JUNOSW test, use oj_local func to prep geomdir"
@@ -379,7 +379,7 @@ local_oj_local()
    export VIP_FUNC="${VIP_FUNC},$FUNCNAME"
 
    source /home/blyth/junosw/InstallArea/envset.sh
-   oj_local(){
+   oj_init(){
        : follow .gitlab-ci.yml
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
        oj_initialize_meshname_tessname   ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to get meshname.txt and create tessname.txt from that
@@ -387,7 +387,7 @@ local_oj_local()
        oj_initialize_geomdir             ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to persist the OJ_GEOMDIR geometry dir with chosen tesselation
    }
 
-   type oj_local
+   type oj_init
 
 }
 

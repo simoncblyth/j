@@ -2,7 +2,7 @@ InputPhotonsCheck_WP_poolcover_CircleXZ
 ==========================================
 
 
-ipcv::
+Setup CircleXZ input photons near poolcover, ipcv::
 
     188     elif [ "$TEST" == "POOLCOVER" ]; then
     189 
@@ -15,7 +15,90 @@ ipcv::
     196       #export PIDX=99999
     197 
 
-ipc env_chi2::
+
+
+After first FIX::
+
+    sseq_index_test.cc
+    a_path $AFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_3345.569,20623.73,21000_CircleXZ_R500_100k_f8/A000/seq.npy a_seq (100000, 2, 2, )
+    b_path $BFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_3345.569,20623.73,21000_CircleXZ_R500_100k_f8/B000/seq.npy b_seq (100000, 2, 2, )
+    sseq_index_test__DEBUG:0
+     t0 1751464231536135
+     t1 1751464231542298 (t1 - t0)     6163 0.006163
+     t2 1751464231547771 (t2 - t1)     5473 0.005473
+     t3 1751464231547825 (t3 - t2)       54 0.000054
+    AB
+    [sseq_index_ab::desc u_size 86 NUM_MAX 40 num 40 opt BRIEF mode 6sseq_index_ab_chi2::desc sum    49.8171 ndf  9.0000 sum/ndf     5.5352 sseq_index_ab_chi2_ABSUM_MIN:40.0000
+        TO SA                                                                                            :   85301  85454 :     0.1371 : Y :       0      0 :   
+        TO AB                                                                                            :   13861  13716 :     0.7624 : Y :       1      1 :   
+    :r:`TO BT BT BT BT SA                                                                                :     154    224 :    12.9630 : Y :   71432  71433 : DEVIANT  `
+    :r:`TO BT BT SA                                                                                      :      79    131 :    12.8762 : Y :   71342  71342 : DEVIANT  `
+        TO BT BT BT BT EC                                                                                :      96    117 :     2.0704 : Y :   71553  71555 :   
+    :r:`TO BT BT AB                                                                                      :      63    108 :    11.8421 : Y :   71358  71344 : DEVIANT  `
+        TO BT BT BT BT BT SA                                                                             :      64     -1 :     0.0000 : N :   71455     -1 : BZERO C2EXC  
+        TO BT BT BT SA                                                                                   :      59     -1 :     0.0000 : N :   71352     -1 : BZERO C2EXC  
+        TO BT BT BT BT AB                                                                                :      40     59 :     3.6465 : Y :   71440  71432 :   
+        TO BT BT BR BT BT SA                                                                             :      30     40 :     1.4286 : Y :   71537  71534 :   
+        TO BT BT BT AB                                                                                   :      39      1 :     0.0000 : N :   71392  73345 : C2EXC  
+        TO BT BT BT BT BT EC                                                                             :      38     -1 :     0.0000 : N :   71554     -1 : BZERO C2EXC  
+        TO BT BT BT BT BR BT BT BT BT SA                                                                 :      20     35 :     4.0909 : Y :   71583  71580 :   
+        TO BT BT BT BT BT AB                                                                             :      23     -1 :     0.0000 : N :   71434     -1 : BZERO C2EXC  
+        TO BT BR BT SA                                                                                   :      12     17 :     0.0000 : N :   71532  71537 : C2EXC  
+        TO BT BT BT BR BT BT BT SA                                                                       :      10     13 :     0.0000 : N :   71561  71549 : C2EXC  
+        TO BT BT BT BT BR BT BT SA                                                                       :       7     12 :     0.0000 : N :   71824  71825 : C2EXC  
+        TO BT BT BT BT EX                                                                                :       5     10 :     0.0000 : N :   71609  71586 : C2EXC  
+        TO BT BT BT BT BT BR BT BT BT BT SA                                                              :      10     -1 :     0.0000 : N :   71575     -1 : C2EXC  
+        TO BT BT BT BT BT BT SA                                                                          :       3      9 :     0.0000 : N :   73056  72037 : C2EXC  
+        TO BT BT BT BR BT SA                                                                             :       7      6 :     0.0000 : N :   71823  71822 : C2EXC  
+        TO BT BT BT BR BT BT SA                                                                          :       7     -1 :     0.0000 : N :   71566     -1 : C2EXC  
+        TO BT BT BT BT BT BR BT BT SA                                                                    :       6     -1 :     0.0000 : N :   71826     -1 : C2EXC  
+        TO BT BT BR BT SA                                                                                :       6     -1 :     0.0000 : N :   71755     -1 : C2EXC  
+        TO BT BT BR BR BR BT BT SA                                                                       :       1      6 :     0.0000 : N :   71538  71539 : C2EXC  
+        TO BT BT BT BT BT BT EC                                                                          :       3      5 :     0.0000 : N :   73281  73281 : C2EXC  
+        TO BT BT BT BT BR BT BR BT SA                                                                    :       4     -1 :     0.0000 : N :   71638     -1 : C2EXC  
+        TO BT BT BT BT BR BT BT BT SA                                                                    :       4     -1 :     0.0000 : N :   71732     -1 : C2EXC  
+        TO BT AB                                                                                         :       3      2 :     0.0000 : N :   71659  73136 : C2EXC  
+        TO BT BT BT BT BT BR BT BT BT SA                                                                 :       2      3 :     0.0000 : N :   73277  71837 : C2EXC  
+        TO BT SC BT SA                                                                                   :      -1      2 :     0.0000 : N :      -1  71976 : C2EXC  
+        TO BT BT BT BR BR BR BT BT AB                                                                    :       2     -1 :     0.0000 : N :   72044     -1 : C2EXC  
+        TO BT BT BT BT BT BT BR BT BT BT BT SA                                                           :      -1      2 :     0.0000 : N :      -1  73279 : C2EXC  
+        TO BT BT BT BT BT BT BT EC                                                                       :       2     -1 :     0.0000 : N :   73282     -1 : C2EXC  
+        TO BT BT BT BT BT BT BT SA                                                                       :       2     -1 :     0.0000 : N :   73278     -1 : C2EXC  
+        TO BT BT BT BR BT BT BT AB                                                                       :      -1      2 :     0.0000 : N :      -1  73062 : C2EXC  
+        TO BT BT BR BT BT AB                                                                             :       2      2 :     0.0000 : N :   71753  72046 : C2EXC  
+        TO BT BT BT BT BR BT BT BT BT AB                                                                 :      -1      2 :     0.0000 : N :      -1  71696 : C2EXC  
+        TO BT BT BT BT BR BT BT BR BT BT SA                                                              :       1      2 :     0.0000 : N :   73095  71614 : C2EXC  
+        TO BT BR BT AB                                                                                   :       2      2 :     0.0000 : N :   71531  71533 : C2EXC  
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 86 NUM_MAX 40 num 86 opt AZERO mode 1
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 86 NUM_MAX 40 num 86 opt BZERO mode 2
+        TO BT BT BT BT BT SA                                                                             :      64     -1 :     0.0000 : N :   71455     -1 : BZERO C2EXC  
+        TO BT BT BT SA                                                                                   :      59     -1 :     0.0000 : N :   71352     -1 : BZERO C2EXC  
+        TO BT BT BT BT BT EC                                                                             :      38     -1 :     0.0000 : N :   71554     -1 : BZERO C2EXC  
+        TO BT BT BT BT BT AB                                                                             :      23     -1 :     0.0000 : N :   71434     -1 : BZERO C2EXC  
+    ]sseq_index_ab::desc
+
+    AB
+    [sseq_index_ab::desc u_size 86 NUM_MAX 40 num 86 opt DEVIANT mode 5
+    :r:`TO BT BT BT BT SA                                                                                :     154    224 :    12.9630 : Y :   71432  71433 : DEVIANT  `
+    :r:`TO BT BT SA                                                                                      :      79    131 :    12.8762 : Y :   71342  71342 : DEVIANT  `
+    :r:`TO BT BT AB                                                                                      :      63    108 :    11.8421 : Y :   71358  71344 : DEVIANT  `
+    ]sseq_index_ab::desc
+
+    ]sseq_index_test.cc
+    pvplt MODE:2 
+    [sseq_index_test.py
+
+
+
+
+
+Before "WaterPoolConstruction2" FIX, ipc env_chi2::
 
     [sseq_index_test.cc
     a_path $AFOLD/seq.npy /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/InputPhotonsCheck/ALL1_DebugPhilox_3_3345.569,20623.73,21000_CircleXZ_R500_100k_f8/A000/seq.npy a_seq (100000, 2, 2, )
