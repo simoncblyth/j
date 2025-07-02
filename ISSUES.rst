@@ -4,7 +4,11 @@ ISSUES
 * speed discrepancy for some photons bounced off PMT_20inch_veto:0:1000 
   heading up towards pool cover
 
+  * looking into this its due to overlapping vetoWater-Tyvek-DeadWater
+  * "jcv WaterPoolConstruction2"
   * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_deviant`
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_CircleXZ`
+
 
 * Geant4 track label compatibility to enable opticksMode:3 and 
   EPH monitoring to not force switching off all other AnaMgr 
@@ -25,12 +29,9 @@ ISSUES
 
 
 
-* gitlab runner with GPU to enable starting a collection of 
-  many automated A:B tests 
-
+* gitlab runner from GPU node to enable starting a collection of automated A:B tests 
 
 * Chimney : major detector geometry overhaul
-
 
 
 
@@ -54,6 +55,8 @@ WP_WALL WP_ATM addition caused SPMT.h assert
 FIXED ISSUES
 --------------
 
+* FIXED : :doc:`oj_cmake_error/oj_cmake_error` by clean release v0.5.0 with standard C4
+
 * FIXED : WP PMT : more SA on A side
  
   * Caused by another SPMT.h qeScale_v indexing bug
@@ -71,9 +74,6 @@ FIXED ISSUES
     changing heirarchy in way that the PMT injection does not like ?  
   * TODO: default gamma near WP_PMT
   * :doc:`WaterPoolConstruction/WaterPoolConstruction`
-
-
-
 
 
 * FIXED : muon record animation debug : bizarre moving line issue. Why photons 

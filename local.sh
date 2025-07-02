@@ -61,7 +61,7 @@ problematic to get into main. But changing debug output is acceptable.
 
 Do each of the below setup and build in separate clean tabs:
 
-1. local_c4_build ; c4_build
+1. local_c4_build ; c4_build   ## not needed when using default c4
 2. local_ok_build ; ok_build
 3. local_oj_build ; oj_build
 
@@ -109,11 +109,14 @@ local_none()
 }
 
 
+local_c4_prefix_default()
+{
+    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
+}
 local_c4_prefix()
 {
-    #echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
-    #echo /data1/blyth/local/custom4_Debug/0.1.9
-    echo /data1/blyth/local/custom4_Debug/0.1.8
+    echo $(local_c4_prefix_default)
+    #echo /data1/blyth/local/custom4_Debug/0.1.8
 }
 
 
@@ -128,22 +131,38 @@ local_c4_build()
    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/CLHEP/2.4.7.1/bashrc
    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/bashrc
 
-   c4_build()
-   {
-      : ~/local.sh
+   if [ "$(local_c4_prefix)" == "$(local_c4_prefix_default)" ]; then
+       c4_build()
+       {
+          : ~/local.sh
+          echo $BASH_SOURCE $FUNCNAME - NO BUILD NEEDED AS PREFIX IS DEFAULT 
+          local ff="local_c4_prefix local_c4_prefix_default" 
+          for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
+       }  
+   else
+       c4_build()
+       {
+          : ~/local.sh
 
-      : NB returned v0.1.8 in transient branch with
-      :
-      :      git checkout -b v0.1.8_transient v0.1.8
-      :
+          : NB returned v0.1.8 in transient branch with
+          :
+          :      git checkout -b v0.1.8_transient v0.1.8
+          :
 
-      cd $HOME/customgeant4
-      export CUSTOM4_PREFIX=$(local_c4_prefix)
-      ./build_Debug.sh
 
-      source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
-      JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
-   }
+          echo $BASH_SOURCE $FUNCNAME - BUILD NEEDED AS PREFIX IS NOT DEFAULT 
+          local ff="local_c4_prefix local_c4_prefix_default" 
+          for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
+ 
+          cd $HOME/customgeant4
+          export CUSTOM4_PREFIX=$(local_c4_prefix)
+          ./build_Debug.sh
+
+          source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
+          JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
+       }
+
+   fi
    type c4_build
 }
 
@@ -291,13 +310,12 @@ local_oj_build()
        for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done
    }
 
-   oj_build_nuclean()
+   oj_build_clean()
    {
       : when changing externals need nuclear rebuild
       cd $HOME/junosw
-      rm -rf InstallArea build
+      rm -rf InstallArea build InstallConfig
    }
-
 
    oj_build_pre(){
        : ~/local.sh
@@ -323,6 +341,7 @@ local_oj_build()
 
    oj_build(){
        : ~/local.sh
+       [ -n "$OJ_BUILD_CLEAN" ] && oj_build_clean
        oj_build_info
        oj_build_pre
        oj_build_

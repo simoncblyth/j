@@ -86,8 +86,8 @@ if [ "${arg/env}" != "$arg" ]; then
     ## see A:~/.bashrc oj_build + oj_local
 
     ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
-    ##source /home/blyth/junosw/InstallArea/envset.sh
-    source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
+    source /home/blyth/junosw/InstallArea/envset.sh
+    ##source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
 
 
     ASIS=0 
@@ -159,7 +159,9 @@ if [ "${arg/env}" != "$arg" ]; then
        #opticks_input_photon=RainXZ_Z230_10k_f8.npy
        opticks_input_photon=RainXZ_Z230_1M_f8.npy
        opticks_input_photon_frame=NNVT:0:1000
-       observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363159 hitCollectionAlt 362580 hcMuon 0 GPU YES"
+       #observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363159 hitCollectionAlt 362580 hcMuon 0 GPU YES"
+       observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363183 hitCollectionAlt 362581 hcMuon 0 GPU YES"
+       # SABHit  a_nhit : (  362581 +-  602 )  b_nhit:(   363183 +-  602 )  a/b: (  0.998 +-  0.003 )  b/a: (  1.002 +-  0.003)  
 
     elif [ "$TEST" == "Hama" ]; then
 
@@ -186,8 +188,11 @@ if [ "${arg/env}" != "$arg" ]; then
     elif [ "$TEST" == "POOLCOVER" ]; then
 
       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
-      opticks_input_photon=UpXZ1000_f8.npy
-      opticks_input_photon_frame=3345.569,20623.73,21500
+      #opticks_input_photon=UpXZ1000_f8.npy
+      opticks_input_photon=CircleXZ_R500_100k_f8.npy
+      #opticks_input_photon=CircleXZ_R10_361_f8.npy
+      #opticks_input_photon_frame=3345.569,20623.73,21500
+      opticks_input_photon_frame=3345.569,20623.73,21000
       #export PIDX=99999
 
     elif [ "$TEST" == "SPMT" ]; then
@@ -315,16 +320,17 @@ if [ "${arg/pdb}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $anascript
    [ $? -ne 0 ] && echo $BASH_SOURCE pdb error
 fi
+if [ "${arg/ana}" != "$arg" ]; then
+   ${PYTHON:-python} $anascript
+   [ $? -ne 0 ] && echo $BASH_SOURCE ana error
+fi
+
 
 if [ "${arg/cxt}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $cxtscript
    [ $? -ne 0 ] && echo $BASH_SOURCE cxt error
 fi
 
-if [ "${arg/ana}" != "$arg" ]; then
-   ${PYTHON:-python} $anascript
-   [ $? -ne 0 ] && echo $BASH_SOURCE ana error
-fi
 
 if [ "${arg/chi2}" != "$arg" ] ; then
    sseq_index_test.sh info_run_ana

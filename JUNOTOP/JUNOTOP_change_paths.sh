@@ -57,12 +57,26 @@ JUNOTOP_change_paths()
    local _xhome=JUNO_EXTLIB_${xname}_HOME
    local xhome=${!_xhome}
 
+
+   local change
+   if [ "$yhome" == "$xhome" ]; then
+       change=NO
+   else
+       change=YES
+   fi
+
    local level=1
  
    if [ $level -gt 0 ]; then
-       vv="BASH_SOURCE BASH_VERSION FUNCNAME 1 2 xname _xhome xhome yhome"
+       vv="BASH_SOURCE BASH_VERSION FUNCNAME 1 2 xname _xhome xhome yhome change"
        for v in $vv ; do printf " %20s : %s \n" "$v" "${!v}" ; done
    fi 
+
+   if [ "$change" == "NO" ]; then
+       echo $BASH_SOURCE NO change so nothing to do - early return
+       return 0 
+   fi 
+
 
    local paths="PATH LD_LIBRARY_PATH PKG_CONFIG_PATH CPATH MANPATH CMAKE_PREFIX_PATH" 
    #local paths="LD_LIBRARY_PATH" 
