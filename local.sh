@@ -236,6 +236,9 @@ lo()
    : ~/local.sh  env for Opticks build test and analysis
    local_ok_build
    local_conda_ok
+
+   export GEOMBASE=$HOME/junosw/InstallArea/.opticks/GEOM
+   ## liteweight for GEOM bash function navigation eg "GEOM cf"
 }
 
 

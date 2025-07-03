@@ -19,6 +19,11 @@ ISSUES
     so the track info can easily cause crashes  
 
 
+* cxr_min.sh zdepth issue, made plain with::
+
+   export SGLFW_Evt__shader_name=rec_line_strip
+
+
 * running with array recording eg with DebugLite is prone to VRAM OOM
   requiring manual setting of eg::
 

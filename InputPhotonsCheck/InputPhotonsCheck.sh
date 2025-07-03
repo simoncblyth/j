@@ -139,9 +139,9 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=CD
     #test=NNVT
     #test=Hama
-    #test=WP_PMT
+    test=WP_PMT
     #test=SPMT
-    test=POOLCOVER
+    #test=POOLCOVER
 
     export TEST=${TEST:-$test}
 
@@ -319,6 +319,10 @@ fi
 if [ "${arg/pdb}" != "$arg" ]; then
    ${IPYTHON:-ipython} --pdb -i $anascript
    [ $? -ne 0 ] && echo $BASH_SOURCE pdb error
+fi
+if [ "${arg/sab}" != "$arg" ]; then
+   SAB=1 ${IPYTHON:-ipython} --pdb -i $anascript
+   [ $? -ne 0 ] && echo $BASH_SOURCE sab error
 fi
 if [ "${arg/ana}" != "$arg" ]; then
    ${PYTHON:-python} $anascript
