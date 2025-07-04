@@ -40,6 +40,22 @@ ISSUES
 
 
 
+IDEA for Screenshot workflow 
+-------------------------------
+
+* viz scripts write file ~/.opticks/VIZCTX.sh containing::
+
+    export VIZCTX=GEOM/$GEOM/$SCRIPTNAME/$TEST/$CHECK
+    export VIZCTX_STAMP=seconds_since_epoch
+
+
+* hit button for Screenshot
+* ~/Pictures/pic.sh sources the ~/.opticks/VIZCTX.sh and tries to associate the 
+
+
+
+
+
 
 WP_WALL WP_ATM addition caused SPMT.h assert
 ----------------------------------------------
