@@ -137,9 +137,9 @@ if [ "${arg/env}" != "$arg" ]; then
     ## [ config input photon running
 
     #test=CD
-    #test=NNVT
+    test=NNVT
     #test=Hama
-    test=WP_PMT
+    #test=WP_PMT
     #test=SPMT
     #test=POOLCOVER
 
