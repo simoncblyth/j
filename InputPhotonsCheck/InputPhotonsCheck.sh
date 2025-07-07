@@ -136,11 +136,13 @@ if [ "${arg/env}" != "$arg" ]; then
 
     ## [ config input photon running
 
-    #test=CD
-    test=NNVT
+    #test=UpperChimney
+    #test=NNVT
     #test=Hama
-    #test=WP_PMT
+    test=Hama2
     #test=SPMT
+    #test=CD
+    #test=WP_PMT
     #test=POOLCOVER
 
     export TEST=${TEST:-$test}
@@ -172,28 +174,13 @@ if [ "${arg/env}" != "$arg" ]; then
        opticks_input_photon_frame=Hama:0:0
        observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 331746 hitCollectionAlt 331799 hcMuon 0 GPU YES"
 
-    elif [ "$TEST" == "WP_PMT" ]; then
+    elif [ "$TEST" == "Hama2" ]; then
 
-       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
-       opticks_input_photon=RainXZ_Z230_100k_f8.npy
-       opticks_input_photon_frame=PMT_20inch_veto:0:1000
-       observation=" A and B"
-
-       #export U4Recorder__EndOfRunAction_Simtrace=1
-       #export U4Simtrace__level=2
-
-       export C4OpBoundaryProcess__PIDX_ENABLED=1
-       export PIDX=99999
-
-    elif [ "$TEST" == "POOLCOVER" ]; then
-
-      sevt__input_photon_dir=$HOME/.opticks/InputPhotons
-      #opticks_input_photon=UpXZ1000_f8.npy
-      opticks_input_photon=CircleXZ_R500_100k_f8.npy
-      #opticks_input_photon=CircleXZ_R10_361_f8.npy
-      #opticks_input_photon_frame=3345.569,20623.73,21500
-      opticks_input_photon_frame=3345.569,20623.73,21000
-      #export PIDX=99999
+       #sevt__input_photon_dir=/cvmfs/opticks.ihep.ac.cn/.opticks/InputPhotons
+       sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
+       #opticks_input_photon=RainXZ_Z230_10k_f8.npy
+       opticks_input_photon=RainXZ_Z230_1M_f8.npy
+       opticks_input_photon_frame=Hama:0:1000
 
     elif [ "$TEST" == "SPMT" ]; then
 
@@ -209,6 +196,30 @@ if [ "${arg/env}" != "$arg" ]; then
        sevt__input_photon_dir=/home/blyth/.opticks/InputPhotons
        opticks_input_photon=RandomSpherical1M_f8.npy    ## assert < MAX_PARTICLES:10k when using GenEvtInfoAnaMgr::PostUserTrackingAction
        opticks_input_photon_frame=sTarget
+
+       export OPTICKS_INPUT_PHOTON_CHANGE_TIME=0.1 ## because RandomSpherical had incrementing time for some past debug
+
+    elif [ "$TEST" == "WP_PMT" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+       opticks_input_photon=RainXZ_Z230_100k_f8.npy
+       opticks_input_photon_frame=PMT_20inch_veto:0:1000
+       observation=" A and B"
+
+       #export U4Recorder__EndOfRunAction_Simtrace=1
+       #export U4Simtrace__level=2
+       #export C4OpBoundaryProcess__PIDX_ENABLED=1
+       #export PIDX=99999
+
+    elif [ "$TEST" == "POOLCOVER" ]; then
+
+      sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+      #opticks_input_photon=UpXZ1000_f8.npy
+      opticks_input_photon=CircleXZ_R500_100k_f8.npy
+      #opticks_input_photon=CircleXZ_R10_361_f8.npy
+      #opticks_input_photon_frame=3345.569,20623.73,21500
+      opticks_input_photon_frame=3345.569,20623.73,21000
+      #export PIDX=99999
 
     fi
 

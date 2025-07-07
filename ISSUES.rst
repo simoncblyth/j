@@ -1,14 +1,6 @@
 ISSUES
 ==========
 
-* speed discrepancy for some photons bounced off PMT_20inch_veto:0:1000 
-  heading up towards pool cover
-
-  * looking into this its due to overlapping vetoWater-Tyvek-DeadWater
-  * "jcv WaterPoolConstruction2"
-  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_deviant`
-  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_CircleXZ`
-
 
 * Geant4 track label compatibility to enable opticksMode:3 and 
   EPH monitoring to not force switching off all other AnaMgr 
@@ -54,9 +46,6 @@ IDEA for Screenshot workflow
 
 
 
-
-
-
 WP_WALL WP_ATM addition caused SPMT.h assert
 ----------------------------------------------
 
@@ -75,6 +64,16 @@ WP_WALL WP_ATM addition caused SPMT.h assert
 
 FIXED ISSUES
 --------------
+
+
+* FIXED : speed discrepancy for some photons bounced off PMT_20inch_veto:0:1000 
+  heading up towards pool cover
+
+  * looking into this its due to overlapping vetoWater-Tyvek-DeadWater
+  * "jcv WaterPoolConstruction2"
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_deviant`
+  * :doc:`InputPhotonsCheck/InputPhotonsCheck_WP_poolcover_CircleXZ`
+
 
 * FIXED : :doc:`oj_cmake_error/oj_cmake_error` by clean release v0.5.0 with standard C4
 
