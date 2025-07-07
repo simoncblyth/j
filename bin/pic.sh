@@ -14,6 +14,17 @@ copy
     copies last Screenshot 
 
 
+To shift context time backwards
+----------------------------------
+
+::
+
+    source ~/.opticks/GEOM/CUR.sh
+    CUR_touch 10:00   ## not screenshots after 10:00 are included
+
+
+
+
 Workflow
 ---------
 
@@ -54,7 +65,9 @@ SDIR=~/Pictures
 
 cd $SDIR
 
+[ -n "$DEBUG" ] && echo $BASH_SOURCE [ pic_mv
 ./pic_mv.sh   # remove spaces from names of all png
+[ -n "$DEBUG" ] && echo $BASH_SOURCE ] pic_mv
 
 path=$(ls -1t *.png | head -1)
 
@@ -65,6 +78,7 @@ BASE=$HOME/simoncblyth.github.io/env/presentation
 allarg="vi_ls_cur_info_open_clip_idx_copy_s5p_s5t"
 defarg="cur_info_copy"
 arg=${1:-$defarg}
+[ "$arg" == "s5" ] && arg=info_s5p_s5t
 
 if [ -f $cur ]; then
    tcur=$(stat --format=%Y $cur)
@@ -129,19 +143,40 @@ fi
 
 
 
+
 if [ "${arg/copy}" != "$arg" -a -f "$cur" ]; then
 
+   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE [ copy
+   cmd0="mkdir -p $BASE/$CUR"
+   echo $cmd0
+
+   for dpng in $(find . -name '*.png' -newer $cur)
+   do
+       png=$(basename $dpng) 
+       cmd1="cp $SDIR/$png $BASE/$CUR/$png"
+       echo $cmd1
+   done
+   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE ] copy
+fi
+
+
+if [ "${arg/sopy}" != "$arg" -a -f "$cur" ]; then
+
+   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE [ sopy
    cmd0="mkdir -p $BASE/$CUR"
    echo $cmd0
 
    for png in $(ls -1rt *.png) 
    do
+       # HMM : this loop is quite slow : can probaby replace it with find command
        tpng=$(stat --format=%Y $png)
+       [ -n "$DEBUG" ] && echo \# $BASH_SOURCE - copy png $png tpng $tpng
        if [ $tpng -gt $tcur ]; then
            cmd1="cp $SDIR/$png $BASE/$CUR/$png"
            echo $cmd1
        fi
    done
+   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE ] sopy
 fi
 
 

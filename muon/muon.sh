@@ -45,7 +45,10 @@ vv="$vv allarg defarg arg"
 
 #source  /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.5/el9_amd64_gcc11/Fri/envset.sh
 #source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.4.8/el9_amd64_gcc11/2025_06_25/envset.sh
-source /home/blyth/junosw/InstallArea/envset.sh
+#source /home/blyth/junosw/InstallArea/envset.sh
+
+source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.0/el9_amd64_gcc11/2025_07_07/envset.sh
+
 
 #export SEvt__SAVE_NOTHING=1
 #export OPTICKS_EVENT_MODE=Minimal   ## Minimal is the default SEventConfig::EventMode
