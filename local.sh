@@ -41,7 +41,7 @@ Initialize geomdir (equivalent of gitlab CI OJ test)
 
     local_oj_init # lji
     oj_init
-    ## alternatively use "ljlb" to do both the above
+    ## alternatively use "ljii" to do both the above
 
 
 

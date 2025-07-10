@@ -139,10 +139,12 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=UpperChimney
     #test=NNVT
     #test=Hama
-    test=Hama2
+    #test=Hama2
     #test=SPMT
     #test=CD
     #test=WP_PMT
+    #test=WP_PMT_SIDE
+    test=WP_PMT_SEMI
     #test=POOLCOVER
 
     export TEST=${TEST:-$test}
@@ -204,12 +206,26 @@ if [ "${arg/env}" != "$arg" ]; then
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
-       observation=" A and B"
+       observation=""
 
        #export U4Recorder__EndOfRunAction_Simtrace=1
        #export U4Simtrace__level=2
        #export C4OpBoundaryProcess__PIDX_ENABLED=1
        #export PIDX=99999
+
+    elif [ "$TEST" == "WP_PMT_SIDE" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+       opticks_input_photon=SideZX_X300_100k_f8.npy
+       opticks_input_photon_frame=PMT_20inch_veto:0:1000
+       observation=""
+
+    elif [ "$TEST" == "WP_PMT_SEMI" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+       opticks_input_photon=SemiCircleXZ_R-500_100k_f8.npy
+       opticks_input_photon_frame=PMT_20inch_veto:0:1000
+       observation=""
 
     elif [ "$TEST" == "POOLCOVER" ]; then
 
@@ -349,6 +365,11 @@ fi
 
 if [ "${arg/chi2}" != "$arg" ] ; then
    sseq_index_test.sh info_run_ana
+fi
+
+if [ "${arg/lhi2}" != "$arg" ] ; then
+   ## version of "chi2" with longer table
+   sseq_index_ab__desc_NUM_MAX=100 sseq_index_test.sh info_run_ana
 fi
 
 if [ "${arg/dhi2}" != "$arg" ] ; then
