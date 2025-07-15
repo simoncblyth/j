@@ -1,14 +1,13 @@
 #!/bin/bash
-######## Part 1 #########
-#SBATCH --partition=gpu
-#SBATCH --qos=normal
-#SBATCH --account=junogpu
-#SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=16000
-#SBATCH --gpus=v100:1
-#SBATCH --job-name=Mode1
 
-######## Part 2 #########
+#SBATCH --partition=gpu
+#SBATCH --qos=debug
+#SBATCH --account=junogpu
+#SBATCH --job-name=muon_min
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=20480
+#SBATCH --gres=gpu:v100:1
+
 
 source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.0/el9_amd64_gcc11/2025_07_07/envset.sh
 
