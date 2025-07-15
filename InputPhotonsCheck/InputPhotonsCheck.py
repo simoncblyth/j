@@ -94,7 +94,7 @@ if __name__ == '__main__':
     context = "PICK=%s MODE=%d  ~/j/jtds/jtds.sh " % (PICK, MODE )
     print(context)
 
-    ## use PICK=CF to skip the below plotting
+    ## use PICK=CF or X to skip the below plotting
     pl = None
     for e in ee:
         if e is None:continue

@@ -90,13 +90,13 @@ if [ "${arg/env}" != "$arg" ]; then
     ##source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
 
 
-    ASIS=0 
+    ASIS=0
     ZERO_HOLES=1
     MULTIUNION_HOLES=2
     HIERARCHY=3
 
     #export WaterPoolConstruction__CONFIG=$ASIS                # ASIS crashes in geometry conversion with enormous bt
-    #export WaterPoolConstruction__CONFIG=$ZERO_HOLES          # same crash 
+    #export WaterPoolConstruction__CONFIG=$ZERO_HOLES          # same crash
     #export WaterPoolConstruction__CONFIG=$MULTIUNION_HOLES
     export WaterPoolConstruction__CONFIG=$HIERARCHY           # HIERARCHY is set by oj_geomsetup
 
@@ -144,8 +144,9 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=CD
     #test=WP_PMT
     #test=WP_PMT_SIDE
-    test=WP_PMT_SEMI
+    #test=WP_PMT_SEMI
     #test=POOLCOVER
+    test=POOLCOVER_REFINE
 
     export TEST=${TEST:-$test}
 
@@ -165,7 +166,7 @@ if [ "${arg/env}" != "$arg" ]; then
        opticks_input_photon_frame=NNVT:0:1000
        #observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363159 hitCollectionAlt 362580 hcMuon 0 GPU YES"
        observation="junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 3 hitCollection 363183 hitCollectionAlt 362581 hcMuon 0 GPU YES"
-       # SABHit  a_nhit : (  362581 +-  602 )  b_nhit:(   363183 +-  602 )  a/b: (  0.998 +-  0.003 )  b/a: (  1.002 +-  0.003)  
+       # SABHit  a_nhit : (  362581 +-  602 )  b_nhit:(   363183 +-  602 )  a/b: (  0.998 +-  0.003 )  b/a: (  1.002 +-  0.003)
 
     elif [ "$TEST" == "Hama" ]; then
 
@@ -227,7 +228,7 @@ if [ "${arg/env}" != "$arg" ]; then
        opticks_input_photon_frame=PMT_20inch_veto:0:1000
        observation=""
 
-    elif [ "$TEST" == "POOLCOVER" ]; then
+    elif [ "$TEST" == "POOLCOVER" -o "$TEST" == "POOLCOVER_REFINE" ]; then
 
       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
       #opticks_input_photon=UpXZ1000_f8.npy
@@ -236,6 +237,13 @@ if [ "${arg/env}" != "$arg" ]; then
       #opticks_input_photon_frame=3345.569,20623.73,21500
       opticks_input_photon_frame=3345.569,20623.73,21000
       #export PIDX=99999
+      onservation="WP_PMT virtual clippers number of BT discrepant"
+
+      if [ "${TEST/REFINE}" != "$TEST" ]; then
+          export OPTICKS_PROPAGATE_REFINE=1
+      else
+          unset OPTICKS_PROPAGATE_REFINE
+      fi
 
     fi
 
@@ -257,7 +265,11 @@ if [ "${arg/env}" != "$arg" ]; then
     ## OPTICKS_EVENT_NAME is required to contain strings such as "Debug" and "Philox"
     ## when those correspond to the build config as checked by sbuild::Matches
     export OPTICKS_SCRIPT=InputPhotonsCheck
-    export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INTEGRATION_MODE}_${OPTICKS_INPUT_PHOTON_FRAME}_${OPTICKS_INPUT_PHOTON/.npy}
+    if [ -n "$OLDNAME" ]; then
+        export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INTEGRATION_MODE}_${OPTICKS_INPUT_PHOTON_FRAME}_${OPTICKS_INPUT_PHOTON/.npy}
+    else
+        export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INTEGRATION_MODE}_${TEST}
+    fi
 
     ## convenience vars for analysis
     export TMP=/tmp/$USER/opticks
@@ -275,11 +287,11 @@ fi
 logging(){
    type $FUNCNAME
    : export SSim__stree_level=1
-   : export SEvt__EPH=1 
+   : export SEvt__EPH=1
 }
 [ -n "$LOG" ] && logging
 
-[ -n "$EOR_SIMTRACE" ] && export U4Recorder__EndOfRunAction_Simtrace=1 
+[ -n "$EOR_SIMTRACE" ] && export U4Recorder__EndOfRunAction_Simtrace=1
 
 
 if [ "${arg/info}" != "$arg" ]; then
@@ -348,7 +360,7 @@ if [ "${arg/pdb}" != "$arg" ]; then
    [ $? -ne 0 ] && echo $BASH_SOURCE pdb error
 fi
 if [ "${arg/sab}" != "$arg" ]; then
-   SAB=1 ${IPYTHON:-ipython} --pdb -i $anascript
+   SAB=1 PICK=X ${IPYTHON:-ipython} --pdb -i $anascript
    [ $? -ne 0 ] && echo $BASH_SOURCE sab error
 fi
 if [ "${arg/ana}" != "$arg" ]; then
