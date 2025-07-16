@@ -1,7 +1,19 @@
 InputPhotonsCheck_WP_long_ray_intersect_precision
 ==================================================
 
+Overview
+----------
 
+OPTICKS_PROPAGATE_REFINE works, but when should it be used.
+
+* possible criteria : keep precision of intersect less than propagate_epsilon
+* TODO: procedure to measure precision of intersect ? And setup a scan to do so,
+  in order to determine what OPTICKS_PROPAGATE_REFINE_DISTANCE is appropriate
+
+
+
+Setup test geometry BigWaterPool
+------------------------------------
 
 ::
 
@@ -352,6 +364,7 @@ With refine, and pasting w3 across::
 
 
 Repeat ipc with new OPTICKS_EVENT_NAME still without refine
+--------------------------------------------------------------
 
 .. raw:: html
 
