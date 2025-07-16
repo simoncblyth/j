@@ -1,55 +1,63 @@
-index
-=======
 
 
-Zhenning reports GPU slurm job error
---------------------------------------
-
-
-::
-
-Total Number of UnknownVolume in CD is 39
-
-LSExpDetectorConstruction::setupOpticks completed construction of physiWorld  m_opticksMode 1 WITH_G4CXOPTICKS  proceeding to setup Opticks
-
-LSExpDetectorConstruction::setupOpticks ekey LSExpDetectorConstruction__setupOpticks_pmtscan no pmtscan
-
-U::Resolve token [MultiFilmLUTMakerSvc_DIR] does not resolve
-
-NP::save failed to U::Resolve path_ $MultiFilmLUTMakerSvc_DIR/multifilm.npy
-
-2025-07-16 09:27:31.822 INFO  [142619] [LSExpDetectorConstruction_Opticks::Setup@45] [ WITH_G4CXOPTICKS opticksMode 1 sd 0x61d4c90
-
-SNiPER is stopped by Ctrl+C
+Hi Zhenning, 
 
 
 
-**************************************************
+Regarding your GPU slurm job error::
 
-Terminating @ gpu032.ihep.ac.cn on Wed Jul 16 09:27:32 2025
+    Total Number of UnknownVolume in CD is 39
 
-SNiPER::Context Running Mode = { BASIC }
+    LSExpDetectorConstruction::setupOpticks completed construction of physiWorld  m_opticksMode 1 WITH_G4CXOPTICKS  proceeding to setup Opticks
 
-SNiPER::Context SNiPER is stopped by Ctrl+C
+    LSExpDetectorConstruction::setupOpticks ekey LSExpDetectorConstruction__setupOpticks_pmtscan no pmtscan
+
+    U::Resolve token [MultiFilmLUTMakerSvc_DIR] does not resolve
+
+    NP::save failed to U::Resolve path_ $MultiFilmLUTMakerSvc_DIR/multifilm.npy
+
+    2025-07-16 09:27:31.822 INFO  [142619] [LSExpDetectorConstruction_Opticks::Setup@45] [ WITH_G4CXOPTICKS opticksMode 1 sd 0x61d4c90
+
+    SNiPER is stopped by Ctrl+C
 
 
 
-I guess I may have missed setting some critical environment variables, but I'm
-unsure how to verify this. Since I can submit the slurm job and the detector
-simulation begins initializing (with normal log output), the issue likely isn’t
-related to the SLURM cluster itself.
+    **************************************************
 
-Regards,
+    Terminating @ gpu032.ihep.ac.cn on Wed Jul 16 09:27:32 2025
 
-Zhenning
+    SNiPER::Context Running Mode = { BASIC }
+
+    SNiPER::Context SNiPER is stopped by Ctrl+C
+
+
+
+
+
+
+>    I guess I may have missed setting some critical environment variables, but I'm
+>    unsure how to verify this. 
+
+You should not need any more envvars. However setting envvars is how to 
+control Opticks logging and other things, so I will suggest some below
+for you to debug the issue.
+
+
+> Since I can submit the slurm job and the detector
+> simulation begins initializing (with normal log output), the issue likely isn’t
+> related to the SLURM cluster itself.
+
+
+The "Ctrl+C" means a SIGINT signal was caught by SNiPER. 
+The question is what threw the SIGINT and why. 
+It might be related to SLURM time/memory limits for jobs.
+SLURM may be interrupting jobs that use too much resources
+with a SIGINT.   
 
 
 
 Find where the message "SNiPER is stopped by Ctrl+C" comes from 
 -----------------------------------------------------------------
-
-
-
 
 ::
 
@@ -213,8 +221,14 @@ so I added the below after the sourcing of envset.sh::
     logging  # add logging for debug of "SNiPER is stopped by Ctrl+C" ie SIGINT
 
 
+That is added to::
+
+   https://code.ihep.ac.cn/blyth/j/-/blob/main/muon/muon_min.sh
 
 
+Doing this may isolate where the SIGINT is coming from for you.
+
+Simon
 
 
 
