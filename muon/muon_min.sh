@@ -11,12 +11,25 @@
 
 source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.0/el9_amd64_gcc11/2025_07_07/envset.sh
 
+
+logging(){
+   type $FUNCNAME
+   export G4CXOpticks=INFO
+   export SSim=INFO
+   export SEvt=INFO
+   export SEventConfig=INFO
+}
+logging  # add logging for debug of "SNiPER is stopped by Ctrl+C" ie SIGINT
+
+
 export SEvt__MINTIME=1    # dump kernel launch times
 
 export CUDA_VISIBLE_DEVICES=0
 
 export OPTICKS_MAX_BOUNCE=63
 #export OPTICKS_MAX_TIME=1000 # ns 
+
+
 
 $(which python) \
      $(which tut_detsim.py) \
