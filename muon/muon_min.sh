@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --partition=gpu
-#SBATCH --qos=debug
+#SBATCH --qos=normal
 #SBATCH --account=junogpu
 #SBATCH --job-name=muon_min
 #SBATCH --ntasks=1

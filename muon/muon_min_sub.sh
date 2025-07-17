@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 usage(){ cat << EOU
 
@@ -11,9 +11,24 @@ RELP=${RELP:-j/muon/muon_min.sh}
 
 STEM=${RELP/.sh}
 SCRIPT=$HOME/$RELP
-LOGDIR=/hpcfs/juno/junogpu/$USER/logs/$STEM
+TIMEFOLD=$(date +"%Y%m%d_%H%M%S")
 
-vv="BASH_SOURCE RELP STEM SCRIPT LOGDIR"
+LOGDIR=/hpcfs/juno/junogpu/$USER/logs/$STEM/$TIMEFOLD
+
+
+if [ -n "$FRESH" ]; then
+    echo $BASH_SOURCE : FRESH is defined : trying to reproduce first Opticks usage situation
+    ## previously this situation gave error "SNiPER is stopped by Ctrl+C"
+    export HOME=/afs/ihep.ac.cn/users/${USER:0:1}/$USER
+    rm -rf $HOME/.opticks/scontext
+    rm -rf $HOME/.opticks/sdevice
+else
+    echo $BASH_SOURCE : FRESH is not defined
+fi
+
+
+
+vv="BASH_SOURCE RELP STEM SCRIPT TIMEFOLD LOGDIR HOME FRESH"
 
 defarg="info_sub"
 arg=${1:-$defarg}
