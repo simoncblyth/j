@@ -21,8 +21,8 @@ After making changes in ~/opticks update OK with:
     opticks-t
 
 
-Updating local OJ build (equivalent of gitlab CI OJ build)
-------------------------------------------------------------
+Updating local OJ build (equivalent of gitlab CI OJ build) : ljbb
+--------------------------------------------------------------------
 
 After making changes in ~/junosw eg to Examples/Tutorial/share/opticks_juno.sh
 update OJ with:
@@ -34,8 +34,8 @@ update OJ with:
     ## alternatively use "ljbb" to do both the above
 
 
-Initialize geomdir (equivalent of gitlab CI OJ test)
--------------------------------------------------
+Initialize geomdir (equivalent of gitlab CI OJ test) : ljii
+--------------------------------------------------------------
 
 * open new tab with empty env and setup and invoke the OJ Opticks geom config::
 

@@ -9,7 +9,8 @@
 #SBATCH --gres=gpu:v100:1
 
 
-source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.0/el9_amd64_gcc11/2025_07_07/envset.sh
+#source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.0/el9_amd64_gcc11/2025_07_07/envset.sh
+source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.1/el9_amd64_gcc11/2025_07_17/envset.sh
 
 
 logging(){
@@ -19,7 +20,7 @@ logging(){
    export SEvt=INFO
    export SEventConfig=INFO
 }
-logging  # add logging for debug of "SNiPER is stopped by Ctrl+C" ie SIGINT
+#logging  # add logging for debug of "SNiPER is stopped by Ctrl+C" ie SIGINT
 
 
 export SEvt__MINTIME=1    # dump kernel launch times
