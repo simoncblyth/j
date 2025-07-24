@@ -11,7 +11,7 @@ cur
     sources the cur ~/.opticks/CUR.sh file if existing
     NB thats distinct from ~/.opticks/GEOM/CUR.sh
 copy
-    copies last Screenshot 
+    copies last Screenshot
 
 
 To shift context time backwards
@@ -31,7 +31,7 @@ Workflow
 1. get into enabled fullscreen app on workstation, eg::
 
      lo
-     ssst.sh ref   
+     ssst.sh ref
 
 2. open tunnel from laptop to workstation, *tuna*
 3. ssh into workstation from laptop "ssh A"
@@ -61,7 +61,7 @@ EOU
 }
 
 SDIR=~/Pictures
-[ ! -d $SDIR ] && echo $BASH_SOURCE NO SDIR $SDIR && exit 1 
+[ ! -d $SDIR ] && echo $BASH_SOURCE NO SDIR $SDIR && exit 1
 
 cd $SDIR
 
@@ -73,7 +73,9 @@ path=$(ls -1t *.png | head -1)
 
 
 cur=$HOME/.opticks/CUR.sh
-BASE=$HOME/simoncblyth.github.io/env/presentation
+#BASE=$HOME/simoncblyth.github.io/env/presentation
+BASE=/usr/local/simoncblyth.github.io/env/presentation
+
 
 allarg="vi_ls_cur_info_open_clip_idx_copy_s5p_s5t"
 defarg="cur_info_copy"
@@ -87,7 +89,7 @@ if [ -f $cur ]; then
 else
    cur_msg=cur_DOES_NOT_EXIST
 fi
- 
+
 
 vv="BASH_SOURCE BASH_VERSION PWD path BASE allarg defarg arg cur tcur dcur cur_msg CUR"
 
@@ -95,11 +97,11 @@ if [ "${arg/vi}" != "$arg" ]; then
     cmd="vi pic.sh"
     echo $cmd
     eval $cmd
-fi 
+fi
 
 if [ "${arg/ls}" != "$arg" ]; then
    if [ -f $cur ]; then
-       for png in $(ls -1rt *.png) 
+       for png in $(ls -1rt *.png)
        do
             tpng=$(stat --format=%Y $png)
             dpng=$(date -d@$tpng)
@@ -107,11 +109,11 @@ if [ "${arg/ls}" != "$arg" ]; then
                tpng_valid=YES
             else
                tpng_valid=NO
-            fi  
+            fi
             printf "# %25s : %s : %s : %s\n" $png $tpng "$dpng" $tpng_valid
        done
    fi
-fi 
+fi
 
 if [ "${arg/info}" != "$arg" ]; then
    for v in $vv ; do printf "# %30s : %s\n" "$v" "${!v}" ; done
@@ -152,38 +154,27 @@ if [ "${arg/copy}" != "$arg" -a -f "$cur" ]; then
 
    for dpng in $(find . -name '*.png' -newer $cur)
    do
-       png=$(basename $dpng) 
+       png=$(basename $dpng)
+       txt=${png/.png}.txt
        cmd1="cp $SDIR/$png $BASE/$CUR/$png"
        echo $cmd1
+
+       if [ -f "$txt" ]; then
+           cmd2="cp $SDIR/$txt $BASE/$CUR/$txt"
+           echo $cmd2
+       fi
    done
    [ -n "$DEBUG" ] && echo \# $BASH_SOURCE ] copy
 fi
 
-
-if [ "${arg/sopy}" != "$arg" -a -f "$cur" ]; then
-
-   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE [ sopy
-   cmd0="mkdir -p $BASE/$CUR"
-   echo $cmd0
-
-   for png in $(ls -1rt *.png) 
-   do
-       # HMM : this loop is quite slow : can probaby replace it with find command
-       tpng=$(stat --format=%Y $png)
-       [ -n "$DEBUG" ] && echo \# $BASH_SOURCE - copy png $png tpng $tpng
-       if [ $tpng -gt $tcur ]; then
-           cmd1="cp $SDIR/$png $BASE/$CUR/$png"
-           echo $cmd1
-       fi
-   done
-   [ -n "$DEBUG" ] && echo \# $BASH_SOURCE ] sopy
-fi
 
 
 s5_()
 {
     local cmd=$1
     local relp=$2
+    local txt=$3
+
     local titl=$(echo $relp | tr "/" "_")
 
     if [ "$cmd" == "P" ]; then
@@ -198,25 +189,33 @@ s5_()
         printf "\n"
         printf ":i:\`$titl\` \n"
         for (( i=1 ; i < $n ; i++ )) do printf "-" ; done
-        printf "\n\n" 
+        printf "\n\n"
+
+        if [ -f "$txt" ]; then
+            cmd=$(cat $txt)
+            printf "\`\`$cmd\`\`"
+        fi
+        printf "\n\n"
 
     fi
 }
 
 s5()
 {
+   #printf "PWD $PWD\n"
    printf "[s5$1\n\n"
    for png in $(ls -1rt *.png)
    do
+       txt=${png/.png}.txt
        tpng=$(stat --format=%Y $png)
-       [ $tpng -gt $tcur ] && s5_ $1 $CUR/$png
+       [ $tpng -gt $tcur ] && s5_ $1 $CUR/$png $txt
    done
    printf "]s5$1\n"
 }
 
 
 if [ "${arg/s5p}" != "$arg" -a -f $cur ]; then
-   s5 P 
+   s5 P
 fi
 
 if [ "${arg/s5t}" != "$arg" -a -f $cur ]; then

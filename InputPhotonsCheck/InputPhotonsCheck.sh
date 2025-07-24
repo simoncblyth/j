@@ -141,12 +141,12 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=Hama
     #test=Hama2
     #test=SPMT
-    #test=CD
+    test=CD
     #test=WP_PMT
     #test=WP_PMT_SIDE
     #test=WP_PMT_SEMI
     #test=POOLCOVER
-    test=POOLCOVER_REFINE
+    #test=POOLCOVER_REFINE
 
     export TEST=${TEST:-$test}
 
