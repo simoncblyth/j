@@ -22,6 +22,44 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+
+Tue 19th Aug 2025 : quick branch and switch
+---------------------------------------------
+
+0. have one modified junosw file in working copy from main branch pulled yesterday
+1. use web interface to create new branch
+2. fetch origin, switch to new branch::
+
+    A[blyth@localhost junosw]$ git fetch origin
+    From code.ihep.ac.cn:JUNO/offline/junosw
+       bb3b131c..355538b4  main                                                  -> origin/main
+     * [new branch]        blyth-add-pmtTotal-serialization-for-new-WP-PMT-types -> origin/blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
+
+    A[blyth@localhost junosw]$ git switch blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
+    M	Simulation/SimSvc/PMTSimParamSvc/PMTSimParamSvc/_PMTSimParamData.h
+    branch 'blyth-add-pmtTotal-serialization-for-new-WP-PMT-types' set up to track 'origin/blyth-add-pmtTotal-serialization-for-new-WP-PMT-types'.
+    Switched to a new branch 'blyth-add-pmtTotal-serialization-for-new-WP-PMT-types'
+    A[blyth@localhost junosw]$ 
+
+3. commit and push::
+
+    A[blyth@localhost junosw]$ git commit -m "add pmtTotal serialization for WP_ATM_LPMT WP_ATM_MPMT WP_WAL_PMT where WP_ATM_MPMT currently hardcoded zero"
+    [blyth-add-pmtTotal-serialization-for-new-WP-PMT-types 0218884b] add pmtTotal serialization for WP_ATM_LPMT WP_ATM_MPMT WP_WAL_PMT where WP_ATM_MPMT currently hardcoded zero
+     1 file changed, 10 insertions(+), 4 deletions(-)
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ git push 
+    ...
+    remote: 
+    remote: To create a merge request for blyth-add-pmtTotal-serialization-for-new-WP-PMT-types, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw.git
+       355538b4..0218884b  blyth-add-pmtTotal-serialization-for-new-WP-PMT-types -> blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
+    A[blyth@localhost junosw]$ 
+
+
+
+
 Thu 26th June 2025 : return to Custom4 v0.1.8 on fixes branch in case of throwaway changes
 ---------------------------------------------------------------------------------------------
 

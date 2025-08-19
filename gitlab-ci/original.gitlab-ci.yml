@@ -1,0 +1,281 @@
+# About workflow:rules, see https://docs.gitlab.com/ee/ci/yaml/workflow.html
+# By default, other cases are 'when: never'.
+workflow:
+  rules:
+    # These 3 rules from https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Workflows/MergeRequest-Pipelines.gitlab-ci.yml
+    # Run on merge requests
+    - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    # Run on tags
+    - if: $CI_COMMIT_TAG
+    # Run when called from an upstream pipeline https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html?tab=Multi-project+pipeline#use-rules-to-control-downstream-pipeline-jobs
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+    - if: $CI_PIPELINE_SOURCE == 'parent-child'
+    # Run on commits to the default branch
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # The last rule above blocks manual and scheduled pipelines on non-default branch. The rule below allows them:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    # Run if triggered from Web using 'Run Pipelines'
+    - if: $CI_PIPELINE_SOURCE == "web"
+    # Run if triggered from WebIDE
+    - if: $CI_PIPELINE_SOURCE == "webide"
+
+stages:          # List of stages for jobs, and their order of execution
+  - build
+  - test
+
+##############################################################################
+# Job Template
+##############################################################################
+.job_template:
+  image: junosw/base:el9
+  variables:
+    # JUNOTOP: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+    JUNOTOP: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+    JUNO_CLANG_PREFIX:
+    EXTRA_BUILD_FLAGS:
+
+##############################################################################
+# Build Job Template
+##############################################################################
+.build_job_template:
+  extends: .job_template
+  stage: build
+  script:
+    - sudo mount -t cvmfs juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    - export JUNO_OFFLINE_OFF=1 # Disable the official JUNOSW when build JUNOSW
+    - source $JUNOTOP/setup.sh
+    - if [ -n "$JUNO_CLANG_PREFIX" ]; then source $JUNO_CLANG_PREFIX/bashrc; fi
+    - env $EXTRA_BUILD_FLAGS ./build.sh
+
+##############################################################################
+# Opticks Build Job Template
+##############################################################################
+.opticks_build_job_template:
+  extends: .job_template
+  stage: build
+  image: simoncblyth/cuda:12.4.1-runtimeplus-rockylinux9
+  variables:
+    JUNO_CLANG_PREFIX:
+    JUNO_OPTICKS_PREFIX: /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest
+    EXTRA_BUILD_FLAGS: JUNO_CMAKE_BUILD_TYPE=Debug
+  script:
+    - for repo in juno.ihep.ac.cn opticks.ihep.ac.cn; do if [ ! -d /cvmfs/$repo ]; then sudo mkdir /cvmfs/$repo; fi; sudo mount -t cvmfs $repo /cvmfs/$repo; done
+    - source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
+    - mkdir InstallConfig
+    - source .gitlab-ci/oj_helper.sh EMIT_ENV    > InstallConfig/ENV.bash
+    - cat InstallConfig/ENV.bash
+    - source .gitlab-ci/oj_helper.sh EMIT_ENVSET > InstallConfig/envset.sh
+    - cat InstallConfig/envset.sh
+    - export JUNO_OFFLINE_OFF=1 # Disable the official JUNOSW when build JUNOSW
+    - export OPTICKS_SETUP_VERBOSE=1   # ~/j/gitlab-ci/mockbuild.sh shows this protects against "set -eo pipefail"
+    - source $JUNOTOP/setup.sh
+    - if [ -n "$JUNO_CLANG_PREFIX" ]; then source $JUNO_CLANG_PREFIX/bashrc; fi
+    - if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
+    - env $EXTRA_BUILD_FLAGS ./build.sh
+    - cp InstallConfig/ENV.bash  InstallArea/ENV.bash
+    - cp InstallConfig/envset.sh InstallArea/envset.sh
+
+
+##############################################################################
+# Build Job (el9)
+##############################################################################
+
+build-job:gcc11:el9:       # This job runs in the build stage, which runs first.
+  extends: .build_job_template
+  artifacts:
+    paths:
+      - InstallArea
+
+
+##############################################################################
+# Build Job (el9) with Opticks
+##############################################################################
+
+opticks:build-job:gcc11:el9:       # This job runs in the build stage, which runs first.
+  extends: .opticks_build_job_template
+  artifacts:
+    paths:
+      - InstallArea
+    expire_in: 24 hrs
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - .gitlab-ci.yml
+      - Simulation/**/*
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+
+
+##############################################################################
+# Build Job (el9) with G411
+##############################################################################
+
+build-job:gcc11:el9:g411:       # This job runs in the build stage, which runs first.
+  extends: .build_job_template
+  variables:
+    JUNOTOP: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Pre-Release/J24.1.x-g411
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - Simulation/**/*
+
+##############################################################################
+# Build Job (el9), ONLINE
+##############################################################################
+
+build-job-online:gcc11:el9: # This job is used to check whether the packages for OEC can be built. It is a temporary test, it will be seperated as individual one when container of DAQ is uploaded. 
+  extends: .build_job_template
+  # image: junosw/base:el7
+  variables:
+    # JUNOTOP: /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc1120/Release/J24.1.2
+    EXTRA_BUILD_FLAGS: JUNO_BUILD_ONLINE=1
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: # based on CMakeLists.online.txt
+        - CMakeLists.online.txt
+        - DataModel/**/*
+        - Detector/**/*
+        - CommonSvc/**/*
+        - RootIO/RootIOUtil/**/*
+        - RootIO/RootIOSvc/**/*
+        - Database/**/*
+        - Calibration/**/*
+        - OEC/**/*
+        - Reconstruction/**/*
+        - Classification/**/*
+        - Utilities/**/*
+
+##############################################################################
+# Build Job (el9), clang17
+##############################################################################
+
+build-job:clang17:el9:       # This job runs in the build stage using clang.
+  extends: .build_job_template
+  variables:
+    CC: clang
+    CXX: clang++
+    JUNO_CLANG_PREFIX: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/contrib/clang/17.0.6
+
+
+##############################################################################
+# Test Job Template
+##############################################################################
+
+.test_job_template:
+  extends: .job_template
+  stage: test
+  variables:
+    TESTPKGNAME: Tutorial
+  script:
+    - sudo mount -t cvmfs juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    - sudo ln -s $(realpath .) /junosw
+    - export WORKTOP=/
+    - source $JUNOTOP/setup.sh
+    - source setup.sh
+    - python Validation/JunoTest/python/JunoTest/junotest UnitTest $TESTPKGNAME
+  dependencies:
+    - build-job:gcc11:el9
+  rules:
+    # for schedule job, the test job should always run.
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - if: $CI_COMMIT_MESSAGE =~ /^docs:/
+      when: never
+    - if: $CI_COMMIT_MESSAGE =~ /^WIP:/
+      when: never
+    - if: $CI_COMMIT_MESSAGE !~ /^WIP:/
+      when: always
+
+
+
+##############################################################################
+# Opticks Test Job Template
+##############################################################################
+
+.opticks_test_job_template:
+  stage: test
+  image: simoncblyth/cuda:12.4.1-runtimeplus-rockylinux9
+  script:
+    - for repo in juno.ihep.ac.cn opticks.ihep.ac.cn; do if [ ! -d /cvmfs/$repo ]; then sudo mkdir /cvmfs/$repo; fi; sudo mount -t cvmfs $repo /cvmfs/$repo; done
+    - source InstallArea/envset.sh
+    - oj_initialize_framespec
+    - oj_initialize_meshname_tessname
+    - oj_initialize_geomdir
+    - source .gitlab-ci/oj_helper.sh MAKE_TAR
+    - source .gitlab-ci/oj_helper.sh DEPLOY_TAR
+
+  dependencies:
+    - opticks:build-job:gcc11:el9
+  rules:
+    # for schedule job, the test job should always run.
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - .gitlab-ci.yml
+      - Simulation/**/*
+
+
+##############################################################################
+# Test Job (el9)
+##############################################################################
+
+test-job-tutorial:gcc11:el9:
+  extends: .test_job_template
+  variables:
+    TESTPKGNAME: Tutorial:test_sim2rec.py
+  artifacts:
+    expose_as: 'results of rootio-dump'
+    paths: 
+    - Examples/Tutorial/tests/plot_detsim.pdf
+    - Examples/Tutorial/tests/plot_rec.pdf
+    # Log files for debugging
+    - Examples/Tutorial/tests/detsim/gun/default.log
+    - Examples/Tutorial/tests/elec2rec/default.log
+    - Examples/Tutorial/tests/detsim/plot.log
+    - Examples/Tutorial/tests/elec2rec/plot.log
+    when: always
+
+# this will be only used in schedule task
+test-job-tutorial-detsim:gcc11:el9:
+  extends: .test_job_template
+  variables:
+    TESTPKGNAME: Tutorial:test_detsim.py
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+
+test-job-tutorial-mt-detsim:gcc11:el9:
+  extends: .test_job_template
+  variables:
+    TESTPKGNAME: Tutorial:test_mt_detsim.py
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - Simulation/**/*
+
+test-job-oectutorial:gcc11:el9:
+  extends: .test_job_template
+  variables:
+    TESTPKGNAME: OECTutorial
+
+
+opticks-test-job:gcc11:el9:
+  extends: .opticks_test_job_template
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - .gitlab-ci.yml
+      - Simulation/**/*
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+
+test-job-tutorial-sn:gcc11:el9:
+  extends: .test_job_template
+  variables:
+    TESTPKGNAME: Tutorial:test_sn.py
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always

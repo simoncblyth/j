@@ -342,6 +342,18 @@ local_oj_build()
        cp InstallConfig/envset.sh InstallArea/envset.sh
    }
 
+   oj_build_init(){
+       : ~/local.sh
+       : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
+
+       cd $HOME/junosw
+       source InstallArea/envset.sh
+
+       oj_initialize_meshname_tessname   ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to get meshname.txt and create tessname.txt from that
+       oj_initialize_framespec           ## write the framespec bookmark strings
+       oj_initialize_geomdir             ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to persist the OJ_GEOMDIR geometry dir with chosen tesselation
+   }
+
    oj_build(){
        : ~/local.sh
        [ -n "$OJ_BUILD_CLEAN" ] && oj_build_clean
@@ -349,6 +361,7 @@ local_oj_build()
        oj_build_pre
        oj_build_
        oj_build_post
+       [ -z "$NOINIT" ] && oj_build_init
    }
 
    type oj_build
