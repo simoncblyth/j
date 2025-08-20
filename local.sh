@@ -20,7 +20,7 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljb     | local_oj_build                     | defines oj_build which locally mimics the Opticks+JUNOSW gitlab-ci build                                                               | 
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ljbb    | local_oj_build,oj_build            | defines oj_build and runs it                                                                                                           |                      
+| ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |                      
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lji     | local_oj_init                      | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init which does test geometry conversions populating the geomdir                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
@@ -39,9 +39,7 @@ After making changes in ~/opticks update OK with:
 
 1. open new tab with empty env and get into env and build::
 
-    local_ok_build   ## lob
-                     ## alternatively use "lo" which does conda setup too
-
+    local_ok_build   ## "lob" OR "lo" which does conda setup too
     oo
     opticks-t
 
