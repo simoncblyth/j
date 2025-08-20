@@ -49,12 +49,20 @@ Tue 19th Aug 2025 : quick branch and switch
     A[blyth@localhost junosw]$ 
     A[blyth@localhost junosw]$ git push 
     ...
+
+
+4. commit and push::
+
+    A[blyth@localhost junosw]$ git add . 
+    A[blyth@localhost junosw]$ git commit -m "remove opticks:test-job instead combining those actions within the opticks:build-job with artifact saving removed to avoid failure from artifact size exceeding gitlab limit that is unclear how to change"
+    [blyth-add-pmtTotal-serialization-for-new-WP-PMT-types 0690b19a] remove opticks:test-job instead combining those actions within the opticks:build-job with artifact saving removed to avoid failure from artifact size exceeding gitlab limit that is unclear how to change
+    A[blyth@localhost junosw]$ git push 
     remote: 
     remote: To create a merge request for blyth-add-pmtTotal-serialization-for-new-WP-PMT-types, visit:
     remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
     remote: 
     To code.ihep.ac.cn:JUNO/offline/junosw.git
-       355538b4..0218884b  blyth-add-pmtTotal-serialization-for-new-WP-PMT-types -> blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
+       0218884b..0690b19a  blyth-add-pmtTotal-serialization-for-new-WP-PMT-types -> blyth-add-pmtTotal-serialization-for-new-WP-PMT-types
     A[blyth@localhost junosw]$ 
 
 

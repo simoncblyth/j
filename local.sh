@@ -6,6 +6,31 @@ local_usage(){ cat << EOU
 
 local.sh is the environment control script developed on Ada workstation (A).
 
+summary of functions
+----------------------
+
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| cmd     | primary functions                  |  notes                                                                                                                                 | 
++=========+====================================+========================================================================================================================================+
+| lob     | local_ok_build                     | env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy   |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| lo      | local_ok_build,lco                 | env to build Opticks (see lob) + python test and analysis using conda                                                                  | 
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+|         | local_ok_local                     | env to use local Opticks release, little used as typically need to keep rebuilding which requires "lob" or "lo"                        |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljb     | local_oj_build                     | defines oj_build which locally mimics the Opticks+JUNOSW gitlab-ci build                                                               | 
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljbb    | local_oj_build,oj_build            | defines oj_build and runs it                                                                                                           |                      
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| lji     | local_oj_init                      | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init which does test geometry conversions populating the geomdir                    |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljii    | local_oj_init,oj_init              | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init and runs it                                                                    |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljr     | local_oj_release,oj_release        | env to use OJ release (eg using libs scripts and geomdir from /cvmfs )                                                                 |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
 
 Updating local OK build
 ------------------------
@@ -219,7 +244,6 @@ local_ok_build()
        #om-clean
        #om-conf 
        om 
- 
    }
    type ok_build
 
@@ -235,7 +259,7 @@ lo()
 {
    : ~/local.sh  env for Opticks build test and analysis
    local_ok_build
-   local_conda_ok
+   lco
 
    export GEOMBASE=$HOME/junosw/InstallArea/.opticks/GEOM
    ## liteweight for GEOM bash function navigation eg "GEOM cf"
@@ -342,16 +366,12 @@ local_oj_build()
        cp InstallConfig/envset.sh InstallArea/envset.sh
    }
 
-   oj_build_init(){
+   oj_build_initialize(){
        : ~/local.sh
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
        cd $HOME/junosw
-       source InstallArea/envset.sh
-
-       oj_initialize_meshname_tessname   ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to get meshname.txt and create tessname.txt from that
-       oj_initialize_framespec           ## write the framespec bookmark strings
-       oj_initialize_geomdir             ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to persist the OJ_GEOMDIR geometry dir with chosen tesselation
+       ./oj_initialize.sh
    }
 
    oj_build(){
@@ -361,7 +381,7 @@ local_oj_build()
        oj_build_pre
        oj_build_
        oj_build_post
-       [ -z "$NOINIT" ] && oj_build_init
+       [ -z "$NOINIT" ] && oj_build_initialize
    }
 
    type oj_build
@@ -388,65 +408,53 @@ local_oj_init()
 {
    : ~/local.sh
    local desc="usage of oj_build created envset.sh adapting .gitlab-ci.yml Opticks+JUNOSW test, use oj_local func to prep geomdir"
-   local mode=oj_local
+   local mode=oj_init
 
    export VIP_MODE="${VIP_MODE},$mode"
    export VIP_DESC="${VIP_DESC},$desc"
    export VIP_FUNC="${VIP_FUNC},$FUNCNAME"
 
-   source /home/blyth/junosw/InstallArea/envset.sh
    oj_init(){
        : follow .gitlab-ci.yml
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
-       oj_initialize_meshname_tessname   ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to get meshname.txt and create tessname.txt from that
-       oj_initialize_framespec           ## write the framespec bookmark strings
-       oj_initialize_geomdir             ## "tut_detsim.py --opticks-mode 1 --evtmax 0 gun" to persist the OJ_GEOMDIR geometry dir with chosen tesselation
+
+       cd $HOME/junosw
+       ./oj_initialize.sh
    }
-
    type oj_init
-
 }
 
+
+ljr()
+{
+   : ~/local.sh
+   : setup environment to check a release
+   local_oj_release
+   oj_release 
+}
 
 local_oj_release()
 {
    : ~/local.sh
    local desc="TODO: cvmfs release"
-   export VIP_MODE=oj_release
-   export VIP_DESC=$desc
-   export VIP_FUNC=$FUNCNAME
-}
-
-local_conda()
-{
-   : ~/local.sh
-
-   local desc="miniconda3 hookup"
-   local mode="conda"
+   local mode=oj_release
 
    export VIP_MODE="${VIP_MODE},$mode"
    export VIP_DESC="${VIP_DESC},$desc"
    export VIP_FUNC="${VIP_FUNC},$FUNCNAME"
 
-
-
-
-   ## below was appended by running : conda init --all
-   # >>> conda initialize >>>
-   # !! Contents within this block are managed by 'conda init' !!
-   __conda_setup="$('/home/blyth/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-   if [ $? -eq 0 ]; then
-       eval "$__conda_setup"
-   else
-       if [ -f "/home/blyth/miniconda3/etc/profile.d/conda.sh" ]; then
-           . "/home/blyth/miniconda3/etc/profile.d/conda.sh"
+   oj_release()
+   {
+       : ~/local.sh
+       local envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.2/el9_amd64_gcc11/Latest/envset.sh
+       if [ -f "$envset" ]; then
+           source $envset
        else
-           export PATH="/home/blyth/miniconda3/bin:$PATH"
+           echo $BASH_SOURCE - ERROR - MISSING envset $envset 
        fi
-   fi
-   unset __conda_setup
-   # <<< conda initialize <<<
+   }
 }
+
 
 local_conda_ok()
 {
@@ -458,13 +466,30 @@ local_conda_ok()
    export VIP_DESC="${VIP_DESC},$desc"
    export VIP_FUNC="${VIP_FUNC},$FUNCNAME"
 
-   local_conda
-   conda activate ok
+   conda_ok()
+   {
+       : ~/local.sh
+       : below was appended by running : conda init --all
+       __conda_setup="$('/home/blyth/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+       if [ $? -eq 0 ]; then
+           eval "$__conda_setup"
+       else
+           if [ -f "/home/blyth/miniconda3/etc/profile.d/conda.sh" ]; then
+               . "/home/blyth/miniconda3/etc/profile.d/conda.sh"
+           else
+               export PATH="/home/blyth/miniconda3/bin:$PATH"
+           fi
+       fi
+       unset __conda_setup
+   }
 }
+
 lco()
 {
    : ~/local.sh
    local_conda_ok
+   conda_ok
+   conda activate ok
 }
 
 
