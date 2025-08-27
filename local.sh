@@ -22,6 +22,8 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |                      
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| loj     | local_oj                           | env to use local OJ                                                                                                                    |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lji     | local_oj_init                      | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init which does test geometry conversions populating the geomdir                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljii    | local_oj_init,oj_init              | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init and runs it                                                                    |
@@ -384,6 +386,18 @@ local_oj_build()
 
    type oj_build
 }
+
+
+local_oj()
+{
+    source $HOME/junosw/InstallArea/envset.sh
+}
+loj(){ 
+   : ~/local.sh
+   : setup environment of OJ running
+   local_oj 
+}
+
 
 
 lji()

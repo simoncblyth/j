@@ -141,12 +141,13 @@ if [ "${arg/env}" != "$arg" ]; then
     #test=Hama
     #test=Hama2
     #test=SPMT
-    test=CD
+    #test=CD
     #test=WP_PMT
     #test=WP_PMT_SIDE
     #test=WP_PMT_SEMI
     #test=POOLCOVER
     #test=POOLCOVER_REFINE
+    TEST=WP_ATM_LPMT
 
     export TEST=${TEST:-$test}
 
@@ -214,6 +215,7 @@ if [ "${arg/env}" != "$arg" ]; then
        #export C4OpBoundaryProcess__PIDX_ENABLED=1
        #export PIDX=99999
 
+
     elif [ "$TEST" == "WP_PMT_SIDE" ]; then
 
        sevt__input_photon_dir=$HOME/.opticks/InputPhotons
@@ -244,6 +246,23 @@ if [ "${arg/env}" != "$arg" ]; then
       else
           unset OPTICKS_PROPAGATE_REFINE
       fi
+
+    elif [ "$TEST" == "WP_ATM_LPMT" ]; then
+
+       sevt__input_photon_dir=$HOME/.opticks/InputPhotons
+
+       ## BEFORE INSTANCING THE 348
+       ##opticks_input_photon=SideZX_X300_100k_f8.npy
+       ##opticks_input_photon_frame=PMT_20inch_pmt_solid_head:7:-2   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25 
+
+       ## AFTER INSTANCING THE 348
+       opticks_input_photon=RainXZ_Z230_100k_f8.npy
+       opticks_input_photon_frame=PMT_20inch_pmt_solid_head:0:$(( 5 + 2 ))   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25 
+       observation="one of the 12*29 = 348"
+       #
+       #  /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/dbdata/offline-data/Detector/Identifier/pmt_20250422_WPATMLPMT.csv
+       #  7 52402,1,0,4,1,3,2,0,1185,2,-21078.2,275.9287,20163,90,179.25,PA1801-1022,NNVT
+       #   AT FAR -ve X POINT TOWARDS +X (APPROXIMATELY) 
 
     fi
 
