@@ -23,6 +23,59 @@ Common source for JUNO high level bash functions
 
 
 
+Wed 27th Aug 2025 : blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG
+------------------------------------------------------------------------------------------------------
+
+::
+
+0. have two modified junosw in working copy
+1. use web interface to create new branch : blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG
+2. fetch that to workstation::
+
+    A[blyth@localhost junosw]$ git fetch origin
+    From code.ihep.ac.cn:JUNO/offline/junosw
+     * [new branch]        blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG -> origin/blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG
+    A[blyth@localhost junosw]$ git s
+    On branch main
+    Your branch is behind 'origin/main' by 2 commits, and can be fast-forwarded.
+      (use "git pull" to update your local branch)
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Examples/Tutorial/share/opticks_juno.sh
+        modified:   Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+3. switch to that branch, commit and push the changes::
+
+    A[blyth@localhost junosw]$ git switch blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG
+    M	Examples/Tutorial/share/opticks_juno.sh
+    M	Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc
+    branch 'blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG' set up to track 'origin/blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG'.
+    Switched to a new branch 'blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG'
+
+    git commit -m "fix another theLV injection bug that impacts the 348 WP_ATM_LPMT for HIERARCHY_CONFIG - manifests as photons passing thru those PMTs without interacting"
+    git commit -m "config stree__FREQ_CUT to 300 to make the 348:WP_ATM_LPMT + 5:WP_WAL_PMT to be instanced by Opticks, requiring at least Opticks-v0.5.3 for the stree__FREQ_CUT envvar control"
+
+
+4. before making merge request check that Opticks release v0.5.3 is already accessible on cvmfs::
+
+    A[blyth@localhost junosw]$ l /cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/
+    total 11
+    1 drwxrwxr-x. 20 cvmfs cvmfs  63 Aug 27 19:30 .
+    1 drwxrwxr-x. 13 cvmfs cvmfs 239 Aug 27 19:30 Opticks-v0.5.3
+    1 lrwxrwxrwx.  1 cvmfs cvmfs  14 Aug 27 19:30 Opticks-vLatest -> Opticks-v0.5.3
+    1 drwxrwxr-x. 13 cvmfs cvmfs 239 Aug 19 10:57 Opticks-v0.5.2
+
+5. make MR which will do a test build using that new Opticks-v0.5.3
+
+
+
+
+
+
 Tue 19th Aug 2025 : quick branch and switch
 ---------------------------------------------
 
