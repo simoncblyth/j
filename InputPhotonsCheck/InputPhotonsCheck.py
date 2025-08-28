@@ -7,7 +7,7 @@ InputPhotonsCheck.py (former name oj3ana.py where 3 referred to opticks-mode 3)
 
 import os, logging, numpy as np
 log = logging.getLogger(__name__)
-os.environ["MODE"] = "3"
+os.environ["MODE"] = "2"
 
 from opticks.sysrap.sevt import SEvt, SAB, SABHit
 from opticks.ana.p import cf
@@ -18,7 +18,23 @@ print("oj3ana.py initial MODE:%d " % MODE)
 
 GLOBAL = int(os.environ.get("GLOBAL","0")) == 1
 PICK = os.environ.get("PICK","A")
-INCPOI = float(os.environ.get("INCPOI","0"))   ## increment pyvista presentation point and line size, often need -5 
+INCPOI = float(os.environ.get("INCPOI","0"))   ## increment pyvista presentation point and line size, often need -5
+
+QWN = os.environ.get("QWN","time")
+QTUP = {
+          "pos_x":(0,0),"pos_y":(0,1),"pos_z":(0,2),"time" :(0,3),
+          "mom_x":(1,0),"mom_y":(1,1),"mom_z":(1,2),
+          "pol_x":(2,0),"pol_y":(2,1),"pol_z":(2,2),
+       }
+
+QUNIT = {
+          "pos_x":"[mm]",
+          "pos_y":"[mm]",
+          "pos_z":"[mm]",
+          "time":"[ns]",
+        }
+
+
 
 
 if MODE in [2,3]:
@@ -53,6 +69,8 @@ if __name__ == '__main__':
         PICK = "A"
     elif not b is None and a is None:
         PICK = "B"
+    elif not a is None and not b is None:
+        PICK = "AB"
     else:
         pass
     pass
@@ -76,6 +94,8 @@ if __name__ == '__main__':
         print("[----- repr(abh) ")
         print(repr(abh))
         print("]----- repr(abh) ")
+
+
     pass
 
     assert PICK in ["A","B","AB","BA", "CF", "X"]
@@ -174,6 +194,50 @@ if __name__ == '__main__':
                 pl.increment_point_size_and_line_width(INCPOI)
                 cp = pl.show()
             pass
+        elif MODE == 2:
+
+            pl = pvp.mpplt_plotter(label=label)
+            fig, axs = pl
+            assert len(axs) == 1
+            ax = axs[0]
+
+
+            tup = QTUP[QWN]
+            unit = QUNIT.get(QWN,"")
+
+            a_hit_qwn = a.f.hit[:,*tup]
+            b_hit_qwn = b.f.hit[:,*tup]
+            mn_hit_qwn = min( a_hit_qwn.min(), b_hit_qwn.min() )
+            mx_hit_qwn = max( a_hit_qwn.max(), b_hit_qwn.max() )
+            bins = np.linspace( mn_hit_qwn, mx_hit_qwn, 100 )
+
+            for e in ee:
+                sym = e.symbol.upper()
+                hit_qwn = e.f.hit[:,*tup]
+                hit_idx = e.f.hit.view(np.uint32)[:,3,2] & 0x7fffffff
+
+                hit_qwn_binned,_  = np.histogram(hit_qwn, bins=bins )
+                ax.set_aspect('auto')
+
+                label = "%s : Simulated Hit %s %s" % (sym, QWN, unit )
+                ax.plot( bins[:-1], hit_qwn_binned, drawstyle="steps-mid", label=label  )
+
+                if hasattr(e.f, "seqnib"):
+                    hit_nib = e.f.seqnib[hit_idx]   # nibbles of the hits  : HMM ONLY A PERHAPS?
+                    cut = 23
+                    hit_qwn_sel = hit_qwn[hit_nib>cut]
+                    sel_qwn_n, _ = np.histogram(hit_qwn_sel, bins=bins)
+                    label = "%s : Simulated Hit %s %s for step points > %d " % ( sym, QWN, unit, cut)
+                    ax.plot( bins[:-1], sel_qwn_n, drawstyle="steps-mid", label=label )
+                pass
+
+                ax.set_ylabel("Photon counts in simulated %s %s bins" % (QWN,unit), fontsize=20)
+                ax.set_xlabel("Simulated %s %s" % (QWN, unit), fontsize=20)
+
+                if "LOGY" in os.environ: ax.set_yscale('log')
+                ax.legend()
+            pass
+            fig.show()
         pass
     pass
 

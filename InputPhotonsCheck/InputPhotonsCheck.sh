@@ -85,9 +85,19 @@ if [ "${arg/env}" != "$arg" ]; then
 
     ## see A:~/.bashrc oj_build + oj_local
 
-    ##source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
-    source /home/blyth/junosw/InstallArea/envset.sh
-    ##source /home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
+
+    #envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.3.0_Opticks-v0.4.3/el9_amd64_gcc11/2025_06_01/envset.sh
+    #envset=/home/blyth/junosw/InstallArea/envset_Debug_custom4.sh   ## change paths to use /data1/blyth/local/custom4_Debug/0.1.8
+    envset=/home/blyth/junosw/InstallArea/envset.sh
+
+    if [ -f "$envset" ]; then
+        source $envset
+        export VIP_DESC="local OJ /home/blyth/junosw/InstallArea/envset.sh with release opticks python overridden"
+    else
+        echo $BASH_SOURCE - envset $envset does not exist -
+        export VIP_DESC="local OJ BUT non-existing envset $envset - assume on laptop for analysis only"
+        export GEOM=J25_4_0_opticks_Debug
+    fi
 
 
     ASIS=0
@@ -253,16 +263,16 @@ if [ "${arg/env}" != "$arg" ]; then
 
        ## BEFORE INSTANCING THE 348
        ##opticks_input_photon=SideZX_X300_100k_f8.npy
-       ##opticks_input_photon_frame=PMT_20inch_pmt_solid_head:7:-2   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25 
+       ##opticks_input_photon_frame=PMT_20inch_pmt_solid_head:7:-2   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25
 
        ## AFTER INSTANCING THE 348
        opticks_input_photon=RainXZ_Z230_100k_f8.npy
-       opticks_input_photon_frame=PMT_20inch_pmt_solid_head:0:$(( 5 + 2 ))   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25 
+       opticks_input_photon_frame=PMT_20inch_pmt_solid_head:0:$(( 5 + 2 ))   ## EXPECTING TO HIT MOSTLY pmtid:52402 phi:179.25
        observation="one of the 12*29 = 348"
        #
        #  /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/dbdata/offline-data/Detector/Identifier/pmt_20250422_WPATMLPMT.csv
        #  7 52402,1,0,4,1,3,2,0,1185,2,-21078.2,275.9287,20163,90,179.25,PA1801-1022,NNVT
-       #   AT FAR -ve X POINT TOWARDS +X (APPROXIMATELY) 
+       #   AT FAR -ve X POINT TOWARDS +X (APPROXIMATELY)
 
     fi
 
@@ -272,7 +282,7 @@ if [ "${arg/env}" != "$arg" ]; then
     export SEvt__transformInputPhoton_VERBOSE=1
 
     path=$SEvt__INPUT_PHOTON_DIR/$OPTICKS_INPUT_PHOTON
-    if [ ! -f "$path" ]; then
+    if [ ! -f "$path" -a -f "$envset" ]; then
        echo $BASH_SOURCE : FATAL : INPUT PHOTONS MIS-CONFIGURED path $path
        return 1
     fi
@@ -290,8 +300,17 @@ if [ "${arg/env}" != "$arg" ]; then
         export OPTICKS_EVENT_NAME=DebugPhilox_${OPTICKS_INTEGRATION_MODE}_${TEST}
     fi
 
+
+
     ## convenience vars for analysis
-    export TMP=/tmp/$USER/opticks
+
+    oldtmp=/tmp/$USER/opticks
+    newtmp=/usr/local/tmp/$USER/opticks
+    # change tmp folder to one that does not get auto-deleted on reboots
+    # and that can be easily be he same on macOS and Linux
+    export TMP=$oldtmp
+    #export TMP=$newtmp  # TODO: switch to newtmp
+
     export LOGDIR=$TMP/GEOM/$GEOM/$OPTICKS_SCRIPT/ALL${VERSION}_${OPTICKS_EVENT_NAME}
     export EVT=000
     export AFOLD=$LOGDIR/A$EVT
@@ -409,5 +428,19 @@ if [ "${arg/dhi2}" != "$arg" ] ; then
    #export sseq_index_test__DEBUG=1
    DEV=1 $HOME/opticks/sysrap/tests/sseq_index_test.sh info_build_run_ana
 fi
+
+
+if [ "${arg/gevt}" != "$arg" ]; then
+   ## HMM: even restricting to AFOLD BFOLD is several G when have record.npy included, so add below ghit
+   source $HOME/opticks/bin/rsync.sh $AFOLD
+   source $HOME/opticks/bin/rsync.sh $BFOLD
+fi
+
+if [ "${arg/ghit}" != "$arg" ]; then
+   source $HOME/opticks/bin/rsync.sh $AFOLD/hit.npy
+   source $HOME/opticks/bin/rsync.sh $BFOLD/hit.npy
+fi
+
+
 
 
