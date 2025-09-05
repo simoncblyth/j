@@ -1863,3 +1863,177 @@ cxr_min.sh
 
 
 
+
+ljbb : Surfaces
+----------------
+
+::
+
+    #1  0x00007f13b1e4b283 in do_system () from /lib64/libc.so.6
+    #2  0x00007f13a40f6bcc in TUnixSystem::StackTrace() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCore.so
+    #3  0x00007f13b1dae0f3 in (anonymous namespace)::TExceptionHandlerImp::HandleException(int) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libcppyy_backend3_11.so
+    #4  0x00007f13a40f4161 in TUnixSystem::DispatchSignals(ESignals) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCore.so
+    #5  <signal handler called>
+    #6  0x00007f13b1e8b52c in __pthread_kill_implementation () from /lib64/libc.so.6
+    #7  0x00007f13b1e3e686 in raise () from /lib64/libc.so.6
+    #8  0x00007f13b1e28833 in abort () from /lib64/libc.so.6
+    #9  0x00007f13b1e2875b in __assert_fail_base.cold () from /lib64/libc.so.6
+    #10 0x00007f13b1e373c6 in __assert_fail () from /lib64/libc.so.6
+    #11 0x00007f137b8e5509 in U4Surface::MakeFold (surfaces=std::vector of length 119, capacity 128 = {...}, keys=std::vector of length 119, capacity 128 = {...}) at /data1/blyth/local/opticks_Debug/include/U4/U4Surface.h:352
+    #12 0x00007f137b8f24fd in U4Tree::initSurfaces (this=0xcbc1f60) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:521
+    #13 0x00007f137b8f0e0f in U4Tree::init (this=0xcbc1f60) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:296
+    #14 0x00007f137b8f0905 in U4Tree::U4Tree (this=0xcbc1f60, st_=0x6dfa820, top_=0xab47ba0, sid_=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:270
+    #15 0x00007f137b8efe2e in U4Tree::Create (st=0x6dfa820, top=0xab47ba0, sid=0x0) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:226
+    #16 0x00007f137b89805e in G4CXOpticks::setGeometry (this=0xcbc50f0, world=0xab47ba0) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:302
+    #17 0x00007f137b896989 in G4CXOpticks::SetGeometry (world=0xab47ba0) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:70
+    #18 0x00007f137b896c38 in G4CXOpticks::SetGeometry_JUNO (world=0xab47ba0, sd=0x6be1780, jpmt=0xc83d1f0, jlut=0xc86df70) at /home/blyth/opticks/g4cx/G4CXOpticks.cc:108
+    #19 0x00007f1378794ba6 in LSExpDetectorConstruction_Opticks::Setup (opticksMode=1, world=0xab47ba0, sd=0x6be1780, ppd=0x6bf5490, psd=0x6bfbe30, pmtscan=0x0) at /home/blyth/junosw/Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc:47
+
+
+    (gdb) f 6
+    #6  0x00007fffc10354fd in U4Tree::initSurfaces (this=0xc611550) at /data1/blyth/local/opticks_Debug/include/U4/U4Tree.h:521
+    521	    st->surface = U4Surface::MakeFold(surfaces, st->suname );
+    (gdb) p st->suname
+    $1 = std::vector of length 119, capacity 128 = {"PMT_20inch_mcp_plate_opsurface", "PMT_20inch_mcp_edge_opsurface", "PMT_20inch_mcp_tube_opsurface", "PMT_20inch_mcp_opsurface", "CDTyvekSurface", "CDInnerTyvekSurface", "VETOTyvekSurface", 
+      "HamamatsuR12860_PMT_20inch_dynode_plate_opsurface", "HamamatsuR12860_PMT_20inch_inner_ring_opsurface", "HamamatsuR12860_PMT_20inch_outer_edge_opsurface", "HamamatsuR12860_PMT_20inch_inner_edge_opsurface", 
+      "HamamatsuR12860_PMT_20inch_dynode_tube_opsurface", "HamamatsuR12860_PMT_20inch_grid_opsurface", "HamamatsuR12860_PMT_20inch_shield_opsurface", "NNVTMCPPMT_PMT_20inch_mcp_plate_opsurface", "NNVTMCPPMT_PMT_20inch_mcp_edge_opsurface", 
+      "NNVTMCPPMT_PMT_20inch_mcp_tube_opsurface", "NNVTMCPPMT_PMT_20inch_mcp_opsurface", "PMT_3inch_photocathode_logsurf1", "PMT_3inch_photocathode_logsurf2", "PMT_3inch_absorb_logsurf1", "PMT_3inch_absorb_logsurf2", "PMT_3inch_absorb_logsurf3", 
+      "PMT_3inch_absorb_logsurf4", "PMT_3inch_absorb_logsurf5", "PMT_3inch_absorb_logsurf6", "PMT_3inch_absorb_logsurf7", "PMT_3inch_absorb_logsurf8", "UpperChimneySteelSurface", "PMT_20inch_photocathode_mirror_logsurf", 
+      "WaterAttLenMeasureEquipOpSurface", "PVDFSkinSurface", "StrutAcrylicOpSurface", "Strut2AcrylicOpSurface", "HamamatsuR12860_PMT_20inch_photocathode_mirror_logsurf", "HamamatsuMaskOpticalSurface", 
+      "NNVTMCPPMT_PMT_20inch_photocathode_mirror_logsurf", "NNVTMaskOpticalSurface", "PMT_20inch_veto_photocathode_mirror_logsurf", "Steel_surface_0", "Steel_surface_1", "Tube_surf_0V1_0", "Tube_surf_1V1_0", "Tube_surf_2V1_0", "Tube_surf_3V1_0", 
+      "Tube_surf_4V1_0", "Tube_surf_5V1_0", "Tube_surf_6V1_0", "Tube_surf_7V1_0", "Tube_surf_8V1_0", "Tube_surf_9V1_0", "Tube_surf_10V1_0", "Tube_surf_11V1_0", "Tube_surf_12V1_0", "Tube_surf_13V1_0", "Tube_surf_14V1_0", "Tube_surf_15V1_0", 
+      "Tube_surf_16V1_0", "Tube_surf_17V1_0", "Tube_surf_18V1_0", "Tube_surf_19V1_0", "Tube_surf_20V1_0", "Tube_surf_21V1_0", "Tube_surf_22V1_0", "Tube_surf_23V1_0", "Tube_surf_24V1_0", "Tube_surf_25V1_0", "Tube_surf_26V1_0", "Tube_surf_27V1_0", 
+      "Tube_surf_28V1_0", "Tube_surf_29V1_0", "Tube_surf_30V1_0", "Tube_surf_31V1_0", "Tube_surf_32V1_0", "Tube_surf_33V1_0", "Tube_surf_34V1_0", "Tube_surf_35V1_0", "Tube_surf_36V1_0", "Tube_surf_37V1_0", "Tube_surf_38V1_0", "Tube_surf_0V1_1", 
+      "Tube_surf_1V1_1", "Tube_surf_2V1_1", "Tube_surf_3V1_1", "Tube_surf_4V1_1", "Tube_surf_5V1_1", "Tube_surf_6V1_1", "Tube_surf_7V1_1", "Tube_surf_8V1_1", "Tube_surf_9V1_1", "Tube_surf_10V1_1", "Tube_surf_11V1_1", "Tube_surf_12V1_1", 
+      "Tube_surf_13V1_1", "Tube_surf_14V1_1", "Tube_surf_15V1_1", "Tube_surf_16V1_1", "Tube_surf_17V1_1", "Tube_surf_18V1_1", "Tube_surf_19V1_1", "Tube_surf_20V1_1", "Tube_surf_21V1_1", "Tube_surf_22V1_1", "Tube_surf_23V1_1", "Tube_surf_24V1_1", 
+      "Tube_surf_25V1_1", "Tube_surf_26V1_1", "Tube_surf_27V1_1", "Tube_surf_28V1_1", "Tube_surf_29V1_1", "Tube_surf_30V1_1", "Tube_surf_31V1_1", "Tube_surf_32V1_1", "Tube_surf_33V1_1", "Tube_surf_34V1_1", "Tube_surf_35V1_1", "Tube_surf_36V1_1", 
+      "Tube_surf_37V1_1", "Tube_surf_38V1_1"}
+    (gdb) p surfaces
+    $2 = std::vector of length 119, capacity 128 = {0xab5faf0, 0xab620d0, 0xab598e0, 0xab63300, 0xad04020, 0xad05380, 0xad041c0, 0xad6ca60, 0xad6de50, 0xad04070, 0xad6f120, 0xad6f2b0, 0xad704d0, 0xad716d0, 0xad7c5d0, 0xad7ec30, 0xad7fe30, 0xad81030, 
+      0xb507e40, 0xb507ec0, 0xb507f40, 0xb507fc0, 0xb508040, 0xb5080c0, 0xb508140, 0xb5081c0, 0xb508240, 0xb5082c0, 0xc2474a0, 0xab655a0, 0xab32b70, 0xabb1d70, 0xabfde30, 0xac569a0, 0xad727d0, 0xad75d80, 0xad82200, 0xad84c80, 0xad89500, 0xc249220, 
+      0xc24b4a0, 0xab10010, 0xab10900, 0xc25afe0, 0xc25ae60, 0xc2617c0, 0xc261810, 0xc261860, 0xc2618b0, 0xc261900, 0xc261950, 0xc2619a0, 0xc2619f0, 0xc261a40, 0xc261a90, 0xc261b00, 0xc261b70, 0xc261be0, 0xc261c50, 0xc261cc0, 0xc261d30, 0xc261da0, 
+      0xc261e10, 0xc261e80, 0xc261ef0, 0xc261f60, 0xc261fd0, 0xc262040, 0xc2620b0, 0xc262120, 0xc262190, 0xc262200, 0xc262270, 0xc2622e0, 0xc262350, 0xc2623c0, 0xc262430, 0xc2624a0, 0xc262510, 0xc262580, 0xc26fd10, 0xc26fd60, 0xc26fe00, 0xc26fdb0, 
+      0xc275b80, 0xc275bd0, 0xc275c20, 0xc275c70, 0xc275cc0, 0xc275d10, 0xc275d60, 0xc275db0, 0xc275e00, 0xc275e50, 0xc275ec0, 0xc275f30, 0xc275fa0, 0xc276010, 0xc276080, 0xc2760f0, 0xc276160, 0xc2761d0, 0xc276240, 0xc2762b0, 0xc276320, 0xc276390, 
+      0xc276400, 0xc276470, 0xc2764e0, 0xc276550, 0xc2765c0, 0xc276630, 0xc2766a0, 0xc276710, 0xc276780, 0xc2767f0, 0xc276860, 0xc2768d0, 0xc276940}
+    (gdb) 
+
+
+
+::
+
+    (gdb) list
+    347	        assert( ModelValue >= 0. && ModelValue <= 1. );
+    348	
+    349	        const char* osn = os->GetName().c_str() ; 
+    350	        G4MaterialPropertiesTable* mpt = os->GetMaterialPropertiesTable() ;
+    351	
+    352	        assert(mpt);  
+    353	        NPFold* sub = U4MaterialPropertiesTable::MakeFold(mpt) ; 
+    354	
+    355	        sub->set_meta<std::string>("rawname", rawname) ; 
+    356	        sub->set_meta<std::string>("OpticalSurfaceName", osn) ; 
+    (gdb) p osn
+    $3 = 0xab94a50 "PVDFOpticalSurface"
+    (gdb) 
+
+
+
+::
+
+    blyth@localhost junosw]$ jgr PVDFOpticalSurface
+    ./Simulation/DetSimV2/CentralDetector/src/DetSim1Construction.cc:    G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+    ./Simulation/DetSimV2/CentralDetector/src/DetSim1Construction.cc:    // G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+    ./Simulation/DetSimV2/DetSimOptions/src/WaterPoolConstruction.cc:    G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+    A[blyth@localhost junosw]$ 
+
+DetSim1Construction.cc::
+
+
+    1117     // Create optical surface for PVDF. This surface will absorb all incident photons.
+    1118     G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+    1119     pvdf_surface->SetModel(unified);
+    1120     pvdf_surface->SetType(dielectric_dielectric);
+    1121     pvdf_surface->SetFinish(ground);
+    1122     pvdf_surface->SetSigmaAlpha(0.1);
+    1123
+    1124     G4MaterialPropertiesTable* pvdf_mt = new G4MaterialPropertiesTable();
+    1125 
+    1126     const G4int nEntries = 4;
+    1127     G4double photonEnergy[nEntries] = {1.55 * eV, 6.20 * eV, 10.33 * eV, 15.5 * eV};
+    1128 
+    1129     // Set extremely short absorption length to absorb all photons
+    1130     G4double absorption[nEntries] = {1e-6 * mm, 1e-6 * mm, 1e-6 * mm, 1e-6 * mm};
+    1131     pvdf_mt->AddProperty("ABSLENGTH", photonEnergy, absorption, nEntries);
+    1132 
+    1133     // Set reflectivity to zero to avoid reflection
+    1134     G4double reflectivity[nEntries] = {0.0, 0.0, 0.0, 0.0};
+    1135     pvdf_mt->AddProperty("REFLECTIVITY", photonEnergy, reflectivity, nEntries);
+    1136 
+    1137     // Set refractive index as needed
+    1138     G4double refractiveIndex[nEntries] = {1.42, 1.42, 1.42, 1.42};
+    1139     pvdf_mt->AddProperty("RINDEX", photonEnergy, refractiveIndex, nEntries);
+    1140 
+    1141     LogInfo << "PVDF optical properties set: ABSLENGTH very short, REFLECTIVITY=0, RINDEX=1.42" << std::endl;
+    1142 
+    1143     // Create optical surface
+    1144     // G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+    1145     // pvdf_surface->SetModel(unified);
+    1146     // pvdf_surface->SetType(dielectric_dielectric);
+    1147     // pvdf_surface->SetFinish(ground);
+    1148     // pvdf_surface->SetSigmaAlpha(0.1);
+    1149 
+    1150     // G4MaterialPropertiesTable* pvdf_mt = new G4MaterialPropertiesTable();
+    1151 
+    1152     // const G4int nEntries = 4;
+    1153     // G4double photonEnergy[nEntries] = {1.55 * eV, 6.20 * eV, 10.33 * eV, 15.5 * eV};
+    1154 
+    1155     // G4double refractiveIndex[nEntries] = {1.42, 1.42, 1.42, 1.42};
+    1156     // pvdf_mt->AddProperty("RINDEX", photonEnergy, refractiveIndex, nEntries);
+    1157 
+    1158     // G4double reflectivity[nEntries] = {0.95, 0.95, 0.95, 0.95};
+    1159     // pvdf_mt->AddProperty("REFLECTIVITY", photonEnergy, reflectivity, nEntries);
+    1160 
+    1161     // pvdf_surface->SetMaterialPropertiesTable(pvdf_mt);
+    1162 
+    1163     G4LogicalSkinSurface* PVDFSurface = new G4LogicalSkinSurface("PVDFSkinSurface", logicMultiUnion, pvdf_surface);
+    1164     assert(PVDFSurface);
+    1165 
+
+
+
+
+ 892     G4OpticalSurface* pvdf_surface = new G4OpticalSurface("PVDFOpticalSurface");
+ 893     pvdf_surface->SetModel(unified);
+ 894     pvdf_surface->SetType(dielectric_dielectric);
+ 895     pvdf_surface->SetFinish(ground);
+ 896     pvdf_surface->SetSigmaAlpha(0.1);
+ 897 
+ 898     G4MaterialPropertiesTable* pvdf_mt = new G4MaterialPropertiesTable();
+ 899 
+ 900     const G4int nEntries = 4;
+ 901     G4double photonEnergy[nEntries] = {1.55 * eV, 6.20 * eV, 10.33 * eV, 15.5 * eV};
+ 902 
+ 903     G4double refractiveIndex[nEntries] = {1.42, 1.42, 1.42, 1.42};
+ 904     pvdf_mt->AddProperty("RINDEX", photonEnergy, refractiveIndex, nEntries);
+ 905 
+ 906     G4double reflectivity[nEntries] = {0.95, 0.95, 0.95, 0.95};
+ 907     pvdf_mt->AddProperty("REFLECTIVITY", photonEnergy, reflectivity, nEntries);
+ 908 
+ 909     pvdf_surface->SetMaterialPropertiesTable(pvdf_mt);
+ 910 
+ 911     G4LogicalSkinSurface* PVDFSurface = new G4LogicalSkinSurface("PVDFSkinSurface", logicMultiUnion, pvdf_surface);
+ 912     assert(PVDFSurface);
+ 913 
+ 914 
+
+
+
+:
+
+    jcv DetSim1Construction WaterPoolConstruction
+
+
+
+
+
+
