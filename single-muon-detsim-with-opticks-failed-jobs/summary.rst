@@ -13,6 +13,39 @@ summary of 3/100 fails
 
 
 
+Higher Stats Fail
+-----------------------
+
+single-muon-group2.862361_34.out
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+     decay 2 gammas 0.510999
+    2025-09-29 14:01:08.325 FATAL [4160861] [SEvt::setNumPhoton@2310]  num_photon/M 1000 evt.max_photon/M 1000 num_photon 1000000079 evt.max_photon 1000000000
+    WARNING - Attempt to delete the physical volume store while geometry closed !
+    WARNING - Attempt to delete the logical volume store while geometry closed !
+    WARNING - Attempt to delete the solid store while geometry closed !
+    WARNING - Attempt to delete the region store while geometry closed !
+
+
+single-muon-group2.862361_34.err
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    449 #9  0x000015411322871b in __assert_fail_base.cold () from /lib64/libc.so.6
+    450 #10 0x0000154113237386 in __assert_fail () from /lib64/libc.so.6
+    451 #11 0x00001540da149896 in SEvt::setNumPhoton (this=0xdd98d10, num_photon=1000000079) at /home/blyth/opticks/sysrap/SEvt.cc:2316
+    452 #12 0x00001540da14954b in SEvt::addGenstep (this=0xdd98d10, q_=...) at /home/blyth/opticks/sysrap/SEvt.cc:2275
+    453 #13 0x00001540da1456b0 in SEvt::AddGenstep (q=...) at /home/blyth/opticks/sysrap/SEvt.cc:1355
+    454 #14 0x00001540dc6f32d2 in U4::CollectGenstep_DsG4Scintillation_r4695 (aTrack=0xc6e3a1e0, aStep=0x7d89a60, numPhotons=854, scnt=0, ScintillationTime=4.5999999999999996) at /home/blyth/opticks/u4/U4.cc:170
+    455 #15 0x00001540d90ca7fc in DsG4Scintillation::PostStepDoIt (this=0x2fd362b0, aTrack=..., aStep=...) at /builds/JUNO/offline/junosw/Simulation/DetSimV2/PhysiSim/src/DsG4Scintillation.cc:601
+    456 #16 0x00001540e25f3519 in G4SteppingManager::InvokePSDIP(unsigned long) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+    457 #17 0x00001540e25f391b in G4SteppingManager::InvokePostStepDoItProcs() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+
+
+
 
 DataModelWriterWithSplit/fill_hits_tmpl
 ------------------------------------------
