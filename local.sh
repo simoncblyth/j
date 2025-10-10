@@ -224,6 +224,13 @@ local_JUNOTOP_override()
 }
 
 
+local_cuda()
+{
+    : ~/local.sh using vip-path from ~/vip/vip.bash  
+    local cuda_prefix=/usr/local/cuda-12.4
+    vip-path append PATH            $cuda_prefix/bin  # for nvcc
+    vip-path append LD_LIBRARY_PATH $cuda_prefix/lib64
+}
 
 
 
@@ -468,7 +475,7 @@ local_oj_release()
 }
 
 
-local_conda_ok()
+local_conda_base()
 {
    : ~/local.sh
    local desc="conda with the ok analysis environment activated including matplotlib and pyvista"
@@ -478,7 +485,7 @@ local_conda_ok()
    export VIP_DESC="${VIP_DESC},$desc"
    export VIP_FUNC="${VIP_FUNC},$FUNCNAME"
 
-   conda_ok()
+   conda_base()
    {
        : ~/local.sh
        : below was appended by running : conda init --all
@@ -499,8 +506,8 @@ local_conda_ok()
 lco()
 {
    : ~/local.sh
-   local_conda_ok
-   conda_ok
+   local_conda_base
+   conda_base
    conda activate ok
 }
 
