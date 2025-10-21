@@ -9,7 +9,7 @@ extern "C" {
   #include "md5.cuh"
 }
 
-std::string DescRaw( unsigned char* digest16 )
+std::string DescDigest( unsigned char* digest16 )
 {
     char buf[32+1] ;
     for (int n = 0; n < 16; ++n) std::snprintf( &buf[2*n], 32+1, "%02x", (unsigned int)digest16[n]) ;
@@ -30,8 +30,8 @@ int main()
     dat[i*nj + j] = m[j] ;
 
     BYTE* in = (BYTE*)dat ; 
-    WORD inlen = nj ;
-    WORD n_batch = ni ; 
+    WORD inlen = nj ;   // size of each item
+    WORD n_batch = ni ; // number of items
 
     uint8_t* digest = new uint8_t[16*ni] ; 
     BYTE* out = digest ; 
@@ -40,7 +40,7 @@ int main()
 
     for(int i=0 ; i < ni ; i++)
     { 
-        std::string hexdigest = DescRaw( digest + 16*i );
+        std::string hexdigest = DescDigest( digest + 16*i );
         printf("// hexdigest [%d][%s]\n", i, hexdigest.c_str() );
     }
 
