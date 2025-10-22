@@ -1,9 +1,9 @@
 /*
- * md5.cu CUDA Implementation of MD5 digest       
+ * md5.cu CUDA Implementation of MD5 digest
  *
  * Date: 12 June 2019
  * Revision: 1
- * 
+ *
  * Based on the public domain Reference Implementation in C, by
  * Brad Conte, original code here:
  *
@@ -211,13 +211,20 @@ __device__ void cuda_md5_final(CUDA_MD5_CTX *ctx, BYTE hash[])
 
 __global__ void kernel_md5_hash(BYTE* indata, WORD inlen, BYTE* outdata, WORD n_batch)
 {
-	WORD thread = blockIdx.x * blockDim.x + threadIdx.x;
+	//WORD thread = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long thread = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
+
 	if (thread >= n_batch)
 	{
 		return;
 	}
-	BYTE* in = indata  + thread * inlen;
-	BYTE* out = outdata  + thread * MD5_BLOCK_SIZE;
+	BYTE* in = indata  + thread * (unsigned long long)inlen;
+	BYTE* out = outdata  + thread * (unsigned long long)MD5_BLOCK_SIZE;
+
+    // note 32 bit overflow (clocking) risk is with addressing
+    // the input or output data [input first because its bigger than output]
+
+
 	CUDA_MD5_CTX ctx;
 	cuda_md5_init(&ctx);
 	cuda_md5_update(&ctx, in, inlen);
