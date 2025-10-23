@@ -62,7 +62,7 @@ using DigestSet = std::unordered_set<Digest, DigestHash>;
 
 
 
-struct DigestIndex 
+struct DigestIndex
 {
     unsigned char digest[16];
     uint64_t index;
@@ -71,17 +71,17 @@ struct DigestIndex
     {
         for (int j = 0; j < 16; ++j) digest[j] = 0 ;
     }
-    __host__ __device__ DigestIndex(const Digest& d, uint64_t i) : index(i) 
+    __host__ __device__ DigestIndex(const Digest& d, uint64_t i) : index(i)
     {
         for (int j = 0; j < 16; ++j) digest[j] = d[j];
     }
 };
 
 // Comparator for Thrust sorting by digest
-struct DigestIndexCompare 
+struct DigestIndexCompare
 {
     __host__ __device__
-    bool operator()(const DigestIndex& a, const DigestIndex& b) const 
+    bool operator()(const DigestIndex& a, const DigestIndex& b) const
     {
         // Compare digests byte-by-byte
         for (int i = 0; i < 16; ++i) {
@@ -95,18 +95,19 @@ struct DigestIndexCompare
 
 
 
-extern "C" { 
+extern "C" {
   #include "md5.cuh"
 }
 
 __global__ void kernel_md5_hash(BYTE* indata, WORD inlen, BYTE* outdata, WORD n_batch);
 
 
-int main() 
+int main()
 {
     const char* path = "$HITFOLD/hit.npy";
+    const char* sli = "$HITSLICE" ;
     std::cout << U::Log() << "[ load hit \n" ;
-    NP* hit = NP::Load(path);
+    NP* hit = NP::LoadSlice(path, sli);
     std::cout << U::Log() << "] load hit " << ( hit ? hit->sstr() : "-" ) << "\n"  ;
     if (!hit) {
         std::cerr << "Failed to load " << path << std::endl;
@@ -119,6 +120,21 @@ int main()
     size_t digest_size = 16 ;
     size_t batch_size = U::GetEnvSize("BATCH_SIZE", 100'000'000 );
     size_t sort_chunk_size = U::GetEnvSize("SORT_CHUNK_SIZE", 100'000'000 );  // ~2.4 GB per chunk
+    size_t num_batch = (num_item + batch_size - 1) / batch_size;
+
+    std::cout
+          << U::Log()
+          << " num_item " << num_item << "\n"
+          << " num_item/M " << num_item/M << "\n"
+          << " item_size " << item_size << "\n"
+          << " digest_size " << digest_size << "\n"
+          << " batch_size " << batch_size << "\n"
+          << " batch_size/M " << batch_size/M << "\n"
+          << " sort_chunk_size " << sort_chunk_size << "\n"
+          << " sort_chunk_size/M " << sort_chunk_size/M << "\n"
+          << " num_batch " << num_batch << "\n"
+          ;
+
 
 
     std::cout << U::Log() << "[ CPU md5 digest check\n" ;
@@ -134,24 +150,6 @@ int main()
         std::cout << std::setw(10) << i << " : " << DescDigest(d.data()) << "\n" ;
     }
     std::cout << U::Log() << "] CPU md5 digest check\n" ;
-
-
-
-    size_t num_batch = (num_item + batch_size - 1) / batch_size;
-
-    std::cout 
-          << U::Log()
-          << " num_item " << num_item << "\n"  
-          << " num_item/M " << num_item/M << "\n"  
-          << " item_size " << item_size << "\n"  
-          << " digest_size " << digest_size << "\n"  
-          << " batch_size " << batch_size << "\n"  
-          << " batch_size/M " << batch_size/M << "\n"  
-          << " sort_chunk_size " << sort_chunk_size << "\n"  
-          << " sort_chunk_size/M " << sort_chunk_size/M << "\n"  
-          << " num_batch " << num_batch << "\n"  
-          ;
-
 
     log_vram("before_alloc");
 
@@ -169,21 +167,31 @@ int main()
     log_vram("after_buffers");
 
 
-
-    for (size_t b = 0; b < num_batch ; b++) 
+    for (size_t b = 0; b < num_batch ; b++)
     {
-        std::cout << U::Log() << "[ batch.md5 " << b << "\n" ;
         size_t start = b * batch_size;
         size_t end = std::min(start + batch_size, num_item);
         size_t batch_item = end - start;
+        size_t threads_per_block = 256;
+        size_t blocks = (batch_item + threads_per_block - 1) / threads_per_block;
+
+        std::cout
+            << U::Log()
+            << "[ batch.md5 "
+            << " b " << std::setw(5) << b
+            << " start " << std::setw(12) << start
+            << " end " << std::setw(12) << end
+            << " batch_item " << std::setw(12) << batch_item
+            << " threads_per_block " << std::setw(12) << threads_per_block
+            << " blocks " << std::setw(12) << blocks
+            << "\n"
+            ;
+
 
         // Copy input batch to GPU
         CUDA_CHECK(cudaMemcpy(d_batch_input, hit->bytes() + start * item_size, batch_item * item_size, cudaMemcpyHostToDevice));
 
         // Compute MD5 digests
-        size_t threads_per_block = 256;
-        size_t blocks = (batch_item + threads_per_block - 1) / threads_per_block;
-
         kernel_md5_hash<<<blocks, threads_per_block>>>(d_batch_input, item_size, d_batch_digest, batch_item );
         CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -277,17 +285,17 @@ int main()
     std::cout << U::Log() << "[ dump first and last few digest,index pairs \n" ;
 
 
-    for(size_t i=0 ; i < 10 ; i++) std::cout 
-        << " i " << std::setw(10) << i 
-        << " h_pairs[i].digest : " << DescDigest(h_pairs[i].digest) 
-        << " h_pairs[i].index : " << std::setw(10) << h_pairs[i].index 
+    for(size_t i=0 ; i < 10 ; i++) std::cout
+        << " i " << std::setw(10) << i
+        << " h_pairs[i].digest : " << DescDigest(h_pairs[i].digest)
+        << " h_pairs[i].index : " << std::setw(10) << h_pairs[i].index
         << "\n"
         ;
 
-    for(size_t i=num_item - 10 ; i < num_item ; i++) std::cout 
-        << " i " << std::setw(10) << i 
-        << " h_pairs[i].digest : " << DescDigest(h_pairs[i].digest) 
-        << " h_pairs[i].index : " << std::setw(10) << h_pairs[i].index 
+    for(size_t i=num_item - 10 ; i < num_item ; i++) std::cout
+        << " i " << std::setw(10) << i
+        << " h_pairs[i].digest : " << DescDigest(h_pairs[i].digest)
+        << " h_pairs[i].index : " << std::setw(10) << h_pairs[i].index
         << "\n"
         ;
 
@@ -299,15 +307,14 @@ int main()
     using IndexList = std::vector<uint64_t>;
     std::unordered_map<Digest, IndexList, DigestHash> duplicate_indices;
     size_t i = 0;
-    while (i < num_item) {
+    while (i < num_item)
+    {
         size_t j = i + 1;
         while (j < num_item && memcmp(h_pairs[j].digest, h_pairs[i].digest, 16) == 0) ++j;
-        if (j - i > 1) 
+        if (j - i > 1)
         {  // Duplicate found
             IndexList indices;
-            for (size_t k = i; k < j; k++) {
-                indices.push_back(h_pairs[k].index);
-            }
+            for (size_t k = i; k < j; k++) indices.push_back(h_pairs[k].index);
 
             Digest d;
             memcpy(d.data(), h_pairs[i].digest, 16);
@@ -320,12 +327,19 @@ int main()
 
     // Output results
     std::cout << U::Log() << "Found " << duplicate_indices.size() << " unique duplicated digests.\n";
-    for (const auto& [digest, indices] : duplicate_indices) {
-        std::cout << "Digest: ";
-        for (unsigned char c : digest) std::cout << std::hex << (int)c << std::dec ;
-        std::cout << " at indices: ";
-        for (uint64_t idx : indices) std::cout << idx << " ";
-        std::cout << "\n";
+    uint64_t count = 0 ;
+
+    for (const auto& [digest, indices] : duplicate_indices)
+    {
+        if( count < 100 )
+        {
+            std::cout << "Duplicate: "  << std::setw(10) << count << " " ;
+            for (unsigned char c : digest) std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)c << std::dec << std::setfill(' ') ;
+            std::cout << " at indices: ";
+            for (uint64_t idx : indices) std::cout << std::setw(11) << idx << " ";
+            std::cout << "\n";
+        }
+        count += 1 ;
     }
 
     return 0;
