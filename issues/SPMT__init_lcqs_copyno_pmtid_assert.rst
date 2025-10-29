@@ -2,6 +2,16 @@ SPMT__init_lcqs_copyno_pmtid_assert
 ====================================
 
 
+release with fix
+------------------
+
+::
+
+    source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.6/el9_amd64_gcc11/2025_10_29/envset.sh
+
+
+
+
 
 ljbb reproduce
 ---------------

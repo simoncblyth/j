@@ -15,8 +15,12 @@ i0=$1
 i=$((i0+0))
 
 
-#BASE=/hpcfs/juno/junogpu/wangjiabin/opticks
-BASE=/hpcfs/juno/junogpu/$USER/opticks
+if [ -d "/hpcfs/juno/junogpu" ]; then
+    #BASE=/hpcfs/juno/junogpu/wangjiabin/opticks
+    BASE=/hpcfs/juno/junogpu/$USER/opticks
+else
+    BASE=/tmp/juno/junogpu/$USER/opticks 
+fi 
 
 DetPath=$BASE/detsim
 log_path=$BASE/log
@@ -46,13 +50,24 @@ echo "Output dir: $odir"
 
 echo "######--- Generator:"
 
-srun -n 1 Muon.exe -seed "${seed}" -o "${GenPath}/gen-${i}.txt" -n "${evtmax}" -s juno -v WP -r Yes -wpo
-
+gen="${GenPath}/gen-${i}.txt"
+if [ ! -f "$gen" ]; then
+    #srun -n 1 \
+    Muon.exe -seed "${seed}" -o "$gen" -n "${evtmax}" -s juno -v WP -r Yes -wpo
+else
+    echo "Use preexisting gen[$gen] "
+fi
 
 echo "######--- detsim start"
 
-srun -n 1 /usr/bin/time -vv \
-  python "${TUTORIALROOT}/share/tut_detsim.py" \
+#srun -n 1 \
+#/usr/bin/time -vv \
+
+source dbg__.sh
+
+dbg__ \
+  $(which python) \
+   "${TUTORIALROOT}/share/tut_detsim.py" \
     --no-gdml --anamgr-tt --anamgr-muon \
     --EnableUserOutput --evtmax "${evtmax}" --seed "${i}" \
     --pmtsd-v2 --pmt-hit-type 2 --pmtsd-merge-twindow 1.0 \
