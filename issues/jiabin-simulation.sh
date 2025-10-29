@@ -14,10 +14,14 @@ source /cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.4/el9_amd64_gc
 i0=$1
 i=$((i0+0))
 
-DetPath=/hpcfs/juno/junogpu/wangjiabin/opticks/detsim
-log_path=/hpcfs/juno/junogpu/wangjiabin/opticks/log
-GenPath=/hpcfs/juno/junogpu/wangjiabin/opticks
-odir=/hpcfs/juno/junogpu/wangjiabin/opticks
+
+#BASE=/hpcfs/juno/junogpu/wangjiabin/opticks
+BASE=/hpcfs/juno/junogpu/$USER/opticks
+
+DetPath=$BASE/detsim
+log_path=$BASE/log
+GenPath=$BASE
+odir=$BASE
 mkdir -p "$log_path" "$DetPath" "$GenPath" "$odir"
 
 inf="${DetPath}/detsim_user-${i}.root"
