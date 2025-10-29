@@ -10,17 +10,18 @@ summary of functions
 ----------------------
 
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| cmd     | primary functions                  |  notes                                                                                                                                 | 
+| cmd     | primary functions                  |  notes                                                                                                                                 |
 +=========+====================================+========================================================================================================================================+
 | lob     | local_ok_build                     | env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy   |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| lo      | local_ok_build,lco                 | env to build Opticks (see lob) + python test and analysis using conda                                                                  | 
+| lo      | local_ok_build,lco                 | env to build Opticks (see lob) + python test and analysis using conda                                                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 |         | local_ok_local                     | env to use local Opticks release, little used as typically need to keep rebuilding which requires "lob" or "lo"                        |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ljb     | local_oj_build                     | defines oj_build which locally mimics the Opticks+JUNOSW gitlab-ci build                                                               | 
+| ljb     | local_oj_build                     | defines oj_build which locally mimics the Opticks+JUNOSW gitlab-ci build                                                               |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |                      
+| ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |
+|         |                                    | [NORMALLY WOULD REBUILD OPTICKS BEFORE DOING THIS]                                                                                     |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | loj     | local_oj                           | env to use local OJ                                                                                                                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
@@ -79,8 +80,8 @@ Check C4 branch::
     cd ~/customgeant4
     git status  # check are on the 0.1.8_transient branch
 
-NB do not want to make major changes in the transient branch, as may be 
-problematic to get into main. But changing debug output is acceptable. 
+NB do not want to make major changes in the transient branch, as may be
+problematic to get into main. But changing debug output is acceptable.
 
 
 Do each of the below setup and build in separate clean tabs:
@@ -160,10 +161,10 @@ local_c4_build()
        c4_build()
        {
           : ~/local.sh
-          echo $BASH_SOURCE $FUNCNAME - NO BUILD NEEDED AS PREFIX IS DEFAULT 
-          local ff="local_c4_prefix local_c4_prefix_default" 
+          echo $BASH_SOURCE $FUNCNAME - NO BUILD NEEDED AS PREFIX IS DEFAULT
+          local ff="local_c4_prefix local_c4_prefix_default"
           for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
-       }  
+       }
    else
        c4_build()
        {
@@ -175,10 +176,10 @@ local_c4_build()
           :
 
 
-          echo $BASH_SOURCE $FUNCNAME - BUILD NEEDED AS PREFIX IS NOT DEFAULT 
-          local ff="local_c4_prefix local_c4_prefix_default" 
+          echo $BASH_SOURCE $FUNCNAME - BUILD NEEDED AS PREFIX IS NOT DEFAULT
+          local ff="local_c4_prefix local_c4_prefix_default"
           for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
- 
+
           cd $HOME/customgeant4
           export CUSTOM4_PREFIX=$(local_c4_prefix)
           ./build_Debug.sh
@@ -226,7 +227,7 @@ local_JUNOTOP_override()
 
 local_cuda()
 {
-    : ~/local.sh using vip-path from ~/vip/vip.bash  
+    : ~/local.sh using vip-path from ~/vip/vip.bash
     local cuda_prefix=/usr/local/cuda-12.4
     vip-path append PATH            $cuda_prefix/bin  # for nvcc
     vip-path append LD_LIBRARY_PATH $cuda_prefix/lib64
@@ -249,8 +250,8 @@ local_ok_build()
    {
        cd ~/opticks
        #om-clean
-       #om-conf 
-       om 
+       #om-conf
+       om
    }
    type ok_build
 
@@ -364,6 +365,8 @@ local_oj_build()
        : ~/local.sh
        cd $HOME/junosw ;
        ./build_Debug.sh ;
+       [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD && return 1
+       return 0
    }
 
    oj_build_post(){
@@ -387,8 +390,11 @@ local_oj_build()
        oj_build_info
        oj_build_pre
        oj_build_
+       [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD - EXITING && return 1 
+
        oj_build_post
        [ -z "$NOINIT" ] && oj_build_initialize
+       return 0 
    }
 
    type oj_build
@@ -399,10 +405,10 @@ local_oj()
 {
     source $HOME/junosw/InstallArea/envset.sh
 }
-loj(){ 
+loj(){
    : ~/local.sh
    : setup environment of OJ running
-   local_oj 
+   local_oj
 }
 
 
@@ -449,7 +455,7 @@ ljr()
    : ~/local.sh
    : setup environment to check a release
    local_oj_release
-   oj_release 
+   oj_release
 }
 
 local_oj_release()
@@ -469,7 +475,7 @@ local_oj_release()
        if [ -f "$envset" ]; then
            source $envset
        else
-           echo $BASH_SOURCE - ERROR - MISSING envset $envset 
+           echo $BASH_SOURCE - ERROR - MISSING envset $envset
        fi
    }
 }
