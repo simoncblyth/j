@@ -33,6 +33,8 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ojet    | oj_envset,oj_envset_test           | quick dbg__ tests of the release configured via Opticks ENVSET bash function                                                           |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
 Updating local OK build
@@ -390,11 +392,11 @@ local_oj_build()
        oj_build_info
        oj_build_pre
        oj_build_
-       [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD - EXITING && return 1 
+       [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD - EXITING && return 1
 
        oj_build_post
        [ -z "$NOINIT" ] && oj_build_initialize
-       return 0 
+       return 0
    }
 
    type oj_build
@@ -458,6 +460,65 @@ ljr()
    oj_release
 }
 
+ljrt()
+{
+   : ~/local.sh
+   : setup environment to check a release
+   local_oj_release
+   oj_release
+   oj_release_test
+}
+
+
+
+oj_envset_notes(){ cat << EON
+oj_envset_notes
+===============
+
+0. change release via Opticks "ENVSET" bash function
+
+Example commandlines for quick tests of release::
+
+    ojet
+    BP=SEvt::addGenstep SProf__WRITE=1 U4=INFO ojet
+
+
+EON
+}
+
+oj_envset()
+{
+   : ~/local.sh
+   source ~/.opticks/GEOM/ENVSET.sh
+   if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
+       source $ENVSET
+   else
+       echo $BASH_SOURCE - ERROR - MISSING ENVSET $ENVSET
+       return 1
+   fi
+   return 0
+}
+
+oj_envset_test()
+{
+   : ~/local.sh
+
+   oj_envset
+   [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
+
+   source dbg__.sh
+   dbg__ \
+      $(which python) \
+      $(which tut_detsim.py) \
+      --evtmax 1 \
+      gun
+}
+
+
+ojet(){ oj_envset_test $* ; }
+
+
+
 local_oj_release()
 {
    : ~/local.sh
@@ -471,13 +532,28 @@ local_oj_release()
    oj_release()
    {
        : ~/local.sh
-       local envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.4.0_Opticks-v0.5.2/el9_amd64_gcc11/Latest/envset.sh
-       if [ -f "$envset" ]; then
-           source $envset
+
+       source ~/.opticks/GEOM/ENVSET.sh
+       if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
+           source $ENVSET
        else
-           echo $BASH_SOURCE - ERROR - MISSING envset $envset
+           echo $BASH_SOURCE - ERROR - MISSING ENVSET $ENVSET
        fi
    }
+
+   oj_release_test()
+   {
+       : ~/local.sh
+       source dbg__.sh
+       dbg__ \
+          $(which python) \
+          $(which tut_detsim.py) \
+          --evtmax 1 \
+          gun
+   }
+
+
+
 }
 
 

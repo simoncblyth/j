@@ -2805,9 +2805,19 @@ j-dir(){ echo $(dirname $BASH_SOURCE) ; }
 j-cd(){  cd $(j-dir) && pwd && git remote -v && git status ; }
 j(){ j-cd ; }
 
-ji(){ j-cd ; cd issues ; ls -lt | head -30 ;  }
-j1(){ ji ; vi $(ls -1t | head -1) ; }
-j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; }
+ji(){ j-cd ; cd issues ; ls -lt | head -30 ; : ~/j/j.bash ; }
+
+#j1(){ ji ; vi $(ls -1t | head -1) ; }
+#j2(){ ji ; vi $(ls -1t | head -2 | tail -1) ; }
+#j3(){ ji ; vi $(ls -1t | head -3 | tail -1) ; }
+#j4(){ ji ; vi $(ls -1t | head -4 | tail -1) ; }
+
+j1() { ji ; vi "$(ls -1t | sed -n '1p' 2>/dev/null)" ; : ~/j/j.bash ; }
+j2() { ji ; vi "$(ls -1t | sed -n '2p' 2>/dev/null)" ; : ~/j/j.bash ; }
+j3() { ji ; vi "$(ls -1t | sed -n '3p' 2>/dev/null)" ; : ~/j/j.bash ; }
+j4() { ji ; vi "$(ls -1t | sed -n '4p' 2>/dev/null)" ; : ~/j/j.bash ; }
+
+
 jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
 
 jp(){ j-cd ; cd production ; ls -lt | head -30 ;  }
