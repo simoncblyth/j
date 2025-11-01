@@ -51,14 +51,18 @@ struct PMTHitMergerGPU
                  return (a & 0xFFFFFFFF0000ULL) < (b & 0xFFFFFFFF0000ULL);
              });
 
-        // 3. Count unique keys
+        // 3. Count unique keys, effectively removes consequtive duplicates returning the newend 
         auto last = unique(packed.begin(), packed.end(),
                            [] __device__ (uint64_t a, uint64_t b) {
                                return (a & 0xFFFFFFFF0000ULL) == (b & 0xFFFFFFFF0000ULL);
                            });
 
+        // SCB: UNIQUE WILL MESS WITH THE ORDER OF THE PACKED ARRAY
+        // see  CUDA_Thrust_PMTHitMerge_two_phase_less_memory_cleaner_no_unique.cu 
+
         return last - packed.begin();
     }
+
 
     // ------------------------------------------------------------------
     // PHASE 2: Fill pre-allocated output using already-packed data
@@ -68,15 +72,21 @@ struct PMTHitMergerGPU
 
         // Flag first element of each run
         auto flag_first = [data = raw_pointer_cast(packed.data())] __device__ (int i) -> int {
-            if (i == 0) return 1;
+            if (i == 0) return 1;  // first element will always be first of a run 
             uint64_t key_prev = data[i-1] & 0xFFFFFFFF0000ULL;
             uint64_t key_curr = data[i]   & 0xFFFFFFFF0000ULL;
-            return key_curr != key_prev;
+            return key_curr != key_prev;  // true at transitions
         };
 
-        transform(counting_iterator<int>(0), counting_iterator<int>(packed.size()),
-                  flags.begin(), flag_first);
+        // flags: N*1/0, 1 for starts of runs of key duplicates in packed
+        transform(counting_iterator<int>(0), counting_iterator<int>(packed.size()), flags.begin(), flag_first);
+        // flags     : 1 0 0 0 0 1 0 0 1 0 1 0 0 0 0 0 1
+        // run_start : 0 1 1 1 1 2 2 2 3 3 4 4 4 4 4 4 5 
 
+
+        // each output is sum of all previous items, so that will give an index to each run from each merged hit 
+        // so every merged hit can know its "run index"
+        //  0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3 ...
         exclusive_scan(flags.begin(), flags.end(), run_start.begin(), 0);
 
         device_ptr<MergedHit> out(d_out);
@@ -90,9 +100,10 @@ struct PMTHitMergerGPU
                      uint64_t first = packed[start];
                      int pmtid = first >> 32;
                      int bucket = (first >> 16) & 0xFFFF;
-                     float min_frac = __half2float(__ushort_as_half(first & 0xFFFF));
 
-                     for (int i = start + 1; i < end; ++i) {
+                     float min_frac = __half2float(__ushort_as_half(first & 0xFFFF));
+                     for (int i = start + 1; i < end; ++i) 
+                     {
                          float t = __half2float(__ushort_as_half(packed[i] & 0xFFFF));
                          if (t < min_frac) min_frac = t;
                      }

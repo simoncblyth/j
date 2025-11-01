@@ -137,6 +137,12 @@ expects to be given only that corresponding type of hit::
 
 
 
+GPU PMTHitMerger idea
+~~~~~~~~~~~~~~~~~~~~~~
+
+~/j/CUDA_Thrust_PMTHitMerge/CUDA_Thrust_PMTHitMerge_two_phase_less_memory_cleaner.cu
+
+
 
 
 Where does hit conversion happen
@@ -307,12 +313,6 @@ m_hit_type:2
      240             assert(0);
      241         }
      242     }
-
-
-
-
-
-
 
 
 
