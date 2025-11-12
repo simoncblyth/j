@@ -502,6 +502,8 @@ oj_envset()
 oj_envset_test()
 {
    : ~/local.sh
+   : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
+   : then runs a single event simulation under gdb debugger
 
    oj_envset
    [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1

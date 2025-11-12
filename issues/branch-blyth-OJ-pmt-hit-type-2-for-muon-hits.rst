@@ -2,6 +2,17 @@ branch-blyth-OJ-pmt-hit-type-2-for-muon-hits.rst
 ===================================================
 
 
+Overview
+---------
+
+* DONE : added photonlite, photonlocal, hitlite, hitlocal
+* DONE : validated hitlite by comparison with hitlocal, "cxs_min.sh lite"
+* TODO : validate photonlocal, need to look at what happens with non-hit photons
+* TODO : integrate hitlite with OJ
+* TODO : merging 
+
+
+
 What is needed to add pmt-hit-type 2 
 -----------------------------------------
 
@@ -18,9 +29,124 @@ The "junoHit_PMT_muon" is a subset of "junoHit_PMT" so in principal not difficul
      49     G4float localphi;    // the photon local phi
 
 
+Its easy to support, but not so easy to fully benefit from the very large
+potential for more performance using newly added *hitlite*.
+
+
+
+
+
+
+
+junoHit_PMT_muon* junoSD_PMT_v2_Opticks::convertHit_muon(const U4Hit* hit, const U4HitExtra* hit_extra ) const
+{
+    junoHit_PMT_muon* hit_photon = new junoHit_PMT_muon();
+    hit_photon->SetPMTID(hit->sensor_identifier);
+    hit_photon->SetTime(hit->time);
+    hit_photon->SetCount(1);
+    hit_photon->SetTheta(hit->local_position.theta());
+    hit_photon->SetPhi(hit->local_position.phi());
+
+    return hit_photon ;
+}
+
+
+
+ThreeVector.icc
+~~~~~~~~~~~~~~~~~~~~
+
+* https://apc.u-paris.fr/~franco/g4doxy/html/ThreeVector_8icc-source.html
+
+::
+
+    00120 inline double Hep3Vector::theta()       const {
+    00121   return dx == 0.0 && dy == 0.0 && dz == 0.0 ? 0.0 : std::atan2(perp(),dz);
+    00122 }
+    00123 inline double Hep3Vector::phi() const {
+    00124   return dx == 0.0 && dy == 0.0 ? 0.0 : std::atan2(dy,dx);
+    00125 }
+
+
+    00160 inline double Hep3Vector::perp2()  const { return dx*dx + dy*dy; }
+    00161 inline double Hep3Vector::perp()   const { return std::sqrt(perp2()); }
+
+
+
+
+
+SEvt::GetNumHit
+~~~~~~~~~~~~~~~~
+
+::
+
+    1930 int64_t SEvt::GetNumHit(int idx){                return Exists(idx) ? Get(idx)->getNumHit() : UNDEF ; }
+    1931 int64_t SEvt::GetNumHit_EGPU(){  return GetNumHit(EGPU) ; }
+    1932 int64_t SEvt::GetNumHit_ECPU(){  return GetNumHit(ECPU) ; }
+
+
+
+
+OJ Integration of hitlite ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
+
+    196 void junoSD_PMT_v2_Opticks::EndOfEvent_Simulate(int eventID )
+    197 {
+    198     G4CXOpticks* gx = G4CXOpticks::Get() ;
+    199 
+    200     bool reset_ = false ;
+    201     gx->simulate(eventID, reset_ ) ;
+    202 
+    203     assert( m_merger );
+    204 
+    205     std::stringstream ss ;
+    206     unsigned num_hit = SEvt::GetNumHit_EGPU() ;
+    207 
+    208     LOG(LEVEL)
+    209         << "[ eventID " << eventID
+    210         << " " << gx->descSimulate()
+    211         << " num_hit " << num_hit
+    212         << " m_hit_type " << m_hit_type
+    213         ;
+    214 
+    215     int merged_count(0);
+    216     int savehit_count(0);
+    217     bool way_enabled = false ;
+    218 
+    219     U4Hit hit ;
+    220     U4HitExtra hit_extra ;
+    221     U4HitExtra* hit_extra_ptr = way_enabled ? &hit_extra : nullptr ;
+    222     for(int idx=0 ; idx < int(num_hit) ; idx++)
+    223     {
+    224         U4HitGet::FromEvt_EGPU(hit, idx);
+    225         collectHit(&hit, hit_extra_ptr, merged_count, savehit_count );
+    226         if(idx < 20 && LEVEL == info) ss << descHit(idx, &hit, hit_extra_ptr ) << std::endl ;
+    227     }
+    228     LOG_IF(LEVEL, LEVEL == info) << std::endl << ss.str() ;
+    229     LOG(LEVEL)
+    230         << "]"
+    231         << " num_hit " << num_hit
+    232         << ( merged_count > 0 ? " MERGED " : "" )
+    233         << " merged_count  " << merged_count
+    234         << " savehit_count  " << savehit_count
+    235         << " m_merged_total " << m_merged_total
+    236         << " m_savehit_total " << m_savehit_total
+    237         << " m_opticksMode " << m_opticksMode
+    238         << " m_hit_type " << m_hit_type
+    239         ;
+    240 
+    241     m_merged_total += merged_count ;
+
+
+
 
 How to support muon hits in Opticks ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* SEventConfig::SetModeLite(1) 
+
 
 
 1. junoSD_PMT_v2_Opticks::collectHit needs to branch on hit_type::

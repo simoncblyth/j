@@ -15,6 +15,13 @@ using namespace thrust;
 struct RawHit { int pmtid; float time; };
 struct MergedHit { int pmtid; float time; int count; };
 
+
+using Key = uint64_t;
+inline __device__ __host__ Key make_key(int pmtid, float time, float tw) {
+}
+
+
+
 struct PMTHitMergerGPU 
 {
     float time_window;
@@ -36,8 +43,12 @@ struct PMTHitMergerGPU
                   keys.begin(),
                   [=] __device__ (int i) -> uint64_t {
                       const RawHit& h = d_raw[i];
-                      int bucket = static_cast<int>(h.time / time_window);
-                      return (static_cast<uint64_t>(h.pmtid) << 32) | bucket;
+
+                      //int bucket = static_cast<int>(h.time / time_window);
+                      //return (static_cast<uint64_t>(h.pmtid) << 32) | bucket;
+
+                      uint64_t bucket = static_cast<uint64_t>(roundf(h.time / time_window));  // Round for precision
+                      return (static_cast<uint64_t>(h.pmtid & 0xFFFFULL) << 48) | bucket;
                   });
 
         // Sort by key
