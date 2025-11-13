@@ -23,6 +23,8 @@ summary of functions
 | ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |
 |         |                                    | [NORMALLY WOULD REBUILD OPTICKS BEFORE DOING THIS]                                                                                     |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljbb0   | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 to disable geometry initialization                                                                      |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | loj     | local_oj                           | env to use local OJ                                                                                                                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lji     | local_oj_init                      | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init which does test geometry conversions populating the geomdir                    |
@@ -307,6 +309,15 @@ ljbb()
    oj_build
 }
 
+ljbb0()
+{
+   : ~/local.sh
+   : same as ljbb but using NOINIT=1 which prevents geometry initialization
+   NOINIT=1 ljbb
+}
+
+
+
 
 
 local_oj_build()
@@ -482,6 +493,8 @@ Example commandlines for quick tests of release::
     ojet
     BP=SEvt::addGenstep SProf__WRITE=1 U4=INFO ojet
 
+    TEST=hit2 ojet
+
 
 EON
 }
@@ -508,12 +521,53 @@ oj_envset_test()
    oj_envset
    [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
 
+
    source dbg__.sh
-   dbg__ \
-      $(which python) \
-      $(which tut_detsim.py) \
-      --evtmax 1 \
-      gun
+   source ~/.opticks/TEST/TEST.sh
+   [ -z "$TEST" ] && echo $FUNCNAME - ERROR TEST NOT DEFINED && return 2
+
+   local LOGDIR=/tmp/$USER/opticks/$FUNCNAME/$TEST
+   local vv="BASH_SOURCE FUNCNAME test TEST LOGDIR PWD SProf__WRITE"
+   vvp(){ for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
+
+
+   mkdir -p $LOGDIR
+   pushd $LOGDIR
+
+   if [ "$TEST" == "default" ]; then
+
+       vvp
+       dbg__ \
+          $(which python) \
+          $(which tut_detsim.py) \
+          --evtmax 1 \
+          gun
+
+   elif [ "$TEST" == "hit2" ]; then
+
+       export SProf__WRITE=1
+       export junoSD_PMT_v2_Opticks=INFO
+       export SEvt=INFO
+       export SEvt__SAVE=1
+       export OPTICKS_EVENT_MODE=HitPhotonSeq  ## try some SEvt saving with OJ
+
+       vvp
+       dbg__ \
+          $(which python) \
+          $(which tut_detsim.py) \
+          --evtmax 1 \
+          --pmt-hit-type 2 \
+          gun
+
+       unset SProf__WRITE
+
+   else
+       printf "$FUNCNAME - ERROR TEST[$TEST] UNHANDLED \n"
+   fi
+
+   vvp
+   popd
+
 }
 
 
