@@ -35,7 +35,7 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojet    | oj_envset,oj_envset_test           | quick dbg__ tests of the release configured via Opticks ENVSET bash function                                                           |
+| ojt     | oj_envset,oj_test                  | quick dbg__ tests of the release configured via Opticks ENVSET bash function, use TEST bash func to change specific test to perform    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
@@ -512,7 +512,7 @@ oj_envset()
    return 0
 }
 
-oj_envset_test()
+oj_test()
 {
    : ~/local.sh
    : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
@@ -543,20 +543,31 @@ oj_envset_test()
           --evtmax 1 \
           gun
 
-   elif [ "$TEST" == "hit2" ]; then
+   elif [ "$TEST" == "hitlite" -o "$TEST" == "hitlitemerged" ]; then
 
        export SProf__WRITE=1
        export junoSD_PMT_v2_Opticks=INFO
        export SEvt=INFO
        export SEvt__SAVE=1
        export OPTICKS_EVENT_MODE=HitPhotonSeq  ## try some SEvt saving with OJ
+       export QSim=INFO
+
+       local evtmax=1
+       local pmt_hit_type=1
+       local pmtsd_merge_twindow=0
+
+       case $TEST in
+          hitlite)       pmt_hit_type=2 ; pmtsd_merge_twindow=0 ;;
+          hitlitemerged) pmt_hit_type=2 ; pmtsd_merge_twindow=1 ;;
+       esac
 
        vvp
        dbg__ \
           $(which python) \
           $(which tut_detsim.py) \
-          --evtmax 1 \
-          --pmt-hit-type 2 \
+          --evtmax ${evtmax} \
+          --pmt-hit-type ${pmt_hit_type} \
+          --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
           gun
 
        unset SProf__WRITE
@@ -571,7 +582,11 @@ oj_envset_test()
 }
 
 
-ojet(){ oj_envset_test $* ; }
+ojt()
+{
+   : ~/local.sh
+   oj_test $*
+}
 
 
 

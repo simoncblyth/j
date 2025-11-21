@@ -7,9 +7,267 @@ Overview
 
 * DONE : added photonlite, photonlocal, hitlite, hitlocal
 * DONE : validated hitlite by comparison with hitlocal, "cxs_min.sh lite"
-* TODO : validate photonlocal, need to look at what happens with non-hit photons
-* TODO : integrate hitlite with OJ
-* TODO : merging 
+* DONE : validate photonlocal
+* TODO : regarding photonlocal need to look at what happens with non-hit photons
+* DONE : integrate hitlite with OJ
+* DONE : merging
+
+
+sresource.h / ulimit -l / small scale test not yet reached the limit
+-----------------------------------------------------------------------
+
+::
+
+    (ok) A[blyth@localhost A000]$ du -h hit*
+    2.3M	hitlitemerged.npy
+    3.1M	hitlite.npy
+    13M	hitlocal.npy
+    13M	hit.npy
+
+
+
+TEST=merge cxs_min.sh run
+-------------------------------
+
+First integrated merge, do the counts add up::
+
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherHitLite_@1095]  hitlite.sstr (200307, 4, )
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherHitLite@1000]  evt.photonlite 0x7f9b37e00000 evt.num_photonlite 1000000 evt.num_hitlite 200307 hitlite (200307, 4, ) photonlite_selector.hitmask 8192 SEventConfig::HitMask 8192 SEventConfig::HitMaskLabel EC SEventConfig::ModeLite 2 SEventConfig::ModeMerge 1
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1165] [ cmp 8388608 proceed 1 a 0x1d893290
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1161] [ cmp 16777216
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1165] [ cmp 16777216 proceed 1 a 0
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1161] [ cmp 33554432
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1165] [ cmp 33554432 proceed 1 a 0
+    2025-11-17 16:51:03.048 INFO  [3111503] [QEvt::gatherComponent@1161] [ cmp 67108864
+    [SPM::merge_partial_select num_in 1000000 select_flagmask 8192 time_window   1.000 
+    ]SPM::merge_partial_select merged 150291  
+    2025-11-17 16:51:03.057 INFO  [3111503] [QEvt::gatherHitLiteMerged_@1126]  hitlitemerged.sstr (150291, 4, )
+    2025-11-17 16:51:03.057 INFO  [3111503] [QEvt::gatherHitLiteMerged@1024]  evt.photonlite 0x7f9b37e00000 evt.num_photonlite 1000000 evt.num_hitlitemerged 150291 hitlitemerged (150291, 4, ) photonlite_selector.hitmask 8192 SEventConfig::HitMask 8192 SEventConfig::HitMaskLabel EC SEventConfig::ModeLite 2 SEventConfig::ModeMerge 1 SEventConfig::MergeWindow 1
+    2025-11-17 16:51:03.057 INFO  [3111503] [QEvt::gatherComponent@1165] [ cmp 67108864 proceed 1 a 0x1e5d4190
+    2025-11-17 16:51:03.058 INFO  [3111503] [QSim::simulate@536]  eventID 0 tot_dt    0.162071 tot_ph    1000000 tot_ph/M   1.000000 tot_ht     150291 tot_ht/M   0.150291 tot_ht/tot_ph   0.150291 reset_ YES
+    2025-11-17 16:51:03.885 INFO  [3111503] [SEvt::save@4505] /data1/blyth/tmp/GEOM/J25_4_0_opticks_Debug/CSGOptiXSMTest/ALL1_Debug_Philox_merge/A000 [genstep,photon,record,seq,hit,domain,inphoton,photonlite,hitlite,hitlocal,photonlocal,hitlitemerged]
+    2025-11-17 16:51:14.025 INFO  [3111503] [QSim::simulate@557] 
+    SEvt__MINTIME
+     (TAIL - HEAD)/M  13.975393 (head to tail of QSim::simulate method) 
+     (LEND - LBEG)/M   3.010820 (multilaunch loop begin to end) 
+     (PCAT - LEND)/M   0.000037 (topfold concat and clear subfold) 
+     (TAIL - BRES)/M  10.964061 (QSim::reset which saves hits) 
+     tot_idt/M         0.162102 (sum of kernel execution int64_t stamp differences in microseconds)
+     tot_dt            0.162071 int(tot_dt*M)       162070 (sum of kernel execution double chrono stamp differences in seconds, and scaled to ms) 
+     tot_gdt/M         2.842453 (sum of SEvt::gather int64_t stamp differences in microseconds)
+
+    2025-11-17 16:51:14.152  152645005 : ]/data1/blyth/local/opticks_Debug/bin/cxs_min.sh 
+    (ok) A[blyth@localhost opticks]$ 
+
+
+
+
+::
+
+    In [4]: hlm = SPhotonLite.view(f.hitlitemerged)
+
+    In [5]: hlm
+    Out[5]: 
+    rec.array([(    1, 4,  97.637, 34745, 44830, 10276, 0.53 , 0.684,  0.19 ), (    1, 1, 127.937, 63706, 42677, 11268, 0.972, 0.651,  2.966),
+               (    1, 1, 453.403, 18201, 59423, 10292, 0.278, 0.907, -1.397), (    1, 1, 485.223, 57389, 26690, 11572, 0.876, 0.407,  2.361),
+               (    2, 4,  97.527, 49467, 62470, 10244, 0.755, 0.953,  1.601), ..., (44979, 1, 148.035, 25724, 17312, 11300, 0.393, 0.264, -0.675),
+               (44990, 1, 148.301, 35443, 64576, 10292, 0.541, 0.985,  0.257), (44993, 1, 118.375, 47162, 58966, 10276, 0.72 , 0.9  ,  1.38 ),
+               (44997, 1, 118.123, 22244, 23507, 10260, 0.339, 0.359, -1.009), (44999, 1, 113.713, 29680, 25855, 10276, 0.453, 0.395, -0.296)],
+              dtype=[('identity', '<u2'), ('hitcount', '<u2'), ('time', '<f4'), ('lposfphi', '<u2'), ('lposcost', '<u2'), ('flagmask', '<u4'), ('lposfphi_f', '<f4'), ('lposcost_f', '<f4'), ('phi', '<f4')])
+
+    In [6]: hlm.hitcount
+    Out[6]: array([4, 1, 1, 1, 4, ..., 1, 1, 1, 1, 1], shape=(150291,), dtype=uint16)
+
+    In [7]: hlm.hitcount.sum()
+    Out[7]: np.uint64(200307)
+
+    In [8]: hl = SPhotonLite.view(f.hitlite)
+
+    In [9]: hl
+    Out[9]: 
+    rec.array([(14774, 1, 131.872,  2916, 42168, 10292, 0.044, 0.643, -2.862), (17093, 1, 106.89 , 20484, 64255, 10260, 0.313, 0.98 , -1.178),
+               (10268, 1, 116.906, 59631, 61527, 10292, 0.91 , 0.939,  2.576), ( 2595, 1, 102.543, 46465, 41087, 10276, 0.709, 0.627,  1.313),
+               ( 9890, 1, 144.924, 54529,  9913, 10276, 0.832, 0.151,  2.086), ..., (34152, 1,  98.445, 48322, 46642, 10276, 0.737, 0.712,  1.491),
+               (14989, 1, 257.466, 10909,  7356, 10292, 0.166, 0.112, -2.096), (   16, 1, 101.338,  3364,  1884, 11012, 0.051, 0.029, -2.819),
+               ( 4221, 1, 214.083, 34923,  4729, 10292, 0.533, 0.072,  0.207), (12478, 1, 232.366, 50319, 42288, 10292, 0.768, 0.645,  1.683)],
+              dtype=[('identity', '<u2'), ('hitcount', '<u2'), ('time', '<f4'), ('lposfphi', '<u2'), ('lposcost', '<u2'), ('flagmask', '<u4'), ('lposfphi_f', '<f4'), ('lposcost_f', '<f4'), ('phi', '<f4')])
+
+    In [10]: hl.hitcount
+    Out[10]: array([1, 1, 1, 1, 1, ..., 1, 1, 1, 1, 1], shape=(200307,), dtype=uint16)
+
+
+
+
+
+
+Integrating GPU hit merging with OJ
+-------------------------------------
+
+0. DONE: added SPM.hh/SPM.cu
+1. DONE: added OPTICKS_MODE_MERGE SEventConfig::ModeMerge
+2. DONE: added "init_opticks_environ" to pass switches from J to O
+
+
+TODO : Review multi-launch mechanics for hit gathering, where to do the final merge ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* HMM, beside where the NP::Concatenate is done for non-merged hits
+
+
+::
+
+     394 
+     395 
+     396     QSim::simulate
+     397 
+     398        EGPU.SEvt::beginOfEvent
+     399 
+     400        determine slices over gensteps depending on VRAM
+     401 
+     402        for each slice
+     403 
+     404            QEvt::setGenstepUpload_NP
+     405 
+     406            SCSGOptiX::simulate_launch
+     407 
+     408            SEvt::gather into *fold* below *topfold*
+     409 
+     410        end for each slice 
+     411 
+     412        (NPFold)topfold->concat joining all arrays from the per-launch *fold* into the one *topfold* 
+     413 
+     414        EGPU.SEvt::endOfEvent [only when reset:true, not so in OJ running as need to defer until after hits collected]
+     415 
+     416 
+
+
+
+
+
+
+QSim::simulate
+
+* slices gensteps
+* for each slice
+
+  * uploads
+  * invokes kernel
+  * SEvt::gather into *fold* below *topfold*
+
+* (NPFold)topfold->concat
+
+
+
+
+
+
+gatherHitLiteMerged_
+-----------------------
+
+::
+
+    1088 NP* QEvt::gatherHitLite_() const
+    1089 {
+    1090     LOG_IF(info, LIFECYCLE) ;
+    1091     evt->hitlite = QU::device_alloc<sphotonlite>( evt->num_hitlite, "QEvt::gatherHitLite_:sphotonlite" );
+    1092 
+    1093     SU::copy_if_device_to_device_presized_sphotonlite( evt->hitlite, evt->photonlite, evt->num_photonlite,  *photonlite_selector );
+    1094 
+    1095     NP* hitlite = sphotonlite::zeros( evt->num_hitlite );
+    1096 
+    1097     QU::copy_device_to_host<sphotonlite>( (sphotonlite*)hitlite->bytes(), evt->hitlite, evt->num_hitlite );
+    1098 
+    1099     QU::device_free<sphotonlite>( evt->hitlite );
+    1100 
+    1101     evt->hitlite = nullptr ;
+    1102     LOG(LEVEL) << " hitlite.sstr " << hitlite->sstr() ;
+    1103 
+    1104     return hitlite ;
+    1105 }
+    1106 
+    1107 
+    1108 NP* QEvt::gatherHitLiteMerged_() const
+    1109 {
+    1110     NP* hitlitemerged = nullptr ;
+    1111 
+    1112 
+    1113     //hitlitemerged = sphotonlite::zeros( evt->num_hitlitemerged );
+    1114 
+    1115 
+    1116     return hitlitemerged ;
+    1117 }
+
+
+
+
+HMM : Modal vs array type ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+modal ModeMerge approach vs array type eg "hitlitemerged" approach are confusing to use together, 
+array type is more flexible 
+
+
+
+::
+
+    1372 /**
+    1373 SEventConfig::HitCompNameOne
+    1374 ----------------------------
+    1375 
+    1376 Used by SEvt::getNumHit
+    1377 
+    1378 **/
+    1379 
+    1380 const char* SEventConfig::HitCompNameOne() // static
+    1381 {
+    1382     return SComp::Name(ModeLite() == 0 ? SCOMP_HIT : SCOMP_HITLITE );
+    1383 }
+    1384 
+    1385 
+
+
+
+
+Where is hit selection invoked ? 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    QEvt::gatherHit
+    QEvt::gatherHit_
+
+
+
+
+
+
+Switches passed from J to O
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    1796     def init_opticks_environ(self, args):
+    1797         """
+    1798         TL;DR: init_opticks_environ must be invoked prior to init_mc_parameters
+    1799 
+    1800         When JUNOSW is compiled WITH_G4CXOPTICKS the first load of Opticks libs
+    1801         happens as a side effect of the Sniper.loadDll("libMultiFilmLUTMakerSvc.so")
+    1802         as that lib has dependency on Opticks libSysRap.so.
+    1803         That loadDll is done by init_mc_parameters.
+    1804 
+    1805         Hence in order to set Opticks envvars that are interpreted to give the sysrap/SEventConfig
+    1806         statics prior to libSysrap.so loading when the statics get initialized by the compiler
+    1807         generated function _GLOBAL__sub_I_SEventConfig.cc it is required that the environment
+    1808         is set prior to loading the first library that depends on Opticks libs.
+    1809         If this is not so, then the environment is still changed, but after SEventConfig
+    1810         statics are set : which causes inconsistency.
+    1811         """
+    1812         if args.opticks_mode == 0: return
+    1813         log.info("[init_opticks_environ")
+    1814         os.environ["OPTICKS_MODE_LITE"] = "1" if args.pmt_hit_type == 2 else "0"
+    1815         os.environ["OPTICKS_MODE_MERGE"] = "1" if args.pmt_hit_type == 2 else "0"
+    1816         os.environ["OPTICKS_MERGE_WINDOW"] = f"{args.pmtsd_merge_twindow:.6f}"  # ns unit, typically 1.0
+    1817         log.info("]init_opticks_environ")
 
 
 
