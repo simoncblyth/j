@@ -1,0 +1,97 @@
+
+ok) A[blyth@localhost customgeant4]$ grep UserInformation *.*
+C4TrackInfo.h:    G4VUserTrackInformation* ui = track->GetUserInformation() ;
+C4TrackInfo.h:    G4VUserTrackInformation* ui = track->GetUserInformation() ;
+C4TrackInfo.h:    G4VUserTrackInformation* ui = track->GetUserInformation() ;
+C4TrackInfo.h:       << " track.GetUserInformation " << ui
+C4TrackInfo.h:        track->SetUserInformation(new C4TrackInfo<T>(_label)); 
+(ok) A[blyth@localhost customgeant4]$ vi C4TrackInfo.h 
+(ok) A[blyth@localhost customgeant4]$ 
+
+
+(ok) A[blyth@localhost customgeant4]$ grep C4TrackInfo *.*
+C4OpBoundaryProcess.cc:#include "C4TrackInfo.h"
+C4OpBoundaryProcess.cc:        m_track_label = C4TrackInfo<C4Pho>::GetRef(&aTrack);
+
+C4Track.h:(C4Pho, C4TrackInfo) mostly hidden behind a higher level interface.  
+C4Track.h:#include "C4TrackInfo.h"
+C4Track.h:    const C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+C4Track.h:    const C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+C4Track.h:    C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+C4Track.h:    C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+C4Track.h:    C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track); 
+C4Track.h:    C4TrackInfo<C4Pho>::Set(track, pho );  
+C4Track.h:    C4Pho* label = C4TrackInfo<C4Pho>::GetRef(track) ; 
+
+C4TrackInfo.h:C4TrackInfo.h (from opticks/sysrap/STrackInfo.h)
+C4TrackInfo.h:struct C4TrackInfo : public G4VUserTrackInformation
+C4TrackInfo.h:    C4TrackInfo(const T& label); 
+C4TrackInfo.h:    static C4TrackInfo<T>* GetTrackInfo(const G4Track* track); 
+C4TrackInfo.h:    static C4TrackInfo<T>* GetTrackInfo_dynamic(const G4Track* track); 
+C4TrackInfo.h:inline C4TrackInfo<T>::C4TrackInfo(const T& _label )
+C4TrackInfo.h:    G4VUserTrackInformation("C4TrackInfo"),
+C4TrackInfo.h:inline std::string C4TrackInfo<T>::desc() const 
+C4TrackInfo.h:C4TrackInfo::GetTrackInfo
+C4TrackInfo.h:inline C4TrackInfo<T>* C4TrackInfo<T>::GetTrackInfo(const G4Track* track) // static, label by value 
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = ui ? static_cast<C4TrackInfo<T>*>(ui) : nullptr ;
+C4TrackInfo.h:inline C4TrackInfo<T>* C4TrackInfo<T>::GetTrackInfo_dynamic(const G4Track* track) // static, label by value 
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = ui ? dynamic_cast<C4TrackInfo<T>*>(ui) : nullptr ;
+C4TrackInfo.h:inline bool C4TrackInfo<T>::Exists(const G4Track* track) // static
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = GetTrackInfo(track); 
+C4TrackInfo.h:inline T C4TrackInfo<T>::Get(const G4Track* track) // static, label by value 
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = GetTrackInfo(track); 
+C4TrackInfo.h:inline T* C4TrackInfo<T>::GetRef(const G4Track* track) // static, label reference 
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = GetTrackInfo(track); 
+C4TrackInfo.h:inline std::string C4TrackInfo<T>::Desc(const G4Track* track)
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo = GetTrackInfo(track); 
+C4TrackInfo.h:    C4TrackInfo<T>* trackinfo_dyn = GetTrackInfo_dynamic(track); 
+C4TrackInfo.h:    ss << "C4TrackInfo::Desc" 
+C4TrackInfo.h:inline void C4TrackInfo<T>::Set(G4Track* track, const T& _label )  // static 
+C4TrackInfo.h:        track->SetUserInformation(new C4TrackInfo<T>(_label)); 
+CMakeLists.txt:    C4TrackInfo.h
+README.rst:C4TrackInfo.h
+(ok) A[blyth@localhost customgeant4]$ 
+
+
+
+
+
+
+
+unotoptask:detsimiotask.initialize  INFO: initialized
+junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+2025-11-25 15:59:51.720 [junoSD_PMT_v2::Initialize eventID 0
+2025-11-25 15:59:51.721 ]junoSD_PMT_v2::Initialize eventID 0
+Begin of Event --> 0
+NormalTrackInfoDebug::register_obj 0x6518ec0 where NormalTrackInfo(const G4Track*) count 0
+NormalTrackInfoDebug::register_obj 0xc4d9f3e0 where Copy ptr ctor count 1
+NormalTrackInfoDebug::register_obj 0xc4d9f4b0 where Copy ptr ctor count 2
+NormalTrackInfoDebug::register_obj 0xc4d9f580 where Copy ptr ctor count 3
+
+Thread 1 "python" hit Breakpoint 1, 0x00007fffc1090610 in C4OpBoundaryProcess::PostStepDoIt(G4Track const&, G4Step const&) ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8/lib64/libCustom4.so
+Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-5.el9_6.x86_64 freetype-2.10.4-10.el9_5.x86_64 glib2-2.68.4-16.el9_6.2.x86_64 glibc-2.34-168.el9_6.23.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-8.el9_6.x86_64 libICE-1.0.10-8.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-7.el9.x86_64 libcurl-7.76.1-31.el9_6.1.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libgcc-11.5.0-5.el9_5.alma.1.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libicu-67.1-10.el9_6.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libselinux-3.6-3.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libstdc++-11.5.0-5.el9_5.alma.1.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-21.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libxcrypt-4.4.18-3.el9.x86_64 libzstd-1.5.5-1.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9_6.2.x86_64 nvidia-driver-cuda-libs-580.82.07-1.el9.x86_64 openldap-2.6.8-4.el9.x86_64 openssl-libs-3.2.2-6.el9_5.1.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+(gdb) bt
+#0  0x00007fffc1090610 in C4OpBoundaryProcess::PostStepDoIt(G4Track const&, G4Step const&) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8/lib64/libCustom4.so
+#1  0x00007fffc66ea519 in G4SteppingManager::InvokePSDIP(unsigned long) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+#2  0x00007fffc66ea91b in G4SteppingManager::InvokePostStepDoItProcs() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+#3  0x00007fffc66e8154 in G4SteppingManager::Stepping() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+#4  0x00007fffc66f370f in G4TrackingManager::ProcessOneTrack(G4Track*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4tracking.so
+#5  0x00007fffc672e565 in G4EventManager::DoProcessing(G4Event*) () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/lib64/libG4event.so
+#6  0x00007fffe058468e in G4SvcRunManager::SimulateEvent (this=0x66a8e90, i_event=0) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:29
+#7  0x00007fffd485ed3e in DetSimAlg::execute (this=0x66a8360) at /home/blyth/junosw/Simulation/DetSimV2/DetSimAlg/src/DetSimAlg.cc:112
+#8  0x00007fffd0af44b1 in Task::execute() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#9  0x00007fffd0af8bbd in TaskWatchDog::run() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+
+
+
+
+
+
+
+
+
+
+
+
+
