@@ -25,6 +25,10 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb0   | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 to disable geometry initialization                                                                      |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljbb0c  | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 OJ_BUILD_CLEAN=1 to disable geometry initialization and do clean build                                  |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ljbbc   | local_oj_build,oj_build            | same as ljbb but with OJ_BUILD_CLEAN=1 to do clean build                                                                               |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | loj     | local_oj                           | env to use local OJ                                                                                                                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lji     | local_oj_init                      | [NOT COMMONLY USED, AS NOW PART OF ljb] defines oj_init which does test geometry conversions populating the geomdir                    |
@@ -92,8 +96,9 @@ Do each of the below setup and build in separate clean tabs:
 
 1. local_c4_build ; c4_build   ## does nothing when using default c4
 2. local_ok_build ; ok_build
-3. local_oj_build ; oj_build
-4. local_oj_init  ; oj_init
+3. local_oj_build ; NOINIT=1 OJ_BUILD_CLEAN=1 oj_build
+
+#4. local_oj_init  ; oj_init  ## THIS IS NOW PART OF oj_build THAT IS OFTEN DISABLED WITH NOINIT
 
 
 EOU
@@ -141,13 +146,22 @@ local_none()
 
 local_c4_prefix_default()
 {
+    : default path from cvmfs
     echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
 }
 local_c4_prefix()
 {
-    echo $(local_c4_prefix_default)
-    #echo /data1/blyth/local/custom4_Debug/0.1.8
+    : function that enables switching to a non default c4 to check
+    : SEE NOTES AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
+
+    #echo $(local_c4_prefix_default)
+    echo /data1/blyth/local/custom4_Debug/0.1.8
 }
+
+
+
+
+
 
 
 local_c4_build()
@@ -316,6 +330,24 @@ ljbb0()
    NOINIT=1 ljbb
 }
 
+ljbb0c()
+{
+   : ~/local.sh
+   : same as ljbb but using NOINIT=1 which prevents geometry initialization
+   : and OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
+   NOINIT=1 OJ_BUILD_CLEAN=1 ljbb
+}
+
+ljbbc()
+{
+   : ~/local.sh
+   : same as ljbb but with OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
+   OJ_BUILD_CLEAN=1 ljbb
+}
+
+
+
+
 
 
 
@@ -445,6 +477,7 @@ ljii()
 local_oj_init()
 {
    : ~/local.sh
+   : THIS IS NOW NORMALLY DONE AS PART OF oj_build
    local desc="usage of oj_build created envset.sh adapting .gitlab-ci.yml Opticks+JUNOSW test, use oj_local func to prep geomdir"
    local mode=oj_init
 
@@ -542,6 +575,19 @@ oj_test()
           $(which tut_detsim.py) \
           --evtmax 1 \
           gun
+
+   elif [ "$TEST" == "zero" ]; then
+
+       vvp
+       dbg__ \
+          $(which python) \
+          $(which tut_detsim.py) \
+          --evtmax ${evtmax} \
+          --pmt-hit-type ${pmt_hit_type} \
+          --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
+          --opticks-mode 0 \
+          gun
+
 
    elif [ "$TEST" == "hitlite" -o "$TEST" == "hitlitemerged" ]; then
 
