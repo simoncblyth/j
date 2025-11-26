@@ -4,6 +4,27 @@ usage(){ cat << EOU
 
 ~/j/zhenning_double_muon/genmuon.sh
 
+
+A[blyth@localhost ~]$ Muon.exe -h
+./Muon.exe [-seed seed] 
+           [-o outputfilename] 
+           [-n nevents] 
+           [-s juno (juno, juno_original)] 
+           [-v volume (Rock, TT, WP)]
+           [-r rotating mountain(Yes, No)] 
+           [-mult single or real muon (0, 1)] 
+           [-ntrks events of n tracks selection] 
+           [-wpo only the muon events whose track pass through water pool] 
+           [-cdls only the muon events whose track pass through CD LS] 
+           [-rocko only the muon events whose track traverse rock and avoid WP] 
+           [-stop only the muon events whose energy is less than 20 GeV] 
+           [-cdWater only the muon events whose track pass through the CD water buffer] 
+           [-use-elecroom] [-no-elecroom]  (default: ElecRoom ON; adds two full-size ElecRoom wings to envelope)] 
+           [-rockThickness <millimeters> (rock thickness T; default 10000 mm)] 
+           [-music_dir <path of music files relative to this dir>] 
+A[blyth@localhost ~]$ 
+
+
 EOU
 }
 

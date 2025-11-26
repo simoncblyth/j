@@ -41,6 +41,8 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ojt     | oj_envset,oj_test                  | quick dbg__ tests of the release configured via Opticks ENVSET bash function, use TEST bash func to change specific test to perform    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              | 
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
 Updating local OK build
@@ -536,14 +538,23 @@ oj_envset()
 {
    : ~/local.sh
    source ~/.opticks/GEOM/ENVSET.sh
+   echo $BASH_SOURCE - ENVSET_NAME $ENVSET_NAME ENVSET $ENVSET
+
    if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
        source $ENVSET
    else
-       echo $BASH_SOURCE - ERROR - MISSING ENVSET $ENVSET
+       echo $BASH_SOURCE - ERROR MISSING ENVSET $ENVSET
        return 1
    fi
    return 0
 }
+
+oje()
+{
+   : ~/local.sh
+   oj_envset
+}
+
 
 oj_test()
 {

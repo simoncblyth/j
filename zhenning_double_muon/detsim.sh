@@ -45,7 +45,9 @@ evtmax=1
 seed=42
 output=output.root
 user_output=user_output.root
-genmuon=j__zhenning_double_muon_seed_${seed}_evtmax_${evtmax}.txt
+genmuon=j__zhenning_double_muon_seed_${seed}_evtmax_${evtmax}
+
+
 pmt_hit_type=2
 pmtsd_merge_twindow=1
 IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_hit${pmt_hit_type}_merge${pmtsd_merge_twindow}_seed${seed}_evtmax${evtmax}_${arg}
@@ -103,15 +105,27 @@ fi
 
 
 
-if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" ]; then
+if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" -o "${arg/db2}" != "$arg" ]; then
 
+    opt=""
     topcmd=time
     if [ "${arg/run}" != "$arg" ]; then
        topcmd=time
     elif [ "${arg/dbg}" != "$arg" ]; then
        topcmd=gdb__
+    elif [ "${arg/db1}" != "$arg" ]; then
+       topcmd=gdb__
+    elif [ "${arg/db2}" != "$arg" ]; then
+       topcmd=gdb__
+       opt=--dryrun
     fi
     vv="$vv topcmd"
+
+    if [ "${arg/db1}" != "$arg" ]; then
+       genmuon=${genmuon}_db1
+    fi
+    vv="$vv genmuon"
+
 
     if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
         source $ENVSET
@@ -144,6 +158,7 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" ]; then
     $topcmd \
         $(which python) \
         $(which tut_detsim.py) \
+        $opt \
         --opticks-mode ${opticks_mode} \
         --evtmax ${evtmax} \
         --seed ${seed} \
@@ -158,7 +173,7 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" ]; then
         --user-output $user_output \
         hepevt \
         --exe Muon \
-        --file $SDIR/$genmuon \
+        --file $SDIR/${genmuon}.txt \
         2>&1 | tee -a $LOGNAME
 
 
