@@ -39,10 +39,11 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojt     | oj_envset,oj_test                  | quick dbg__ tests of the release configured via Opticks ENVSET bash function, use TEST bash func to change specific test to perform    |
+| ojt     | oj_envset,oj_test [see ojtu]       | quick dbg__ tests of the release configured via Opticks ENVSET bash function, use TEST bash func to change specific test to perform    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              | 
+| oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
 
 
 Updating local OK build
@@ -384,6 +385,9 @@ local_oj_build()
    export JUNO_OFFLINE_OFF=1
    export OPTICKS_SETUP_VERBOSE=1
 
+   export SPMT__init_pmtNum_FAKE_WHEN_MISSING=1  # transient backward compat for junosw branches without pmtNum
+
+
    if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
 
    oj_build_info(){
@@ -555,6 +559,49 @@ oje()
    oj_envset
 }
 
+oj_test_usage()
+{
+   : ~/local.sh
+   cat  << EOU
+
++----------------+-------------------------------+
+| TEST           |                               |
++================+===============================+
+|  default       |                               |
++----------------+-------------------------------+
+|  zero          |                               |
++----------------+-------------------------------+
+|  hit           |                               |
++----------------+-------------------------------+
+|  hitmerged     |                               |
++----------------+-------------------------------+
+|  hitlite       |                               |
++----------------+-------------------------------+
+|  hitlitemerged |                               |
++----------------+-------------------------------+
+
+Currently the TEST bash function that is sourced by oj_test
+ignored any input TEST envvar, and always sets it to the
+value coded. So workflow is:
+
+0. from "lo" tab, run "TEST" bash function to edit the TEST.sh and set value to one of the above
+1. from empty tab, run "ojt"
+
+
+/tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/python3.11/ALL0_no_opticks_event_name/A000
+
+EOU
+}
+
+
+seconds_between() {
+    local d1="$1"
+    local d2="$2"
+    local ts1=$(date -d "$d1" +%s) || return 1
+    local ts2=$(date -d "$d2" +%s) || return 1
+    echo $(( ts2 - ts1 ))
+}
+
 
 oj_test()
 {
@@ -562,21 +609,59 @@ oj_test()
    : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
    : then runs a single event simulation under gdb debugger
 
-   oj_envset
-   [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
+
+   local arg=${1:-$defarg}
 
 
-   source dbg__.sh
    source ~/.opticks/TEST/TEST.sh
    [ -z "$TEST" ] && echo $FUNCNAME - ERROR TEST NOT DEFINED && return 2
 
-   local LOGDIR=/tmp/$USER/opticks/$FUNCNAME/$TEST
-   local vv="BASH_SOURCE FUNCNAME test TEST LOGDIR PWD SProf__WRITE"
+   local IDENTITY=$FUNCNAME
+
+   #local logbase=/tmp/$USER/opticks
+   local logbase=/data2/blyth/local
+   local LOGBASE=$logbase
+
+   local LOGFOLD=$LOGBASE/$FUNCNAME
+   local LOGDIR=$LOGFOLD/$TEST
+   local LOGNAME=$IDENTITY.log
+
+   local vv="BASH_SOURCE FUNCNAME test TEST TMP GEOM LOGFOLD LOGDIR LOGNAME PWD SProf__WRITE"
    vvp(){ for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
+
+
+   if [ "${arg/info}" != "$arg" ]; then
+      vvp
+      return 0
+   fi
+
+
+   if [ "${arg/log}" != "$arg" ]; then
+      find "$LOGFOLD" -name $LOGNAME -exec bash -c 'printf "→ {}\n"' \;
+      return 0
+   fi
+
+   if [ "${arg/ls}" != "$arg" ]; then
+      find "$LOGFOLD" -name SProf.txt -exec bash -c 'printf "→ {}\n"' \;
+      return 0
+   fi
+
+   if [ "${arg/prof}" != "$arg" ]; then
+      find "$LOGFOLD" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
+      return 0
+   fi
+
+
+   oj_envset
+   [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
+
+   source dbg__.sh
 
 
    mkdir -p $LOGDIR
    pushd $LOGDIR
+   rm -f $LOGNAME
+   vvp > $LOGNAME
 
    if [ "$TEST" == "default" ]; then
 
@@ -600,32 +685,48 @@ oj_test()
           gun
 
 
-   elif [ "$TEST" == "hitlite" -o "$TEST" == "hitlitemerged" ]; then
+   elif [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
        export SProf__WRITE=1
        export junoSD_PMT_v2_Opticks=INFO
+
+       export QSim=INFO
        export SEvt=INFO
        export SEvt__SAVE=1
+       export SEvt__DIRECTORY=1
+
+       export OPTICKS_MAX_SLOT=M10
        export OPTICKS_EVENT_MODE=HitPhotonSeq  ## try some SEvt saving with OJ
-       export QSim=INFO
+       export OPTICKS_MODE_SAVE=1  # 0:absolute, 1:relative to invoking dir
 
        local evtmax=1
        local pmt_hit_type=1
-       local pmtsd_merge_twindow=0
+       local pmtsd_merge_twindow=1  # always merge, just do it in different places
+       local opticks_mode_merge=1
 
        case $TEST in
-          hitlite)       pmt_hit_type=2 ; pmtsd_merge_twindow=0 ;;
-          hitlitemerged) pmt_hit_type=2 ; pmtsd_merge_twindow=1 ;;
+          hit)           pmt_hit_type=1 ; opticks_mode_merge=0 ;;
+          hitmerged)     pmt_hit_type=1 ; opticks_mode_merge=1 ;;
+          hitlite)       pmt_hit_type=2 ; opticks_mode_merge=0 ;;
+          hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge=1 ;;
        esac
 
-       vvp
-       dbg__ \
+       #local topcmd=dbg__
+       local topcmd=time
+       vv="$vv TEST topcmd evtmax pmt_hit_type pmtsd_merge_twindow opticks_mode_merge"
+
+       export OPTICKS_MODE_MERGE=$opticks_mode_merge
+
+       vvp >> $LOGNAME
+
+       $topcmd \
           $(which python) \
           $(which tut_detsim.py) \
           --evtmax ${evtmax} \
           --pmt-hit-type ${pmt_hit_type} \
           --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
-          gun
+          gun \
+          2>&1 | tee -a $LOGNAME
 
        unset SProf__WRITE
 
@@ -636,6 +737,7 @@ oj_test()
    vvp
    popd
 
+   return 0
 }
 
 
@@ -644,6 +746,40 @@ ojt()
    : ~/local.sh
    oj_test $*
 }
+
+ojttu(){ cat << EOU
+
+TESTS="red green blue"
+ojtt
+
+
+EOU
+}
+
+ojtt()
+{
+   : ~/local.sh
+   local tests="hit hitmerged hitlite hitlitemerged"
+   local tt=${TESTS:-$tests}
+   local t
+   for t in $tt ; do
+   (
+      printf "$FUNCNAME t[$t]\n"
+      TEST=$t ojt $*
+      [ $? -ne 0 ] && printf "$FUNCNAME ERROR FROM [TEST=$t ojt]\n"
+   )
+   done
+}
+
+
+ojtu()
+{
+   : ~/local.sh
+   oj_test_usage $*
+}
+
+
+
 
 
 

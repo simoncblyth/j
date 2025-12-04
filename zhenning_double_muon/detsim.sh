@@ -1,12 +1,37 @@
 #!/bin/bash
 
 usage(){ cat << EOU
+detsim.sh
+==========
+
+
+info
+    output variables
+run
+    ordinary running
+
+
+dbg
+    under gdb__
+db1
+    under gdb__ with manually hacked genmuon input file with _db1.txt suffix
+db2
+    under gdb__ with setting of extra options such as --dryrun OR --no-optical
+
+
+prof
+    find all SProf.txt below LOGROOT and dump time tables using ~/o/bin/SProf.py
+logp
+    final all OJ*.log and J*.log below LOGROOT and dump times using SDIR/logparse.py
+grep
+    grep @ lines in current LOGFILE
+
 
 
 BP=G4VUserTrackInformation::SetUserInformation ~/j/zhenning_double_muon/detsim.sh dbg
 
-BP=NormalTrackInfo::NormalTrackInfo ~/j/zhenning_double_muon/detsim.sh 
-BP=NormalTrackInfo::~NormalTrackInfo  ~/j/zhenning_double_muon/detsim.sh 
+BP=NormalTrackInfo::NormalTrackInfo ~/j/zhenning_double_muon/detsim.sh
+BP=NormalTrackInfo::~NormalTrackInfo  ~/j/zhenning_double_muon/detsim.sh
 
 BP=G4VUserTrackInformation::G4VUserTrackInformation ~/j/zhenning_double_muon/detsim.sh dbg
 
@@ -31,7 +56,7 @@ vv="$vv BASH_SOURCE SDIR PWD"
 
 #defarg=run
 defarg=info
-allarg=info_run_dbg_prof_grep_logp
+allarg=info_run_dbg_db1_db2_prof_grep_logp
 [ -n "$BP" ] && defarg=dbg
 arg=${1:-$defarg}
 vv="$vv BP defarg arg allarg"
@@ -40,18 +65,43 @@ vv="$vv BP defarg arg allarg"
 source ~/.opticks/GEOM/ENVSET.sh   ## sets ENVSET and ENVSET_NAME envvars : DOES NOT SOURCE THE ENVSET
 vv="$vv ENVSET_NAME ENVSET"
 
-opticks_mode=0
+#opticks_mode=0
+opticks_mode=1
+
 evtmax=1
 seed=42
 output=output.root
 user_output=user_output.root
 genmuon=j__zhenning_double_muon_seed_${seed}_evtmax_${evtmax}
 
+test=hitlitemerged
+TEST=${TEST:-$test}
+vv="$vv test TEST"
 
-pmt_hit_type=2
-pmtsd_merge_twindow=1
-IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_hit${pmt_hit_type}_merge${pmtsd_merge_twindow}_seed${seed}_evtmax${evtmax}_${arg}
-vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow IDENTITY"
+
+pmt_hit_type=1
+pmtsd_merge_twindow=1  ## always merge but do it in on CPU or GPU depending on opticks_mode_merge
+opticks_mode_merge=0
+
+if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
+
+   case $TEST in
+      hit)           pmt_hit_type=1 ; opticks_mode_merge=0 ;;
+      hitmerged)     pmt_hit_type=1 ; opticks_mode_merge=1 ;;
+      hitlite)       pmt_hit_type=2 ; opticks_mode_merge=0 ;;
+      hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge=1 ;;
+   esac
+
+   IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_${TEST}_seed${seed}_evtmax${evtmax}_${arg}
+   export OPTICKS_MODE_MERGE=$opticks_mode_merge
+
+   vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow IDENTITY"
+   vv="$vv OPTICKS_MODE_MERGE"
+
+else
+   printf "$BASH_SOURCE TEST[$TEST] UNHANDLED\n"
+   exit 0
+fi
 
 
 LOGBASE=/data1/blyth/tmp
@@ -95,15 +145,9 @@ gdb__ ()
 }
 
 
-
-
-
 if [ "${arg/info}" != "$arg" ]; then
     vvp
-    vvp > vvp.log
 fi
-
-
 
 if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" -o "${arg/db2}" != "$arg" ]; then
 
@@ -115,16 +159,18 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" 
        topcmd=gdb__
     elif [ "${arg/db1}" != "$arg" ]; then
        topcmd=gdb__
+       genmuon0=${genmuon}
+       genmuon=${genmuon}_db1
+       cmd="diff -y --width=200 ${genmuon0}.txt ${genmuon}.txt"
+       echo $BASH_SOURCE WARNING USING HACKED _db1.txt genmuon [$cmd]
+       eval $cmd
     elif [ "${arg/db2}" != "$arg" ]; then
        topcmd=gdb__
-       opt=--dryrun
+       #opt=--dryrun
+       opt=--no-optical
     fi
-    vv="$vv topcmd"
+    vv="$vv topcmd genmuon"
 
-    if [ "${arg/db1}" != "$arg" ]; then
-       genmuon=${genmuon}_db1
-    fi
-    vv="$vv genmuon"
 
 
     if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
@@ -184,24 +230,31 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" 
     dt=$(seconds_between "$t0" "$t1")
 
     vvp
-    vvp > vvp.log
     vvp >> $LOGNAME
 
     popd
 fi
 
 
-if [ "${arg/prof}" != "$arg" ]; then
-    find "$LOGROOT" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
-fi
 
-if [ "${arg/grep}" != "$arg" ]; then
-    grep " @ "  $LOGFILE
-fi
+if [[ "$arg" =~ ^(prof|logp|grep)$ ]]; then
+    t0="60 minutes ago"
+    T0=${T0:-$t0}
+    mt=$(date "+%Y-%m-%d %H:%M:%S" -d "$T0")
+    tt="t0 T0 mt"
+    for t in $tt ; do printf "%30s : %s\n" "$t" "${!t}" ; done
 
-if [ "${arg/logp}" != "$arg" ]; then
-    find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -exec bash -c "echo {} " \;
-    find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -exec bash -c "echo {} && $SDIR/logparse.py {}" \;
+    if [ "${arg}" == "prof" ]; then
+        find "$LOGROOT" -name SProf.txt -newermt "$mt" -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
+    fi
+    if [ "${arg}" == "logp" ]; then
+       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} " \;
+       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} && $SDIR/logparse.py {}" \;
+    fi
+    if [ "${arg}" == "grep" ]; then
+       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} " \;
+       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "grep \" @ \" {} " \;
+    fi
 fi
 
 
