@@ -11,6 +11,14 @@ run
     ordinary running
 
 
+zhenning_double_muon/detsim.sh
+
+T0="2025-12-04 16:00" zhenning_double_muon/detsim.sh prof
+
+
+
+
+
 dbg
     under gdb__
 db1
@@ -82,6 +90,7 @@ vv="$vv test TEST"
 pmt_hit_type=1
 pmtsd_merge_twindow=1  ## always merge but do it in on CPU or GPU depending on opticks_mode_merge
 opticks_mode_merge=0
+opticks_max_slot=M150  ## avoid modemerged just splitting into two slices from M136 heuristic
 
 if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
@@ -94,6 +103,7 @@ if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
    IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_${TEST}_seed${seed}_evtmax${evtmax}_${arg}
    export OPTICKS_MODE_MERGE=$opticks_mode_merge
+   export OPTICKS_MAX_SLOT=$opticks_max_slot
 
    vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow IDENTITY"
    vv="$vv OPTICKS_MODE_MERGE"
@@ -237,16 +247,28 @@ fi
 
 
 
-if [[ "$arg" =~ ^(prof|logp|grep)$ ]]; then
-    t0="60 minutes ago"
+if [[ "$arg" =~ ^(prof|prof0|logp|grep)$ ]]; then
+
+    t0="120 minutes ago"
     T0=${T0:-$t0}
     mt=$(date "+%Y-%m-%d %H:%M:%S" -d "$T0")
     tt="t0 T0 mt"
     for t in $tt ; do printf "%30s : %s\n" "$t" "${!t}" ; done
 
-    if [ "${arg}" == "prof" ]; then
+    if [ "${arg}" == "prof0" ]; then
         find "$LOGROOT" -name SProf.txt -newermt "$mt" -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
     fi
+
+    if [ "${arg}" == "prof" ]; then
+
+       : order found SProf.txt paths by their modification time before parsing
+       find "$LOGROOT" -name SProf.txt -newermt "$mt" -printf '%T@ %p\0' | \
+             sort -z -n | \
+             cut -z -d ' ' -f2- | \
+             xargs -0 -n1 bash -c 'echo "→ $1" && ~/o/bin/SProf.py "$1"' bash
+    fi
+
+
     if [ "${arg}" == "logp" ]; then
        find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} " \;
        find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} && $SDIR/logparse.py {}" \;
@@ -256,7 +278,6 @@ if [[ "$arg" =~ ^(prof|logp|grep)$ ]]; then
        find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "grep \" @ \" {} " \;
     fi
 fi
-
 
 
 exit 0
