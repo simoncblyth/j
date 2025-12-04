@@ -1446,4 +1446,460 @@ Need faster cycle
 
 
 
+Huh, when offset the muon to not get any hits. The cleanup issue does not happen ?
+
+
+Min energy per nucleon for multifragmentation (MeV) 1e+05
+Level density (1/MeV)                               0.1
+Time limit for long lived isomeres (ns)             1442.7
+Internal e- conversion flag                         1
+Store e- internal conversion data                   1
+Electron internal conversion ID                     0
+Correlated gamma emission flag                      0
+Max 2J for sampling of angular correlations         10
+=======================================================================
+### Run : 0
+junotoptask.initialize          INFO: initialized
+junotoptask:detsimiotask.find   WARN: Cann't find Object InputSvc
+junotoptask:detsimiotask:OutputSvc.initialize  INFO: ... isReproducible: 0
+junotoptask:detsimiotask.initialize  INFO: initialized
+junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+2025-11-27 10:40:08.738 [junoSD_PMT_v2::Initialize eventID 0
+2025-11-27 10:40:08.739 ]junoSD_PMT_v2::Initialize eventID 0
+Begin of Event --> 0
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : Warning
+      issued by : G4Step::GetDeltaEnergy()
+This method is obsolete and will be removed soon
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+2025-11-27 10:40:09.465 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 0 GPU NO
+2025-11-27 10:40:09.465 ]junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 0 GPU NO
+hitCollectionTT.size: 0	userhitCollectionTT.size: 0
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2025-11-27 02:40:09.465490000Z
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  WARN: No Hit produced
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2025-11-27 02:40:09.519808000Z
+end of event action 
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00 / 30150.00
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+end of event action 
+junotoptask:detsimiotask.finalize  INFO: events processed 1
+junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names: 
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] photonNuclear
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] conv
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] phot
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] compt
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] PsFormation
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] muPairProd
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muIoni
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: summaries: 
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: number of measurements: 1
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: mean time: 770.40 ms
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: total time elapsed: 770.39 ms
+############################## SniperProfiling ##############################
+Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+GenTools                 1           1.28500        1.28500      0.00024      
+DetSimAlg                1           782.36102      782.36102    0.00000      
+Sum of junotoptask       1           783.65100      783.65100    0.00000      
+#############################################################################
+junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+junotoptask.finalize            INFO: events processed 1
+[2025-11-27 10:40:09,654] p3645908 {/home/blyth/junosw/InstallArea/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+[2025-11-27 10:40:09,655] p3645908 {/home/blyth/junosw/InstallArea/bin/tut_detsim.py:55} INFO - ]juno_application.run
+Namespace(help_more=False, loglevel='Info', dryrun=False, showTime=False, evtmax=1, seed=42, restore_seed_status=None, input=None, input_list=None, input_correlation=None, input_correlation_list=None, output='output.root', user_output='user_output.root', EnableUserOutput=False, output_stream=None, output_reproducible=False, profiling=True, profiling_with_details=False, toptask_show=True, restore_evtid_list='', start_evtid=0, dbtype='File', PDEValue=0.0, paradb=False, para_gtag='J22.1.0', dbconf=None, config_gen_materials=None, config_gen_exec=None, mac='run.mac', vis=False, vis_mac='vis.mac', detsim=True, detoption='Acrylic', qescale=1.0, light_yield=None, gdml=False, dae=False, splitevent=True, event_split_maxhits=None, splittrack=False, track_split_mode='PrimaryTrack', track_split_time=3000.0, pelletron=False, source=False, source_weights=False, source_weight_QC=False, ACU_source_weight_QC=False, CLS_source_weight_QC=False, ACU_source_weight_QC_Ti=False, CLS_source_weight_QC_Ti=False, K40_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC_thicker=False, AmC_ACU_source_weight_QC_thickest=False, submarine=False, OffsetInZ=0, OffsetInX=0, OffsetInY=0, GT_source_theta=0, guide_tube=True, dfball_tube=False, teflonhook=False, dflightcos=True, simplify_calib_anchor=True, cd_enabled=True, reflectivity=0.4, isgroundsurface=True, real_surface_in_cd_enabled=True, strut_complex_geometry=False, strut_surface_enabled=True, real_mask_tail=True, mask_tail_surface_enabled=True, optical_surface_in_cd_enabled=True, check_overlap_in_cd_enabled=False, wp_enabled=True, wp_pmt_enabled=True, wp_latticed_enabled=True, tt_enabled=True, shutter=False, lchimneywater=False, uchimneywater=False, botchimneywater=False, commissioning_enabled=False, below_z_is_water=0.0, pmt20inch=True, pmt20inch_name='PMTMask', pmt20inch_obsolete_torus_neck=False, pmt20inch_profligate_tail_cut=False, debug_disable_sticks=False, debug_disable_st=False, debug_disable_xj=False, debug_disable_sj=False, debug_disable_fa=False, pmt20inch_plus_dynode=False, pmt20inch_extra='TWO-mask', pmtmask_top_thick=10.0, pmt3inch=True, pmt3inch_name='Tub3inchV3', pmt3inch_offset=-50.0, ranges_pmt_enabled=None, ranges_pmt_constructed=None, construct_center_pmtid=-1, distance_to_center_pmt=-1, pmt_dbtype='IDService', new_optical_model=False, MaterialDataDir=None, pmtsd_v2=True, ce_mode='20inch', ce_flat_value=0.9, ce_func=None, ce_func_par=None, pmtsd_merge_twindow=1.0, useoptical=True, cerenkov_only=False, cerenkov=True, cerenkov_type='modified', opabs=True, opsct=True, pmt_optical_model=True, pmt_natural_geometry=True, track_op_first=True, deferred_op=False, deferred_op_testing_ratio=1.0, preselect=None, usingLS=False, cutEdep_in_ls=0, opticks_mode=0, opticks_anamgr=False, replace_param='Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m', usepmtsimsvc=True, quenching=True, pmt_hit_type=2, pmt_disable_process=False, photon_conversion=False, nphotonsperparticle=10, fixed_energy=None, physics_list='JUNO', positronium=True, use_stepfunc_in_macro=False, enableIonPHP=True, flag_struts_fasteners='none', anamgr_grdm=True, stopAtPa234m=True, anamgr_edm=False, anamgr_edm_v2=True, anamgr_simtrack=True, anamgr_hitcollection='hitCollection', anamgr_edm_gen=True, anamgr_tt=True, anamgr_normal=True, anamgr_normal_hit=False, use_given_velocity=True, anamgr_muon=True, anamgr_atmo=False, anamgr_genevt=True, anamgr_deposit=True, anamgr_deposit_tt=True, anamgr_deposit_voxel=False, anamgr_deposit_voxelsize=100, anamgr_interesting_process=True, anamgr_extra_procnames=None, anamgr_legacy_michel_electron=False, anamgr_legacy_ncapture=False, anamgr_legacy_decay=False, anamgr_neutron_inelastic=False, anamgr_optical_parameter=True, anamgr_timer=True, anamgr_photon_tracking=False, anamgr_g4tracking_verbose=None, anamgr_g4tracking_evtlist=None, anamgr_list=[], anamgr_config_file=None, voxel_fast_sim=False, voxel_merge_flag=False, voxel_merge_twin=1, voxel_fill_ntuple=False, voxel_fast_dir=None, voxel_geom_file='geom-geom-20pmt.root', voxel_npe_file='npehist3d_single.root', voxel_time_file='dist_tres_single.root', voxel_gen_npe=True, voxel_gen_time=True, voxel_save_hits=True, voxel_pmts_structs=True, voxel_quenching_scale=0.93, global_time_begin='1970-01-01 00:00:01', global_time_end='2038-01-19 03:14:07', global_event_rate=0.0, gentool_mode='hepevt', material='None', volume='None', volume_radius_min=0.0, volume_radius_max=0.0, volume_z_min=None, volume_z_max=None, volume_x_min=None, volume_x_max=None, volume_y_min=None, volume_y_max=None, volume_rock_depth=None, global_position=None, exe='Muon', file='/home/blyth/j/zhenning_double_muon/j__zhenning_double_muon_seed_42_evtmax_1_db1.txt', use_event_time_from_generator=False)
+[Thread 0x7fffcd5ff640 (LWP 3645925) exited]
+HepEvt2HepMC Dtor called begin
+HepEvt2HepMC Dtor called end
+
+Thread 1 "python" hit Breakpoint 1.2, G4SvcRunManager::~G4SvcRunManager (this=0x6a4eb70, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+11	}
+Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-5.el9_6.x86_64 freetype-2.10.4-10.el9_5.x86_64 glib2-2.68.4-16.el9_6.2.x86_64 glibc-2.34-168.el9_6.23.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-8.el9_6.x86_64 libICE-1.0.10-8.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-7.el9.x86_64 libcurl-7.76.1-31.el9_6.1.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libgcc-11.5.0-5.el9_5.alma.1.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libicu-67.1-10.el9_6.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libselinux-3.6-3.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libstdc++-11.5.0-5.el9_5.alma.1.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-21.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libxcrypt-4.4.18-3.el9.x86_64 libzstd-1.5.5-1.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9_6.2.x86_64 nvidia-driver-cuda-libs-580.82.07-1.el9.x86_64 openldap-2.6.8-4.el9.x86_64 openssl-libs-3.2.2-6.el9_5.1.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+(gdb) bt
+#0  G4SvcRunManager::~G4SvcRunManager (this=0x6a4eb70, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+#1  0x00007fffcf9766db in G4Svc::~G4Svc (this=0x65ebb00, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:20
+#2  0x00007fffcf97672e in G4Svc::~G4Svc (this=0x65ebb00, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:23
+#3  0x00007fffd0adf513 in DleSupervisor::clear() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#4  0x00007fffd0adfe0d in ExecUnit::reset() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#5  0x00007fffd0af7b4b in TaskWatchDog::terminate() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#6  0x00007fffd0af4f64 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#7  0x00007fffccbd983c in boost::python::objects::value_holder<TopTask>::~value_holder() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/python/Sniper/libSniperPython.so
+#8  0x00007fffdf0b9d4f in instance_dealloc () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Boost/1.85.0/lib/libboost_python311.so.1.85.0
+#9  0x00007ffff79c0ae2 in subtype_dealloc (self=0x7fffc15316c0) at Objects/typeobject.c:1463
+#10 0x00007ffff799eeae in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#11 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#12 _PyObject_FreeInstanceAttributes (self=<optimized out>) at Objects/dictobject.c:5583
+#13 0x00007ffff79c0bf3 in subtype_dealloc (self=0x7ffff770f6d0) at Objects/typeobject.c:1433
+#14 0x00007ffff79963ad in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#15 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#16 free_keys_object (keys=0x7ffff7e7fd20) at Objects/dictobject.c:664
+#17 0x00007ffff799730c in dictkeys_decref (dk=<optimized out>) at Objects/dictobject.c:324
+#18 dict_dealloc (mp=0x7ffff76e5640) at Objects/dictobject.c:2378
+#19 0x00007ffff79a9ae5 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#20 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#21 module_dealloc (m=0x7ffff76e1b70) at Objects/moduleobject.c:699
+#22 0x00007ffff799a3d0 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#23 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#24 insertdict (mp=0x7ffff7e49340, key=0x7ffff76e56f0, hash=2851389596528451645, value=<optimized out>) at Objects/dictobject.c:1304
+#25 0x00007ffff7a8faa8 in finalize_remove_modules (verbose=0, modules=0x7ffff7e49340) at Python/pylifecycle.c:1415
+#26 finalize_modules (tstate=tstate@entry=0x7ffff7d79738 <_PyRuntime+166328>) at Python/pylifecycle.c:1550
+#27 0x00007ffff7a92e20 in Py_FinalizeEx () at Python/pylifecycle.c:1833
+#28 Py_FinalizeEx () at Python/pylifecycle.c:1751
+#29 0x00007ffff7ab8bc4 in Py_RunMain () at Modules/main.c:686
+#30 0x00007ffff7ab95b7 in pymain_main (args=0x7ffffffefd90) at Modules/main.c:714
+#31 Py_BytesMain (argc=<optimized out>, argv=<optimized out>) at Modules/main.c:738
+#32 0x00007ffff74295d0 in __libc_start_call_main () from /lib64/libc.so.6
+#33 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#34 0x0000000000401075 in _start ()
+(gdb) c
+Continuing.
+
+Thread 1 "python" hit Breakpoint 1.1, G4SvcRunManager::~G4SvcRunManager (this=0x6a4eb70, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:9
+9	G4SvcRunManager::~G4SvcRunManager() {
+(gdb) bt
+#0  G4SvcRunManager::~G4SvcRunManager (this=0x6a4eb70, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:9
+#1  0x00007fffe05845ba in G4SvcRunManager::~G4SvcRunManager (this=0x6a4eb70, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+#2  0x00007fffcf9766db in G4Svc::~G4Svc (this=0x65ebb00, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:20
+#3  0x00007fffcf97672e in G4Svc::~G4Svc (this=0x65ebb00, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:23
+#4  0x00007fffd0adf513 in DleSupervisor::clear() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#5  0x00007fffd0adfe0d in ExecUnit::reset() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#6  0x00007fffd0af7b4b in TaskWatchDog::terminate() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#7  0x00007fffd0af4f64 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#8  0x00007fffccbd983c in boost::python::objects::value_holder<TopTask>::~value_holder() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/python/Sniper/libSniperPython.so
+#9  0x00007fffdf0b9d4f in instance_dealloc () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Boost/1.85.0/lib/libboost_python311.so.1.85.0
+#10 0x00007ffff79c0ae2 in subtype_dealloc (self=0x7fffc15316c0) at Objects/typeobject.c:1463
+#11 0x00007ffff799eeae in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#12 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#13 _PyObject_FreeInstanceAttributes (self=<optimized out>) at Objects/dictobject.c:5583
+#14 0x00007ffff79c0bf3 in subtype_dealloc (self=0x7ffff770f6d0) at Objects/typeobject.c:1433
+#15 0x00007ffff79963ad in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#16 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#17 free_keys_object (keys=0x7ffff7e7fd20) at Objects/dictobject.c:664
+#18 0x00007ffff799730c in dictkeys_decref (dk=<optimized out>) at Objects/dictobject.c:324
+#19 dict_dealloc (mp=0x7ffff76e5640) at Objects/dictobject.c:2378
+#20 0x00007ffff79a9ae5 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#21 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#22 module_dealloc (m=0x7ffff76e1b70) at Objects/moduleobject.c:699
+#23 0x00007ffff799a3d0 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#24 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#25 insertdict (mp=0x7ffff7e49340, key=0x7ffff76e56f0, hash=2851389596528451645, value=<optimized out>) at Objects/dictobject.c:1304
+#26 0x00007ffff7a8faa8 in finalize_remove_modules (verbose=0, modules=0x7ffff7e49340) at Python/pylifecycle.c:1415
+#27 finalize_modules (tstate=tstate@entry=0x7ffff7d79738 <_PyRuntime+166328>) at Python/pylifecycle.c:1550
+#28 0x00007ffff7a92e20 in Py_FinalizeEx () at Python/pylifecycle.c:1833
+#29 Py_FinalizeEx () at Python/pylifecycle.c:1751
+#30 0x00007ffff7ab8bc4 in Py_RunMain () at Modules/main.c:686
+#31 0x00007ffff7ab95b7 in pymain_main (args=0x7ffffffefd90) at Modules/main.c:714
+#32 Py_BytesMain (argc=<optimized out>, argv=<optimized out>) at Modules/main.c:738
+#33 0x00007ffff74295d0 in __libc_start_call_main () from /lib64/libc.so.6
+#34 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#35 0x0000000000401075 in _start ()
+(gdb) c
+Continuing.
+Delete G4SvcRunManager
+
+**************************************************
+Terminating @ localhost.localdomain on Thu Nov 27 10:43:46 2025
+SNiPER::Context Running Mode = { BASIC }
+SNiPER::Context Terminated Successfully
+[Thread 0x7ffff7ecc4c0 (LWP 3645908) exited]
+[Thread 0x7fffbcfff640 (LWP 3645937) exited]
+[New process 3645908]
+[Inferior 1 (process 3645908) exited normally]
+(gdb) 
+quit
+Thu Nov 27 10:43:58 AM CST 2025
+Thu Nov 27 10:43:59 AM CST 2025
+                   BASH_SOURCE : zhenning_double_muon/detsim.sh
+                          SDIR : /home/blyth/j/zhenning_double_muon
+                           PWD : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                            BP : G4SvcRunManager::~G4SvcRunManager,G4Svc::~G4Svc
+                        defarg : dbg
+                           arg : db1
+                        allarg : info_run_dbg_db1_db2_prof_grep_logp
+                   ENVSET_NAME : OJ_LOCAL_Nov27
+                        ENVSET : /home/blyth/junosw/InstallArea/envset.sh
+                  opticks_mode : 0
+                        evtmax : 1
+                          seed : 42
+                        output : output.root
+                   user_output : user_output.root
+                  pmt_hit_type : 2
+           pmtsd_merge_twindow : 1
+                      IDENTITY : OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                       LOGBASE : /data1/blyth/tmp
+                        LOGREL : j/zhenning_double_muon/detsim
+                       LOGROOT : /data1/blyth/tmp/j/zhenning_double_muon/detsim
+                        LOGDIR : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                       LOGNAME : OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1.log
+                       LOGFILE : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1.log
+                        topcmd : gdb__
+                       genmuon : j__zhenning_double_muon_seed_42_evtmax_1_db1
+                           MSG : OPTICKS RUNNING
+                            t0 : Thu Nov 27 10:38:17 AM CST 2025
+                            t1 : Thu Nov 27 10:43:59 AM CST 2025
+                            dt : 342
+~/j/zhenning_double_muon
+A[blyth@localhost j]$ 
+
+
+
+
+
+
+
+
+
+
+
+Same thing fails when not offsetting the muon::
+
+### Run : 0
+junotoptask.initialize          INFO: initialized
+junotoptask:detsimiotask.find   WARN: Cann't find Object InputSvc
+junotoptask:detsimiotask:OutputSvc.initialize  INFO: ... isReproducible: 0
+junotoptask:detsimiotask.initialize  INFO: initialized
+junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+2025-11-27 10:53:33.771 [junoSD_PMT_v2::Initialize eventID 0
+2025-11-27 10:53:33.772 ]junoSD_PMT_v2::Initialize eventID 0
+Begin of Event --> 0
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : Warning
+      issued by : G4Step::GetDeltaEnergy()
+This method is obsolete and will be removed soon
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+ decay 2 gammas 0.510999
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [61710629]@[PMT_3inch_inner2_phys] (-9293.64, 4609.02, -16390.59, 297.92)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [64010277]@[PMT_3inch_inner1_phys] (-9422.46, 4721.79, -16260.01, 286.39)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [80534704]@[pAcrylic] (-15507.47, 8096.74, -3414.09, 291.94)  step number >= 1000
+ decay 2 gammas 0.510999
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [155573108]@[PMT_3inch_inner2_phys] (13792.75, 11884.84, 6636.63, 1001.48)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [160066560]@[PMT_3inch_inner1_phys] (-9235.43, 4624.44, -16394.77, 314.80)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [196134319]@[PMT_3inch_cntr_phys] (-9263.56, 4616.93, -16408.10, 257.26)  step number >= 1000
+2025-11-27 12:52:25.268 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6474451 GPU NO
+2025-11-27 12:52:25.268 ]junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6474451 GPU NO
+hitCollectionTT.size: 102	userhitCollectionTT.size: 51
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2025-11-27 04:52:26.093009000Z
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2025-11-27 04:52:32.949759000Z
+end of event action 
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00 / 30150.00
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+end of event action 
+junotoptask:detsimiotask.finalize  INFO: events processed 648
+junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names: 
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] nCapture
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] neutronInelastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] compt
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] phot
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] conv
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] photonNuclear
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hadElastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] PsFormation
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] RadioactiveDecay
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] muPairProd
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muBrems
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: summaries: 
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: number of measurements: 1
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: mean time: 7139210.50 ms
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: total time elapsed: 7139210.50 ms
+############################## SniperProfiling ##############################
+Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+GenTools                 1           1.23400        1.23400      0.00000      
+DetSimAlg                1           7139320.00000  7139320.00000991.45146    
+Sum of junotoptask       1           7139321.00000  7139321.000000.00000      
+#############################################################################
+junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+junotoptask.finalize            INFO: events processed 1
+[2025-11-27 12:52:33,168] p3647305 {/home/blyth/junosw/InstallArea/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+[2025-11-27 12:52:33,168] p3647305 {/home/blyth/junosw/InstallArea/bin/tut_detsim.py:55} INFO - ]juno_application.run
+Namespace(help_more=False, loglevel='Info', dryrun=False, showTime=False, evtmax=1, seed=42, restore_seed_status=None, input=None, input_list=None, input_correlation=None, input_correlation_list=None, output='output.root', user_output='user_output.root', EnableUserOutput=False, output_stream=None, output_reproducible=False, profiling=True, profiling_with_details=False, toptask_show=True, restore_evtid_list='', start_evtid=0, dbtype='File', PDEValue=0.0, paradb=False, para_gtag='J22.1.0', dbconf=None, config_gen_materials=None, config_gen_exec=None, mac='run.mac', vis=False, vis_mac='vis.mac', detsim=True, detoption='Acrylic', qescale=1.0, light_yield=None, gdml=False, dae=False, splitevent=True, event_split_maxhits=None, splittrack=False, track_split_mode='PrimaryTrack', track_split_time=3000.0, pelletron=False, source=False, source_weights=False, source_weight_QC=False, ACU_source_weight_QC=False, CLS_source_weight_QC=False, ACU_source_weight_QC_Ti=False, CLS_source_weight_QC_Ti=False, K40_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC_thicker=False, AmC_ACU_source_weight_QC_thickest=False, submarine=False, OffsetInZ=0, OffsetInX=0, OffsetInY=0, GT_source_theta=0, guide_tube=True, dfball_tube=False, teflonhook=False, dflightcos=True, simplify_calib_anchor=True, cd_enabled=True, reflectivity=0.4, isgroundsurface=True, real_surface_in_cd_enabled=True, strut_complex_geometry=False, strut_surface_enabled=True, real_mask_tail=True, mask_tail_surface_enabled=True, optical_surface_in_cd_enabled=True, check_overlap_in_cd_enabled=False, wp_enabled=True, wp_pmt_enabled=True, wp_latticed_enabled=True, tt_enabled=True, shutter=False, lchimneywater=False, uchimneywater=False, botchimneywater=False, commissioning_enabled=False, below_z_is_water=0.0, pmt20inch=True, pmt20inch_name='PMTMask', pmt20inch_obsolete_torus_neck=False, pmt20inch_profligate_tail_cut=False, debug_disable_sticks=False, debug_disable_st=False, debug_disable_xj=False, debug_disable_sj=False, debug_disable_fa=False, pmt20inch_plus_dynode=False, pmt20inch_extra='TWO-mask', pmtmask_top_thick=10.0, pmt3inch=True, pmt3inch_name='Tub3inchV3', pmt3inch_offset=-50.0, ranges_pmt_enabled=None, ranges_pmt_constructed=None, construct_center_pmtid=-1, distance_to_center_pmt=-1, pmt_dbtype='IDService', new_optical_model=False, MaterialDataDir=None, pmtsd_v2=True, ce_mode='20inch', ce_flat_value=0.9, ce_func=None, ce_func_par=None, pmtsd_merge_twindow=1.0, useoptical=True, cerenkov_only=False, cerenkov=True, cerenkov_type='modified', opabs=True, opsct=True, pmt_optical_model=True, pmt_natural_geometry=True, track_op_first=True, deferred_op=False, deferred_op_testing_ratio=1.0, preselect=None, usingLS=False, cutEdep_in_ls=0, opticks_mode=0, opticks_anamgr=False, replace_param='Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m', usepmtsimsvc=True, quenching=True, pmt_hit_type=2, pmt_disable_process=False, photon_conversion=False, nphotonsperparticle=10, fixed_energy=None, physics_list='JUNO', positronium=True, use_stepfunc_in_macro=False, enableIonPHP=True, flag_struts_fasteners='none', anamgr_grdm=True, stopAtPa234m=True, anamgr_edm=False, anamgr_edm_v2=True, anamgr_simtrack=True, anamgr_hitcollection='hitCollection', anamgr_edm_gen=True, anamgr_tt=True, anamgr_normal=True, anamgr_normal_hit=False, use_given_velocity=True, anamgr_muon=True, anamgr_atmo=False, anamgr_genevt=True, anamgr_deposit=True, anamgr_deposit_tt=True, anamgr_deposit_voxel=False, anamgr_deposit_voxelsize=100, anamgr_interesting_process=True, anamgr_extra_procnames=None, anamgr_legacy_michel_electron=False, anamgr_legacy_ncapture=False, anamgr_legacy_decay=False, anamgr_neutron_inelastic=False, anamgr_optical_parameter=True, anamgr_timer=True, anamgr_photon_tracking=False, anamgr_g4tracking_verbose=None, anamgr_g4tracking_evtlist=None, anamgr_list=[], anamgr_config_file=None, voxel_fast_sim=False, voxel_merge_flag=False, voxel_merge_twin=1, voxel_fill_ntuple=False, voxel_fast_dir=None, voxel_geom_file='geom-geom-20pmt.root', voxel_npe_file='npehist3d_single.root', voxel_time_file='dist_tres_single.root', voxel_gen_npe=True, voxel_gen_time=True, voxel_save_hits=True, voxel_pmts_structs=True, voxel_quenching_scale=0.93, global_time_begin='1970-01-01 00:00:01', global_time_end='2038-01-19 03:14:07', global_event_rate=0.0, gentool_mode='hepevt', material='None', volume='None', volume_radius_min=0.0, volume_radius_max=0.0, volume_z_min=None, volume_z_max=None, volume_x_min=None, volume_x_max=None, volume_y_min=None, volume_y_max=None, volume_rock_depth=None, global_position=None, exe='Muon', file='/home/blyth/j/zhenning_double_muon/j__zhenning_double_muon_seed_42_evtmax_1_db1.txt', use_event_time_from_generator=False)
+[Thread 0x7fffcd5ff640 (LWP 3647323) exited]
+HepEvt2HepMC Dtor called begin
+HepEvt2HepMC Dtor called end
+
+Thread 1 "python" hit Breakpoint 1.2, G4SvcRunManager::~G4SvcRunManager (this=0x65eb8c0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+11	}
+Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-5.el9_6.x86_64 freetype-2.10.4-10.el9_5.x86_64 glib2-2.68.4-16.el9_6.2.x86_64 glibc-2.34-168.el9_6.23.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-8.el9_6.x86_64 libICE-1.0.10-8.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-7.el9.x86_64 libcurl-7.76.1-31.el9_6.1.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libgcc-11.5.0-5.el9_5.alma.1.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libicu-67.1-10.el9_6.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libselinux-3.6-3.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libstdc++-11.5.0-5.el9_5.alma.1.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-21.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libxcrypt-4.4.18-3.el9.x86_64 libzstd-1.5.5-1.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9_6.2.x86_64 nvidia-driver-cuda-libs-580.82.07-1.el9.x86_64 openldap-2.6.8-4.el9.x86_64 openssl-libs-3.2.2-6.el9_5.1.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+(gdb) bt
+#0  G4SvcRunManager::~G4SvcRunManager (this=0x65eb8c0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+#1  0x00007fffcf9766db in G4Svc::~G4Svc (this=0x65ad800, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:20
+#2  0x00007fffcf97672e in G4Svc::~G4Svc (this=0x65ad800, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:23
+#3  0x00007fffd0adf513 in DleSupervisor::clear() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#4  0x00007fffd0adfe0d in ExecUnit::reset() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#5  0x00007fffd0af7b4b in TaskWatchDog::terminate() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#6  0x00007fffd0af4f64 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#7  0x00007fffccbd983c in boost::python::objects::value_holder<TopTask>::~value_holder() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/python/Sniper/libSniperPython.so
+#8  0x00007fffdf0b9d4f in instance_dealloc () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Boost/1.85.0/lib/libboost_python311.so.1.85.0
+#9  0x00007ffff79c0ae2 in subtype_dealloc (self=0x7fffc15455d0) at Objects/typeobject.c:1463
+#10 0x00007ffff799eeae in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#11 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#12 _PyObject_FreeInstanceAttributes (self=<optimized out>) at Objects/dictobject.c:5583
+#13 0x00007ffff79c0bf3 in subtype_dealloc (self=0x7ffff770f6d0) at Objects/typeobject.c:1433
+#14 0x00007ffff79963ad in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#15 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#16 free_keys_object (keys=0x7ffff7e7fd20) at Objects/dictobject.c:664
+#17 0x00007ffff799730c in dictkeys_decref (dk=<optimized out>) at Objects/dictobject.c:324
+#18 dict_dealloc (mp=0x7ffff76e5640) at Objects/dictobject.c:2378
+#19 0x00007ffff79a9ae5 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#20 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#21 module_dealloc (m=0x7ffff76e1b70) at Objects/moduleobject.c:699
+#22 0x00007ffff799a3d0 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#23 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#24 insertdict (mp=0x7ffff7e49340, key=0x7ffff76e56f0, hash=-7891263638997123312, value=<optimized out>) at Objects/dictobject.c:1304
+#25 0x00007ffff7a8faa8 in finalize_remove_modules (verbose=0, modules=0x7ffff7e49340) at Python/pylifecycle.c:1415
+#26 finalize_modules (tstate=tstate@entry=0x7ffff7d79738 <_PyRuntime+166328>) at Python/pylifecycle.c:1550
+#27 0x00007ffff7a92e20 in Py_FinalizeEx () at Python/pylifecycle.c:1833
+#28 Py_FinalizeEx () at Python/pylifecycle.c:1751
+#29 0x00007ffff7ab8bc4 in Py_RunMain () at Modules/main.c:686
+#30 0x00007ffff7ab95b7 in pymain_main (args=0x7ffffffefd90) at Modules/main.c:714
+#31 Py_BytesMain (argc=<optimized out>, argv=<optimized out>) at Modules/main.c:738
+#32 0x00007ffff74295d0 in __libc_start_call_main () from /lib64/libc.so.6
+#33 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#34 0x0000000000401075 in _start ()
+(gdb) c
+Continuing.
+
+Thread 1 "python" hit Breakpoint 1.1, G4SvcRunManager::~G4SvcRunManager (this=0x65eb8c0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:9
+9	G4SvcRunManager::~G4SvcRunManager() {
+(gdb) bt
+#0  G4SvcRunManager::~G4SvcRunManager (this=0x65eb8c0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:9
+#1  0x00007fffe05845ba in G4SvcRunManager::~G4SvcRunManager (this=0x65eb8c0, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4SvcRunManager.cc:11
+#2  0x00007fffcf9766db in G4Svc::~G4Svc (this=0x65ad800, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:20
+#3  0x00007fffcf97672e in G4Svc::~G4Svc (this=0x65ad800, __in_chrg=<optimized out>) at /home/blyth/junosw/Simulation/DetSimV2/G4Svc/src/G4Svc.cc:23
+#4  0x00007fffd0adf513 in DleSupervisor::clear() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#5  0x00007fffd0adfe0d in ExecUnit::reset() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#6  0x00007fffd0af7b4b in TaskWatchDog::terminate() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#7  0x00007fffd0af4f64 in Task::~Task() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/lib64/libSniperKernel.so
+#8  0x00007fffccbd983c in boost::python::objects::value_holder<TopTask>::~value_holder() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/sniper/InstallArea/python/Sniper/libSniperPython.so
+#9  0x00007fffdf0b9d4f in instance_dealloc () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Boost/1.85.0/lib/libboost_python311.so.1.85.0
+#10 0x00007ffff79c0ae2 in subtype_dealloc (self=0x7fffc15455d0) at Objects/typeobject.c:1463
+#11 0x00007ffff799eeae in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#12 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#13 _PyObject_FreeInstanceAttributes (self=<optimized out>) at Objects/dictobject.c:5583
+#14 0x00007ffff79c0bf3 in subtype_dealloc (self=0x7ffff770f6d0) at Objects/typeobject.c:1433
+#15 0x00007ffff79963ad in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#16 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#17 free_keys_object (keys=0x7ffff7e7fd20) at Objects/dictobject.c:664
+#18 0x00007ffff799730c in dictkeys_decref (dk=<optimized out>) at Objects/dictobject.c:324
+#19 dict_dealloc (mp=0x7ffff76e5640) at Objects/dictobject.c:2378
+#20 0x00007ffff79a9ae5 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#21 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#22 module_dealloc (m=0x7ffff76e1b70) at Objects/moduleobject.c:699
+#23 0x00007ffff799a3d0 in Py_DECREF (op=<optimized out>) at ./Include/object.h:538
+#24 Py_XDECREF (op=<optimized out>) at ./Include/object.h:602
+#25 insertdict (mp=0x7ffff7e49340, key=0x7ffff76e56f0, hash=-7891263638997123312, value=<optimized out>) at Objects/dictobject.c:1304
+#26 0x00007ffff7a8faa8 in finalize_remove_modules (verbose=0, modules=0x7ffff7e49340) at Python/pylifecycle.c:1415
+#27 finalize_modules (tstate=tstate@entry=0x7ffff7d79738 <_PyRuntime+166328>) at Python/pylifecycle.c:1550
+#28 0x00007ffff7a92e20 in Py_FinalizeEx () at Python/pylifecycle.c:1833
+#29 Py_FinalizeEx () at Python/pylifecycle.c:1751
+#30 0x00007ffff7ab8bc4 in Py_RunMain () at Modules/main.c:686
+#31 0x00007ffff7ab95b7 in pymain_main (args=0x7ffffffefd90) at Modules/main.c:714
+#32 Py_BytesMain (argc=<optimized out>, argv=<optimized out>) at Modules/main.c:738
+#33 0x00007ffff74295d0 in __libc_start_call_main () from /lib64/libc.so.6
+#34 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#35 0x0000000000401075 in _start ()
+(gdb) c
+Continuing.
+Delete G4SvcRunManager
+double free or corruption (!prev)
+
+Thread 1 "python" received signal SIGABRT, Aborted.
+0x00007ffff748bedc in __pthread_kill_implementation () from /lib64/libc.so.6
+(gdb) bt
+#0  0x00007ffff748bedc in __pthread_kill_implementation () from /lib64/libc.so.6
+#1  0x00007ffff743eb46 in raise () from /lib64/libc.so.6
+#2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+#3  0x00007ffff7429172 in __libc_message.cold () from /lib64/libc.so.6
+#4  0x00007ffff7495f87 in malloc_printerr () from /lib64/libc.so.6
+#5  0x00007ffff7497c7c in _int_free () from /lib64/libc.so.6
+#6  0x00007ffff749a2c5 in free () from /lib64/libc.so.6
+#7  0x00007fffe77aa79e in llvm::Module::~Module() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#8  0x00007fffe41bc1cc in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#9  0x00007fffe41bc16d in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#10 0x00007fffe41bc16d in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#11 0x00007fffe41bc16d in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#12 0x00007fffe41bc16d in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#13 0x00007fffe41bc16d in std::_Rb_tree<llvm::Module const*, std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule>, std::_Select1st<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >, std::less<llvm::Module const*>, std::allocator<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> > >::_M_erase(std::_Rb_tree_node<std::pair<llvm::Module const* const, llvm::orc::ThreadSafeModule> >*) [clone .isra.0] ()
+   from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#14 0x00007fffe41bc55e in cling::IncrementalExecutor::~IncrementalExecutor() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#15 0x00007fffe414ea5a in cling::Interpreter::~Interpreter() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#16 0x00007fffe414ecd9 in cling::Interpreter::~Interpreter() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#17 0x00007fffe406b3f8 in TCling::~TCling() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#18 0x00007fffe406b6c9 in TCling::~TCling() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCling.so
+#19 0x00007fffe97eefcc in TROOT::~TROOT() () from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/lib/libCore.so
+#20 0x00007ffff74412dd in __run_exit_handlers () from /lib64/libc.so.6
+#21 0x00007ffff7441430 in exit () from /lib64/libc.so.6
+#22 0x00007ffff74295d7 in __libc_start_call_main () from /lib64/libc.so.6
+#23 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#24 0x0000000000401075 in _start ()
+(gdb) 
+
+gdb) 
+quit
+A debugging session is active.
+
+	Inferior 1 [process 3647305] will be killed.
+
+Quit anyway? (y or n) y
+Thu Nov 27 01:37:27 PM CST 2025
+Thu Nov 27 01:37:27 PM CST 2025
+                   BASH_SOURCE : zhenning_double_muon/detsim.sh
+                          SDIR : /home/blyth/j/zhenning_double_muon
+                           PWD : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                            BP : G4SvcRunManager::~G4SvcRunManager,G4Svc::~G4Svc
+                        defarg : dbg
+                           arg : db1
+                        allarg : info_run_dbg_db1_db2_prof_grep_logp
+                   ENVSET_NAME : OJ_LOCAL_Nov27
+                        ENVSET : /home/blyth/junosw/InstallArea/envset.sh
+                  opticks_mode : 0
+                        evtmax : 1
+                          seed : 42
+                        output : output.root
+                   user_output : user_output.root
+                  pmt_hit_type : 2
+           pmtsd_merge_twindow : 1
+                      IDENTITY : OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                       LOGBASE : /data1/blyth/tmp
+                        LOGREL : j/zhenning_double_muon/detsim
+                       LOGROOT : /data1/blyth/tmp/j/zhenning_double_muon/detsim
+                        LOGDIR : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1
+                       LOGNAME : OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1.log
+                       LOGFILE : /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1/OJ_LOCAL_Nov27_ok0_hit2_merge1_seed42_evtmax1_db1.log
+                        topcmd : gdb__
+                       genmuon : j__zhenning_double_muon_seed_42_evtmax_1_db1
+                           MSG : OPTICKS RUNNING
+                            t0 : Thu Nov 27 10:51:44 AM CST 2025
+                            t1 : Thu Nov 27 01:37:27 PM CST 2025
+                            dt : 9943
+~/j/zhenning_double_muon
+A[blyth@localhost j]$ 
+
+
+
+
+
 

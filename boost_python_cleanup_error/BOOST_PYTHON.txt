@@ -1,0 +1,16 @@
+
+
+(ok) A[blyth@localhost boost_python_cleanup_error]$ jgr BOOST_PYTHON
+./CommonSvc/BufferMemMgr/binding/BufferMemMgrBinding.cc:BOOST_PYTHON_MODULE(libBufferMemMgr)
+./CommonSvc/RandomSvc/binding/RandomSvcBinding.cc:BOOST_PYTHON_MODULE(libRandomSvc)
+./DataQuality/ChQualitySvc/binding/ChQualitySvcBinding.cc:BOOST_PYTHON_MODULE(libChQualitySvc)
+./Database/CondDB/binding/ModuleDef.cc:BOOST_PYTHON_MODULE(libCondDB)
+./Detector/Identifier/binding/IdentifierBinding.cc:BOOST_PYTHON_MODULE(libIdentifier)
+./RawDataIO/RawFile/binding/RawFileBinding.cc:BOOST_PYTHON_MODULE(libRawFile)
+./RawDataIO/RawViewer/src/PyBinding.cc:BOOST_PYTHON_MODULE(libRawViewer)
+./RootIO/RootIOSvc/binding/RootIOSvcBinding.cc:BOOST_PYTHON_MODULE(libRootIOSvc)
+./Simulation/DetSimV2/DetSimMT/src/binding.cc:BOOST_PYTHON_MODULE(libDetSimMT)
+./Simulation/GenTools/src/binding.cc:BOOST_PYTHON_MODULE(libGenTools) 
+./Utilities/JunoTimer/binding/JunoTimerBinding.cc:BOOST_PYTHON_MODULE(libJunoTimer)
+
+
