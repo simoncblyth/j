@@ -89,10 +89,13 @@ vv="$vv test TEST"
 
 pmt_hit_type=1
 pmtsd_merge_twindow=1  ## always merge but do it in on CPU or GPU depending on opticks_mode_merge
-opticks_mode_merge=0
-opticks_max_slot=M150  ## avoid modemerged just splitting into two slices from M136 heuristic
+
 
 if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
+
+
+   opticks_mode_merge=0
+   opticks_max_slot=M150  ## avoid modemerged just splitting into two slices from M136 heuristic
 
    case $TEST in
       hit)           pmt_hit_type=1 ; opticks_mode_merge=0 ;;
@@ -102,11 +105,15 @@ if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
    esac
 
    IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_${TEST}_seed${seed}_evtmax${evtmax}_${arg}
-   export OPTICKS_MODE_MERGE=$opticks_mode_merge
-   export OPTICKS_MAX_SLOT=$opticks_max_slot
+
+
+   if [ "${ENVSET_NAME:0:1}" == "O" ]; then
+       export OPTICKS_MODE_MERGE=$opticks_mode_merge
+       export OPTICKS_MAX_SLOT=$opticks_max_slot
+   fi
 
    vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow IDENTITY"
-   vv="$vv OPTICKS_MODE_MERGE"
+   vv="$vv ENVSET_NAME OPTICKS_MODE_MERGE OPTICKS_MAX_SLOT"
 
 else
    printf "$BASH_SOURCE TEST[$TEST] UNHANDLED\n"
