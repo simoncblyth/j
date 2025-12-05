@@ -1,4 +1,9 @@
+One double muon event
+========================
 
+
+Summary table
+----------------
 
 
 Timings for one double muon event, ~150M photons, 28M hit, 6.4M mergedHit [28/6.4=4.3]
@@ -30,7 +35,159 @@ GPU hit merging doubly beneficial:
 
 
 
+detsim2.sh : opticksMode:0 "J" measurements
+---------------------------------------------
 
+TEST=hit ./detsim.sh
+~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    2025-12-04 22:57:14.857 ]junoSD_PMT_v2::Initialize eventID 0
+    2025-12-05 00:55:46.451 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 6474451 hitCollectionAlt -1 hcMuon 0 GPU NO
+
+    A[blyth@localhost zhenning_double_muon]$ seconds_between "2025-12-04 22:57:14.857" "2025-12-05 00:55:46.451"
+    7112
+
+    A[blyth@localhost zhenning_double_muon]$ echo $(( 7112/60 ))
+    118
+
+
+    A[blyth@localhost OJ_LOCAL_Dec04_ok0_hit_seed42_evtmax1_run]$ l
+    total 153696
+         4 drwxr-xr-x. 27 blyth blyth      4096 Dec  5 09:52 ..
+       404 -rw-r--r--.  1 blyth blyth    409641 Dec  5 00:55 OJ_LOCAL_Dec04_ok0_hit_seed42_evtmax1_run.log
+       640 -rw-r--r--.  1 blyth blyth    654064 Dec  5 00:55 user_output.root
+    152644 -rw-r--r--.  1 blyth blyth 156306497 Dec  5 00:55 output.root
+         4 drwxr-xr-x.  2 blyth blyth      4096 Dec  5 00:55 .
+    A[blyth@localhost OJ_LOCAL_Dec04_ok0_hit_seed42_evtmax1_run]$ pwd
+    /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Dec04_ok0_hit_seed42_evtmax1_run
+    A[blyth@localhost OJ_LOCAL_Dec04_ok0_hit_seed42_evtmax1_run]
+
+
+
+
+TEST=hitlite ./detsim.sh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
+
+
+
+    2025-12-05 09:54:44.657 [junoSD_PMT_v2::Initialize eventID 0
+    2025-12-05 11:49:48.015 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6474451 GPU NO
+
+    junotoptask.finalize            INFO: events processed 1
+    [2025-12-05 11:49:56,260] p502133 {/home/blyth/junosw/InstallArea/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+    [2025-12-05 11:49:56,260] p502133 {/home/blyth/junosw/InstallArea/bin/tut_detsim.py:55} INFO - ]juno_application.run
+
+    seconds_between "2025-12-05 09:54:44.657" "2025-12-05 11:49:48.015"
+
+    A[blyth@localhost zhenning_double_muon]$ seconds_between "2025-12-05 09:54:44.657" "2025-12-05 11:49:48.015"
+    6904
+
+    A[blyth@localhost zhenning_double_muon]$ echo $(( 6904/60 ))
+    115
+
+
+
+
+
+
+
+
+::
+
+    Internal e- conversion flag                         1
+    Store e- internal conversion data                   1
+    Electron internal conversion ID                     0
+    Correlated gamma emission flag                      0
+    Max 2J for sampling of angular correlations         10
+    =======================================================================
+    ### Run : 0
+    junotoptask.initialize          INFO: initialized
+    junotoptask:detsimiotask.find   WARN: Cann't find Object InputSvc
+    junotoptask:detsimiotask:OutputSvc.initialize  INFO: ... isReproducible: 0
+    junotoptask:detsimiotask.initialize  INFO: initialized
+    junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+    2025-12-04 22:57:14.857 [junoSD_PMT_v2::Initialize eventID 0
+    2025-12-04 22:57:14.857 ]junoSD_PMT_v2::Initialize eventID 0
+    Begin of Event --> 0
+
+    -------- WWWW ------- G4Exception-START -------- WWWW -------
+    *** G4Exception : Warning
+          issued by : G4Step::GetDeltaEnergy()
+    This method is obsolete and will be removed soon
+    *** This is just a warning message. ***
+    -------- WWWW -------- G4Exception-END --------- WWWW -------
+
+     decay 2 gammas 0.510999
+     decay 2 gammas 0.510999
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [61710629]@[PMT_3inch_inner2_phys] (-9293.64, 4609.02, -16390.59, 297.92)  step number >= 1000
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [64010277]@[PMT_3inch_inner1_phys] (-9422.46, 4721.79, -16260.01, 286.39)  step number >= 1000
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [80534704]@[pAcrylic] (-15507.47, 8096.74, -3414.09, 291.94)  step number >= 1000
+     decay 2 gammas 0.510999
+     decay 2 gammas 0.510999
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [155573108]@[PMT_3inch_inner2_phys] (13792.75, 11884.84, 6636.63, 1001.48)  step number >= 1000
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [160066560]@[PMT_3inch_inner1_phys] (-9235.43, 4624.44, -16394.77, 314.80)  step number >= 1000
+    junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [196134319]@[PMT_3inch_cntr_phys] (-9263.56, 4616.93, -16408.10, 257.26)  step number >= 1000
+    2025-12-05 00:55:46.451 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 6474451 hitCollectionAlt -1 hcMuon 0 GPU NO
+    2025-12-05 00:55:46.451 ]junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 6474451 hitCollectionAlt -1 hcMuon 0 GPU NO
+    hitCollectionTT.size: 102	userhitCollectionTT.size: 51
+    junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2025-12-04 16:55:47.289272000Z
+    junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2025-12-04 16:55:54.776777000Z
+    end of event action 
+    junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00 / 30150.00
+    junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+    end of event action 
+    junotoptask:detsimiotask.finalize  INFO: events processed 648
+    junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names: 
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] neutronInelastic
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hadElastic
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muBrems
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] RadioactiveDecay
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] compt
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] PsFormation
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] conv
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muIoni
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] muPairProd
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] nCapture
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] phot
+    junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] photonNuclear
+    junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: summaries: 
+    junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: number of measurements: 1
+    junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: mean time: 7120829.50 ms
+    junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: total time elapsed: 7120829.50 ms
+    ############################## SniperProfiling ##############################
+    Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+    GenTools                 1           1.26300        1.26300      0.00020      
+    DetSimAlg                1           7121184.50000  7121184.500001256.06359   
+    Sum of junotoptask       1           7121186.00000  7121186.000001088.88016   
+    #############################################################################
+    junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+    junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+    junotoptask.finalize            INFO: events processed 1
+    [2025-12-05 00:55:56,332] p468024 {/home/blyth/junosw/InstallArea/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+    [2025-12-05 00:55:56,332] p468024 {/home/blyth/junosw/InstallArea/bin/tut_detsim.py:55} INFO - ]juno_application.run
+    Namespace(help_more=False, loglevel='Info', dryrun=False, showTime=False, evtmax=1, seed=42, restore_seed_status=None, input=None, input_list=None, input_correlation=None, input_correlation_list=None, output='output.root', user_output='user_output.root', EnableUserOutput=False, output_stream=None, output_reproducible=False, profiling=True, profiling_with_details=False, toptask_show=True, restore_evtid_list='', start_evtid=0, dbtype='File', PDEValue=0.0, paradb=False, para_gtag='J22.1.0', dbconf=None, config_gen_materials=None, config_gen_exec=None, mac='run.mac', vis=False, vis_mac='vis.mac', detsim=True, detoption='Acrylic', qescale=1.0, light_yield=None, gdml=False, dae=False, splitevent=True, event_split_maxhits=None, splittrack=False, track_split_mode='PrimaryTrack', track_split_time=3000.0, pelletron=False, source=False, source_weights=False, source_weight_QC=False, ACU_source_weight_QC=False, CLS_source_weight_QC=False, ACU_source_weight_QC_Ti=False, CLS_source_weight_QC_Ti=False, K40_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC_thicker=False, AmC_ACU_source_weight_QC_thickest=False, submarine=False, OffsetInZ=0, OffsetInX=0, OffsetInY=0, GT_source_theta=0, guide_tube=True, dfball_tube=False, teflonhook=False, dflightcos=True, simplify_calib_anchor=True, cd_enabled=True, reflectivity=0.4, isgroundsurface=True, real_surface_in_cd_enabled=True, strut_complex_geometry=False, strut_surface_enabled=True, real_mask_tail=True, mask_tail_surface_enabled=True, optical_surface_in_cd_enabled=True, check_overlap_in_cd_enabled=False, wp_enabled=True, wp_pmt_enabled=True, wp_latticed_enabled=True, tt_enabled=True, shutter=False, lchimneywater=False, uchimneywater=False, botchimneywater=False, commissioning_enabled=False, below_z_is_water=0.0, pmt20inch=True, pmt20inch_name='PMTMask', pmt20inch_obsolete_torus_neck=False, pmt20inch_profligate_tail_cut=False, debug_disable_sticks=False, debug_disable_st=False, debug_disable_xj=False, debug_disable_sj=False, debug_disable_fa=False, pmt20inch_plus_dynode=False, pmt20inch_extra='TWO-mask', pmtmask_top_thick=10.0, pmt3inch=True, pmt3inch_name='Tub3inchV3', pmt3inch_offset=-50.0, ranges_pmt_enabled=None, ranges_pmt_constructed=None, construct_center_pmtid=-1, distance_to_center_pmt=-1, pmt_dbtype='IDService', new_optical_model=False, MaterialDataDir=None, pmtsd_v2=True, ce_mode='20inch', ce_flat_value=0.9, ce_func=None, ce_func_par=None, pmtsd_merge_twindow=1.0, useoptical=True, cerenkov_only=False, cerenkov=True, cerenkov_type='modified', opabs=True, opsct=True, pmt_optical_model=True, pmt_natural_geometry=True, track_op_first=True, deferred_op=False, deferred_op_testing_ratio=1.0, preselect=None, usingLS=False, cutEdep_in_ls=0, opticks_mode=0, opticks_anamgr=False, replace_param='Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m', usepmtsimsvc=True, quenching=True, pmt_hit_type=1, pmt_disable_process=False, photon_conversion=False, nphotonsperparticle=10, fixed_energy=None, physics_list='JUNO', positronium=True, use_stepfunc_in_macro=False, enableIonPHP=True, flag_struts_fasteners='none', anamgr_grdm=True, stopAtPa234m=True, anamgr_edm=False, anamgr_edm_v2=True, anamgr_simtrack=True, anamgr_hitcollection='hitCollection', anamgr_edm_gen=True, anamgr_tt=True, anamgr_normal=True, anamgr_normal_hit=False, use_given_velocity=True, anamgr_muon=True, anamgr_atmo=False, anamgr_genevt=True, anamgr_deposit=True, anamgr_deposit_tt=True, anamgr_deposit_voxel=False, anamgr_deposit_voxelsize=100, anamgr_interesting_process=True, anamgr_extra_procnames=None, anamgr_legacy_michel_electron=False, anamgr_legacy_ncapture=False, anamgr_legacy_decay=False, anamgr_neutron_inelastic=False, anamgr_optical_parameter=True, anamgr_timer=True, anamgr_photon_tracking=False, anamgr_g4tracking_verbose=None, anamgr_g4tracking_evtlist=None, anamgr_list=[], anamgr_config_file=None, voxel_fast_sim=False, voxel_merge_flag=False, voxel_merge_twin=1, voxel_fill_ntuple=False, voxel_fast_dir=None, voxel_geom_file='geom-geom-20pmt.root', voxel_npe_file='npehist3d_single.root', voxel_time_file='dist_tres_single.root', voxel_gen_npe=True, voxel_gen_time=True, voxel_save_hits=True, voxel_pmts_structs=True, voxel_quenching_scale=0.93, global_time_begin='1970-01-01 00:00:01', global_time_end='2038-01-19 03:14:07', global_event_rate=0.0, gentool_mode='hepevt', material='None', volume='None', volume_radius_min=0.0, volume_radius_max=0.0, volume_z_min=None, volume_z_max=None, volume_x_min=None, volume_x_max=None, volume_y_min=None, volume_y_max=None, volume_rock_depth=None, global_position=None, exe='Muon', file='/home/blyth/j/zhenning_double_muon/j__zhenning_double_muon_seed_42_evtmax_1.txt', use_event_time_from_generator=False)
+    HepEvt2HepMC Dtor called begin
+    HepEvt2HepMC Dtor called end
+    Delete G4SvcRunManager
+    corrupted size vs. prev_size
+     *** Break *** abort
+
+
+
+
+
+detsim4.sh : OJ measuments
+------------------------------------
 
 
 

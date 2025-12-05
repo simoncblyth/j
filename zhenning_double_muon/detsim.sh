@@ -73,8 +73,8 @@ vv="$vv BP defarg arg allarg"
 source ~/.opticks/GEOM/ENVSET.sh   ## sets ENVSET and ENVSET_NAME envvars : DOES NOT SOURCE THE ENVSET
 vv="$vv ENVSET_NAME ENVSET"
 
-#opticks_mode=0
-opticks_mode=1
+opticks_mode=0
+#opticks_mode=1
 
 evtmax=1
 seed=42
@@ -189,7 +189,6 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" 
     vv="$vv topcmd genmuon"
 
 
-
     if [ -n "$ENVSET" -a -f "$ENVSET" ]; then
         source $ENVSET
     else
@@ -202,6 +201,7 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" 
         export SEvt__MINTIME=1    # dump kernel launch times
         export OPTICKS_MAX_BOUNCE=63
         export SProf__WRITE=1   # enable the time and memory profiling
+        opt="$opt --opticks-mode ${opticks_mode}"
     else
         MSG="NON OPTICKS RUNNING"
     fi
@@ -222,7 +222,6 @@ if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" 
         $(which python) \
         $(which tut_detsim.py) \
         $opt \
-        --opticks-mode ${opticks_mode} \
         --evtmax ${evtmax} \
         --seed ${seed} \
         --no-gdml \
