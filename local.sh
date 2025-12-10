@@ -322,6 +322,7 @@ ljbb()
 {
    : ~/local.sh
    : use this in fresh tab to setup env and perform the build
+   [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    local_oj_build
    oj_build
 }
@@ -330,6 +331,7 @@ ljbb0()
 {
    : ~/local.sh
    : same as ljbb but using NOINIT=1 which prevents geometry initialization
+   [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    NOINIT=1 ljbb
 }
 
@@ -338,6 +340,7 @@ ljbb0c()
    : ~/local.sh
    : same as ljbb but using NOINIT=1 which prevents geometry initialization
    : and OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
+   [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    NOINIT=1 OJ_BUILD_CLEAN=1 ljbb
 }
 
@@ -345,14 +348,21 @@ ljbbc()
 {
    : ~/local.sh
    : same as ljbb but with OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
+   [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    OJ_BUILD_CLEAN=1 ljbb
 }
 
 
-
-
-
-
+oj_log()
+{
+    : ~/local.sh 
+    : logfile LOGSTEM.log in invoking directory is appended to
+    : LOGSTEM should be the name of the principal bash function eg oj_build_
+    local logstem=$1
+    shift
+    local stamp=$(date +"%Y-%m-%d %H:%M:%S")
+    printf "$stamp $*\n" >> $logstem.log 
+}
 
 
 local_oj_build()
@@ -399,7 +409,10 @@ local_oj_build()
    oj_build_clean()
    {
       : when changing externals need nuclear rebuild
+
       cd $HOME/junosw
+
+
       rm -rf InstallArea build InstallConfig
    }
 
@@ -415,8 +428,15 @@ local_oj_build()
    oj_build_(){
        : ~/local.sh
        cd $HOME/junosw ;
+
+       ##rm -f $FUNCNAME.log  ## retaining log to follow progression of build time is useful
+       oj_log $FUNCNAME START $CMD
+
        ./build_Debug.sh ;
+
        [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD && return 1
+
+       oj_log $FUNCNAME FINISH $CMD
        return 0
    }
 
@@ -437,6 +457,7 @@ local_oj_build()
 
    oj_build(){
        : ~/local.sh
+
        [ -n "$OJ_BUILD_CLEAN" ] && oj_build_clean
        oj_build_info
        oj_build_pre
