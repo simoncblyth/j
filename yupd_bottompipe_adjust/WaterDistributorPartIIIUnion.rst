@@ -3,6 +3,65 @@ WaterDistributorPartIIIUnion
 
 
 
+CONFIRMED FIX
+----------------
+
+CSG/tests/CSGFoundryLoadTest.sh::
+
+    2025-12-15 22:38:22.866 INFO  [848206] [SSim::AnnotateFrame@197]  caller CSGFoundry::getFrameE tree YES elv NO  extra.size 0 tree_digest 301158ef96cbf4d61f96ed76aee59990 dynamic 301158ef96cbf4d61f96ed76aee59990
+    [CSGFoundryLoadTest::CompareRanges 
+     num_solid 12 solidIdx 11 tr YES sc YES mg YES
+    [CSGFoundry::comparePrimRange solidIdx 11 so.primOffset  2731 so.numPrim   338 mg YES
+    [CSGPrim::Desc numPrim 338 mg_subs 338
+       0 : CSGPrim::descRange mn [  -727.052   -538.335  21683.797 ] mx [  -406.658   -255.495  22066.203 ] ce [  -566.855   -396.915  21875.000    191.203 ] lvid  29 ridx    0 pidx     0 so[ConnectingCutTube_0]
+       0 : SMesh::descRange   mn [  -698.234   -508.169  21750.000 ] mx [  -435.476   -285.661  22000.000 ] ce [  -566.855   -396.915  21875.000    131.379 ]  name[-]  lvid  29 so[ConnectingCutTube_0] extent_diff    -59.824
+       1 : CSGPrim::descRange mn [   320.786   -661.030  21683.797 ] mx [   623.104   -351.170  22066.203 ] ce [   471.945   -506.100  21875.000    191.203 ] lvid  30 ridx    0 pidx     1 so[ConnectingCutTube_1]
+       1 : SMesh::descRange   mn [   351.675   -630.004  21750.000 ] mx [   592.215   -382.196  22000.000 ] ce [   471.945   -506.100  21875.000    125.000 ]  name[-]  lvid  30 so[ConnectingCutTube_1] extent_diff    -66.203
+       2 : CSGPrim::descRange mn [  -256.899    515.754  21683.795 ] mx [   -54.431    832.776  22066.205 ] ce [  -155.665    674.265  21875.000    191.205 ] lvid  31 ridx    0 pidx     2 so[ConnectingCutTube_2]
+       2 : SMesh::descRange   mn [  -241.315    530.078  21750.000 ] mx [   -70.015    818.452  22000.000 ] ce [  -155.665    674.265  21875.000    144.187 ]  name[-]  lvid  31 so[ConnectingCutTube_2] extent_diff    -47.018
+       3 : CSGPrim::descRange mn [  -662.000    -66.500 -21073.500 ] mx [   136.661     66.500 -19116.201 ] ce [  -262.670      0.000 -20094.852    978.649 ] lvid  32 ridx    0 pidx     3 so[WaterDistributorPartIIIUnion]
+       3 : SMesh::descRange   mn [  -661.993   -125.000 -21073.482 ] mx [   136.645    125.000 -19120.000 ] ce [  -262.674      0.000 -20096.742    976.741 ]  name[-]  lvid  32 so[WaterDistributorPartIIIUnion] extent_diff     -1.908
+       4 : CSGPrim::descRange mn [ -1225.791  -1225.791  21174.000 ] mx [  1225.791   1225.791  21644.000 ] ce [     0.000      0.000  21409.000   1225.791 ] lvid  34 ridx    0 pidx     4 so[Waterdistributor_1]
+       4 : SMesh::descRange   mn [ -1342.054  -1342.032  21136.018 ] mx [  1342.070   1342.071  21681.975 ] ce [     0.008      0.020  21408.996   1342.062 ]  name[-]  lvid  34 so[Waterdistributor_1] extent_diff    116.271
+     LARGE extent_diff    116.271
+     sub_tr0
+    .
+         1.0000     0.0000     0.0000     0.0000.
+         0.0000     1.0000     0.0000     0.0000.
+         0.0000     0.0000     1.0000     0.0000.
+         0.0000     0.0000     0.0000     1.0000.
+
+     sub_loaddir [/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/scene/meshgroup/11/4]
+       5 : CSGPrim::descRange mn [ -1219.998  -1219.998  21174.000 ] mx [  1219.998   1219.998  21644.000 ] ce [     0.000      0.000  21409.000   1219.998 ] lvid  33 ridx    0 pidx     5 so[Waterdistributor_0]
+       5 : SMesh::descRange   mn [ -1336.770  -1336.749  21141.018 ] mx [  1336.786   1336.788  21676.975 ] ce [     0.008      0.019  21408.996   1336.778 ]  name[-]  lvid  33 so[Waterdistributor_0] extent_diff    116.780
+     LARGE extent_diff    116.780
+     sub_tr0
+    .
+         1.0000     0.0000     0.0000     0.0000.
+         0.0000     1.0000     0.0000     0.0000.
+         0.0000     0.0000     1.0000     0.0000.
+         0.0000     0.0000     0.0000     1.0000.
+
+     sub_loaddir [/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/scene/meshgroup/11/5]
+       6 : CSGPrim::descRange mn [ -1225.791  -1225.791 -21547.000 ] mx [  1225.791   1225.791 -21077.000 ] ce [     0.000      0.000 -21312.000   1225.791 ] lvid  34 ridx    0 pidx     6 so[Waterdistributor_1]
+       6 : SMesh::descRange   mn [ -1342.054  -1342.032 -21584.982 ] mx [  1342.070   1342.071 -21039.025 ] ce [     0.008      0.020 -21312.004   1342.062 ]  name[-]  lvid  34 so[Waterdistributor_1] extent_diff    116.271
+     LARGE extent_diff    116.271
+     sub_tr0
+    .
+         1.0000     0.0000     0.0000     0.0000.
+         0.0000     1.0000     0.0000     0.0000.
+         0.0000     0.0000     1.0000     0.0000.
+         0.0000     0.0000     0.0000     1.0000.
+
+     sub_loaddir [/home/blyth/junosw/InstallArea/.opticks/GEOM/J25_4_0_opticks_Debug/CSGFoundry/SSim/scene/meshgroup/11/6]
+       7 : CSGPrim::descRange mn [ -1219.998  -1219.998 -21547.000 ] mx [  1219.998   1219.998 -21077.000 ] ce [     0.000      0.000 -21312.000   1219.998 ] lvid  33 ridx    0 pidx     7 so[Waterdistributor_0]
+       7 : SMesh::descRange   mn [ -1336.770  -1336.749 -21579.982 ] mx [  1336.786   1336.788 -21044.025 ] ce [     0.008      0.019 -21312.004   1336.778 ]  name[-]  lvid  33 so[Waterdistributor_0] extent_diff    116.780
+     LARGE extent_diff    116.780
+     sub_tr0
+
+
+
+
 
 
 PROBABLY FIXED::
