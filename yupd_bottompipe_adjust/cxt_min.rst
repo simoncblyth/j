@@ -98,8 +98,11 @@ ok) A[blyth@localhost CSG]$ SID=0 tests/CSGFoundryLoadTest.sh | grep Seg
     ce = np.array([   264.136,  -566.442,-19268.500,   354.500])
 
 
+
+
 OPTICKS_EVENT_NAME=2dxy POINT=264.136,-566.442,0 cxt_min.sh pdb   ## succeeds to land a point in the middle of the xy view of the pipe
 
+moi=264.136,-566.442,-20475,1500        # xy-middle-of-pipe z-outer-tyvek
     
 
 
