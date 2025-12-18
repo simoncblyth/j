@@ -2812,10 +2812,24 @@ ji(){ j-cd ; cd issues ; ls -lt | head -30 ; : ~/j/j.bash ; }
 #j3(){ ji ; vi $(ls -1t | head -3 | tail -1) ; }
 #j4(){ ji ; vi $(ls -1t | head -4 | tail -1) ; }
 
-j1() { ji ; vi "$(ls -1t | sed -n '1p' 2>/dev/null)" ; : ~/j/j.bash ; }
-j2() { ji ; vi "$(ls -1t | sed -n '2p' 2>/dev/null)" ; : ~/j/j.bash ; }
-j3() { ji ; vi "$(ls -1t | sed -n '3p' 2>/dev/null)" ; : ~/j/j.bash ; }
-j4() { ji ; vi "$(ls -1t | sed -n '4p' 2>/dev/null)" ; : ~/j/j.bash ; }
+ji1() { ji ; vi "$(ls -1t | sed -n '1p' 2>/dev/null)" ; : ~/j/j.bash ; }
+ji2() { ji ; vi "$(ls -1t | sed -n '2p' 2>/dev/null)" ; : ~/j/j.bash ; }
+ji3() { ji ; vi "$(ls -1t | sed -n '3p' 2>/dev/null)" ; : ~/j/j.bash ; }
+ji4() { ji ; vi "$(ls -1t | sed -n '4p' 2>/dev/null)" ; : ~/j/j.bash ; }
+
+jl_(){  cd ~/j ; ls -1t $(git ls-files --others --modified --exclude-standard) ; : ~/j/j.bash ; }
+jl(){  jl_ | awk "{print NR-1, \$0}"  ; : ~/j/j.bash ; }
+j0(){  cd ~/j ; vi "$(jl_ | sed -n '1p' 2>/dev/null)" ;  : ~/j/j.bash ; }
+j1(){  cd ~/j ; vi "$(jl_ | sed -n '2p' 2>/dev/null)" ;  : ~/j/j.bash ; }
+j2(){  cd ~/j ; vi "$(jl_ | sed -n '3p' 2>/dev/null)" ;  : ~/j/j.bash ; }
+j3(){  cd ~/j ; vi "$(jl_ | sed -n '4p' 2>/dev/null)" ;  : ~/j/j.bash ; }
+
+jm(){  cd ~/j ; git modified ; }
+gitmodified(){
+   git config --global alias.modified '!ls -1t $(git ls-files -mo --exclude-standard) | awk "{print NR-1, \$0}"'
+   git config --global --get alias.modified
+}
+   
 
 
 jrst(){ j-cd ; vi $(ls -1t *.rst| head -1) ;  }
