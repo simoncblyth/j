@@ -48,6 +48,9 @@ jxm(){ cd ~/j/mtds ; pwd ; } # minimalist variant
 jxp(){ cd ~/j/PMTSimParamSvcTest ; pwd ; }
 
 jxo(){  open -a "Firefox Developer Edition" https://code.ihep.ac.cn/JUNO/offline ;  }
+jmr-url(){ echo https://code.ihep.ac.cn/dashboard/merge_requests?reviewer_username=blyth ; }
+jmr(){  open $(jmr-url) ; }
+
 
 jxscp(){ scp ~/j/jx.bash P:j/jx.bash ; }  ## as git ssh is often blocked
 
