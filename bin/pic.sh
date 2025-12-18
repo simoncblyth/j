@@ -101,7 +101,9 @@ fi
 
 if [ "${arg/ls}" != "$arg" ]; then
    if [ -f $cur ]; then
-       for png in $(ls -1rt *.png)
+   
+       #for png in $(ls -1rt *.png)
+       for png in $(ls -1 *.png)
        do
             tpng=$(stat --format=%Y $png)
             dpng=$(date -d@$tpng)
@@ -152,7 +154,7 @@ if [ "${arg/copy}" != "$arg" -a -f "$cur" ]; then
    cmd0="mkdir -p $BASE/$CUR"
    echo $cmd0
 
-   for dpng in $(find . -name '*.png' -newer $cur)
+   for dpng in $(find . -name '*.png' -newer $cur | sort) 
    do
        png=$(basename $dpng)
        txt=${png/.png}.txt

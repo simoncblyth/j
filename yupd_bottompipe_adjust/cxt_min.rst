@@ -38,6 +38,100 @@ https://github.com/simoncblyth/opticks/blob/master/u4/U4SolidMaker.cc#L2615
 
 
 
+
+
+
+Seg legs
+----------
+
+
+::
+
+    (ok) A[blyth@localhost tests]$ SID=0 ./CSGFoundryLoadTest.sh | grep Seg
+    2330 : SMesh::descRange   mn [  -133.972    543.122 -19623.000 ] mx [    25.028    702.122 -18914.000 ] ce [   -54.472    622.622 -19268.500    354.500 ]  name[-]  lvid 129 so[LowerWaterDistributorSeg3_0] extent_diff      0.000
+    2331 : SMesh::descRange   mn [  -666.808   -293.263 -19623.000 ] mx [  -507.808   -134.263 -18914.000 ] ce [  -587.308   -213.763 -19268.500    354.500 ]  name[-]  lvid 130 so[LowerWaterDistributorSeg3_1] extent_diff      0.000
+    2332 : SMesh::descRange   mn [   184.636   -645.942 -19623.000 ] mx [   343.636   -486.942 -18914.000 ] ce [   264.136   -566.442 -19268.500    354.500 ]  name[-]  lvid 131 so[LowerWaterDistributorSeg3_2] extent_diff      0.000
+    1014 : SMesh::descRange   mn [  -133.972    543.122 -20468.000 ] mx [    25.028    702.122 -19639.000 ] ce [   -54.472    622.622 -20053.500    414.500 ]  name[-]  lvid  76 so[LowerWaterDistributorSeg2_0] extent_diff      0.000
+    1015 : SMesh::descRange   mn [  -666.808   -293.263 -20468.000 ] mx [  -507.808   -134.263 -19639.000 ] ce [  -587.308   -213.763 -20053.500    414.500 ]  name[-]  lvid  77 so[LowerWaterDistributorSeg2_1] extent_diff      0.000
+    1016 : SMesh::descRange   mn [   184.636   -645.942 -20468.000 ] mx [   343.636   -486.942 -19639.000 ] ce [   264.136   -566.442 -20053.500    414.500 ]  name[-]  lvid  78 so[LowerWaterDistributorSeg2_2] extent_diff      0.000
+     217 : SMesh::descRange   mn [  -204.472    472.622 -21750.000 ] mx [    95.528    772.622 -20484.000 ] ce [   -54.472    622.622 -21117.000    633.000 ]  name[-]  lvid  35 so[LowerWaterDistributorSeg1_0] extent_diff      0.000
+     218 : SMesh::descRange   mn [  -737.308   -363.763 -21750.000 ] mx [  -437.308    -63.763 -20484.000 ] ce [  -587.308   -213.763 -21117.000    633.000 ]  name[-]  lvid  36 so[LowerWaterDistributorSeg1_1] extent_diff      0.000
+     219 : SMesh::descRange   mn [   114.136   -716.442 -21750.000 ] mx [   414.136   -416.442 -20484.000 ] ce [   264.136   -566.442 -21117.000    633.000 ]  name[-]  lvid  37 so[LowerWaterDistributorSeg1_2] extent_diff      0.000
+
+
+
+ok) A[blyth@localhost CSG]$ SID=0 tests/CSGFoundryLoadTest.sh | grep Seg
+2330 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-19268.500,   354.500])  ; bb = np.array([  -133.972,   543.122,-19623.000,    25.028,   702.122,-18914.000])  # CSGPrim::descRangeNumPy  lvid 129 ridx    0 pidx  2330 so[LowerWaterDistributorSeg3_0]
+2330 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-19268.500,   354.500])  ; bb = np.array([  -133.972,   543.122,-19623.000,    25.028,   702.122,-18914.000])  # SMesh::descRangeNumPy  name[-]  lvid 129 so[LowerWaterDistributorSeg3_0] extent_diff      0.000
+2331 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-19268.500,   354.500])  ; bb = np.array([  -666.808,  -293.263,-19623.000,  -507.808,  -134.263,-18914.000])  # CSGPrim::descRangeNumPy  lvid 130 ridx    0 pidx  2331 so[LowerWaterDistributorSeg3_1]
+2331 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-19268.500,   354.500])  ; bb = np.array([  -666.808,  -293.263,-19623.000,  -507.808,  -134.263,-18914.000])  # SMesh::descRangeNumPy  name[-]  lvid 130 so[LowerWaterDistributorSeg3_1] extent_diff      0.000
+2332 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-19268.500,   354.500])  ; bb = np.array([   184.636,  -645.942,-19623.000,   343.636,  -486.942,-18914.000])  # CSGPrim::descRangeNumPy  lvid 131 ridx    0 pidx  2332 so[LowerWaterDistributorSeg3_2]
+2332 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-19268.500,   354.500])  ; bb = np.array([   184.636,  -645.942,-19623.000,   343.636,  -486.942,-18914.000])  # SMesh::descRangeNumPy  name[-]  lvid 131 so[LowerWaterDistributorSeg3_2] extent_diff      0.000
+1014 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-20053.500,   414.500])  ; bb = np.array([  -133.972,   543.122,-20468.000,    25.028,   702.122,-19639.000])  # CSGPrim::descRangeNumPy  lvid  76 ridx    0 pidx  1014 so[LowerWaterDistributorSeg2_0]
+1014 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-20053.500,   414.500])  ; bb = np.array([  -133.972,   543.122,-20468.000,    25.028,   702.122,-19639.000])  # SMesh::descRangeNumPy  name[-]  lvid  76 so[LowerWaterDistributorSeg2_0] extent_diff      0.000
+1015 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-20053.500,   414.500])  ; bb = np.array([  -666.808,  -293.263,-20468.000,  -507.808,  -134.263,-19639.000])  # CSGPrim::descRangeNumPy  lvid  77 ridx    0 pidx  1015 so[LowerWaterDistributorSeg2_1]
+1015 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-20053.500,   414.500])  ; bb = np.array([  -666.808,  -293.263,-20468.000,  -507.808,  -134.263,-19639.000])  # SMesh::descRangeNumPy  name[-]  lvid  77 so[LowerWaterDistributorSeg2_1] extent_diff      0.000
+1016 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-20053.500,   414.500])  ; bb = np.array([   184.636,  -645.942,-20468.000,   343.636,  -486.942,-19639.000])  # CSGPrim::descRangeNumPy  lvid  78 ridx    0 pidx  1016 so[LowerWaterDistributorSeg2_2]
+1016 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-20053.500,   414.500])  ; bb = np.array([   184.636,  -645.942,-20468.000,   343.636,  -486.942,-19639.000])  # SMesh::descRangeNumPy  name[-]  lvid  78 so[LowerWaterDistributorSeg2_2] extent_diff      0.000
+ 217 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-21117.000,   633.000])  ; bb = np.array([  -204.472,   472.622,-21750.000,    95.528,   772.622,-20484.000])  # CSGPrim::descRangeNumPy  lvid  35 ridx    0 pidx   217 so[LowerWaterDistributorSeg1_0]
+ 217 : import numpy as np  ; ce = np.array([   -54.472,   622.622,-21117.000,   633.000])  ; bb = np.array([  -204.472,   472.622,-21750.000,    95.528,   772.622,-20484.000])  # SMesh::descRangeNumPy  name[-]  lvid  35 so[LowerWaterDistributorSeg1_0] extent_diff      0.000
+ 218 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-21117.000,   633.000])  ; bb = np.array([  -737.308,  -363.763,-21750.000,  -437.308,   -63.763,-20484.000])  # CSGPrim::descRangeNumPy  lvid  36 ridx    0 pidx   218 so[LowerWaterDistributorSeg1_1]
+ 218 : import numpy as np  ; ce = np.array([  -587.308,  -213.763,-21117.000,   633.000])  ; bb = np.array([  -737.308,  -363.763,-21750.000,  -437.308,   -63.763,-20484.000])  # SMesh::descRangeNumPy  name[-]  lvid  36 so[LowerWaterDistributorSeg1_1] extent_diff      0.000
+ 219 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-21117.000,   633.000])  ; bb = np.array([   114.136,  -716.442,-21750.000,   414.136,  -416.442,-20484.000])  # CSGPrim::descRangeNumPy  lvid  37 ridx    0 pidx   219 so[LowerWaterDistributorSeg1_2]
+ 219 : import numpy as np  ; ce = np.array([   264.136,  -566.442,-21117.000,   633.000])  ; bb = np.array([   114.136,  -716.442,-21750.000,   414.136,  -416.442,-20484.000])  # SMesh::descRangeNumPy  name[-]  lvid  37 so[LowerWaterDistributorSeg1_2] extent_diff      0.000
+(ok) A[blyth@localhost CSG]$ 
+
+
+
+    In [2]: bb = np.array([   184.636,  -645.942,-19623.000,   343.636,  -486.942,-18914.000])
+
+    In [3]: bb[:3]
+    Out[3]: array([   184.636,   -645.942, -19623.   ])
+
+    In [4]: bb[3:]
+    Out[4]: array([   343.636,   -486.942, -18914.   ])
+
+    In [5]: (bb[:3] + bb[3:])/2
+    Out[5]: array([   264.136,   -566.442, -19268.5  ])
+
+
+    ce = np.array([   264.136,  -566.442,-19268.500,   354.500])
+
+
+OPTICKS_EVENT_NAME=2dxy POINT=264.136,-566.442,0 cxt_min.sh pdb   ## succeeds to land a point in the middle of the xy view of the pipe
+
+    
+
+
+
+    SimtracePlot.__call__ picked_point [ 218.654 -501.238    0.   ] pointId 15827 idx 42 k mediumblue label      mediumblue    31610                        Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_PhysLowerWaterDistSeg2//Steel$ ##  
+    SimtracePlot.__call__ picked_point [ 218.654 -501.238    0.   ] pointId 15827 idx 42 k mediumblue label      mediumblue    31610                        Water/Implicit_RINDEX_NoRINDEX_pOuterWaterInCD_PhysLowerWaterDistSeg2//Steel$ ##  
+
+
+
+
+Find the crucial Z positions of the tyvek::
+
+    [CSGFoundry::comparePrimRange solidIdx 11 so.primOffset  2731 so.numPrim   338 mg YES
+    [CSGPrim::Desc numPrim 338 mg_subs 338 EXTENT_DIFF :    200.000 [CSGPrim__DescRange_EXTENT_DIFF]
+      11 : CSGPrim::descRange mn [-19629.000 -19629.000 -19629.000 ] mx [ 19629.000  19629.000  22000.000 ] ce [     0.000      0.000   1185.500  20814.500 ] lvid 333 ridx    0 pidx    11 so[sInnerWater_TSubWaterDistributor_cutTube2]
+      10 : CSGPrim::descRange mn [-19631.000 -19631.000 -19631.000 ] mx [ 19631.000  19631.000  22000.000 ] ce [     0.000      0.000   1184.500  20815.500 ] lvid 334 ridx    0 pidx    10 so[sInnerReflectorInCD_TSubWaterDistributor_cutTube2]
+       9 : CSGPrim::descRange mn [-20474.000 -20474.000 -20474.000 ] mx [ 20474.000  20474.000  22000.000 ] ce [     0.000      0.000    763.000  21237.000 ] lvid 335 ridx    0 pidx     9 so[sOuterWaterInCD_TSubWaterDistributor_cutTube2]
+       8 : CSGPrim::descRange mn [-20476.000 -20476.000 -20476.000 ] mx [ 20476.000  20476.000  22000.000 ] ce [     0.000      0.000    762.000  21238.000 ] lvid 336 ridx    0 pidx     8 so[sOuterReflectorInCD_TSubWaterDistributor_cutTube2]
+       0 : CSGPrim::descRange mn [  -727.052   -538.335  21683.797 ] mx [  -406.658   -255.495  22066.203 ] ce [  -566.855   -396.915  21875.000    191.203 ] lvid  29 ridx    0 pidx     0 so[ConnectingCutTube_0]
+       1 : CSGPrim::descRange mn [   320.786   -661.030  21683.797 ] mx [   623.104   -351.170  22066.203 ] ce [   471.945   -506.100  21875.000    191.203 ] lvid  30 ridx    0 pidx     1 so[ConnectingCutTube_1]
+       2 : CSGPrim::descRange mn [  -256.899    515.754  21683.795 ] mx [   -54.431    832.776  22066.205 ] ce [  -155.665    674.265
+
+
+               -19630  
+               -20475
+
+
+
+
+
+
+
 Give colors to geometry at bottom of detector::
 
     [key_prim_regexp]
