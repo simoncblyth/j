@@ -290,7 +290,7 @@ lo()
    local_ok_build
    lco
 
-   export GEOMBASE=$HOME/junosw/InstallArea/.opticks/GEOM
+   export GEOMBASE=$(local_srcdir)/InstallArea/$(local_branch)/.opticks/GEOM
    ## liteweight for GEOM bash function navigation eg "GEOM cf"
 }
 
@@ -355,15 +355,17 @@ ljbbc()
 
 oj_log()
 {
-    : ~/local.sh 
+    : ~/local.sh
     : logfile LOGSTEM.log in invoking directory is appended to
     : LOGSTEM should be the name of the principal bash function eg oj_build_
     local logstem=$1
     shift
     local stamp=$(date +"%Y-%m-%d %H:%M:%S")
-    printf "$stamp $*\n" >> $logstem.log 
+    printf "$stamp $*\n" >> $logstem.log
 }
 
+local_srcdir(){ echo $HOME/junosw ; }
+local_branch(){ git -C $(local_srcdir) branch --show-current ; }
 
 local_oj_build()
 {
@@ -379,8 +381,8 @@ local_oj_build()
    :    JLatest symbolic link no longer latest - currently J25.3.0
    :    so follow .gitlab-ci.yml and change the below JUNOTOP to J25.4.0
 
-   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
-   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
+   export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+   #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
    source $JUNOTOP/setup.sh
 
    local_JUNOTOP_override
@@ -394,6 +396,19 @@ local_oj_build()
 
    export JUNO_OFFLINE_OFF=1
    export OPTICKS_SETUP_VERBOSE=1
+   export JUNO_OFFLINE_BUILD_BRANCH=1  # suffix operating directories with the branch eg: InstallArea/main build/main
+
+   # prior to https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-add-optional-branch-name-after-InstallArea-and-build-dirs-plus-ci-JUNOTOP-to-JLatest
+
+   KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW=1
+   if [ "$JUNO_OFFLINE_BUILD_BRANCH" == "1" -a -n "$KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW" ]; then
+       SOURCE_DIR=$HOME/junosw
+       BRANCH=$(git -C $SOURCE_DIR branch --show-current)
+       export JUNO_OFFLINE_BLDDIR=$SOURCE_DIR/build/$BRANCH
+       export JUNO_OFFLINE_INSTALLDIR=$SOURCE_DIR/InstallArea/$BRANCH
+       mkdir -p $JUNO_OFFLINE_BLDDIR
+       mkdir -p $JUNO_OFFLINE_INSTALLDIR
+   fi
 
    export SPMT__init_pmtNum_FAKE_WHEN_MISSING=1  # transient backward compat for junosw branches without pmtNum
 
@@ -410,15 +425,21 @@ local_oj_build()
    {
       : when changing externals need nuclear rebuild
 
-      cd $HOME/junosw
+      cd $(local_srcdir)
+      local branch=$(local_branch)
 
+      if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
+          rm -rf InstallArea/$branch build/$branch
+      else
+          rm -rf InstallArea build
+      fi
+      rm -rf InstallConfig
 
-      rm -rf InstallArea build InstallConfig
    }
 
    oj_build_pre(){
        : ~/local.sh
-       cd $HOME/junosw
+       cd $(local_srcdir)
        source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
        mkdir -p InstallConfig
        source .gitlab-ci/oj_helper.sh EMIT_ENV    > InstallConfig/ENV.bash
@@ -427,7 +448,7 @@ local_oj_build()
 
    oj_build_(){
        : ~/local.sh
-       cd $HOME/junosw ;
+       cd $(local_srcdir)
 
        ##rm -f $FUNCNAME.log  ## retaining log to follow progression of build time is useful
        oj_log $FUNCNAME START $CMD
@@ -442,16 +463,23 @@ local_oj_build()
 
    oj_build_post(){
        : ~/local.sh
-       cd $HOME/junosw
-       cp InstallConfig/ENV.bash  InstallArea/ENV.bash
-       cp InstallConfig/envset.sh InstallArea/envset.sh
+       cd $(local_srcdir)
+       local branch=$(local_branch)
+
+      if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
+           cp InstallConfig/ENV.bash  InstallArea/$branch/ENV.bash
+           cp InstallConfig/envset.sh InstallArea/$branch/envset.sh
+      else
+           cp InstallConfig/ENV.bash  InstallArea/ENV.bash
+           cp InstallConfig/envset.sh InstallArea/envset.sh
+      fi
    }
 
    oj_build_initialize(){
        : ~/local.sh
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
-       cd $HOME/junosw
+       cd $(local_srcdir)
        ./oj_initialize.sh
    }
 
@@ -475,7 +503,7 @@ local_oj_build()
 
 local_oj()
 {
-    source $HOME/junosw/InstallArea/envset.sh
+    source $(local_srcdir)/InstallArea/$(local_branch)/envset.sh
 }
 loj(){
    : ~/local.sh
@@ -516,7 +544,7 @@ local_oj_init()
        : follow .gitlab-ci.yml
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
-       cd $HOME/junosw
+       cd $(local_srcdir)
        ./oj_initialize.sh
    }
    type oj_init

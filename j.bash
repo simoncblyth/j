@@ -22,6 +22,34 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+Wed 7th Jan 2026 : Recover diverged branch : yupd_bottompipe_adjust
+-----------------------------------------------------------------------
+
+::
+
+    A[blyth@localhost junosw]$ git switch yupd_bottompipe_adjust
+    Switched to branch 'yupd_bottompipe_adjust'
+    Your branch and 'origin/yupd_bottompipe_adjust' have diverged,
+    and have 5 and 148 different commits each, respectively.
+      (use "git pull" if you want to integrate the remote branch with yours)
+
+
+::
+
+   git log origin/yupd_bottompipe_adjust..HEAD --oneline   ## check local 5
+   git log HEAD..origin/yupd_bottompipe_adjust --oneline   ## check remote 148
+   git log --oneline --graph --decorate --all -20          ## visualize the fork
+
+
+All 5 local commits are in remote but with different hash, due to different parents : so do hard reset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    git fetch origin
+    git reset --hard origin/yupd_bottompipe_adjust   ## Force local branch to point exactly where the remote is
+
+
 
 Wed 27th Aug 2025 : blyth-WaterPoolConstruction-fix-another-theLV-injection-bug-for-HIERARCHY-CONFIG
 ------------------------------------------------------------------------------------------------------
