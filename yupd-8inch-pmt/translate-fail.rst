@@ -439,15 +439,14 @@ torus dots::
      endtube_dz : -113.501
 
 
-scarf dots and torus dots
-
-
-     LINE=-65.5,0,-82.5,0,0,0 LINE2=65.5,0,-82.5,0,0,0 POINT=-65.5,0,-82.5,65.5,0,-82.5 BBOX=-51.19,0,-82.4999,51.19,0,-64.48764,-51.19,0,-64.48764,51.19,0,-82.4999   KLUDGE=1 cxt_min.sh pdb
-
-
-work out the geometry via lines an dots on the simtrace::
+scarf dots and torus dots::
 
      LINE=-65.5,0,-82.5,0,0,0 LINE2=65.5,0,-82.5,0,0,0 POINT=-65.5,0,-82.5,65.5,0,-82.5 BBOX=-51.19,0,-82.4999,51.19,0,-64.48764,-51.19,0,-64.48764,51.19,0,-82.4999   KLUDGE=1 cxt_min.sh pdb
+
+work out the geometry via lines and dots on the simtrace::
+
+     LINE=-65.5,0,-82.5,0,0,0 LINE2=65.5,0,-82.5,0,0,0 POINT=-65.5,0,-82.5,65.5,0,-82.5 BBOX=-51.19,0,-82.4999,51.19,0,-64.48764,-51.19,0,-64.48764,51.19,0,-82.4999   KLUDGE=1 cxt_min.sh pdb
+     LINE=-65.5,0,-82.5,0,0,0 LINE2=65.5,0,-82.5,0,0,0 POINT=-65.5,0,-82.5,65.5,0,-82.5 BBOX=-51.19,0,-82.4999,51.19,0,-64.48764,-51.19,0,-64.48764,51.19,0,-82.4999 POINTSIZE=5 KLUDGE=1 cxt_min.sh pdb
 
 
 

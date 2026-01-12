@@ -1,0 +1,10 @@
+j/TODO
+==========
+
+* Improve oj_initialize tut_detsim.py FAIL handling in Examples/Tutorial/share/opticks_juno.sh
+* Improve changing tut_detsim.py options without needing to change code
+
+
+
+
+  
