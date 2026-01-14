@@ -1,0 +1,195 @@
+
+
+I note that your changes have greatly reduced the number of
+volumes to 1096 and there are no longer very small pieces.
+Thats good. However the number of solids is increased to 642, 
+which almost trebles the total number of solids to 986. 
+
+You state that the average job time increase with the EMF coils
+enabled is 45->49 min, which is almost a 10% increase (much better
+that the 30% you mentioned previously).
+Given the nature of the added geometry ~10% might be considered acceptable.
+
+As I noted previously you need to change to a consistent solid name 
+prefix eg "s_EMF" for all the solid names. Your "u_section*" names 
+do not have such a prefix.
+
+
+How I got the solid and volume counts:
+```
+  (ok) A[blyth@localhost CSGFoundry]$ egrep "u_section|EMF" meshname.txt  | wc -l 
+    642
+
+    (ok) A[blyth@localhost CSGFoundry]$ cat meshname.txt | wc -l
+    986
+:
+
+    (ok) A[blyth@localhost CSGFoundry]$  ~/o/CSG/tests/CSGFoundryLoadTest.sh | egrep "s_EMF|u_section"  | wc -l 
+    1096
+
+```
+
+Your code is organized in a non-standard way with your 
+WaterPoolConstructionEMF.hh not being a proper easy to 
+include and use header. Rather your .hh is just 
+a piece of code that must be included into a specific place 
+in some other code. That is the ultimate in being non-flexible
+and is a non-scalable way to organize your C++.
+
+This needs to be corrected in order that others can 
+rapidly work out what you are doing.
+
+The standard way to add functionality to WaterPoolConstruction is to 
+implement headers and implementation file, eg::
+
+```
+    WaterPoolConstructionEMF.hh
+    WaterPoolConstructionEMF.cc
+```
+
+The header defines the interface methods by which 
+the functionality is provided to WaterPoolConstruction
+and the API shows how the two are related.
+
+One way to implement in a more standard way is
+to create a struct/class. eg:
+
+```
+    // WaterPoolConstructionEMF.hh
+    #pragma once
+
+    class G4Polycone ;
+
+    struct WaterPoolConstructionEMF 
+    {
+        static const double EMF_RC_32[32] ;
+
+        WaterPoolConstructionEMF();
+
+        static G4Polycone* BuildLProfileSectorPolycone( const std::string& solidName, double Rout_mm, double L_mm, double t_mm, double phiStart, double phiTotal, bool flangeUp = false );
+
+        void makeEMFSupport_Polycone();  
+
+
+    };
+  
+
+
+    // WaterPoolConstructionEMF.cc
+
+    // ctor
+    WaterPoolConstructionEMF::WaterPoolConstructionEMF()
+    {
+    }
+    
+    const double WaterPoolConstructionEMF::EMF_RC_32[32] = {
+            3.843,   6.509,   9.185,  11.029,
+           13.210,  14.924,  16.325,  17.495,
+           18.465,  19.284,  19.953,  20.502,
+           20.931,  21.241,  21.450,  21.559,
+           21.559,  21.450,  21.240,  20.930,
+           20.501,  19.951,  19.282,  18.463,
+           17.495,  16.325,  14.924,  13.210,
+           11.053,   9.185,   6.509,   3.843
+        };   
+
+
+
+    G4Polycone* WaterPoolConstructionEMF::BuildLProfileSectorPolycone(
+        const std::string& solidName,
+        double Rout_mm,
+        double L_mm,
+        double t_mm,
+        double phiStart,
+        double phiTotal,
+        bool flangeUp
+    ){
+
+        const double H     = L_mm;
+
+        const int    NZ    = 4; 
+
+        double zPlane[NZ];
+        double rMin[NZ];
+```
+
+You can easily fill in the rest from your implementation.
+To use this from WaterPoolConstruction.cc you will need to::
+
+```
+    #include "WaterPoolConstructionEMF.hh"
+```
+
+Then you can use the methods you define::
+
+```
+    WaterPoolConstructionEMF emf ; 
+    emf.makeEMFSupport_Polycone();
+```
+
+It is not inevitable that you will need a "WaterPoolConstructionEMF" object.
+I typically start with static methods for small parts of the functionality like 
+the above "BuildLProfileSectorPolycone". This is using the struct 
+just as a "namespace" to keep your functionality and data.  Subsequently 
+I implement the object if it looks more convenient than just using
+static methods which are called like the below with no object::
+
+```
+    G4Polycone* poly = WaterPoolConstructionEMF::BuildLProfileSectorPolycone(...)
+```  
+A good convention to follow is to name static methods starting with a uppercase letters
+and object methods with lowercase ones.
+
+
+    
+The advantages with this approach are:
+
+1. standard way to use C++ so its easy for others to understand
+2. dependencies are made obvious via what you have to pass across the API
+3. you header can be included into a test executable to make a standalone test
+
+
+
+You are also still using the below two lambda expressions.
+
+```
+    1409     auto CreateUSupportBarLV = [&](int length_mm) -> G4LogicalVolume* {
+    1410         auto it = cache_len_to_lv.find(length_mm);
+    1411         if (it != cache_len_to_lv.end()) return it->second;
+    1412 
+    1413         // U-channel outer envelope: W x H; length along local +y
+    1414         const double W_mm  = 75.0; // width (local +x)
+    1415         const double H_mm  = 40.0; // height (local +z)
+    1416         const double tU_mm = 8.0;  // U-channel wall thickness
+    1417         const double L_mm  = static_cast<double>(length_mm); // length (local +y)
+    ...
+
+
+    1652     auto PlaceOneSegment = [&](const std::string& segName,
+    1653                                int ringIdx,                   // ringIdx = i (0-based)
+    1654                                double R0_m_local,              // neutral-layer radius of this ring (m)
+    1655                                const G4ThreeVector& pos_local, // world translation vector for this ring
+    1656                                double phiS, double phiE,
+    1657                                bool flangeUp,
+    1658                                const G4Colour& color,
+    1659                                int copyNo)
+    1660     {
+    1661         // phiS / phiE: start and end azimuthal angles (phi),
+    1662         // units are CLHEP angles (numerically radians)
+    1663         // dphi: azimuthal span (phiTotal)
+    1664         const double s = phiS + PHI_EPS;
+    ...
+```
+
+
+That code can more clearly and safely be implemented with methods. 
+
+Lambda expressions are able to capture the context from before them.
+While they are useful in some situations, this is not such a situation.
+Code is written once and read many times, being quick
+to read is very important. The lambdas here obscure what you are doing
+and introduce dangers that can be avoided using methods.
+
+
+
+

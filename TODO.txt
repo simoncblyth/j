@@ -1,8 +1,125 @@
 j/TODO
 ==========
 
-* Improve oj_initialize tut_detsim.py FAIL handling in Examples/Tutorial/share/opticks_juno.sh
-* Improve changing tut_detsim.py options without needing to change code
+
+Examples/Tutorial/share/opticks_juno.sh
+
+   * Improve oj_initialize tut_detsim.py FAIL handling in Examples/Tutorial/share/opticks_juno.sh
+   * Improve changing tut_detsim.py options without needing to change code eg by sourcing an optional 
+     file to config non-default settings that might set the OJ_INITIALIZE_OPTION
+
+
+
+::
+
+    A[blyth@localhost junosw]$ git diff oj_initialize.sh
+    diff --git a/oj_initialize.sh b/oj_initialize.sh
+    index 9af38965..deab72a4 100755
+    --- a/oj_initialize.sh
+    +++ b/oj_initialize.sh
+    @@ -37,7 +37,15 @@ fi
+     
+     source $envset
+     
+    -vv="BASH_SOURCE PWD branch envset OPTICKS_PREFIX JUNO_OFFLINE_OFF JUNO_OFFLINE_VERSION CMAKE_PREFIX_PATH TUTORIALROOT OJ_DEBUG"
+    +local_envset=$(dirname $envset)/local_envset.sh
+    +
+    +if [ -f "$local_envset" ]; then
+    +    source $local_envset
+    +fi
+    +
+    +
+    +
+    +vv="BASH_SOURCE PWD branch envset local_envset OPTICKS_PREFIX JUNO_OFFLINE_OFF JUNO_OFFLINE_VERSION CMAKE_PREFIX_PATH TUTORIALROOT OJ_DEBUG"
+     for v in $vv ; do printf "%30s : %s\n " "$v" "${!v}" ; done
+     
+     if [ -z "$OJ_DEBUG" ]; then
+
+    
+
+
+
+
+
+
+
+::
+
+    (ok) A[blyth@localhost junosw]$ js
+    /home/blyth/junosw
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (fetch)
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (push)
+    On branch Chenjing-EMFcoilsgeometry
+    Your branch is up to date with 'origin/Chenjing-EMFcoilsgeometry'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Examples/Tutorial/share/opticks_juno.sh
+        modified:   oj_initialize.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    (ok) A[blyth@localhost junosw]$ git diff Examples/Tutorial/share/opticks_juno.sh
+    diff --git a/Examples/Tutorial/share/opticks_juno.sh b/Examples/Tutorial/share/opticks_juno.sh
+    index 29c32255..da374246 100644
+    --- a/Examples/Tutorial/share/opticks_juno.sh
+    +++ b/Examples/Tutorial/share/opticks_juno.sh
+    @@ -30,6 +30,9 @@ oj_geomsetup()
+        export OJ_PREFIX=$(dirname $(dirname $(realpath $BASH_SOURCE))) # one above bin dir
+        export OJ_GEOMDIR=$OJ_PREFIX/.opticks/GEOM/${GEOM}
+     
+    +   export OJ_INITIALIZE_TUT_DETSIM_OPTION=--emf-coils-system
+    +
+    +
+        export ${GEOM}_CFBaseFromGEOM=${OJ_GEOMDIR}  ## for viz, eg CSGOptiXRenderInteractiveTest
+        export CSGOptiXRenderInteractiveTest__FRAME_HOP=1
+     
+    @@ -161,6 +164,11 @@ oj_initialize_framespec()
+        return 0
+     }
+     
+    +oj_initialize_tut_detsim()
+    +{
+    +   tut_detsim.py ${OJ_INITIALIZE_TUT_DETSIM_OPTION} --opticks-mode 1 --evtmax 0 gun
+    +}
+    +
+     
+     oj_initialize_meshname_tessname()
+     {
+    @@ -170,7 +178,10 @@ oj_initialize_meshname_tessname()
+     
+        export G4CXOpticks__SaveGeometry_DIR=${OJ_GEOMDIR}
+        export CSGFoundry__SAVE_OPT=meshname
+    -   tut_detsim.py --opticks-mode 1 --evtmax 0 gun
+    +
+    +   oj_initialize_tut_detsim
+    +   [ $? -ne 0 ] && echo $FUNCNAME - ERROR FROM oj_initialize_tut_detsim && return 1
+    +
+        unset CSGFoundry__SAVE_OPT
+     
+        local meshname=${OJ_GEOMDIR}/CSGFoundry/meshname.txt
+    @@ -203,7 +214,8 @@ oj_initialize_geomdir()
+     
+        export G4CXOpticks__SaveGeometry_DIR=${OJ_GEOMDIR}
+     
+    -   tut_detsim.py --opticks-mode 1 --evtmax 0 gun
+    +   oj_initialize_tut_detsim
+    +   [ $? -ne 0 ] && echo $FUNCNAME - ERROR FROM oj_initialize_tut_detsim && return 1
+     
+        echo $FUNCNAME - ls -alst ${OJ_GEOMDIR}/CSGFoundry
+        ls -alst ${OJ_GEOMDIR}/CSGFoundry
+    @@ -213,6 +225,7 @@ oj_initialize_geomdir()
+     }
+     
+     
+    +
+     oj_initialize()
+     {
+        : opticks_juno.sh
+    (ok) A[blyth@localhost junosw]$ 
+
+
+
 
 
 
