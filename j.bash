@@ -22,6 +22,72 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+Thu 15th Jan 2026 : stash WC changes from Chenjing-EMFcoilsgeometry as they belong in new branch blyth-oj-local-geometry-customization
+----------------------------------------------------------------------------------------------------------------------------------------
+
+1. create new branch "blyth-oj-local-geometry-customization" using gitlab web interface
+2. stash uncommitted changes whilst in Chenjing-EMFcoilsgeometry
+
+
+Status shows uncommitted changes but no new files::
+
+    On branch Chenjing-EMFcoilsgeometry
+    Your branch is behind 'origin/Chenjing-EMFcoilsgeometry' by 1 commit, and can be fast-forwarded.
+      (use "git pull" to update your local branch)
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Examples/Tutorial/share/opticks_juno.sh
+        modified:   oj_initialize.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+Stash those changes, making status clean other than needing to pull::
+
+    (ok) A[blyth@localhost junosw]$ git stash 
+    Saved working directory and index state WIP on Chenjing-EMFcoilsgeometry: 7822a74f Merge branch 'main' into 'Chenjing-EMFcoilsgeometry'
+
+    (ok) A[blyth@localhost junosw]$ js
+    /home/blyth/junosw
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (fetch)
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (push)
+    On branch Chenjing-EMFcoilsgeometry
+    Your branch is behind 'origin/Chenjing-EMFcoilsgeometry' by 1 commit, and can be fast-forwarded.
+      (use "git pull" to update your local branch)
+
+    nothing to commit, working tree clean
+    (ok) A[blyth@localhost junosw]$ 
+
+Switch to new branch::
+
+    (ok) A[blyth@localhost junosw]$ git switch blyth-oj-local-geometry-customization
+    branch 'blyth-oj-local-geometry-customization' set up to track 'origin/blyth-oj-local-geometry-customization'.
+    Switched to a new branch 'blyth-oj-local-geometry-customization'
+
+Apply the stash to the new branch (not pop so can keep the stash)::
+
+    (ok) A[blyth@localhost junosw]$ git stash apply
+    On branch blyth-oj-local-geometry-customization
+    Your branch is up to date with 'origin/blyth-oj-local-geometry-customization'.
+
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git restore <file>..." to discard changes in working directory)
+        modified:   Examples/Tutorial/share/opticks_juno.sh
+        modified:   oj_initialize.sh
+
+    no changes added to commit (use "git add" and/or "git commit -a")
+    (ok) A[blyth@localhost junosw]$ 
+
+List the stash::
+
+    (ok) A[blyth@localhost junosw]$ git stash list
+    stash@{0}: WIP on Chenjing-EMFcoilsgeometry: 7822a74f Merge branch 'main' into 'Chenjing-EMFcoilsgeometry'
+    (ok) A[blyth@localhost junosw]$ 
+
+
+
 Wed 7th Jan 2026 : Recover diverged branch : yupd_bottompipe_adjust
 -----------------------------------------------------------------------
 
