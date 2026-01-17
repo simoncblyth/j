@@ -94,11 +94,16 @@ Check C4 branch::
 NB do not want to make major changes in the transient branch, as may be
 problematic to get into main. But changing debug output is acceptable.
 
+Actually, when using default v0.1.8 Custom4 prefix there is nothing to do
+
 
 Do each of the below setup and build in separate clean tabs:
 
-1. local_c4_build ; c4_build   ## does nothing when using default c4
-2. local_ok_build ; ok_build
+1. local_c4_build ; c4_build   ## does nothing when using default c4 v0.1.8
+2. local_ok_build ; ok_build   ## 
+
+   * HMM: AFTER CHANGING C4 prefix an om-cleaninstall is needed
+
 3. local_oj_build ; NOINIT=1 OJ_BUILD_CLEAN=1 oj_build
 
 #4. local_oj_init  ; oj_init  ## THIS IS NOW PART OF oj_build THAT IS OFTEN DISABLED WITH NOINIT
@@ -157,14 +162,9 @@ local_c4_prefix()
     : function that enables switching to a non default c4 to check
     : SEE NOTES AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
 
-    #echo $(local_c4_prefix_default)
-    echo /data1/blyth/local/custom4_Debug/0.1.8
+    echo $(local_c4_prefix_default)
+    #echo /data1/blyth/local/custom4_Debug/0.1.8
 }
-
-
-
-
-
 
 
 local_c4_build()
@@ -190,12 +190,8 @@ local_c4_build()
        c4_build()
        {
           : ~/local.sh
-
           : NB returned v0.1.8 in transient branch with
-          :
           :      git checkout -b v0.1.8_transient v0.1.8
-          :
-
 
           echo $BASH_SOURCE $FUNCNAME - BUILD NEEDED AS PREFIX IS NOT DEFAULT
           local ff="local_c4_prefix local_c4_prefix_default"
@@ -208,7 +204,6 @@ local_c4_build()
           source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
           JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
        }
-
    fi
    type c4_build
 }
