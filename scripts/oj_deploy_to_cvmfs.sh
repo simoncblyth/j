@@ -197,6 +197,7 @@ if [ -f "$TAR" ]; then
    RELP0=$(tar tf $TAR | grep ENV.bash)
    RELP=${RELP0/\/ENV.bash/}  # eg J25.2.3_Opticks-v0.3.3/el9_amd64_gcc11/Fri
    RDIR=$(dirname $RELP)      # eg J25.2.3_Opticks-v0.3.3/el9_amd64_gcc11
+   RNAM=$(dirname $RDIR)      # eg J25.7.2_Opticks-v0.5.8
    RDAY=$(basename $RELP)     # eg Fri
 
    ETIM=$(stat --format=%Y $TAR)       ## modification time in seconds since epoch
@@ -244,6 +245,17 @@ if [ -f "$TAR" ]; then
            MESSAGE="$MESSAGE $RELP"
        fi 
        echo "   ] extract TAR into DIR " 
+
+
+       if [ "$REF" == "1" -a -n "$RNAM"  ]; then
+           echo "   [ plant RNAM $RNAM LatestRelease link " 
+           cd $DIR && ln -sfn $RNAM LatestRelease && cd
+           echo "   ] plant RNAM $RNAM LatestRelease link " 
+       fi
+
+       echo "   [ ls -l $DIR"
+       ls -l $DIR
+       echo "   ] ls -l $DIR"
 
        echo "   [ plant LNK to LEL " 
        cd $DIR/$RDIR && ln -sfn $LEL $LNK && cd
