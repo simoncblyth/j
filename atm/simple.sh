@@ -72,6 +72,7 @@ envset_name=OJ_58
 case \$envset_name in
   OJ_58)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.8/el9_amd64_gcc11/2026_01_18/envset.sh ;;
   OJ_59)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.9/el9_amd64_gcc11/2026_01_26/envset.sh ;;
+  OJ_LL)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/LatestRelease/el9_amd64_gcc11/LastRef/envset.sh ;;
   OJ_00)  envset=\$HOME/junosw/InstallArea/main/envset.sh  ;;
 esac
 
