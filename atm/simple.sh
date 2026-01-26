@@ -46,6 +46,20 @@ if [ -d "$JUNOGPU" ]; then
     # redefining HOME on lxlogin avoids AFS token complications
 fi
 
+
+export PYTHONUNBUFFERED=1
+
+if command -v srun >/dev/null 2>&1 && [ -n "$SLURM_JOB_ID" ]; then
+    # --label adds task ID to every line of output (great for debugging)
+    # --output causes it to flush the buffer more aggressively
+    RUNNER="srun --label --output=line"
+else
+    RUNNER=""
+fi
+
+
+
+
 ENVSET_SH=$HOME/ENVSET.sh
 ENVSET_SH_TEMPLATE(){  cat << EOT
 
@@ -56,11 +70,12 @@ envset_name=OJ_58
 
 case \$envset_name in
   OJ_58)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.8/el9_amd64_gcc11/2026_01_18/envset.sh ;;
-  OJ_00)  envset=\$HOME/junosw/InstallArea/envset.sh  ;;
+  OJ_59)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.9/el9_amd64_gcc11/2026_01_26/envset.sh ;;
+  OJ_00)  envset=\$HOME/junosw/InstallArea/main/envset.sh  ;;
 esac
 
 if [ "\$envset_name" == "OJ_00" ]; then
-   envset_name=OJ_00_\$(date -r \$HOME/junosw/InstallArea/envset.sh  '+%b%d')
+   envset_name=OJ_00_\$(date -r \$envset  '+%b%d')
 fi
 
 export ENVSET_NAME=\$envset_name
@@ -86,15 +101,15 @@ name=${name/.sh}
 fold=$(dirname $path)
 relfold=${fold:$(( 1+${#ORIGINAL_HOME} ))}  # assume repo is within ORIGINAL_HOME
 relpath=$relfold/$name
-tmp=$home/tmp/${ENVSET_NAME}/$relpath
+tmp=$HOME/tmp/$relpath/${ENVSET_NAME}
 
 export TMP=$tmp
 
 
-vv="ENVSET_SH ENVSET_NAME ENVSET path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg"
+vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg"
 
 allarg="usage info env chk run sub qu qa"
-defarg=info
+defarg=info_chk_env_run
 arg=${1:-$defarg}
 
 if [ "${arg/usage}" != "$arg" ]; then
@@ -127,7 +142,7 @@ if [ "${arg/run}" != "$arg" ]; then
     mkdir -p $TMP
     pushd $TMP
 
-    time \
+    $RUNNER \
         $(which python) \
         $(which tut_detsim.py) \
         --output oj_edm.root \
