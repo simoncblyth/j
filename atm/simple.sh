@@ -107,10 +107,12 @@ tmp=$HOME/tmp/$relpath/${ENVSET_NAME}
 export TMP=$tmp
 
 
-vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg"
+vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg stdarg defarg arg"
 
 allarg="usage info env chk run sub qu qa"
-defarg=info_chk_env_run
+stdarg=info_chk_env_info_run
+#defarg=info
+defarg=$stdarg
 arg=${1:-$defarg}
 
 if [ "${arg/usage}" != "$arg" ]; then
@@ -160,9 +162,10 @@ if [ "${arg/run}" != "$arg" ]; then
 
 fi
 
+
 if [ "${arg/sub}" != "$arg" ]; then
     mkdir -p $TMP
-    JID=$(sbatch --parsable --chdir $TMP --job-name=$name $BASH_SOURCE info_chk_env_info_run)
+    JID=$(sbatch --parsable --chdir $TMP --job-name=$name $BASH_SOURCE $stdarg)
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from sub && exit 3
 
     echo JID=$JID > $TMP/JID.sh
