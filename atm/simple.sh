@@ -50,9 +50,6 @@ fi
 export PYTHONUNBUFFERED=1
 
 if command -v srun >/dev/null 2>&1 && [ -n "$SLURM_JOB_ID" ]; then
-    # --label adds task ID to every line of output (great for debugging)
-    # --output causes it to flush the buffer more aggressively
-    #RUNNER="srun --label --output=line"
     RUNNER="srun"
 else
     RUNNER=""
@@ -105,10 +102,15 @@ source $ENVSET_SH
 ## DONE THIS WAY TO ALLOW RUNNING AN UNCHANGED SCRIPT AGAINST MULTIPLE ENVSET TO MAKE COMPARISONS
 ## BY EDITING THE ENVSET_SH BETWEEN SUBMISSIONS
 
-path=$(realpath $BASH_SOURCE)
+
+if [ -n "$SCRIPT_SOURCE" ]; then
+    path=$SCRIPT_SOURCE
+else
+    path=$(realpath $BASH_SOURCE)
+fi
+
 name=$(basename $path)
 name=${name/.sh}
-
 
 fold=$(dirname $path)
 relfold=${fold:$(( 1+${#ORIGINAL_HOME} ))}  # assume repo is within ORIGINAL_HOME
@@ -118,7 +120,7 @@ tmp=$HOME/tmp/$relpath/${ENVSET_NAME}
 export TMP=$tmp
 
 
-vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg stdarg defarg arg"
+vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET BASH_SOURCE SCRIPT_SOURCE PWD path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg stdarg defarg arg"
 
 allarg="usage info env chk run sub qu qa"
 stdarg=info_chk_env_info_run
@@ -176,7 +178,7 @@ fi
 
 if [ "${arg/sub}" != "$arg" ]; then
     mkdir -p $TMP
-    JID=$(sbatch --parsable --chdir $TMP --job-name=$name $BASH_SOURCE $stdarg)
+    JID=$(sbatch --parsable --chdir $TMP --job-name=$name --export=ALL,SCRIPT_SOURCE=$(realpath $BASH_SOURCE) $BASH_SOURCE $stdarg)
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from sub && exit 3
 
     echo JID=$JID > $TMP/JID.sh
@@ -199,6 +201,12 @@ if [ "${arg/tail}" != "$arg" ]; then
     [ -n "$JID" ] && tail -f $TMP/slurm-$JID.out
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
 fi
+
+if [ "${arg/ls}" != "$arg" ]; then
+    date
+    ls -alst $TMP
+fi
+
 
 exit 0
 
