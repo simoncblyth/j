@@ -67,17 +67,27 @@ ENVSET_SH_TEMPLATE(){  cat << EOT
 # NB this defines ENVSET pointing to the environment script based on envset_name
 # it does not source that
 
-envset_name=OJ_58
+#envset_arg=OJ_058
+#envset_arg=OJ_059
+envset_arg=OJ_LLL
 
-case \$envset_name in
-  OJ_58)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.8/el9_amd64_gcc11/2026_01_18/envset.sh ;;
-  OJ_59)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.9/el9_amd64_gcc11/2026_01_26/envset.sh ;;
-  OJ_LL)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/LatestRelease/el9_amd64_gcc11/LastRef/envset.sh ;;
-  OJ_00)  envset=\$HOME/junosw/InstallArea/main/envset.sh  ;;
+case \$envset_arg in
+  OJ_058)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.8/el9_amd64_gcc11/2026_01_18/envset.sh ;;
+  OJ_059)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/J25.7.2_Opticks-v0.5.9/el9_amd64_gcc11/2026_01_26/envset.sh ;;
+  OJ_LLL)  envset=/cvmfs/opticks.ihep.ac.cn/oj/releases/LatestRelease/el9_amd64_gcc11/LastRef/envset.sh ;;
+  OJ_000)  envset=\$HOME/junosw/InstallArea/main/envset.sh  ;;
 esac
 
-if [ "\$envset_name" == "OJ_00" ]; then
-   envset_name=OJ_00_\$(date -r \$envset  '+%b%d')
+envset=\$(realpath \$envset)  # resolve symbolic links within the path
+
+
+if [ "\$envset_arg" == "OJ_000" ]; then
+   envset_name=OJ_000_\$(date -r \$envset  '+%b%d')
+elif [ "\$envset_arg" == "OJ_LLL" ]; then
+   version=\$(echo \$envset | sed -E 's/.*-v([^/]+)\/.*/\1/' | sed 's/\.//g') # extract version digits eg "059"
+   envset_name=OJ_\${version}
+else
+   envset_name=\$envset_arg
 fi
 
 export ENVSET_NAME=\$envset_name
