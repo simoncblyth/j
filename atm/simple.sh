@@ -22,15 +22,15 @@ Some commands to query and control a slurm job::
     Submitted batch job 2934490
     U[blyth@lxlogin004 j]$ JID=2934490
 
-    squeue -u $USER   # list jobs from USER
+    squeue -u \$USER   # list jobs from USER
 
-    scontrol show job $JID  # show details of one job
+    scontrol show job \$JID  # show details of one job
 
-    sstat -j $JID --format=JobId,MaxRSS,AveCPU,MaxDiskRead  # show what the job is doing
+    sstat -j \$JID --format=JobId,MaxRSS,AveCPU,MaxDiskRead  # show what the job is doing
 
-    tail -f slurm-$JID.out   # follow output from tail of the job log
+    tail -f slurm-\$JID.out   # follow output from tail of the job log
 
-    scancel $JID  # cancel a job if tail of log shows issue
+    scancel \$JID  # cancel a job if tail of log shows issue
 
 
 EOH
@@ -52,7 +52,8 @@ export PYTHONUNBUFFERED=1
 if command -v srun >/dev/null 2>&1 && [ -n "$SLURM_JOB_ID" ]; then
     # --label adds task ID to every line of output (great for debugging)
     # --output causes it to flush the buffer more aggressively
-    RUNNER="srun --label --output=line"
+    #RUNNER="srun --label --output=line"
+    RUNNER="srun"
 else
     RUNNER=""
 fi
@@ -141,6 +142,7 @@ if [ "${arg/run}" != "$arg" ]; then
 
     mkdir -p $TMP
     pushd $TMP
+    pwd
 
     $RUNNER \
         $(which python) \
@@ -160,7 +162,7 @@ fi
 
 if [ "${arg/sub}" != "$arg" ]; then
     mkdir -p $TMP
-    JID=$(sbatch --parsable --chdir $TMP --job-name=$name $BASH_SOURCE info_chk_env_run)
+    JID=$(sbatch --parsable --chdir $TMP --job-name=$name $BASH_SOURCE info_chk_env_info_run)
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from sub && exit 3
 
     echo JID=$JID > $TMP/JID.sh
