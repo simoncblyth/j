@@ -34,3 +34,13 @@ NVIDIA_RTX/index
 
 
 
+* https://www.techpowerup.com/gpu-specs/?q=RTX&f=year_2025~rt_Yes
+
+* https://www.techpowerup.com/gpu-specs/rtx-pro-5000-72-gb-blackwell.c4357
+
+* https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000-max-q/
+
+* https://www.techpowerup.com/gpu-specs/rtx-pro-6000-blackwell-max-q.c4273
+
+
+

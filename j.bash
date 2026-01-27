@@ -22,6 +22,48 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+Tue 27 Jan 2026 : bring old branch uptodate with rebase and special push
+--------------------------------------------------------------------------
+
+::
+
+    A[blyth@localhost junosw]$ js
+    /home/blyth/junosw
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (fetch)
+    origin	git@code.ihep.ac.cn:JUNO/offline/junosw.git (push)
+    On branch blyth-OJ-pmt-hit-type-2-for-muon-hits
+    Your branch and 'origin/blyth-OJ-pmt-hit-type-2-for-muon-hits' have diverged,
+    and have 197 and 13 different commits each, respectively.
+      (use "git pull" if you want to integrate the remote branch with yours)
+
+    nothing to commit, working tree clean
+    A[blyth@localhost junosw]$ git push origin blyth-OJ-pmt-hit-type-2-for-muon-hits --force-with-lease
+    Enumerating objects: 166, done.
+    Counting objects: 100% (166/166), done.
+    Delta compression using up to 56 threads
+    Compressing objects: 100% (122/122), done.
+    Writing objects: 100% (129/129), 34.84 KiB | 6.97 MiB/s, done.
+    Total 129 (delta 87), reused 0 (delta 0), pack-reused 0 (from 0)
+    remote: Resolving deltas: 100% (87/87), completed with 30 local objects.
+    remote: 
+    remote: To create a merge request for blyth-OJ-pmt-hit-type-2-for-muon-hits, visit:
+    remote:   https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/new?merge_request%5Bsource_branch%5D=blyth-OJ-pmt-hit-type-2-for-muon-hits
+    remote: 
+    To code.ihep.ac.cn:JUNO/offline/junosw.git
+     + a65ea362...34d82961 blyth-OJ-pmt-hit-type-2-for-muon-hits -> blyth-OJ-pmt-hit-type-2-for-muon-hits (forced update)
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ git status
+    On branch blyth-OJ-pmt-hit-type-2-for-muon-hits
+    Your branch is up to date with 'origin/blyth-OJ-pmt-hit-type-2-for-muon-hits'.
+
+    nothing to commit, working tree clean
+    A[blyth@localhost junosw]$ 
+
+
+
+
 Thu 15th Jan 2026 : stash WC changes from Chenjing-EMFcoilsgeometry as they belong in new branch blyth-oj-local-geometry-customization
 ----------------------------------------------------------------------------------------------------------------------------------------
 
