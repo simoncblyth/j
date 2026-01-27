@@ -208,6 +208,8 @@ if [ "${arg/interact}" != "$arg" ]; then
     [ -f "$JID_sh" ] && source $JID_sh
     [ -n "$JID" ] && srun --jobid $JID --interact --pty bash
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
+
+    # nvidia-smi dmon -s utp
 fi
 
 if [ "${arg/qu}" != "$arg" ]; then
