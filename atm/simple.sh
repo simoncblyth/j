@@ -50,7 +50,12 @@ fi
 export PYTHONUNBUFFERED=1
 
 if command -v srun >/dev/null 2>&1 && [ -n "$SLURM_JOB_ID" ]; then
-    RUNNER="srun"
+    RUNNER="srun --export=ALL"
+
+    ## When use "sbatch --export=NONE" for cleanliness/reproducibility
+    ## at the higher batch submission level it becomes necessary to let the
+    ## isolated environment setup by the script thru to the srun executable
+    ## including finding that executable with this "srun --export=ALL".
 else
     RUNNER=""
 fi
@@ -138,12 +143,15 @@ fi
 
 if [ "${arg/env}" != "$arg" ]; then
 
+    [ -n "$SLURM_JOB_ID" ] && env > env-env0-${SLURM_JOB_ID}.txt
+
     source $ENVSET
 
     #export CUDA_VISIBLE_DEVICES=0
     #export OPTICKS_MAX_BOUNCE=31
     #export OPTICKS_EVENT_MODE=Minimal
 
+    [ -n "$SLURM_JOB_ID" ] && env > env-env1-${SLURM_JOB_ID}.txt
 
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from env && exit 1
 fi
@@ -153,15 +161,24 @@ if [ "${arg/chk}" != "$arg" ]; then
     nvidia-smi
 fi
 
+if [ "${arg/pyc}" != "$arg" ]; then
+
+    echo $PATH | tr ":" "\n"
+    python -c "from Tutorial import JUNODetSimModule"
+    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from pyc && exit 2
+
+fi
+
 if [ "${arg/run}" != "$arg" ]; then
 
     mkdir -p $TMP
     pushd $TMP
     pwd
 
+    [ -n "$SLURM_JOB_ID" ] && env > env-run-${SLURM_JOB_ID}.txt
+
     $RUNNER \
-        $(which python) \
-        $(which tut_detsim.py) \
+        tut_detsim.py \
         --output oj_edm.root \
         --user-output oj_user.root \
         --evtmax 1 \
@@ -178,7 +195,7 @@ fi
 
 if [ "${arg/sub}" != "$arg" ]; then
     mkdir -p $TMP
-    JID=$(sbatch --parsable --chdir $TMP --job-name=$name --export=ALL,SCRIPT_SOURCE=$(realpath $BASH_SOURCE) $BASH_SOURCE $stdarg)
+    JID=$(sbatch --parsable --chdir $TMP --job-name=$name --export=NONE,SCRIPT_SOURCE=$(realpath $BASH_SOURCE) $BASH_SOURCE $stdarg)
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from sub && exit 3
 
     echo JID=$JID > $TMP/JID.sh
@@ -204,6 +221,7 @@ fi
 
 if [ "${arg/ls}" != "$arg" ]; then
     date
+    echo ls -alst $TMP
     ls -alst $TMP
 fi
 
