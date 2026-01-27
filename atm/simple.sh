@@ -202,6 +202,14 @@ if [ "${arg/sub}" != "$arg" ]; then
     echo $BASH_SOURCE submitted $JID - see $TMP/JID.sh
 fi
 
+if [ "${arg/interact}" != "$arg" ]; then
+    ## workaround lack of ssh access to GPU cluster
+    JID_sh=$TMP/JID.sh
+    [ -f "$JID_sh" ] && source $JID_sh
+    [ -n "$JID" ] && srun --jobid $JID --interact --pty bash
+    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
+fi
+
 if [ "${arg/qu}" != "$arg" ]; then
     squeue -u $USER
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from qu && exit 4
