@@ -86,7 +86,7 @@ envset=\$(realpath \$envset)  # resolve symbolic links within the path
 if [ "\$envset_arg" == "OJ_000" ]; then
    envset_name=OJ_000_\$(date -r \$envset  '+%b%d')
 elif [ "\$envset_arg" == "OJ_LLL" ]; then
-   version=\$(echo \$envset | sed -E 's/.*-v([^/]+)\/.*/\1/' | sed 's/\.//g') # extract version digits eg "059"
+   version=\$(echo \$envset | sed -E 's|.*-v([0-9.]+)/.*|\1|' | sed 's/\.//g') # extract version digits eg "059"
    envset_name=OJ_\${version}
 else
    envset_name=\$envset_arg
@@ -115,19 +115,21 @@ else
 fi
 
 name=$(basename $path)
-name=${name/.sh}
+name=${name%.sh}  # remove .sh from end of string
 
 fold=$(dirname $path)
+export SCRIPT=$fold/run_simple.sh
+
 relfold=${fold:$(( 1+${#ORIGINAL_HOME} ))}  # assume repo is within ORIGINAL_HOME
 relpath=$relfold/$name
 tmp=$HOME/tmp/$relpath/${ENVSET_NAME}
 
 export TMP=$tmp
 
+vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET BASH_SOURCE SCRIPT_SOURCE PWD path name fold SCRIPT relfold relpath ORIGINAL_HOME HOME TMP allarg stdarg defarg arg"
+vv="$vv SLURM_JOB_ID SLURM_ARRAY_JOB_ID SLURM_ARRAY_TASK_ID SLURM_PROCID"
 
-vv="RUNNER ENVSET_SH ENVSET_NAME ENVSET BASH_SOURCE SCRIPT_SOURCE PWD path name fold relfold relpath ORIGINAL_HOME HOME TMP allarg stdarg defarg arg"
-
-allarg="usage info env chk run sub qu qa"
+allarg="usage info env chk pyc run sub tail interact qu qa ls"
 stdarg=info_chk_env_info_run
 #defarg=info
 defarg=$stdarg
@@ -151,9 +153,11 @@ if [ "${arg/env}" != "$arg" ]; then
     #export OPTICKS_MAX_BOUNCE=31
     #export OPTICKS_EVENT_MODE=Minimal
 
-    [ -n "$SLURM_JOB_ID" ] && env > env-env1-${SLURM_JOB_ID}.txt
+    [ -n "$SLURM_JOB_ID" ] &&                       env > env-env1-${SLURM_JOB_ID}.txt
+    [ -n "$SLURM_JOB_ID" ] && srun --export=ALL -n1 env > env-env2-${SLURM_JOB_ID}.txt
+    # above lines allow to compare environment of the sbatch and srun processes
 
-    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from env && exit 1
+   [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from env && exit 1
 fi
 
 if [ "${arg/chk}" != "$arg" ]; then
@@ -162,36 +166,16 @@ if [ "${arg/chk}" != "$arg" ]; then
 fi
 
 if [ "${arg/pyc}" != "$arg" ]; then
-
     echo $PATH | tr ":" "\n"
     python -c "from Tutorial import JUNODetSimModule"
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from pyc && exit 2
-
 fi
 
 if [ "${arg/run}" != "$arg" ]; then
-
-    mkdir -p $TMP
-    pushd $TMP
-    pwd
-
-    [ -n "$SLURM_JOB_ID" ] && env > env-run-${SLURM_JOB_ID}.txt
-
-    $RUNNER \
-        tut_detsim.py \
-        --output oj_edm.root \
-        --user-output oj_user.root \
-        --evtmax 1 \
-        --seed 42 \
-        gun \
-        --momentums 1.0;
-
-   [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from run && exit 2
-
-   popd
-
+    BASE_SEED=1000
+    srun --export=ALL "$SCRIPT" "$TMP"  $(( BASE_SEED + (SLURM_ARRAY_TASK_ID * 8) + SLURM_PROCID ))
+    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from run && exit 2
 fi
-
 
 if [ "${arg/sub}" != "$arg" ]; then
     mkdir -p $TMP
@@ -200,6 +184,13 @@ if [ "${arg/sub}" != "$arg" ]; then
 
     echo JID=$JID > $TMP/JID.sh
     echo $BASH_SOURCE submitted $JID - see $TMP/JID.sh
+fi
+
+if [ "${arg/tail}" != "$arg" ]; then
+    JID_sh=$TMP/JID.sh
+    [ -f "$JID_sh" ] && source $JID_sh
+    [ -n "$JID" ] && tail -f $TMP/slurm-$JID.out
+    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
 fi
 
 if [ "${arg/interact}" != "$arg" ]; then
@@ -222,19 +213,11 @@ if [ "${arg/qa}" != "$arg" ]; then
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from qa && exit 5
 fi
 
-if [ "${arg/tail}" != "$arg" ]; then
-    JID_sh=$TMP/JID.sh
-    [ -f "$JID_sh" ] && source $JID_sh
-    [ -n "$JID" ] && tail -f $TMP/slurm-$JID.out
-    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
-fi
-
 if [ "${arg/ls}" != "$arg" ]; then
     date
     echo ls -alst $TMP
     ls -alst $TMP
 fi
-
 
 exit 0
 
