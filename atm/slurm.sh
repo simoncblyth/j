@@ -8,6 +8,17 @@
 #SBATCH --gpus=v100:1
 #SBATCH --wait-all-nodes=1
 
+todo(){ cat << EOT
+
+Sourcing the envset up in the wrapper feels out of place,
+plus makes the underlying SCRIPTNAME.sh less standalone
+BUT do not want to duplicate the ENVSET_sh_TEMPLATE in every
+standalone SCRIPTNAME.sh and need ENVSET_NAME up in the
+wrapper for inclusion into output directory.
+
+EOT
+}
+
 usage(){ cat << EOH
 slurm.sh
 =========
@@ -42,7 +53,17 @@ $BASH_SOURCE run
           \${SCRIPTNAME}.sh \$BASE_TMP \$BASE_SEED
 
     The invoked script is expected to be a sibling
-    to this wrapper script
+    to this wrapper script. This is normally invoked by the "sub"
+    action calling sbatch which starts process on the GPU node.
+
+$BASH_SOURCE interact
+    open interactive shell into the batch node running the
+    last submitted job that is still running, useful commands
+    to run on the GPU node::
+
+        nvidia-smi
+        htop
+
 
 $BASH_SOURCE qu
     list slurm jobs of \$USER
@@ -91,17 +112,12 @@ if [ -n "$SCRIPT_SOURCE" ]; then
 else
     path=$(realpath $BASH_SOURCE)
 fi
+fold=$(dirname $path)
 
 vv=""
 vv="$vv PWD"
-vv="$vv BASH_SOURCE SCRIPT_SOURCE path"
+vv="$vv BASH_SOURCE SCRIPT_SOURCE path fold"
 
-
-fold=$(dirname $path)
-name=$(basename $path)
-name=${name%.sh}  # remove .sh from end of string
-
-vv="$vv fold name"
 
 base_seed=3000
 export BASE_SEED=${BASE_SEED:-$base_seed}
@@ -112,6 +128,7 @@ export SCRIPTNAME=${SCRIPTNAME:-$scriptname}
 
 export SCRIPT=$fold/$SCRIPTNAME.sh
 vv="$vv scriptname SCRIPTNAME SCRIPT"
+
 
 
 ORIGINAL_HOME=$HOME
