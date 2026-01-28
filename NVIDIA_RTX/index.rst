@@ -21,6 +21,30 @@ NVIDIA_RTX/index
 
 
 
+
+    All the 2025 GPUs have "D" China variants that are compute throttled.
+    It is preferable to use vendors who can source non-capped versions 
+    from 3rd countries. 
+
+    RTX 6000 Blackwell has power draw of 600W, as does the RTX 5090
+    which has reputation for spiky power draw. That compares with 300W for the 5000.
+
+    Unfortunately the Dell Precision 7960 on my desk has PSU of 1400W which
+    Google Gemini suggests is not sufficient for reliable use of the 600W GPUs.
+  
+    So the best RTX GPU for use with my Workstation would be: "RTX 5000 Blackwell (72GB)" 
+
+    The RTX 6000 and 5000 have server variants that can be rack mounted, however
+    computing center experts with rack server provisioning expertise 
+    are needed to advise on how to setup a GPU server with RTX server GPUs
+    with for the 6000 high power requirements.
+
+
+
+
+
+
+
 ::
 
     Feature      RTX 6000 Blackwell      RTX 6000D (China)       RTX 5090              RTX 5090D (China)         L20 (Export)
