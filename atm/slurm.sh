@@ -12,14 +12,51 @@ usage(){ cat << EOH
 slurm.sh
 =========
 
+SCRIPTNAME : $SCRIPTNAME
+BASE_TMP   : $BASE_TMP
+BASE_SEED  : $BASE_SEED
+
+
+This wrapper script handles only slurm details.
+The \${SCRIPTNAME}.sh scripts that this wrapper invokes
+handles commandline details, processing options etc..
+
+
 $BASH_SOURCE usage
+    this usage message
+
 $BASH_SOURCE info
+    emit the values of variables including output directories
+    [this is the default action when no argument is provided]
+
 $BASH_SOURCE info_chk_env_run
+    perform sequence of actions
+
 $BASH_SOURCE sub
+    submit using sbatch this wrapper script to slurm with argument
+    "info_chk_env_info_run" which performs those actions
+
+$BASH_SOURCE run
+    invokes \${SCRIPTNAME}.sh via srun with arguments::
+
+          \${SCRIPTNAME}.sh \$BASE_TMP \$BASE_SEED
+
+    The invoked script is expected to be a sibling
+    to this wrapper script
+
 $BASH_SOURCE qu
+    list slurm jobs of \$USER
+
 $BASH_SOURCE qa
+    list all slurm jobs
+
 $BASH_SOURCE ls
+    list output directory for \${SCRIPTNAME}.sh
+
 $BASH_SOURCE tail
+    follow the sbatch top level log. detailed logging
+    is within task folders
+
 
 
 Some commands to query and control a slurm job::
@@ -35,7 +72,7 @@ Some commands to query and control a slurm job::
 
     sstat -j \$JID --format=JobId,MaxRSS,AveCPU,MaxDiskRead  # show what the job is doing
 
-    tail -f slurm-\$JID.out   # follow output from tail of the job log
+    tail -f sbatch-\$JID.out   # follow output from tail of the job log
 
     scancel \$JID  # cancel a job if tail of log shows issue
 
@@ -66,7 +103,7 @@ name=${name%.sh}  # remove .sh from end of string
 
 vv="$vv fold name"
 
-base_seed=2000
+base_seed=3000
 export BASE_SEED=${BASE_SEED:-$base_seed}
 vv="$vv base_seed BASE_SEED"
 
@@ -146,8 +183,7 @@ mkdir -p $BASE_TMP
 export JID_sh=$BASE_TMP/JID.sh
 vv="$vv base_tmp BASE_TMP JID_sh"
 
-
-allarg="usage info env chk pyc run sub tail interact qu qa ls"
+allarg="usage info env chk run sub tail interact qu qa ls"
 defarg=info
 arg=${1:-$defarg}
 
@@ -181,14 +217,6 @@ if [ "${arg/chk}" != "$arg" ]; then
    log "chk.]"
 fi
 
-if [ "${arg/pyc}" != "$arg" ]; then
-   log "pyc.["
-   python -c "from Tutorial import JUNODetSimModule"
-   [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from pyc && exit 2
-   log "pyc.]"
-fi
-
-
 if [ "${arg/sub}" != "$arg" ]; then
    log "sub.["
    SCRIPT_SOURCE=$path
@@ -196,7 +224,7 @@ if [ "${arg/sub}" != "$arg" ]; then
              --output="$BASE_TMP/sbatch-%j.out" \
              --parsable \
              --chdir $BASE_TMP \
-             --job-name=$name \
+             --job-name=$SCRIPTNAME \
              --export=NONE,SCRIPT_SOURCE=$path \
              $path \
              info_chk_env_info_run)
@@ -207,12 +235,18 @@ if [ "${arg/sub}" != "$arg" ]; then
    log "sub.]"
 fi
 
+if [ "${arg/sleep}" != "$arg" ]; then
+   sleep 1
+fi
+
 if [ "${arg/run}" != "$arg" ]; then
+   : %t corresponds to SLURM_PROCID task index
    log "run.["
    srun --export=ALL \
-         --output="$BASE_TMP/%t/srun.log" \
-         --error="$BASE_TMP/%t/srun.err" \
-         "$SCRIPT" "$BASE_TMP"  "$BASE_SEED" 
+        --output="$BASE_TMP/%t/srun.log" \
+        "$SCRIPT" \
+        "$BASE_TMP" \
+        "$BASE_SEED"
 
    [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from run && exit 2
    log "run.]"
@@ -225,6 +259,7 @@ if [ "${arg/tail}" != "$arg" ]; then
 fi
 
 if [ "${arg/interact}" != "$arg" ]; then
+    : enables interactive examination on the job node only during job execution
     [ -f "$JID_sh" ] && source $JID_sh
     [ -n "$JID" ] && srun --jobid $JID --interact --pty bash
     [ $? -ne 0 ] && echo $BASH_SOURCE ERROR from tail JID[$JID] && exit 6
@@ -242,8 +277,15 @@ if [ "${arg/qa}" != "$arg" ]; then
 fi
 
 if [ "${arg/ls}" != "$arg" ]; then
-    date && echo ls -alst $TMP
-    ls -alst $TMP
+    date
+    echo ls -alst $BASE_TMP
+    ls -alst $BASE_TMP
+    for t in $(seq 0 7) ; do
+      if [ -d "$BASE_TMP/$t" ]; then
+         echo ls -alst $BASE_TMP/$t
+         ls -alst $BASE_TMP/$t
+      fi
+    done
 fi
 
 exit 0
