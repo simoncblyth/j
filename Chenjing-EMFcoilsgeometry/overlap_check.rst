@@ -1,6 +1,42 @@
 overlap_check
 ===============
 
+raytrace shows lots of overlaps
+-------------------------------
+
+::
+
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:1:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:2:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:3:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:4:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:5:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:6:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:7:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:8:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:9:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:10:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:11:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:12:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:13:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:14:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:15:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:16:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:30:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:20:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:25:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:30:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:29:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:30:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:29:-2 EYE=1,1,0 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:29:-2 EYE=1,1,1 LOOK=0,0,1 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:28:-2 EYE=1,1,1 LOOK=0,0,1 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:27:-2 EYE=1,1,1 LOOK=0,0,1 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:26:-2 EYE=1,1,1 LOOK=0,0,1 cxr_min.sh 
+    FULLSCREEN=0 MOI=GZ1.A03_04_FlangeI_Web_FlangeII:25:-2 EYE=1,1,1 LOOK=0,0,1 cxr_min.sh 
+
+
+
 
 "ring-radial-overlap-check"
 ------------------------------
@@ -17,6 +53,16 @@ To more systematically find overlaps it would be good to plot for each prim sele
 ::
 
     demonstrate an overlap between the slanted s_EMFcoil_holder_ring  GZ1.A03_04_FlangeI_Web_FlangeII using frame AXIS:56,-54,6729.0,20502.0,24.0
+
+
+
+
+
+
+
+
+
+
 
 
 
