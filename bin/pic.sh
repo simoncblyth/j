@@ -1,4 +1,15 @@
 #!/bin/bash
+
+brief(){ cat << EOB | sed 's/^/# /'
+
+Brief cursor manipulation example::
+
+   CUR_open GEOM/J25_7_2_opticks_Debug/Chenjing-EMFcoilsgeometry/Overlaps
+   CUR_touch 2026-01-29
+
+EOB
+}
+
 usage(){ cat << EOU
 pic.sh
 =======
@@ -60,6 +71,11 @@ EOU
 
 }
 
+
+
+
+
+
 SDIR=~/Pictures
 [ ! -d $SDIR ] && echo $BASH_SOURCE NO SDIR $SDIR && exit 1
 
@@ -72,26 +88,45 @@ cd $SDIR
 path=$(ls -1t *.png | head -1)
 
 
-cur=$HOME/.opticks/CUR.sh
+cur_sh=$HOME/.opticks/GEOM/CUR.sh
+cur=$HOME/.opticks/CUR.sh            ## cursor data
+
 #BASE=$HOME/simoncblyth.github.io/env/presentation
 BASE=/usr/local/simoncblyth.github.io/env/presentation
 
 
+
+
+
+
 allarg="vi_ls_cur_info_open_clip_idx_copy_s5p_s5t"
-defarg="cur_info_copy"
+defarg="cur_brief_info_copy"
 arg=${1:-$defarg}
 [ "$arg" == "s5" ] && arg=info_s5p_s5t
+
+
+if [ -f $cur_sh ]; then
+    source $cur_sh
+    cur_sh_msg="cur_sh [$cur_sh] defines cursor manipulation funcs"
+else
+    cur_sh_msg=cur_sh_DOES_NOT_EXIST
+fi
 
 if [ -f $cur ]; then
    tcur=$(stat --format=%Y $cur)
    dcur=$(date -d@$tcur)
    source $cur
+   cur_msg="cur [$cur] holds the cursor data"
 else
    cur_msg=cur_DOES_NOT_EXIST
 fi
 
 
-vv="BASH_SOURCE BASH_VERSION PWD path BASE allarg defarg arg cur tcur dcur cur_msg CUR"
+vv="BASH_SOURCE BASH_VERSION PWD path BASE allarg defarg arg cur tcur dcur cur_msg CUR cur_sh cur_sh_msg"
+
+if [ "${arg/brief}" != "$arg" ]; then
+    brief
+fi
 
 if [ "${arg/vi}" != "$arg" ]; then
     cmd="vi pic.sh"
@@ -119,6 +154,7 @@ fi
 
 if [ "${arg/info}" != "$arg" ]; then
    for v in $vv ; do printf "# %30s : %s\n" "$v" "${!v}" ; done
+   for i in {1..2} ; do printf "#\n" ; done
 fi
 
 
