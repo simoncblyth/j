@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 
 """
+emf2.py
+=========
+
+sfr::MakeFromAxis replaces this with "MOI=AXIS:theta,phi,axdist,extent" handling eg::
+
+    ELV=^s_EMF EYE=0,0,-2 UP=0,1,0 MOI=AXIS:56,-54,-21271,5000 cxr_min.sh
+
+
+
+
 
 // EMF_ZC_32 / EMF_RC_32:
 //   32 tilted rings (holders) defined in cylindrical coordinates around
@@ -71,6 +81,10 @@ if __name__ == '__main__':
     # Your existing coordinate logic
     theta = 56. * np.pi / 180.
     phi = -54. * np.pi / 180.
+    delta = -5
+    axdist = -(21271+delta)
+    extent = 5000
+    # AXIS_TPDE  AXIS_theta-phi-dist-extent
 
     st, ct = np.sin(theta), np.cos(theta)
     sp, cp = np.sin(phi), np.cos(phi)
@@ -84,10 +98,7 @@ if __name__ == '__main__':
     up /= np.linalg.norm(up)
 
     # Define your translation (tx, ty, tz)
-    delta = -5
-
-    translation = ax*-(21271+delta)
-    #translation = ax*0
+    translation = ax*axdist
 
     # Generate the matrix
     m2w = create_model_to_world(ax, up, translation)   # my convention is transposed
@@ -95,7 +106,6 @@ if __name__ == '__main__':
     print("Model-to-World Matrix:")
     print(m2w)
 
-    extent = 5000
 
     path = "/tmp/emf2.npy"
     path_meta = path.replace(".npy","_meta.txt")
