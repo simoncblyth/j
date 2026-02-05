@@ -3,7 +3,7 @@
 emf3.py
 ==========
 
-Prepage moi specification strings using constants pulled from WaterPoolConstructionEMF
+Prepare moi specification strings using constants pulled from WaterPoolConstructionEMF
 that define slanted global frames suitable for simtracing the slanted EMF rings
 in order to look for overlaps in a more systematic way.
 
@@ -38,6 +38,8 @@ in order to look for overlaps in a more systematic way.
        17.495,  16.325,  14.924,  13.210,
        11.053,   9.185,   6.509,   3.843
     };
+
+
 
 
 void WaterPoolConstructionEMF::makeEMFCoilHolders_Polycone()

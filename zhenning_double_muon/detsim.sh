@@ -62,8 +62,8 @@ vvp(){ local v ; for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
 vv=""
 vv="$vv BASH_SOURCE SDIR PWD"
 
-#defarg=run
-defarg=info
+defarg=run
+#defarg=info
 allarg=info_run_dbg_db1_db2_prof_grep_logp
 [ -n "$BP" ] && defarg=dbg
 arg=${1:-$defarg}
@@ -73,8 +73,8 @@ vv="$vv BP defarg arg allarg"
 source ~/.opticks/GEOM/ENVSET.sh   ## sets ENVSET and ENVSET_NAME envvars : DOES NOT SOURCE THE ENVSET
 vv="$vv ENVSET_NAME ENVSET"
 
-opticks_mode=0
-#opticks_mode=1
+#opticks_mode=0
+opticks_mode=1
 
 evtmax=1
 seed=42
@@ -122,7 +122,8 @@ fi
 
 
 LOGBASE=/data1/blyth/tmp
-LOGREL=j/zhenning_double_muon/detsim
+#LOGREL=j/zhenning_double_muon/detsim
+LOGREL=j/zhenning_double_muon/detsim_feb
 LOGROOT=$LOGBASE/$LOGREL
 LOGDIR=$LOGROOT/$IDENTITY
 LOGNAME=$IDENTITY.log
@@ -162,26 +163,27 @@ gdb__ ()
 }
 
 
-if [ "${arg/info}" != "$arg" ]; then
+if [[ "$arg" =~ info ]]; then
     vvp
 fi
 
-if [ "${arg/run}" != "$arg" -o "${arg/dbg}" != "$arg" -o "${arg/db1}" != "$arg" -o "${arg/db2}" != "$arg" ]; then
+
+if [[ "$arg" =~ run|dbg|db1|db2 ]]; then
 
     opt=""
     topcmd=time
-    if [ "${arg/run}" != "$arg" ]; then
+    if [[ "$arg" =~ run ]]; then
        topcmd=time
-    elif [ "${arg/dbg}" != "$arg" ]; then
+    elif [[ "$arg" =~ dbg ]]; then
        topcmd=gdb__
-    elif [ "${arg/db1}" != "$arg" ]; then
+    elif [[ "$arg" =~ db1 ]]; then
        topcmd=gdb__
        genmuon0=${genmuon}
        genmuon=${genmuon}_db1
        cmd="diff -y --width=200 ${genmuon0}.txt ${genmuon}.txt"
        echo $BASH_SOURCE WARNING USING HACKED _db1.txt genmuon [$cmd]
        eval $cmd
-    elif [ "${arg/db2}" != "$arg" ]; then
+    elif [[ "$arg" =~ db2 ]]; then
        topcmd=gdb__
        #opt=--dryrun
        opt=--no-optical
@@ -256,18 +258,19 @@ fi
 if [[ "$arg" =~ ^(prof|prof0|logp|grep)$ ]]; then
 
     t0="120 minutes ago"
-    T0=${T0:-$t0}
+    T0=${T0:-$t0}   # start time after which to look for SProf.txt and logs
     mt=$(date "+%Y-%m-%d %H:%M:%S" -d "$T0")
     tt="t0 T0 mt"
     for t in $tt ; do printf "%30s : %s\n" "$t" "${!t}" ; done
 
     if [ "${arg}" == "prof0" ]; then
+        : list SProf.txt modified after T0 and invoke SProf.py on them which parses SProf.txt
         find "$LOGROOT" -name SProf.txt -newermt "$mt" -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
     fi
 
     if [ "${arg}" == "prof" ]; then
 
-       : order found SProf.txt paths by their modification time before parsing
+       : as prof0 but order SProf.txt by modtime
        find "$LOGROOT" -name SProf.txt -newermt "$mt" -printf '%T@ %p\0' | \
              sort -z -n | \
              cut -z -d ' ' -f2- | \

@@ -4,8 +4,10 @@ blyth-OJ-pmt-hit-type-2-for-muon-hits/index
 Overview
 -----------
 
-* suspect this needs new Custom4 causing delay to merge
 * https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/1171
+
+* previously suspected this needed new Custom4 causing delay to merge,
+  but from reading the code see no sign of that
 
 
 Steps to get it merged

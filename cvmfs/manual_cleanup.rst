@@ -1,6 +1,98 @@
 manual_cleanup
 =================
 
+symptom
+--------
+
+* some terminal tabs hang and  "ps aux | grep cvmfs" shows "D" state processe(s)
+
+
+recovery Feb 3 2026
+-------------------
+
+
+
+
+::
+
+    A[blyth@localhost CSGFoundry]$ ps aux | grep cvmfs
+    root      356001  5.5  0.0 439412  3584 ?        D    20:43   0:02 /usr/bin/cvmfs2 -o rw,system_mount,fsname=cvmfs2,allow_other,grab_mountpoint,uid=975,gid=975 juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    root      356016  0.0  0.0 222276  2688 ?        S    20:43   0:00 /usr/bin/mount -t cvmfs juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    root      356017  0.0  0.0  14692  5824 ?        S    20:43   0:00 /sbin/mount.cvmfs juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn -o rw
+    cvmfs     356035  0.0  0.0  31452 16872 ?        D    20:43   0:00 /usr/bin/cvmfs2 -o rw,system_mount,fsname=cvmfs2,allow_other,grab_mountpoint,uid=975,gid=975 juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    cvmfs     356061  0.0  0.0  17668  1796 ?        S    20:43   0:00 /usr/bin/cvmfs2 -o rw,system_mount,fsname=cvmfs2,allow_other,grab_mountpoint,uid=975,gid=975 juno.ihep.ac.cn /cvmfs/juno.ihep.ac.cn
+    blyth     356136  0.0  0.0 221668  2240 pts/3    S+   20:43   0:00 grep --color=auto cvmfs
+    cvmfs    3753449  0.0  0.0  17664  1792 ?        S    Jan29   0:00 /usr/bin/cvmfs2 -o rw,system_mount,fsname=cvmfs2,allow_other,grab_mountpoint,uid=975,gid=975 opticks.ihep.ac.cn /cvmfs/opticks.ihep.ac.cn
+    cvmfs    3753451  0.0  0.0  31924 13440 ?        Sl   Jan29   0:14 /usr/bin/cvmfs2 __cachemgr__ . 11 12 209715200000 104857600000 1 3 -1 :
+    cvmfs    3753455  0.0  0.0  17556  1812 ?        S    Jan29   0:00 /usr/bin/cvmfs2 __cachemgr__ . 11 12 209715200000 104857600000 1 3 -1 :
+    cvmfs    3753462  0.0 11.0 34803888 29084584 ?   Sl   Jan29   0:05 /usr/bin/cvmfs2 -o rw,system_mount,fsname=cvmfs2,allow_other,grab_mountpoint,uid=975,gid=975 opticks.ihep.ac.cn /cvmfs/opticks.ihep.ac.cn
+    A[blyth@localhost CSGFoundry]$ 
+    A[blyth@localhost CSGFoundry]$ 
+    A[blyth@localhost CSGFoundry]$ sudo kill -9 356001 356016 356017 356035 356061 3753449 3753451 3753455 3753462
+    [sudo] password for blyth: 
+    A[blyth@localhost CSGFoundry]$ 
+    A[blyth@localhost CSGFoundry]$ 
+    A[blyth@localhost CSGFoundry]$ sudo umount -l /cvmfs/juno.ihep.ac.cn
+    A[blyth@localhost CSGFoundry]$ sudo umount -l /cvmfs/opticks.ihep.ac.cn
+    A[blyth@localhost CSGFoundry]$ ps aux | grep cvmfs
+    blyth     356431  0.0  0.0 221668  2240 pts/3    S+   20:47   0:00 grep --color=auto cvmfs
+    A[blyth@localhost CSGFoundry]$ sudo systemctl restart autofs
+    A[blyth@localhost CSGFoundry]$ sudo systemctl status autofs
+    ● autofs.service - Automounts filesystems on demand
+         Loaded: loaded (/usr/lib/systemd/system/autofs.service; enabled; preset: disabled)
+        Drop-In: /usr/lib/systemd/system/autofs.service.d
+                 └─50-cvmfs.conf
+         Active: active (running) since Tue 2026-02-03 20:47:11 CST; 17s ago
+       Main PID: 356456 (automount)
+          Tasks: 7 (limit: 1638992)
+         Memory: 2.3M
+            CPU: 21ms
+         CGroup: /system.slice/autofs.service
+                 └─356456 /usr/sbin/automount --systemd-service --dont-check-daemon
+
+    Feb 03 20:47:11 localhost.localdomain systemd[1]: Starting Automounts filesystems on demand...
+    Feb 03 20:47:11 localhost.localdomain automount[356456]: setautomntent: lookup(sss): setautomountent: entry for map auto.master not found
+    Feb 03 20:47:11 localhost.localdomain automount[356456]: setautomntent: lookup(sss): setautomountent: entry for map auto_master not found
+    Feb 03 20:47:11 localhost.localdomain automount[356456]: setautomntent: lookup(sss): setautomountent: entry for map auto.master not found
+    Feb 03 20:47:11 localhost.localdomain systemd[1]: Started Automounts filesystems on demand.
+    A[blyth@localhost CSGFoundry]$ ls -l /cvmfs/juno.ihep.ac.cn /cvmfs/opticks.ihep.ac.cn
+    /cvmfs/juno.ihep.ac.cn:
+    total 10
+    drwxrwxr-x. 5 cvmfs cvmfs  29 Jun 13  2024 centos7_amd64_gcc1120
+    drwxrwxr-x. 3 cvmfs cvmfs  33 Dec 18  2023 centos7_amd64_gcc1120_opticks
+    drwxrwxr-x. 4 cvmfs cvmfs  29 Dec  1  2021 centos7_amd64_gcc830
+    drwxrwxr-x. 4 cvmfs cvmfs  28 Jun  2  2020 ci
+    drwxrwxr-x. 3 cvmfs cvmfs  26 Feb  3  2025 dbdata
+    drwxr-xr-x. 9 cvmfs cvmfs  75 Dec 11  2024 docutil
+    drwxrwxr-x. 5 cvmfs cvmfs  29 Jul 10  2025 el9_amd64_gcc11
+    drwxrwxr-x. 4 cvmfs cvmfs  29 Jan 17 19:16 el9_amd64_gcc15
+    -rw-r--r--. 1 cvmfs cvmfs  45 Mar 27  2015 new_repository
+    drwxrwxr-x. 4 cvmfs cvmfs  28 Jun 28  2025 singularity
+    drwxrwxr-x. 4 cvmfs cvmfs  58 Mar 22  2017 sl5_amd64_gcc41
+    drwxrwxr-x. 9 cvmfs cvmfs 162 Jun 28  2019 sl6_amd64_gcc44
+    drwxrwxr-x. 4 cvmfs cvmfs  52 May 13  2020 sl6_amd64_gcc447
+    drwxrwxr-x. 4 cvmfs cvmfs  29 Nov 27  2019 sl6_amd64_gcc494
+    drwxrwxr-x. 4 cvmfs cvmfs  29 Apr 28  2020 sl6_amd64_gcc830
+    drwxrwxr-x. 3 cvmfs cvmfs  29 Jun 25  2019 sl7_amd64_gcc48
+    drwxrwxr-x. 3 cvmfs cvmfs  33 Jun  4  2020 sl7_amd64_gcc485
+    drwxrwxr-x. 7 cvmfs cvmfs  30 Jan  5  2024 sw
+    drwxrwxr-x. 3 cvmfs cvmfs  26 Dec 25 19:22 tao-dbdata
+
+    /cvmfs/opticks.ihep.ac.cn:
+    total 3
+    drwxrwxr-x. 6 cvmfs cvmfs 231 Jun  6  2025 external
+    -rw-r--r--. 1 cvmfs cvmfs  48 Apr 25  2019 new_repository
+    drwxrwxr-x. 3 cvmfs cvmfs  30 Jun  6  2025 oj
+    drwxrwxr-x. 3 cvmfs cvmfs  30 Jun  6  2025 ok
+    drwxrwxr-x. 6 cvmfs cvmfs 111 Jun  6  2025 opticks_download_cache
+    A[blyth@localhost CSGFoundry]$ 
+
+
+
+
+
+
+
 
 Kill processes using cvmfs : especially those stuck in D state
 ---------------------------------------------------------------
