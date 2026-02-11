@@ -1,0 +1,256 @@
+server_provisioning
+======================
+
+
+Q+A to Gemini interspersed with my thoughts are listed below covering:
+
+* specifications
+* rack chassis
+* motherboard
+* example configuration links
+
+
+Specifications of "NVIDIA RTX 6000 Pro Blackwell server edition" 
+-----------------------------------------------------------------
+
+* full-height, full-length (FHFL), dual-slot, 10.5-inch PCIe Gen5 card
+* up to 600 W maximum board power per card
+* passively cooled, no fans : relies on rack cooling
+
+  * MANDATORY : high-static-pressure cooling shrouds.
+
+* with **PCIe Gen 5** support
+
+My thoughts
+~~~~~~~~~~~~
+
+  * Gen 5 gives double the bandwidth of PCIe Gen 4
+  * Each x16 slot provides up to 32 GB/s (Gen 4) or 64 GB/s (Gen 5) bidirectional 
+  * upload/download to/from GPU will likely become the bottleneck for simulation
+    so using a motherboard that supports PCIe Gen 5 can avoid a factor of 2 slowdown 
+
+
+
+Chassis Question to Gemini
+-----------------------------
+
+Please list chassis models that are suitable for 8x and 4x deployments of RTX
+Pro 6000 Blackwell series server edition GPUs.
+
+My thoughts
+~~~~~~~~~~~~
+
+Power/thermal/cooling requirements for 8x "NVIDIA RTX 6000 Pro Blackwell server edition" 
+are extreme requiring specific chassis that are certified to handle them. 
+This is essential to avoid unreliability/throttling that would force using 
+reduced power running.  
+
+Splitting the 8x into 2 servers with 4x each would avoid the risks of provisioning 
+for very high power/thermal/cooling requirements and allow more standard chassis to be used,
+that you are probably familiar with already.
+
+
+Suitable 8x GPU Chassis (4U/5U/6U)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These models are designed for "maximum density." They utilize advanced cooling
+and usually require 3000W+ Redundant Titanium PSUs (often in a 3+1 configuration).
+
+
+Manufacturer,Model,Highlights
+
+ASUS,ESC8000A-E13X
+      Designed for AMD EPYC 9005 (Turin). Features PCIe Gen 6 switches to ensure zero-bottleneck data flow between the 8x Blackwell GPUs.
+
+Supermicro,SYS-522GA-NRT
+      "A 5U flagship. Uses dual-root PCIe switch topology, which is ideal for Slurm clusters needing high inter-GPU communication."
+
+Dell,PowerEdge XE7745
+      A 4U chassis explicitly benchmarked for 8x RTX 6000 Blackwell. Highly serviceable and designed for air-cooled data centers.
+
+Gigabyte,XL44-SX2-AAS1,
+      "Based on the NVIDIA MGX architecture. It includes an additional slot for a BlueField-3 DPU, which can offload Slurm management/networking."
+
+Aivres,KR6268-X3,
+      A 6U chassis. The extra height allows for much larger heatsinks and lower fan speeds (less noise/wear) for the 600W cards.
+
+
+Suitable 4x GPU Chassis (2U)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As discussed, splitting your 8 cards into two 2U servers is often superior for Geant4/Opticks to avoid CPU-to-GPU bottlenecks
+
+
+Manufacturer,Model,Highlights
+
+Supermicro,AS-2115HV-TNRT,
+      A 2U server that handles 4x double-width Blackwell GPUs. It provides a more direct PCIe path from the CPU to the cards.
+
+Gigabyte,XV24-SU0-AAJ1,
+      "A 2U ""Single Socket"" (UP) server. Excellent if your Geant4 code is highly parallel and you want to maximize GPU-per-CPU-core ratios."
+
+ASUS,ESC4000-E11,
+      A standard 2U workhorse. Supports 4x dual-slot Blackwell cards and offers liquid-cooling options if your rack's air-moving capacity is limited.
+
+
+
+
+3. Critical Checklist for Your Purchase
+The "Passive" Cooling Requirement
+
+The Server Edition of the RTX 6000 Blackwell has no internal fans.
+
+    Warning: You cannot put these in a standard workstation or a generic rack server without high-static-pressure cooling shrouds.
+
+    Verify: Ensure the chassis specifically lists support for 600W passive GPUs.
+
+The PCIe Root Complex
+
+For Opticks, you want the GPUs to be as "close" to the CPU as possible.
+
+    In 8-GPU systems, ask if the chassis uses a Single-Root (all 8 GPUs on one CPU) or Dual-Root (4 GPUs per CPU) design.
+
+    Geant4 Tip: A Dual-Root design is usually better for Geant4 because it allows more CPU memory bandwidth to feed the cards simultaneously.
+
+Power Infrastructure
+
+Each 8-GPU server will draw nearly 5,500W - 6,000W at full load (including CPUs and fans).
+
+    You will likely need L6-30P or IEC C19/C20 power cables.
+
+    Standard 110V/15A wall outlets will not support these servers; you will need 208V-240V high-amperage PDUs.
+
+
+
+
+
+
+
+Motherboard Question to Gemini
+--------------------------------
+
+Please list motherboards that are suitable for 8x and 4x deployments of RTX Pro 6000 Blackwell series server edition GPUs.
+Which specifications are particularly import for Geant4/Opticks simulation workloads ?
+
+
+My Thoughts
+~~~~~~~~~~~
+
+* support for PCIe Gen 5.0 x16 slots is crucial (to avoid a 2x slowdown in
+  transfers between CPU and GPU which will likely become the bottleneck for simulation)
+
+* complexity and cost of dual processor boards with PCIe Gen 5.0 switches 
+  is needed to avoid communicating with 8 cards becoming a continuous traffic 
+  jam on the bus limiting the potential of the server. Again splitting
+  the 8x cards across two servers would avoid this complexity and bottleneck risk.
+
+
+Gemini
+~~~~~~~
+
+For Geant4/Opticks simulations, the motherboard is more than just a mounting
+point; it acts as the primary data highway. Since Opticks offloads the most
+computationally expensive part (optical photon propagation) while Geant4
+manages the world state on the CPU, the "distance" and bandwidth between the
+two are your primary performance levers.
+
+
+## **1. Suitable Motherboards for 4x and 8x Blackwell Deployments**
+
+For the **RTX 6000 Blackwell Server Edition**, you generally use enterprise
+server boards rather than consumer boards, as these cards are passive and
+require specific airflow and power delivery found in rackmount-specific
+motherboards.
+
+### **For 4x GPU Deployments (Workstation/Tower or 2U)**
+
+These are ideal for "small-scale" clusters or high-performance individual nodes
+where you want to maximize CPU-to-GPU bandwidth.
+
+* **ASUS Pro WS WRX90E-SAGE SE:** This is the current "gold standard" for 4-GPU workstation builds. 
+  It supports **AMD Threadripper PRO 7000/9000** series and provides **7x PCIe Gen 5.0 x16 slots**. 
+  You can run 4x Blackwell cards at full x16 Gen 5 speeds with ease.
+
+* **GIGABYTE MH53-G40:** 
+  An enterprise-grade board for AMD Threadripper PRO, often used in the Gigabyte W773-H5D chassis. 
+  It is built for sustained 24/7 simulation loads.
+
+* **GIGABYTE MW83-RP0:** 
+  The Intel equivalent for **Xeon W-2400/W-3400** processors, suitable for 4x GPU deployments.
+
+
+### **For 8x GPU Deployments (4U/Enterprise)**
+
+Motherboards for 8-GPU setups are typically integrated into "barebone" 
+server systems because they require complex PCIe switching.
+
+* **ASUS ESC8000A-E13X Board:** 
+  A dual-socket **AMD EPYC 9005 (Turin)** board. 
+  It is one of the few that features **PCIe Gen 6 switches** 
+  to manage the massive traffic between 8x Blackwell GPUs without bottlenecking the CPU.
+
+* **Supermicro H13DGU:** 
+  A dual-processor board found in the SYS-522GA-NRT. 
+  It is designed to handle the 600W power draw and high heat density of 8 passive GPUs.
+
+* **GIGABYTE XL44-SX2 Board:** 
+  Part of the **NVIDIA MGX** modular architecture, designed specifically to pair with Blackwell 
+  and BlueField-3 DPUs for high-speed simulation networking.
+
+---
+
+## **2. Vital Specs for Geant4/Opticks Workloads**
+
+When selecting a board for Geant4/Opticks, prioritize these technical specs to
+avoid "starving" your GPUs:
+
+### **PCIe Lane Topology (The "Bottleneck" Spec)**
+
+Opticks is highly sensitive to **PCIe latency**.
+
+* **Requirement:** Ensure the board provides **x16 Gen 5** lanes to every slot.
+
+* **Pro Tip:** Look for "Dual-Root" topology. In an 8-GPU setup, a Dual-Root
+  board connects 4 GPUs to CPU #1 and 4 GPUs to CPU #2. This doubles the
+  effective bandwidth for moving Geant4 event data from the system RAM to the
+  GPUs compared to a Single-Root system.
+
+### **Memory Channels & Bandwidth**
+
+Geant4 is a memory-intensive CPU task. If the CPU can't process the initial
+particle steps fast enough, the GPUs will sit idle waiting for the next batch
+of optical photons.
+
+* **Requirement:** Use boards with **12-channel memory** (available on AMD EPYC 9004/9005 and Intel Xeon 6).
+* **Capacity:** Opticks batch sizes can be huge. Aim for at least **2x to 4x
+  the total VRAM** in system RAM (e.g., for 4x 96GB GPUs, aim for 1TB of System RAM).
+
+### **RDMA & DPU Support (BlueField-3)**
+
+If you are running these across a cluster via Slurm, the "hand-off" between nodes matters.
+
+* **Importance:** Boards that support **BlueField-3 DPUs** or **ConnectX-7/8**
+  allow for **GPUDirect RDMA**. This lets one server's GPU talk to another's
+  without involving the CPU, which is a massive speedup for large-scale
+  distributed detector simulations.
+
+### **Power Delivery (VRM Quality)**
+
+The RTX 6000 Blackwell can spike to **600W**.
+
+* **Requirement:** The motherboard must have high-quality VRMs and enough
+  **EPS/PCIe 8-pin or 16-pin power headers** to stabilize the board's own power
+  draw when all 8 PCIe slots are fully saturated.
+
+
+
+
+Example 8x Server Configuration links
+---------------------------------------
+
+* https://www.arccompute.io/solutions/hardware/nvidia-rtx-pro-6000-gpu-servers
+* https://www.arccompute.io/solutions/hardware/gpu-servers/aivres-rtx-pro-6000-server-edition-gpu-server
+* https://www.arccompute.io/solutions/hardware/gpu-servers/supermicro-rtx-pro-6000-server-edition-gpu-server
+
+
+
