@@ -81,16 +81,21 @@ if __name__ == '__main__':
     # Your existing coordinate logic
     theta = 56. * np.pi / 180.
     phi = -54. * np.pi / 180.
+
+    st, ct = np.sin(theta), np.cos(theta)
+    sp, cp = np.sin(phi), np.cos(phi)
+
+    ax = np.array([st * cp, st * sp, ct])
+
+
+    # This is our local Forward (Z) axis
     delta = -5
     axdist = -(21271+delta)
     extent = 5000
     # AXIS_TPDE  AXIS_theta-phi-dist-extent
 
-    st, ct = np.sin(theta), np.cos(theta)
-    sp, cp = np.sin(phi), np.cos(phi)
 
-    # This is our local Forward (Z) axis
-    ax = np.array([st * cp, st * sp, ct])
+
 
     # Projection to find Up (Y) axis
     world_z = np.array([0, 0, 1])
