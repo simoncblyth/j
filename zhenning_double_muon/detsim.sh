@@ -4,20 +4,22 @@ usage(){ cat << EOU
 detsim.sh
 ==========
 
+Workflow::
+
+    ~/j/zhenning_double_muon/genmuon.sh  # generate muon file
+    ENVSET  ## bash function used to specify which environment to use, eg with/without Opticks
+
+    ~/j/zhenning_double_muon/detsim.sh
+    T0="2025-12-04 16:00" ~/j/zhenning_double_muon/detsim.sh prof
+
+
+args
+-----
 
 info
-    output variables
+    dump variables
 run
     ordinary running
-
-
-zhenning_double_muon/detsim.sh
-
-T0="2025-12-04 16:00" zhenning_double_muon/detsim.sh prof
-
-
-
-
 
 dbg
     under gdb__
@@ -27,29 +29,25 @@ db2
     under gdb__ with setting of extra options such as --dryrun OR --no-optical
 
 
-prof
-    find all SProf.txt below LOGROOT and dump time tables using ~/o/bin/SProf.py
-logp
-    final all OJ*.log and J*.log below LOGROOT and dump times using SDIR/logparse.py
-grep
-    grep @ lines in current LOGFILE
+
+Profile analysis moved to ~/o/bin/SProf.sh, eg::
+
+    cd /data1/blyth/tmp/j/zhenning_double_muon/detsim   # LOGROOT defaults to invoking directory
+    T0="2025-12-04 16:00" T1="2025-12-04 18:00" ~/o/bin/SProf.sh proi
 
 
-
-BP=G4VUserTrackInformation::SetUserInformation ~/j/zhenning_double_muon/detsim.sh dbg
-
-BP=NormalTrackInfo::NormalTrackInfo ~/j/zhenning_double_muon/detsim.sh
-BP=NormalTrackInfo::~NormalTrackInfo  ~/j/zhenning_double_muon/detsim.sh
-
-BP=G4VUserTrackInformation::G4VUserTrackInformation ~/j/zhenning_double_muon/detsim.sh dbg
-
-BP=C4OpBoundaryProcess::PostStepDoIt ~/j/zhenning_double_muon/detsim.sh
+dbg breakpoints
+----------------
 
 
+::
 
-0. ~/j/zhenning_double_muon/genmuon.sh generate muon file
-1. ENVSET bash function : pick an environment, with or without Opticks
-2. ~/j/zhenning_double_muon/detsim.sh
+    BP=G4VUserTrackInformation::SetUserInformation ~/j/zhenning_double_muon/detsim.sh
+    BP=NormalTrackInfo::NormalTrackInfo ~/j/zhenning_double_muon/detsim.sh
+    BP=NormalTrackInfo::~NormalTrackInfo  ~/j/zhenning_double_muon/detsim.sh
+    BP=G4VUserTrackInformation::G4VUserTrackInformation ~/j/zhenning_double_muon/detsim.sh dbg
+    BP=C4OpBoundaryProcess::PostStepDoIt ~/j/zhenning_double_muon/detsim.sh
+
 
 EOU
 }
@@ -81,6 +79,8 @@ seed=42
 output=output.root
 user_output=user_output.root
 genmuon=j__zhenning_double_muon_seed_${seed}_evtmax_${evtmax}
+vv="$vv evtmax seed output user_output genmuon"
+
 
 test=hitlitemerged
 TEST=${TEST:-$test}
@@ -94,26 +94,26 @@ pmtsd_merge_twindow=1  ## always merge but do it in on CPU or GPU depending on o
 if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
 
-   opticks_mode_merge=0
+   opticks_mode_merge_override=0
    opticks_max_slot=M150  ## avoid modemerged just splitting into two slices from M136 heuristic
 
    case $TEST in
-      hit)           pmt_hit_type=1 ; opticks_mode_merge=0 ;;
-      hitmerged)     pmt_hit_type=1 ; opticks_mode_merge=1 ;;
-      hitlite)       pmt_hit_type=2 ; opticks_mode_merge=0 ;;
-      hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge=1 ;;
+      hit)           pmt_hit_type=1 ; opticks_mode_merge_override=0 ;;
+      hitmerged)     pmt_hit_type=1 ; opticks_mode_merge_override=1 ;;
+      hitlite)       pmt_hit_type=2 ; opticks_mode_merge_override=0 ;;
+      hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge_override=1 ;;
    esac
 
    IDENTITY=${ENVSET_NAME}_ok${opticks_mode}_${TEST}_seed${seed}_evtmax${evtmax}_${arg}
 
 
    if [ "${ENVSET_NAME:0:1}" == "O" ]; then
-       export OPTICKS_MODE_MERGE=$opticks_mode_merge
+       export OPTICKS_MODE_MERGE_OVERRIDE=$opticks_mode_merge_override
        export OPTICKS_MAX_SLOT=$opticks_max_slot
    fi
 
-   vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow IDENTITY"
-   vv="$vv ENVSET_NAME OPTICKS_MODE_MERGE OPTICKS_MAX_SLOT"
+   vv="$vv opticks_mode evtmax seed output user_output pmt_hit_type pmtsd_merge_twindow opticks_mode_merge_override IDENTITY"
+   vv="$vv ENVSET_NAME OPTICKS_MODE_MERGE_OVERRIDE OPTICKS_MAX_SLOT"
 
 else
    printf "$BASH_SOURCE TEST[$TEST] UNHANDLED\n"
@@ -122,8 +122,7 @@ fi
 
 
 LOGBASE=/data1/blyth/tmp
-#LOGREL=j/zhenning_double_muon/detsim
-LOGREL=j/zhenning_double_muon/detsim_feb
+LOGREL=j/zhenning_double_muon/detsim
 LOGROOT=$LOGBASE/$LOGREL
 LOGDIR=$LOGROOT/$IDENTITY
 LOGNAME=$IDENTITY.log
@@ -132,6 +131,8 @@ vv="$vv LOGBASE LOGREL LOGROOT LOGDIR LOGNAME LOGFILE"
 
 
 seconds_between() {
+    : convert d1 d2 string arguments into seconds from the epoch 
+    : then subtract to give seconds between those
     local d1="$1"
     local d2="$2"
     local ts1=$(date -d "$d1" +%s) || return 1
@@ -211,8 +212,8 @@ if [[ "$arg" =~ run|dbg|db1|db2 ]]; then
 
 
     date
-    t0=$(date)
-    vv="$vv t0 t1 dt"
+    d0=$(date)
+    vv="$vv d0 d1 dt"
 
 
     mkdir -p $LOGDIR
@@ -244,8 +245,8 @@ if [[ "$arg" =~ run|dbg|db1|db2 ]]; then
     [ $? -ne 0 ] && echo $BASH_SOURCE - ERROR FOM tut_detsim.py && exit 1
 
     date
-    t1=$(date)
-    dt=$(seconds_between "$t0" "$t1")
+    d1=$(date)
+    dt=$(seconds_between "$d0" "$d1")
 
     vvp
     vvp >> $LOGNAME
@@ -254,39 +255,6 @@ if [[ "$arg" =~ run|dbg|db1|db2 ]]; then
 fi
 
 
-
-if [[ "$arg" =~ ^(prof|prof0|logp|grep)$ ]]; then
-
-    t0="120 minutes ago"
-    T0=${T0:-$t0}   # start time after which to look for SProf.txt and logs
-    mt=$(date "+%Y-%m-%d %H:%M:%S" -d "$T0")
-    tt="t0 T0 mt"
-    for t in $tt ; do printf "%30s : %s\n" "$t" "${!t}" ; done
-
-    if [ "${arg}" == "prof0" ]; then
-        : list SProf.txt modified after T0 and invoke SProf.py on them which parses SProf.txt
-        find "$LOGROOT" -name SProf.txt -newermt "$mt" -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
-    fi
-
-    if [ "${arg}" == "prof" ]; then
-
-       : as prof0 but order SProf.txt by modtime
-       find "$LOGROOT" -name SProf.txt -newermt "$mt" -printf '%T@ %p\0' | \
-             sort -z -n | \
-             cut -z -d ' ' -f2- | \
-             xargs -0 -n1 bash -c 'echo "→ $1" && ~/o/bin/SProf.py "$1"' bash
-    fi
-
-
-    if [ "${arg}" == "logp" ]; then
-       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} " \;
-       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} && $SDIR/logparse.py {}" \;
-    fi
-    if [ "${arg}" == "grep" ]; then
-       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "echo {} " \;
-       find "$LOGROOT" -type f \( -name 'OJ*.log' -o -name 'J*.log' \) -newermt "$mt" -exec bash -c "grep \" @ \" {} " \;
-    fi
-fi
 
 
 exit 0

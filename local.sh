@@ -43,6 +43,10 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ojtu    | oj_test_usage                      | dump ojt usage text                                                                                                                    |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ojt     | oj_test                            |                                                                                                                                        |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
 
@@ -100,7 +104,7 @@ Actually, when using default v0.1.8 Custom4 prefix there is nothing to do
 Do each of the below setup and build in separate clean tabs:
 
 1. local_c4_build ; c4_build   ## does nothing when using default c4 v0.1.8
-2. local_ok_build ; ok_build   ## 
+2. local_ok_build ; ok_build   ##
 
    * HMM: AFTER CHANGING C4 prefix an om-cleaninstall is needed
 
@@ -607,13 +611,37 @@ oj_test_usage()
 {
    : ~/local.sh
    cat  << EOU
+oj_test_usage
+=============
+
+The workflow for OJ testing has two parts, the first checks the envset
+and test to be run and the second runs the test from an empty env tab.
+
+-1. "ljbb", local build of current branch
+0. "ojtu", dump this usage text
+1. "lo" bash function, get into environment
+2. "ENVSET" bash function editing ENVSET.sh, check/change envset configured
+
+   * ENVSET will typically be OJ_LOCAL indicating the local build of current branch
+   * ENVSET can also be a cvmfs release
+
+3. "TEST" bash function editing TEST.sh, check/change the default test configured to run
+   which can be overridden with TEST envvar
+
+Second stage, from empty env tab (for reproducibility):
+
+1. use "ojt" methods to check config, eg::
+
+   ojt info   # list config including output directory
+   ojt log
+   ojt ls
+   ojt prof
+
 
 +----------------+-------------------------------+
 | TEST           |                               |
 +================+===============================+
-|  default       |                               |
-+----------------+-------------------------------+
-|  zero          |                               |
+|  default       |  tut_detsim.py --evtmax 1 gun |
 +----------------+-------------------------------+
 |  hit           |                               |
 +----------------+-------------------------------+
@@ -624,18 +652,25 @@ oj_test_usage()
 |  hitlitemerged |                               |
 +----------------+-------------------------------+
 
-Currently the TEST bash function that is sourced by oj_test
-ignored any input TEST envvar, and always sets it to the
-value coded. So workflow is:
-
-0. from "lo" tab, run "TEST" bash function to edit the TEST.sh and set value to one of the above
-1. from empty tab, run "ojt"
-
-
-/tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/python3.11/ALL0_no_opticks_event_name/A000
 
 EOU
 }
+
+oj_test_todo(){ cat << EOS
+
+surfacing output folders ?
+    /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/python3.11/ALL0_no_opticks_event_name/A000
+
+flexibility of output folders, for comparison with prior runs for example
+
+
+
+
+
+EOS
+}
+
+
 
 
 seconds_between() {
@@ -652,27 +687,33 @@ oj_test()
    : ~/local.sh
    : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
    : then runs a single event simulation under gdb debugger
+   : 
+   : TESTGROUP string used to encapsulate at a high level what is done eg "gun" "doublemuon"
+   : TEST string used to encapsulate options used varying how tests are run eg "hitlitemerged"
+   :
+   : HMM - LACKS IDENTITY MACHINERY OF ~/j/blyth-OJ.../detsim.sh
+   : HMM - NEEDS TO USE ~/o/bin/SProf.sh profile/logparse machinery
 
 
-   local arg=${1:-$defarg}
-
+   local defarg=""
+   local arg=${1-$defarg}
 
    source ~/.opticks/TEST/TEST.sh
-   [ -z "$TEST" ] && echo $FUNCNAME - ERROR TEST NOT DEFINED && return 2
+   [ -z "$TESTGROUP" ] && echo $FUNCNAME - ERROR TESTGROUP NOT DEFINED && return 1
+   [ -z "$TEST"      ] && echo $FUNCNAME - ERROR TEST NOT DEFINED      && return 2
 
    local IDENTITY=$FUNCNAME
 
    #local logbase=/tmp/$USER/opticks
    local logbase=/data2/blyth/local
    local LOGBASE=$logbase
-
    local LOGFOLD=$LOGBASE/$FUNCNAME
-   local LOGDIR=$LOGFOLD/$TEST
+   local LOGSTAMP=$(date +%Y%m%d)
+   local LOGDIR=$LOGFOLD/$LOGSTAMP/$TEST
    local LOGNAME=$IDENTITY.log
 
-   local vv="BASH_SOURCE FUNCNAME test TEST TMP GEOM LOGFOLD LOGDIR LOGNAME PWD SProf__WRITE"
+   local vv="BASH_SOURCE FUNCNAME test TEST TMP GEOM LOGBASE LOGFOLD LOGSTAMP LOGDIR LOGNAME PWD SProf__WRITE"
    vvp(){ for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
-
 
    if [ "${arg/info}" != "$arg" ]; then
       vvp
@@ -680,6 +721,8 @@ oj_test()
    fi
 
 
+
+   # HMM : THIS SHOULD NOW USE ~/o/bin/SProf.sh
    if [ "${arg/log}" != "$arg" ]; then
       find "$LOGFOLD" -name $LOGNAME -exec bash -c 'printf "→ {}\n"' \;
       return 0
@@ -694,6 +737,8 @@ oj_test()
       find "$LOGFOLD" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
       return 0
    fi
+
+
 
 
    oj_envset
@@ -716,61 +761,84 @@ oj_test()
           --evtmax 1 \
           gun
 
-   elif [ "$TEST" == "zero" ]; then
-
-       vvp
-       dbg__ \
-          $(which python) \
-          $(which tut_detsim.py) \
-          --evtmax ${evtmax} \
-          --pmt-hit-type ${pmt_hit_type} \
-          --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
-          --opticks-mode 0 \
-          gun
-
 
    elif [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
-       export SProf__WRITE=1
-       export junoSD_PMT_v2_Opticks=INFO
+       export SProf__WRITE=1    # enable profile writing see SProf::Write
 
-       export QSim=INFO
-       export SEvt=INFO
-       export SEvt__SAVE=1
-       export SEvt__DIRECTORY=1
+       if [ -n "$LOG" ]; then
+           # general loglevel of the class/struct
+           export junoSD_PMT_v2_Opticks=INFO
+           export QSim=INFO
+           export SEvt=INFO
 
+           export SEvt__SAVE=1       # extra logging re what is saved
+           export SEvt__DIRECTORY=1  # extra logging re where arrays are saved
+       fi
+       vv="$vv LOG"
+
+
+       # configure SEvt arrays to save
        export OPTICKS_MAX_SLOT=M10
        export OPTICKS_EVENT_MODE=HitPhotonSeq  ## try some SEvt saving with OJ
        export OPTICKS_MODE_SAVE=1  # 0:absolute, 1:relative to invoking dir
 
+
+
        local evtmax=1
        local pmt_hit_type=1
-       local pmtsd_merge_twindow=1  # always merge, just do it in different places
-       local opticks_mode_merge=1
+       local pmtsd_merge_twindow=1
+       local opticks_mode_merge_override=1
+
+       : NB use of "--pmtsd-merge-twindow 1" means that hit merging is enabled
+       : BUT to check performance of GPU vs CPU merging the OPTICKS_MODE_MERGE_OVERRIDE
+       : envvar is used control whether CPU/GPU merging happens
 
        case $TEST in
-          hit)           pmt_hit_type=1 ; opticks_mode_merge=0 ;;
-          hitmerged)     pmt_hit_type=1 ; opticks_mode_merge=1 ;;
-          hitlite)       pmt_hit_type=2 ; opticks_mode_merge=0 ;;
-          hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge=1 ;;
+          hit)           pmt_hit_type=1 ; opticks_mode_merge_override=0 ;;
+          hitmerged)     pmt_hit_type=1 ; opticks_mode_merge_override=1 ;;
+          hitlite)       pmt_hit_type=2 ; opticks_mode_merge_override=0 ;;
+          hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge_override=1 ;;
        esac
 
        #local topcmd=dbg__
        local topcmd=time
-       vv="$vv TEST topcmd evtmax pmt_hit_type pmtsd_merge_twindow opticks_mode_merge"
+       vv="$vv TEST topcmd evtmax pmt_hit_type pmtsd_merge_twindow opticks_mode_merge_override"
 
-       export OPTICKS_MODE_MERGE=$opticks_mode_merge
+       export OPTICKS_MODE_MERGE_OVERRIDE=$opticks_mode_merge_override
 
        vvp >> $LOGNAME
 
-       $topcmd \
-          $(which python) \
-          $(which tut_detsim.py) \
-          --evtmax ${evtmax} \
-          --pmt-hit-type ${pmt_hit_type} \
-          --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
-          gun \
-          2>&1 | tee -a $LOGNAME
+
+       if [ "$TESTGROUP" == "gun" ]; then
+
+           $topcmd \
+              $(which python) \
+              $(which tut_detsim.py) \
+              --evtmax ${evtmax} \
+              --pmt-hit-type ${pmt_hit_type} \
+              --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
+              gun \
+              2>&1 | tee -a $LOGNAME
+
+
+       elif [ "$TESTGROUP" == "doublemuon" ]; then
+
+           $topcmd \
+              $(which python) \
+              $(which tut_detsim.py) \
+              --evtmax ${evtmax} \
+              --pmt-hit-type ${pmt_hit_type} \
+              --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
+              gun \
+              2>&1 | tee -a $LOGNAME
+
+       fi
+
+
+
+
+
 
        unset SProf__WRITE
 
@@ -800,11 +868,28 @@ ojtt
 EOU
 }
 
+
+
 ojtt()
 {
    : ~/local.sh
+   : NB this uses brackets creating subshell foreach TEST invokation
+
+   local defarg=""
+   local arg=${1-$defarg}
+
    local tests="hit hitmerged hitlite hitlitemerged"
    local tt=${TESTS:-$tests}
+
+   
+   local vv="BASH_SOURCE FUNCNAME tests TESTS tt defarg arg"
+
+   if [ "${arg/info}" != "$arg" ]; then
+      for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done
+      return 0
+   fi
+
+
    local t
    for t in $tt ; do
    (
