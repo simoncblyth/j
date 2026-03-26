@@ -47,7 +47,10 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ojt     | oj_test                            |                                                                                                                                        |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-
+| ojtt    | ojt with multiple TEST             |                                                                                                                                        |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ojdm    | doublemuon.sh from j               |  Use ENVSET and TEST to control details of the doublemuon running                                                                      |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 
 Updating local OK build
@@ -120,7 +123,7 @@ EOU
 
 local_vip()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    case ${VIP_MODE:-none} in
           none) local_none ;;
 
@@ -143,14 +146,14 @@ local_vip()
 
 local_unset()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    unset CMAKE_PREFIX_PATH
    unset PKG_CONFIG_PATH
 }
 
 local_none()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    export VIP_MODE=none
    export VIP_DESC="empty env"
 }
@@ -173,7 +176,7 @@ local_c4_prefix()
 
 local_c4_build()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : setup externals needed to c4_build
    : using J25.4.0 standard versions of externals copied from JUNOTOP/bashrc.sh
    : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/bashrc.sh
@@ -185,7 +188,7 @@ local_c4_build()
    if [ "$(local_c4_prefix)" == "$(local_c4_prefix_default)" ]; then
        c4_build()
        {
-          : ~/local.sh
+          : ~/j/local.sh
           echo $BASH_SOURCE $FUNCNAME - NO BUILD NEEDED AS PREFIX IS DEFAULT
           local ff="local_c4_prefix local_c4_prefix_default"
           for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
@@ -193,7 +196,7 @@ local_c4_build()
    else
        c4_build()
        {
-          : ~/local.sh
+          : ~/j/local.sh
           : NB returned v0.1.8 in transient branch with
           :      git checkout -b v0.1.8_transient v0.1.8
 
@@ -214,7 +217,7 @@ local_c4_build()
 
 local_ok_externals()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy versions matching JUNOSW
    : NB versions need to match those used by gitlab-ci build when using the gitlab cvmfs release
 
@@ -247,7 +250,7 @@ local_JUNOTOP_override()
 
 local_cuda()
 {
-    : ~/local.sh using vip-path from ~/vip/vip.bash
+    : ~/j/local.sh using vip-path from ~/vip/vip.bash
     local cuda_prefix=/usr/local/cuda-12.4
     vip-path append PATH            $cuda_prefix/bin  # for nvcc
     vip-path append LD_LIBRARY_PATH $cuda_prefix/lib64
@@ -257,7 +260,7 @@ local_cuda()
 
 local_ok_build()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
 
    source ~/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
@@ -279,13 +282,13 @@ local_ok_build()
 }
 lob()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    local_ok_build
 }
 
 lo()
 {
-   : ~/local.sh  env for Opticks build test and analysis
+   : ~/j/local.sh  env for Opticks build test and analysis
    local_ok_build
    lco
 
@@ -297,7 +300,7 @@ lo()
 
 local_ok_local()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    local_ok_externals    # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
    source /data1/blyth/local/opticks_Debug/bashrc
 
@@ -313,13 +316,13 @@ local_ok_local()
 
 ljb()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : use this in fresh tab to setup env ready to perform oj_build
    local_oj_build
 }
 ljbb()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : use this in fresh tab to setup env and perform the build
    [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    local_oj_build
@@ -328,7 +331,7 @@ ljbb()
 
 ljbb0()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : same as ljbb but using NOINIT=1 which prevents geometry initialization
    [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    NOINIT=1 ljbb
@@ -336,7 +339,7 @@ ljbb0()
 
 ljbb0c()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : same as ljbb but using NOINIT=1 which prevents geometry initialization
    : and OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
    [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
@@ -345,7 +348,7 @@ ljbb0c()
 
 ljbbc()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : same as ljbb but with OJ_BUILD_CLEAN=1 which deletes the build dirs and redoes everything
    [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    OJ_BUILD_CLEAN=1 ljbb
@@ -354,7 +357,7 @@ ljbbc()
 
 oj_log()
 {
-    : ~/local.sh
+    : ~/j/local.sh
     : logfile LOGSTEM.log in invoking directory is appended to
     : LOGSTEM should be the name of the principal bash function eg oj_build_
     local logstem=$1
@@ -368,7 +371,7 @@ local_branch(){ git -C $(local_srcdir) branch --show-current ; }
 
 local_oj_build()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    export VIP_MODE=oj_build
    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
 
@@ -415,7 +418,7 @@ local_oj_build()
    if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
 
    oj_build_info(){
-       : ~/local.sh
+       : ~/j/local.sh
        local vv="JUNOTOP JUNO_OPTICKS_PREFIX JUNO_OFFLINE_OFF OPTICKS_SETUP_VERBOSE"
        for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done
    }
@@ -437,7 +440,7 @@ local_oj_build()
    }
 
    oj_build_pre(){
-       : ~/local.sh
+       : ~/j/local.sh
        cd $(local_srcdir)
        source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
        mkdir -p InstallConfig
@@ -446,7 +449,7 @@ local_oj_build()
    }
 
    oj_build_(){
-       : ~/local.sh
+       : ~/j/local.sh
        cd $(local_srcdir)
 
        ##rm -f $FUNCNAME.log  ## retaining log to follow progression of build time is useful
@@ -461,7 +464,7 @@ local_oj_build()
    }
 
    oj_build_post(){
-       : ~/local.sh
+       : ~/j/local.sh
        cd $(local_srcdir)
        local branch=$(local_branch)
 
@@ -475,7 +478,7 @@ local_oj_build()
    }
 
    oj_build_initialize(){
-       : ~/local.sh
+       : ~/j/local.sh
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
        cd $(local_srcdir)
@@ -483,7 +486,7 @@ local_oj_build()
    }
 
    oj_build(){
-       : ~/local.sh
+       : ~/j/local.sh
 
        [ -n "$OJ_BUILD_CLEAN" ] && oj_build_clean
        oj_build_info
@@ -505,7 +508,7 @@ local_oj()
     source $(local_srcdir)/InstallArea/$(local_branch)/envset.sh
 }
 loj(){
-   : ~/local.sh
+   : ~/j/local.sh
    : setup environment of OJ running
    local_oj
 }
@@ -514,14 +517,14 @@ loj(){
 
 lji()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : setup environment to prepare geomdir with oj_init
    local_oj_init
 }
 
 ljii()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : setup environment to prepare geomdir and then invoke oj_local doing so
    local_oj_init
    oj_init
@@ -530,7 +533,7 @@ ljii()
 
 local_oj_init()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : THIS IS NOW NORMALLY DONE AS PART OF oj_build
    local desc="usage of oj_build created envset.sh adapting .gitlab-ci.yml Opticks+JUNOSW test, use oj_local func to prep geomdir"
    local mode=oj_init
@@ -552,7 +555,7 @@ local_oj_init()
 
 ljr()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : setup environment to check a release
    local_oj_release
    oj_release
@@ -560,7 +563,7 @@ ljr()
 
 ljrt()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : setup environment to check a release
    local_oj_release
    oj_release
@@ -588,7 +591,7 @@ EON
 
 oj_envset()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    source ~/.opticks/GEOM/ENVSET.sh
    echo $BASH_SOURCE - ENVSET_NAME $ENVSET_NAME ENVSET $ENVSET
 
@@ -603,13 +606,13 @@ oj_envset()
 
 oje()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    oj_envset
 }
 
 oj_test_usage()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    cat  << EOU
 oj_test_usage
 =============
@@ -682,17 +685,47 @@ seconds_between() {
 }
 
 
+oj_test_dev()
+{
+   local defarg=""
+   local arg=${1-$defarg}
+
+   if [ "${arg/log}" != "$arg" ]; then
+      find "$LOGFOLD" -name '*.log' -exec bash -c 'printf "→ {}\n"' \;
+      return 0
+   fi
+
+   if [ "${arg/ls}" != "$arg" ]; then
+      find "$LOGFOLD" -name SProf.txt -exec bash -c 'printf "→ {}\n"' \;
+      return 0
+   fi
+
+   if [ "${arg/prof}" != "$arg" ]; then
+      find "$LOGFOLD" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
+      return 0
+   fi
+}
+
+
+oj_test_design(){ cat << EOU
+
+ Moved this to  ~/j/oj_test/oj_test.rst
+
+EOU
+}
+
+
 oj_test()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
    : then runs a single event simulation under gdb debugger
    : 
    : TESTGROUP string used to encapsulate at a high level what is done eg "gun" "doublemuon"
    : TEST string used to encapsulate options used varying how tests are run eg "hitlitemerged"
    :
-   : HMM - LACKS IDENTITY MACHINERY OF ~/j/blyth-OJ.../detsim.sh
-   : HMM - NEEDS TO USE ~/o/bin/SProf.sh profile/logparse machinery
+   : HMM - LACKS IDENTITY MACHINERY OF ~/j/blyth-OJ-pmt-hit-type-2-for-muon-hits/detsim.sh
+   : HMM - NEEDS TO USE SProf.sh profile/logparse machinery
 
 
    local defarg=""
@@ -721,26 +754,6 @@ oj_test()
    fi
 
 
-
-   # HMM : THIS SHOULD NOW USE ~/o/bin/SProf.sh
-   if [ "${arg/log}" != "$arg" ]; then
-      find "$LOGFOLD" -name $LOGNAME -exec bash -c 'printf "→ {}\n"' \;
-      return 0
-   fi
-
-   if [ "${arg/ls}" != "$arg" ]; then
-      find "$LOGFOLD" -name SProf.txt -exec bash -c 'printf "→ {}\n"' \;
-      return 0
-   fi
-
-   if [ "${arg/prof}" != "$arg" ]; then
-      find "$LOGFOLD" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
-      return 0
-   fi
-
-
-
-
    oj_envset
    [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
 
@@ -752,6 +765,8 @@ oj_test()
    rm -f $LOGNAME
    vvp > $LOGNAME
 
+
+   ## THIS NOT USING TEST IN THE MODERN SENSE
    if [ "$TEST" == "default" ]; then
 
        vvp
@@ -809,7 +824,6 @@ oj_test()
 
        vvp >> $LOGNAME
 
-
        if [ "$TESTGROUP" == "gun" ]; then
 
            $topcmd \
@@ -836,10 +850,6 @@ oj_test()
        fi
 
 
-
-
-
-
        unset SProf__WRITE
 
    else
@@ -855,7 +865,7 @@ oj_test()
 
 ojt()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    oj_test $*
 }
 
@@ -872,7 +882,7 @@ EOU
 
 ojtt()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    : NB this uses brackets creating subshell foreach TEST invokation
 
    local defarg=""
@@ -903,10 +913,16 @@ ojtt()
 
 ojtu()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    oj_test_usage $*
 }
 
+
+ojdm()
+{
+   : ~/j/local.sh
+   ~/j/oj_test/doublemuon/doublemuon.sh $*
+}
 
 
 
@@ -914,7 +930,7 @@ ojtu()
 
 local_oj_release()
 {
-   : ~/local.sh
+   : ~/j/local.sh
    local desc="TODO: cvmfs release"
    local mode=oj_release
 
@@ -924,7 +940,7 @@ local_oj_release()
 
    oj_release()
    {
-       : ~/local.sh
+       : ~/j/local.sh
 
        source ~/.opticks/GEOM/ENVSET.sh
        if [ -n "$ENVSET" -a -f "$ENVSET" ]; then

@@ -22,6 +22,27 @@ Common source for JUNO high level bash functions
 * https://github.com/JUNO-collaboration/oec-middleware/blob/main/CppSniper4LOEC/src/CppSniper4LOEC.cc
 
 
+
+
+Wed 25 March 2026 : add uncommitted changes against main into another branch
+--------------------------------------------------------------------------------
+
+1. create the branch in gitlab web interface, named standardly eg "blyth-geometry-config-needed-for-EMF-opticks-convert"
+2. "git fetch origin"
+3. find the branch "git branch -a | grep blyth"
+4. switch to the new branch::
+
+    A[blyth@localhost junosw]$ git switch blyth-geometry-config-needed-for-EMF-opticks-convert
+    M	Examples/Tutorial/share/opticks_juno.sh
+    branch 'blyth-geometry-config-needed-for-EMF-opticks-convert' set up to track 'origin/blyth-geometry-config-needed-for-EMF-opticks-convert'.
+    Switched to a new branch 'blyth-geometry-config-needed-for-EMF-opticks-convert'
+    A[blyth@localhost junosw]$ 
+
+5. create corresponding MR https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/1206
+
+
+
+
 Tue 27 Jan 2026 : bring old branch uptodate with rebase and special push
 --------------------------------------------------------------------------
 

@@ -12,6 +12,8 @@ In order to automate such comparisons in future
 are trying to reproduce this as the "doublemuon"
 TESTGROUP used by the ojt/ojtt ~/j/local.sh machinery.
 
+* DECIDED AGAINST THIS INTERMEDIATE STEP - JUST GO DIRECT TO PROTOTYPE FOR SCALABLE TEST SCRIPTS
+
 
 Primary Scripts
 ----------------

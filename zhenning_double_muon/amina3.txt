@@ -1,0 +1,148 @@
+
+Hi Amina,
+
+> This is to ask if there something to do my side on the validation of Opticks.
+> 
+> I sent the report of the last checks done from my side to reproduce some the test done by Zhennings.
+> 
+> Please let me know if there is some more updates from you side and 
+> Something to be done by me, count me in. 
+> 
+
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/1171
+
+I am currently working on getting MR 1171 merged. That will enable photon-"lite" 
+and GPU hit merging enhancements to be used with OJ cvmfs releases.
+Hopefully the first OJ releases with those included will be available next week.
+See my presentation:
+
+* https://simoncblyth.github.io/env/presentation/opticks_20260122_wuhan.html?p=6
+
+On my GPU workstation (3rd gen RTX) those enhancement gives > 200x overall speedup.
+
+* https://simoncblyth.github.io/env/presentation/opticks_20260122_wuhan.html?p=8
+
+I want you to check via slurm jobs on the GPU cluster what speedup can be achieved. 
+While the optical speedup on cluster will be substantially less that on my
+GPU workstation (as no RT cores, so slower ray tracing) the overall speedup should 
+still be high as in large part the overall speedup is limited by how much of the 
+processing cannot be parallelized. See https://en.wikipedia.org/wiki/Amdahl%27s_law
+
+For muon simulation the parallelizable fraction is very high, perhaps 0.995 
+or more : which is why Opticks can get very high overall speedups and this
+should be the case on cluster as well as on GPU workstation.
+
+
+I have been improving my profile analysis and log parsing scripts to automate
+producing results tables from job outputs.  I want you to be a "brave" first user
+of these scripts and to help with automating these.
+
+
+I need to explain a bit about job profiling.  
+Throughout Opticks code there are lines like::
+
+    479     int64_t t_LBEG = SProf::Add("QSim__simulate_LBEG");
+
+* https://github.com/simoncblyth/opticks/blob/master/qudarap/QSim.cc#L479
+
+
+
+When the below envvar is set::
+ 
+   export SProf__WRITE=1   # enable the time and memory profiling
+
+Running Opticks writes an SProf.txt file, with contents like::
+
+    A[blyth@localhost detsim]$ cat /data1/blyth/tmp/j/zhenning_double_muon/detsim/OJ_LOCAL_Dec04_ok1_hit_seed42_evtmax1_run/SProf.txt
+    SEvt__Init_RUN_META:1764835645334942,1049192,505280
+    CSGOptiX__Create_HEAD:1764835676090415,6547500,1401592
+    CSGOptiX__Create_TAIL:1764835677382106,8713792,2002452
+    junoSD_PMT_v2_Opticks__EndOfEvent_Simulate_HEAD:1764835751800461,11365936,4651516
+    A000_QSim__simulate_HEAD:1764835751800530,11365936,4651516
+    A000_SEvt__BeginOfRun:1764835751800565,11365936,4651516
+    A000_SEvt__beginOfEvent_FIRST_EGPU:1764835751800685,11365936,4651516
+    A000_SEvt__setIndex:1764835751800711,11365936,4651516
+    A000_QSim__simulate_LBEG:1764835751906377,11420680,4706016
+    A000_QSim__simulate_PRUP:1764835751906414,11420680,4706016
+    A000_QSim__simulate_PREL:1764835751969031,29475848,4706912
+    A000_QSim__simulate_POST:1764835774965272,29475848,4711840
+    A000_QSim__simulate_DOWN:1764835776914594,31192844,6430056
+    A000_QSim__simulate_LEND:1764835776914640,31192844,6430056
+    A000_QSim__simulate_PCAT:1764835776914663,31192844,6430056
+    A000_QSim__simulate_BRES:1764835776914707,31192844,6430056 # numGenstepCollected=583922,numPhotonCollected=148793197,numHit=27471928
+    A000_QSim__simulate_TAIL:1764835776914712,31192844,6430056
+    A000_junoSD_PMT_v2_Opticks__EndOfEvent_CollectFullHits_HEAD:1764835776914892,31192844,6430056
+    A000_junoSD_PMT_v2_Opticks__EndOfEvent_CollectFullHits_cpumerged_HEAD:1764835776914956,31192844,6430056
+    A000_junoSD_PMT_v2_Opticks__EndOfEvent_CollectFullHits_cpumerged_TAIL:1764835967360544,32940884,8163292 # hit=27471928,merged=21062899,save=6409029
+    A000_junoSD_PMT_v2_Opticks__EndOfEvent_CollectFullHits_TAIL:1764835967360611,32940884,8163292
+    A000_junoSD_PMT_v2_Opticks__EndOfEvent_Simulate_TAIL:1764835967360619,32940884,8163292
+    A000_QSim__reset_HEAD:1764835967360999,32940884,8163292
+    A000_SEvt__endIndex:1764835967361333,32886140,8108636
+    A000_SEvt__EndOfRun:1764835967365389,31169144,6391640
+        
+
+The label before the ":" identifies locations in the code where SProf::Add was called
+and the 16 digit numbers are microseconds since epoch timestamps. The other numbers are vm and rss memory in kb. 
+Opticks has bash and python scripts that find and parse multiple of these SProf.txt 
+from different runs and presents results, such as::
+
+
+    A[blyth@localhost opticks]$ cd /data1/blyth/tmp/j/zhenning_double_muon/detsim/
+    A[blyth@localhost detsim]$ T0="2025-12-04 16:00" T1="2025-12-04 18:00" ~/o/bin/SProf.sh proi
+    Identity                                             Start(s)  Duration(s)     Sub PREL→POST(s)     Sub POST→DOWN(s)    Sub TAIL→RESET(s)    VM(MB)  RSS(MB)  Comment
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    hit/A000_QSim                                         106.466   215.560469            22.996241             1.949322           190.446287   32168.83  7971.96  # numGenstepCollected=583922,numPhotonCollected=148793197,numHit=27471928
+    hitlite/A000_QSim                                     106.462   170.226838            23.108319             0.484299           146.471936   32499.61  5361.86  # numGenstepCollected=583922,numPhotonCollected=148793197,numHit=27471928
+    hitlitemerged/A000_QSim                               107.263    23.835564            23.097717             0.181023             0.404235   87284.29  4988.84  # numGenstepCollected=583922,numPhotonCollected=148793197,numHit=6409029
+    hitmerged/A000_QSim                                   106.770    30.400825            22.988498             0.543559             6.713401   88292.85  6634.07  # numGenstepCollected=583922,numPhotonCollected=148793197,numHit=6409029  # slice=1,max_slot_M=150
+
+
+For details see https://github.com/simoncblyth/opticks/blob/master/bin/SProf.sh
+
+     
+The above numbers as close to those presented on https://simoncblyth.github.io/env/presentation/opticks_20260122_wuhan.html?p=8
+The above commandline is using scripts from ~/opticks/bin/ (o is symbolic link), but the future OJ release 
+should have them included.  
+
+
+Above I described the analysis of the results. Its is also necessary to create those outputs.
+For the scripts that did that and some notes on them see ~/j/zhenning_double_muon especially:
+
+https://code.ihep.ac.cn/blyth/j/-/blob/main/zhenning_double_muon/review_scripts.rst
+
+    
+So the starting task is:
+
+Once the MR is merged use the cvmfs OJ releases and slurm GPU cluster jobs 
+to redo what I described above, using the bash + python scripts that
+should be included with the OJ releases. Prior to the merge you can
+familiarize yourself with the scripts I pointed to in this mail.
+    
+Beyond that:
+
+* Consistency checks between the J and OJ results. Enable the anamgr you need to include 
+  info into the root files and compare histograms between J and OJ.  
+
+* Develop scripts to do the comparisons in an automated way, I am starting
+  to think about how to do this in https://code.ihep.ac.cn/blyth/j/-/blob/main/local.sh#L685
+
+
+For automated tests I want to organize the tests at two levels:
+
+TESTGROUP
+    high level control of the type of tests to do eg "doublemuon" OR "gun"
+
+    * I need your expertise/contacts with ATM group to decide on what 
+      TESTGROUP are of interest and what the commandline options should be for them
+      +  what the input files should be etc.. and the commandline to create them
+
+TEST
+    low level name that encapsulate details of the commandline options used
+    such as pmt-hit-type and whether merging is done etc...  eg hit/hitlite/hitlitemerged/
+
+
+I hope this has shown you in more detail the direction I hope to take.
+
+Simon
+

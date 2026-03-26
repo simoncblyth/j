@@ -54,11 +54,15 @@ EOU
 
 cd $(dirname $(realpath $BASH_SOURCE))
 SDIR=$PWD
+SNAM=$(basename $BASH_SOURCE)
+SNAM=${SNAM/.sh}
+SREL=${SDIR/$HOME\/}/$SNAM
+## SREL is HOME relative folder/name of a script eg: "j/zhenning_double_muon/detsim"
 
 
 vvp(){ local v ; for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
 vv=""
-vv="$vv BASH_SOURCE SDIR PWD"
+vv="$vv BASH_SOURCE SDIR SNAM SREL PWD"
 
 defarg=run
 #defarg=info
@@ -71,6 +75,10 @@ vv="$vv BP defarg arg allarg"
 source ~/.opticks/GEOM/ENVSET.sh   ## sets ENVSET and ENVSET_NAME envvars : DOES NOT SOURCE THE ENVSET
 vv="$vv ENVSET_NAME ENVSET"
 
+
+
+
+
 #opticks_mode=0
 opticks_mode=1
 
@@ -82,14 +90,17 @@ genmuon=j__zhenning_double_muon_seed_${seed}_evtmax_${evtmax}
 vv="$vv evtmax seed output user_output genmuon"
 
 
+
+
+
 test=hitlitemerged
 TEST=${TEST:-$test}
 vv="$vv test TEST"
 
+### HMM : CONVERTING TEST VALUE INTO OPTION STRINGS IS IN COMMON 
 
 pmt_hit_type=1
 pmtsd_merge_twindow=1  ## always merge but do it in on CPU or GPU depending on opticks_mode_merge
-
 
 if [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
 
@@ -121,13 +132,12 @@ else
 fi
 
 
-LOGBASE=/data1/blyth/tmp
-LOGREL=j/zhenning_double_muon/detsim
-LOGROOT=$LOGBASE/$LOGREL
-LOGDIR=$LOGROOT/$IDENTITY
+LOGBASE=/data1/blyth/tmp     # where outputs go
+LOGROOT=$LOGBASE/$SREL       # LOGROOT contains all outputs from this script
+LOGDIR=$LOGROOT/$IDENTITY    # IDENTITY distinguishes between different invokations of this script
 LOGNAME=$IDENTITY.log
 LOGFILE=$LOGDIR/$LOGNAME
-vv="$vv LOGBASE LOGREL LOGROOT LOGDIR LOGNAME LOGFILE"
+vv="$vv LOGBASE SREL LOGROOT LOGDIR LOGNAME LOGFILE"
 
 
 seconds_between() {
@@ -140,6 +150,8 @@ seconds_between() {
     echo $(( ts2 - ts1 ))
 }
 
+
+: HMM dbg__.sh is part of OJ release so can just "source dbg__.sh" 
 gdb__ ()
 {
     : j//detsim.sh
