@@ -1,0 +1,45 @@
+
+Hi Amina,
+
+I have now added a suitable OJ_063 release to cvmfs.
+
+I have also added new scripts to use the release
+and submit to slurm.  I have tried to make things
+simpler than previously and more standard.
+
+For clarity I have moved the OJ testing 
+and slurm submission in the OJ repository,
+which is dedicated to OJ testing::
+
+    https://code.ihep.ac.cn/blyth/oj
+
+Clone that into your directory::
+
+    /hpcfs/juno/junogpu/aminak/oj
+
+There are some notes on usage in:
+
+     https://code.ihep.ac.cn/blyth/oj/-/blob/main/index.rst
+     https://code.ihep.ac.cn/blyth/oj/-/blob/main/oj.bash
+
+Currently the ENVSET.sh file defaults to using OJ_063 release
+
+     https://code.ihep.ac.cn/blyth/oj/-/blob/main/ENVSET.sh
+
+
+As I described previously the starting tasks are:
+
+
+* use the OJ scripts to submit slurm GPU cluster jobs 
+  and use the bash + python scripts to look at the profiling numbers
+
+* do consistency checks between the J and OJ results. Enable the anamgr you need to include 
+  info into the root files and compare histograms between J and OJ.  
+
+* develop scripts to do the comparisons in an automated way, I am starting
+  to think about how to do this in https://code.ihep.ac.cn/blyth/j/-/blob/main/local.sh#L685
+
+
+Simon
+
+

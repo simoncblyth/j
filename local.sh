@@ -39,18 +39,10 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojt     | oj_envset,oj_test [see ojtu]       | quick dbg__ tests of the release configured via Opticks ENVSET bash function, use TEST bash func to change specific test to perform    |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojtu    | oj_test_usage                      | dump ojt usage text                                                                                                                    |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojt     | oj_test                            |                                                                                                                                        |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojtt    | ojt with multiple TEST             |                                                                                                                                        |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| ojdm    | doublemuon.sh from j               |  Use ENVSET and TEST to control details of the doublemuon running                                                                      |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
+Testing functions are moved to ~/oj/oj.bash
 
 
 Updating local OK build
@@ -610,69 +602,6 @@ oje()
    oj_envset
 }
 
-oj_test_usage()
-{
-   : ~/j/local.sh
-   cat  << EOU
-oj_test_usage
-=============
-
-The workflow for OJ testing has two parts, the first checks the envset
-and test to be run and the second runs the test from an empty env tab.
-
--1. "ljbb", local build of current branch
-0. "ojtu", dump this usage text
-1. "lo" bash function, get into environment
-2. "ENVSET" bash function editing ENVSET.sh, check/change envset configured
-
-   * ENVSET will typically be OJ_LOCAL indicating the local build of current branch
-   * ENVSET can also be a cvmfs release
-
-3. "TEST" bash function editing TEST.sh, check/change the default test configured to run
-   which can be overridden with TEST envvar
-
-Second stage, from empty env tab (for reproducibility):
-
-1. use "ojt" methods to check config, eg::
-
-   ojt info   # list config including output directory
-   ojt log
-   ojt ls
-   ojt prof
-
-
-+----------------+-------------------------------+
-| TEST           |                               |
-+================+===============================+
-|  default       |  tut_detsim.py --evtmax 1 gun |
-+----------------+-------------------------------+
-|  hit           |                               |
-+----------------+-------------------------------+
-|  hitmerged     |                               |
-+----------------+-------------------------------+
-|  hitlite       |                               |
-+----------------+-------------------------------+
-|  hitlitemerged |                               |
-+----------------+-------------------------------+
-
-
-EOU
-}
-
-oj_test_todo(){ cat << EOS
-
-surfacing output folders ?
-    /tmp/blyth/opticks/GEOM/J25_4_0_opticks_Debug/python3.11/ALL0_no_opticks_event_name/A000
-
-flexibility of output folders, for comparison with prior runs for example
-
-
-
-
-
-EOS
-}
-
 
 
 
@@ -685,37 +614,8 @@ seconds_between() {
 }
 
 
-oj_test_dev()
-{
-   local defarg=""
-   local arg=${1-$defarg}
 
-   if [ "${arg/log}" != "$arg" ]; then
-      find "$LOGFOLD" -name '*.log' -exec bash -c 'printf "→ {}\n"' \;
-      return 0
-   fi
-
-   if [ "${arg/ls}" != "$arg" ]; then
-      find "$LOGFOLD" -name SProf.txt -exec bash -c 'printf "→ {}\n"' \;
-      return 0
-   fi
-
-   if [ "${arg/prof}" != "$arg" ]; then
-      find "$LOGFOLD" -name SProf.txt -exec bash -c 'echo "→ {}" && ~/o/bin/SProf.py "{}"' \;
-      return 0
-   fi
-}
-
-
-oj_test_design(){ cat << EOU
-
- Moved this to  ~/j/oj_test/oj_test.rst
-
-EOU
-}
-
-
-oj_test()
+old_oj_test()
 {
    : ~/j/local.sh
    : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
@@ -863,24 +763,9 @@ oj_test()
 }
 
 
-ojt()
-{
-   : ~/j/local.sh
-   oj_test $*
-}
-
-ojttu(){ cat << EOU
-
-TESTS="red green blue"
-ojtt
 
 
-EOU
-}
-
-
-
-ojtt()
+old_ojtt()
 {
    : ~/j/local.sh
    : NB this uses brackets creating subshell foreach TEST invokation
@@ -911,18 +796,6 @@ ojtt()
 }
 
 
-ojtu()
-{
-   : ~/j/local.sh
-   oj_test_usage $*
-}
-
-
-ojdm()
-{
-   : ~/j/local.sh
-   ~/j/oj_test/doublemuon/doublemuon.sh $*
-}
 
 
 
