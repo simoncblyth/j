@@ -44,6 +44,12 @@ and make a small change.  So instead of that
 keep the standard JUNOTOP but modify the paths that
 the bashrc sets.
 
+
+
+
+
+
+
 EOU
 }
 
@@ -53,9 +59,11 @@ JUNOTOP_change_paths()
 
    local xname=${1:-custom4}
    local yhome=${2:-/some/new/prefix/for/the/$xname/external}
+   local xhome=${3:-/default/prefix/for/the/$xname/external}
 
-   local _xhome=JUNO_EXTLIB_${xname}_HOME
-   local xhome=${!_xhome}
+   # former approach too brittle
+   # local _xhome=JUNO_EXTLIB_${xname}_HOME
+   # local xhome=${!_xhome}
 
 
    local change
