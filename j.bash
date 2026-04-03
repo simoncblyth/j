@@ -23,6 +23,44 @@ Common source for JUNO high level bash functions
 
 
 
+Thu 2 April  2026  : add uncommitted changes against an old branch into another branch
+----------------------------------------------------------------------------------------
+
+1. create the branch in gitlab web interface, named  blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV
+2. on workstation "git fetch origin"
+3. find the branch "git branch -a | grep blyth"
+4. switch to the new branch::
+
+    A[blyth@localhost junosw]$ git switch blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV
+    M	Examples/Tutorial/share/tut_detsim.py
+    M	Simulation/DetSimV2/DetSimOptions/src/LSExpDetectorConstruction_Opticks.cc
+    M	Simulation/DetSimV2/PMTSim/src/junoSD_PMT_v2_Opticks.cc
+    branch 'blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV' set up to track 'origin/blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV'.
+    Switched to a new branch 'blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV'
+    A[blyth@localhost junosw]$ 
+
+5. delete old brances that have been merged to main::
+
+    A[blyth@localhost junosw]$ git branch -d blyth-geometry-config-needed-for-EMF-opticks-convert
+    Deleted branch blyth-geometry-config-needed-for-EMF-opticks-convert (was 00374690).
+    A[blyth@localhost junosw]$ git branch -d Chenjing-EMFcoilsgeometry
+    warning: deleting branch 'Chenjing-EMFcoilsgeometry' that has been merged to
+             'refs/remotes/origin/Chenjing-EMFcoilsgeometry', but not yet merged to HEAD
+    Deleted branch Chenjing-EMFcoilsgeometry (was a6ae56b6).
+    A[blyth@localhost junosw]$ git branch -d blyth-OJ-pmt-hit-type-2-for-muon-hits
+    warning: deleting branch 'blyth-OJ-pmt-hit-type-2-for-muon-hits' that has been merged to
+             'refs/remotes/origin/blyth-OJ-pmt-hit-type-2-for-muon-hits', but not yet merged to HEAD
+    Deleted branch blyth-OJ-pmt-hit-type-2-for-muon-hits (was 960dac05).
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ 
+    A[blyth@localhost junosw]$ git branch
+    * blyth-revive-opticksMode-zero-fixing-cleanup-SIGSEGV
+      main
+
+
+The noise in the above may be because the local main was not updated following the merge
+into the remote main.
+
 
 Wed 25 March 2026 : add uncommitted changes against main into another branch
 --------------------------------------------------------------------------------

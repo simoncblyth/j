@@ -1,0 +1,693 @@
+custom4/0_1_9_doublemuon.txt  opticksMode:0 dbg run
+======================================================
+
+
+
+
+
+
+A[blyth@localhost oj]$ ojt dbg
+Setup Official junosw (CMake version)
+=== opticks-setup-        add     append                 PATH /usr/local/cuda-12.4/bin
+=== opticks-setup-        add     append                 PATH /data1/blyth/local/opticks_Debug/bin
+=== opticks-setup-        add     append                 PATH /data1/blyth/local/opticks_Debug/lib
+=== opticks-setup-        add     append           PYTHONPATH /data1/blyth/local/opticks_Debug/py
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /data1/blyth/local/opticks_Debug
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /data1/blyth/local/opticks_Debug/externals
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /cvmfs/opticks.ihep.ac.cn/external/OptiX_800
+=== opticks-setup-      nodir     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/lib/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/lib64/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/externals/lib/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/externals/lib64/pkgconfig
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/lib64
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/externals/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/externals/lib64
+=== opticks-setup-      nodir     append      LD_LIBRARY_PATH /usr/local/cuda-12.4/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /usr/local/cuda-12.4/lib64
+/data1/blyth/local/opticks_Debug/bashrc - USE DETECTED GEANT4 ENVIRONMENT
+oj_geomsetup is a function
+oj_geomsetup () 
+{ 
+    : opticks_juno.sh;
+    : extra env settings needed by Opticks-JUNOSW geometry conversion;
+    : NB this is sourced from envset.sh so needs to be appropriate to every usage;
+    : not just the .gitlab-ci.yml one off first runs;
+    if [ -n "$OJ_VERBOSE" ]; then
+        type $FUNCNAME;
+    fi;
+    export GEOM=$OJ_SLUG;
+    export OJ_PREFIX=$(dirname $(dirname $(realpath $BASH_SOURCE)));
+    export OJ_GEOMDIR=$OJ_PREFIX/.opticks/GEOM/${GEOM};
+    export ${GEOM}_CFBaseFromGEOM=${OJ_GEOMDIR};
+    export CSGOptiXRenderInteractiveTest__FRAME_HOP=1;
+    export stree__FREQ_CUT=300;
+    export stree__force_triangulate_solid="filepath:${OJ_GEOMDIR}/CSGFoundry/tessname.txt";
+    export SScene__initFromTree_addFrames=${OJ_GEOMDIR}/CSGFoundry/framespec.txt;
+    local vv="FUNCNAME OJ_SLUG GEOM BASH_SOURCE OJ_PREFIX OJ_GEOMDIR ${GEOM}_CFBaseFromGEOM stree__force_triangulate_solid SScene__initFromTree_addFrames";
+    for v in $vv;
+    do
+        printf "%30s : %s\n" "$v" "${!v}";
+    done;
+    unset WaterPoolConstruction__CONFIG;
+    export Tub3inchPMTV3Manager__VIRTUAL_DELTA_MM=0.10;
+    export HamamatsuMaskManager__MAGIC_virtual_thickness_MM=0.10;
+    export NNVTMaskManager__MAGIC_virtual_thickness_MM=0.10;
+    export R12860OnlyFrontMaskManager__MAGIC_virtual_thickness_MM=0.10;
+    export U4Mesh__NumberOfRotationSteps_entityType_G4Torus=480;
+    : four large solids are triangulated due to subtraction of Waterdistributor - so they need more rotation steps;
+    local pfxs="sInnerWater sInnerReflectorInCD sOuterWaterInCD sOuterReflectorInCD";
+    for pfx in $pfxs;
+    do
+        export U4Mesh__NumberOfRotationSteps_solidName_${pfx}_TSubWaterDistributor_cutTube2=480;
+    done;
+    : NumberOfRotationSteps operates at the level of the full torus;
+    : rather than the small segment of the torus, so quite a large number of rotation;
+    : steps is needed to prevent the tesselated guidetube from impinging into the acrylic;
+    export OPTICKS_HIT_MASK=EC;
+    export U4Polycone__ENABLE_PHICUT=1;
+    export sn__PhiCut_PACMAN_ALLOWED=1;
+    export U4Mesh__NumberOfRotationSteps_solidName_STARTING_pfx_0=s_EMFcoil_holder_ring;
+    export U4Mesh__NumberOfRotationSteps_solidName_STARTING_val_0=480;
+    export U4Mesh__NumberOfRotationSteps_solidName_STARTING_pfx_1=s_EMFsupport_ring;
+    export U4Mesh__NumberOfRotationSteps_solidName_STARTING_val_1=480;
+    return 0
+}
+                      FUNCNAME : oj_geomsetup
+                       OJ_SLUG : J25_7_2_opticks_Debug
+                          GEOM : J25_7_2_opticks_Debug
+                   BASH_SOURCE : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/opticks_juno.sh
+                     OJ_PREFIX : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert
+                    OJ_GEOMDIR : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/.opticks/GEOM/J25_7_2_opticks_Debug
+J25_7_2_opticks_Debug_CFBaseFromGEOM : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/.opticks/GEOM/J25_7_2_opticks_Debug
+stree__force_triangulate_solid : filepath:/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/.opticks/GEOM/J25_7_2_opticks_Debug/CSGFoundry/tessname.txt
+SScene__initFromTree_addFrames : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/.opticks/GEOM/J25_7_2_opticks_Debug/CSGFoundry/framespec.txt
+                   BASH_SOURCE : /home/blyth/oj/doublemuon/doublemuon.sh
+                           PWD : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+            SLURM_BATCH_SCRIPT : 
+                  SLURM_PROCID : 
+                        defarg : info
+                           arg : dbg
+                        allarg : info_help_run_dbg
+                   ENVSET_NAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31
+                        ENVSET : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/envset.sh
+                          TEST : zerohitlite
+                    TESTSCRIPT : doublemuon/doublemuon.sh
+               TESTSCRIPT_NAME : oj_doublemuon_doublemuon
+                TESTSCRIPT_ARG : run
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                OPTICKS_PREFIX : /data1/blyth/local/opticks_Debug
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                           MSG : OPTICKS RUNNING
+                       LOGNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.log
+                       ENVNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.env
+                            d0 : Tue Mar 31 04:19:17 PM CST 2026
+gdb -ex r --args /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/Python/3.11.10/bin/python /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py --opticks-mode 0 --evtmax 1 --seed 42 --no-gdml --pmt-hit-type 2 --pmtsd-merge-twindow 1 --replace-param Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m --event-split --anamgr-muon --anamgr-tt --output output.root --user-output user_output.root hepevt --exe Muon --file /home/blyth/oj/doublemuon/j__zhenning_double_muon_seed_42_evtmax_1.txt
+Tue Mar 31 04:19:17 PM CST 2026
+GNU gdb (AlmaLinux) 14.2-4.1.el9_6
+Copyright (C) 2023 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/Python/3.11.10/bin/python...
+Starting program: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J24.2.0/ExternalLibs/Python/3.11.10/bin/python /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py --opticks-mode 0 --evtmax 1 --seed 42 --no-gdml --pmt-hit-type 2 --pmtsd-merge-twindow 1 --replace-param Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6\*m --event-split --anamgr-muon --anamgr-tt --output output.root --user-output user_output.root hepevt --exe Muon --file /home/blyth/oj/doublemuon/j__zhenning_double_muon_seed_42_evtmax_1.txt
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+warning: File "/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/contrib/gcc/11.4.1/lib64/libstdc++.so.6.0.29-gdb.py" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load:/usr/lib/golang/src/pkg/runtime/runtime-gdb.py".
+To enable execution of this file add
+	add-auto-load-safe-path /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/contrib/gcc/11.4.1/lib64/libstdc++.so.6.0.29-gdb.py
+line to your configuration file "/home/blyth/.gdbinit".
+To completely disable this security protection add
+	set auto-load safe-path /
+line to your configuration file "/home/blyth/.gdbinit".
+For more information about this security protection see the
+"Auto-loading safe path" section in the GDB manual.  E.g., run from the shell:
+	info "(gdb)Auto-loading safe path"
+[Detaching after vfork from child process 4183857]
+[Detaching after vfork from child process 4183859]
+[Detaching after vfork from child process 4183863]
+[New Thread 0x7fffcd5ff640 (LWP 4183865)]
+[Detaching after vfork from child process 4183866]
+**************************************************
+Welcome to SNiPER v2.1.0
+Running @ localhost.localdomain on Tue Mar 31 16:19:19 2026
+**************************************************
+[2026-03-31 16:19:20,833] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:52} INFO - [__init__
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:107} INFO - end of init_yaml_conf
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:60} INFO - ]__init__
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:76} INFO - end of register
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:49} INFO - after juno_application.register(detsim_module) 
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:53} INFO - [juno_application.run
+[2026-03-31 16:19:20,902] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:159} INFO - [JUNOApplication.run
+[2026-03-31 16:19:20,928] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:152} INFO - [init
+[2026-03-31 16:19:20,928] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:969} INFO - [init_rootio_buffer
+[2026-03-31 16:19:20,950] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1029} INFO - == Buffer Memory Management ==
+[2026-03-31 16:19:20,950] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1032} INFO - ]init_rootio_buffer
+[2026-03-31 16:19:20,950] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1036} INFO - init_dbsvc
+[2026-03-31 16:19:20,950] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1083} INFO - init_random_service
+[2026-03-31 16:19:20,962] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1108} INFO - init_rootwriter
+[2026-03-31 16:19:20,962] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1118} INFO - init_global_time
+[2026-03-31 16:19:20,962] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1128} INFO - init_juno_timer
+[2026-03-31 16:19:20,972] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1905} INFO - [init_mc_parameters
+[2026-03-31 16:19:20,973] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1907} INFO - -init_mc_parameters.loadDll.libMultiFilmLUTMakerSvc[
+[2026-03-31 16:19:21,157] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1909} INFO - -init_mc_parameters.loadDll.libMultiFilmLUTMakerSvc]
+[2026-03-31 16:19:21,157] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1910} INFO - -init_mc_parameters.createSvc.libMultiFilmLUTMakerSvc[
+[2026-03-31 16:19:21,158] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1912} INFO - -init_mc_parameters.createSvc.libMultiFilmLUTMakerSvc]
+[2026-03-31 16:19:21,217] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1932} INFO - ]init_mc_parameters
+[2026-03-31 16:19:21,218] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1136} INFO - [init_geometry_and_parameters
+[2026-03-31 16:19:21,238] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1157} INFO -  == PMTSimParamSvc == 
+[2026-03-31 16:19:21,238] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1161} INFO - ]init_geometry_and_parameters
+[2026-03-31 16:19:21,238] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1165} INFO - GENTOOL MODE: hepevt 
+[2026-03-31 16:19:21,289] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1935} INFO - [init_op_simulator
+[2026-03-31 16:19:21,289] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1955} INFO - [init_detector_simulation
+
+**************************************************************
+ Geant4 version Name: geant4-10-04-patch-02 [MT]   (25-May-2018)
+                       Copyright : Geant4 Collaboration
+                      References : NIM A 506 (2003), 250-303
+                                 : IEEE-TNS 53 (2006), 270-278
+                                 : NIM A 835 (2016), 186-225
+                             WWW : http://geant4.org/
+**************************************************************
+
+Create G4SvcRunManager
+[2026-03-31 16:19:21,448] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:2322} INFO - [init_detsim_detcomp
+GLb3.up11.try_init_model        INFO: Initialize model GLb3
+GLb3.up11.try_init_model_shell  INFO: HBeam (row):  R: 17050 L: 347.826
+GLb4.up10.try_init_model        INFO: Initialize model GLb4
+GLb4.up10.try_init_model_shell  INFO: HBeam (row):  R: 17050 L: 716.726
+GLb3.up09.try_init_model        INFO: Initialize model GLb3
+GLb3.up09.try_init_model_shell  INFO: HBeam (row):  R: 17050 L: 1089.63
+GLb2.up08.try_init_model        INFO: Initialize model GLb2
+GLb2.up08.try_init_model_shell  INFO: HBeam (row):  R: 17050 L: 1495.1
+
+
+---------------------------------------------------
+                           Hadronic Processes for proton
+
+  Process: hadElastic
+        Model:             hElasticCHIPS: 0 eV  ---> 100 TeV
+     Cr_sctns:      ChipsProtonElasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: protonInelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for triton
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: tInelastic
+        Model:       ParticleHPInelastic: 0 eV /n ---> 200 MeV/n
+        Model:  Binary Light Ion Cascade: 190 MeV/n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns:       TritonHPInelasticXS: 0 eV  ---> 200 MeV
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+================================================================
+junotoptask.find                WARN: Cann't find Object SimTrackSvc
+junotoptask:DetSimAlg.DataModelWriterWithSplit.BeginOfRunAction  INFO: Retrieving PMTParamSvc.
+junotoptask:DetSimAlg.DataModelWriterWithSplit.BeginOfRunAction  INFO: Retrieve PMTParamSvc successfully.
+junotoptask:DetSimAlg.NormalAnaMgr.BeginOfRunAction  INFO: Retrieving PMTParamSvc.
+junotoptask:DetSimAlg.NormalAnaMgr.BeginOfRunAction  INFO: Retrieve PMTParamSvc successfully.
+Warning in <TTree::Bronch>: Using split mode on a class: TString with a custom Streamer
+Warning in <TTree::Bronch>: Using split mode on a class: TString with a custom Streamer
+Warning in <TTree::Bronch>: Using split mode on a class: TString with a custom Streamer
+Warning in <TTree::Bronch>: Using split mode on a class: TString with a custom Streamer
+junotoptask:MCParamsSvc.GetPath  INFO: - MC Param: Material.LS.ConstantProperty will be loaded from: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/dbdata/offline-data/Simulation/DetSim/Material/LS/ConstantProperty
+junotoptask:DetSimAlg.TimerAnaMgr.BeginOfRunAction  INFO: [TimerAnaMgr] zero-step check DISABLED (EnableZeroStepCheck=false)
+=======================================================================
+======       Pre-compound/De-excitation Physics Parameters     ========
+=======================================================================
+Type of pre-compound inverse x-section              3
+Pre-compound model active                           1
+Pre-compound low energy (MeV)                       0.1
+Type of de-excitation inverse x-section             3
+Type of de-excitation factory                       Evaporation
+Number of de-excitation channels                    8
+Min excitation energy (keV)                         0.01
+Min energy per nucleon for multifragmentation (MeV) 1e+05
+Level density (1/MeV)                               0.1
+Time limit for long lived isomeres (ns)             1442.7
+Internal e- conversion flag                         1
+Store e- internal conversion data                   1
+Electron internal conversion ID                     0
+Correlated gamma emission flag                      0
+Max 2J for sampling of angular correlations         10
+=======================================================================
+### Run : 0
+junotoptask.initialize          INFO: initialized
+junotoptask:detsimiotask.find   WARN: Cann't find Object InputSvc
+junotoptask:detsimiotask:OutputSvc.initialize  INFO: ... isReproducible: 0
+junotoptask:detsimiotask.initialize  INFO: initialized
+junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+2026-03-31 16:21:10.603 [junoSD_PMT_v2::Initialize eventID 0
+2026-03-31 16:21:10.604 ]junoSD_PMT_v2::Initialize eventID 0
+Begin of Event --> 0
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : Warning
+      issued by : G4Step::GetDeltaEnergy()
+This method is obsolete and will be removed soon
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+ decay 2 gammas 0.510999
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [77554405]@[PMT_3inch_inner2_phys] (11573.73341, -10990.92857, 11004.81185, 375.24448)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [88800492]@[PMT_3inch_inner2_phys] (-9446.28628, 4726.45660, -16272.16245, 306.87878)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [119408487]@[PMT_8inch_log_phys] (-17849.00259, -11182.82993, 20745.28046, 112.98856)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120138208]@[PMT_8inch_log_phys] (-21161.97388, -1803.64695, 16947.28613, 108.51175)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120285753]@[PMT_8inch_log_phys] (-2031.61933, -21183.71766, 16126.84492, 302.17973)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120761722]@[PMT_8inch_log_phys] (18128.22005, 10963.40666, 16124.96608, 431.12950)  step number >= 1000
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [208465231]@[PMT_3inch_body_phys] (-9452.57845, 4722.87777, -16266.33517, 286.72005)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [216779368]@[PMT_3inch_body_phys] (-9398.21529, 4719.48639, -16289.57366, 260.04428)  step number >= 1000
+2026-03-31 18:27:51.652 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6452269 GPU NO
+2026-03-31 18:27:51.652 ]junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6452269 GPU NO
+hitCollectionTT.size: 136	userhitCollectionTT.size: 68
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2026-03-31 10:27:52.457926000Z
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2026-03-31 10:27:58.098147000Z
+end of event action 
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00000 / 30150.00000
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00000 / 30150.00000
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+end of event action 
+junotoptask:detsimiotask.finalize  INFO: events processed 646
+junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names: 
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hBertiniCaptureAtRest
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] neutronInelastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] protonInelastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hadElastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] muPairProd
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] compt
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] phot
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eBrem
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] nCapture
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hadElastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muonNuclear
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] PsFormation
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] Decay
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] eIoni
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] muBrems
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] conv
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] RadioactiveDecay
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: summaries: 
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: number of measurements: 1
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: mean time: 7607543.50000 ms
+junotoptask:DetSimAlg.TimerAnaMgr.EndOfRunAction  INFO: total time elapsed: 7607543.50000 ms
+############################## SniperProfiling ##############################
+Name                     Count       Total(ms)      Mean(ms)     RMS(ms)      
+GenTools                 1           1.44000        1.44000      0.00000      
+DetSimAlg                1           7607623.50000  7607623.500000.00000      
+Sum of junotoptask       1           7607625.00000  7607625.000001114.17727   
+#############################################################################
+junotoptask:SniperProfiling.finalize  INFO: finalized successfully
+junotoptask:PMTSimParamSvc.finalize  INFO: PMTSimParamSvc is finalizing!
+junotoptask.finalize            INFO: events processed 1
+[2026-03-31 18:27:58,269] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+[2026-03-31 18:27:58,270] p4183841 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:55} INFO - ]juno_application.run
+Namespace(help_more=False, loglevel='Info', dryrun=False, showTime=False, evtmax=1, seed=42, restore_seed_status=None, input=None, input_list=None, input_correlation=None, input_correlation_list=None, output='output.root', user_output='user_output.root', EnableUserOutput=False, output_stream=None, output_reproducible=False, profiling=True, profiling_with_details=False, toptask_show=True, restore_evtid_list='', start_evtid=0, dbtype='File', PDEValue=0.0, paradb=False, para_gtag='J22.1.0', dbconf=None, config_gen_materials=None, config_gen_exec=None, mac='run.mac', vis=False, vis_mac='vis.mac', detsim=True, detoption='Acrylic', qescale=1.0, light_yield=None, gdml=False, dae=False, splitevent=True, event_split_maxhits=None, splittrack=False, track_split_mode='PrimaryTrack', track_split_time=3000.0, pelletron=False, source=False, source_weights=False, source_weight_QC=False, ACU_source_weight_QC=False, CLS_source_weight_QC=False, ACU_source_weight_QC_Ti=False, CLS_source_weight_QC_Ti=False, K40_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC=False, AmC_ACU_source_weight_QC_thicker=False, AmC_ACU_source_weight_QC_thickest=False, submarine=False, OffsetInZ=0, OffsetInX=0, OffsetInY=0, GT_source_theta=0, guide_tube=True, dfball_tube=False, teflonhook=False, dflightcos=True, simplify_calib_anchor=True, cd_enabled=True, reflectivity=0.4, isgroundsurface=True, real_surface_in_cd_enabled=True, strut_complex_geometry=False, strut_surface_enabled=True, acrylic_repairs=False, segmented_water_distributor=True, real_mask_tail=True, mask_tail_surface_enabled=True, optical_surface_in_cd_enabled=True, check_overlap_in_cd_enabled=False, wp_enabled=True, wp_pmt_enabled=True, wp_latticed_enabled=True, water_distributor_enabled=True, emf_coils_system_enabled=True, emf_support_bars_enabled=True, emf_steel_reflectivity=0.535, tt_enabled=True, shutter=False, lchimneywater=False, uchimneywater=False, botchimneywater=False, commissioning_enabled=False, below_z_is_water=0.0, use_elecroom=True, rock_thickness=10000.0, pmt20inch=True, pmt20inch_name='PMTMask', pmt20inch_obsolete_torus_neck=False, pmt20inch_profligate_tail_cut=False, debug_disable_sticks=False, debug_disable_st=False, debug_disable_xj=False, debug_disable_sj=False, debug_disable_fa=False, pmt20inch_plus_dynode=False, pmt20inch_extra='TWO-mask', pmtmask_top_thick=10.0, pmt3inch=True, pmt3inch_name='Tub3inchV3', pmt3inch_offset=-50.0, ranges_pmt_enabled=None, ranges_pmt_constructed=None, construct_center_pmtid=-1, distance_to_center_pmt=-1, pmt_dbtype='IDService', new_optical_model=False, MaterialDataDir=None, pmtsd_v2=True, ce_mode='20inch', ce_flat_value=0.9, ce_func=None, ce_func_par=None, pmtsd_merge_twindow=1.0, useoptical=True, cerenkov_only=False, cerenkov=True, cerenkov_type='modified', opabs=True, opsct=True, pmt_optical_model=True, pmt_natural_geometry=True, track_op_first=True, deferred_op=False, deferred_op_testing_ratio=1.0, preselect=None, usingLS=False, cutEdep_in_ls=0, opticks_mode=0, opticks_anamgr=False, replace_param='Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m', usepmtsimsvc=True, quenching=True, pmt_hit_type=2, pmt_disable_process=False, photon_conversion=False, nphotonsperparticle=10, fixed_energy=None, physics_list='JUNO', positronium=True, use_stepfunc_in_macro=False, enableIonPHP=True, flag_struts_fasteners='none', anamgr_grdm=True, stopAtPa234m=True, anamgr_edm=False, anamgr_edm_v2=True, anamgr_simtrack=True, anamgr_hitcollection='hitCollection', anamgr_edm_gen=True, anamgr_tt=True, anamgr_normal=True, anamgr_normal_hit=False, use_given_velocity=True, anamgr_muon=True, anamgr_atmo=False, anamgr_genevt=True, anamgr_deposit=True, anamgr_deposit_tt=True, anamgr_deposit_voxel=False, anamgr_deposit_voxelsize=100, anamgr_interesting_process=True, anamgr_extra_procnames=None, anamgr_legacy_michel_electron=False, anamgr_legacy_ncapture=False, anamgr_legacy_decay=False, anamgr_neutron_inelastic=False, anamgr_optical_parameter=True, anamgr_timer=True, enable_zero_step_check=False, zero_step_threshold=100, anamgr_photon_tracking=False, anamgr_g4tracking_verbose=None, anamgr_g4tracking_evtlist=None, anamgr_list=[], anamgr_config_file=None, voxel_fast_sim=False, voxel_merge_flag=False, voxel_merge_twin=1, voxel_fill_ntuple=False, voxel_fast_dir=None, voxel_geom_file='geom-geom-20pmt.root', voxel_npe_file='npehist3d_single.root', voxel_time_file='dist_tres_single.root', voxel_gen_npe=True, voxel_gen_time=True, voxel_save_hits=True, voxel_pmts_structs=True, voxel_quenching_scale=0.93, global_time_begin='1970-01-01 00:00:01', global_time_end='2038-01-19 03:14:07', global_event_rate=0.0, gentool_mode='hepevt', material='None', volume='None', volume_radius_min=0.0, volume_radius_max=0.0, volume_z_min=None, volume_z_max=None, volume_x_min=None, volume_x_max=None, volume_y_min=None, volume_y_max=None, volume_rock_depth=None, global_position=None, exe='Muon', file='/home/blyth/oj/doublemuon/j__zhenning_double_muon_seed_42_evtmax_1.txt', use_event_time_from_generator=False)
+[Thread 0x7fffcd5ff640 (LWP 4183865) exited]
+HepEvt2HepMC Dtor called begin
+HepEvt2HepMC Dtor called end
+Delete G4SvcRunManager
+double free or corruption (out)
+
+Thread 1 "python" received signal SIGABRT, Aborted.
+0x00007ffff748bedc in __pthread_kill_implementation () from /lib64/libc.so.6
+Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-5.el9_6.x86_64 freetype-2.10.4-10.el9_5.x86_64 glib2-2.68.4-16.el9_6.2.x86_64 glibc-2.34-168.el9_6.23.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-8.el9_6.x86_64 libICE-1.0.10-8.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-7.el9.x86_64 libcurl-7.76.1-31.el9_6.1.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libicu-67.1-10.el9_6.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libselinux-3.6-3.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-21.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libxcrypt-4.4.18-3.el9.x86_64 libzstd-1.5.5-1.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9_6.2.x86_64 nvidia-driver-cuda-libs-580.82.07-1.el9.x86_64 openldap-2.6.8-4.el9.x86_64 openssl-libs-3.5.1-7.el9_7.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+(gdb) 
+
+(gdb) bt
+#0  0x00007ffff748bedc in __pthread_kill_implementation () from /lib64/libc.so.6
+#1  0x00007ffff743eb46 in raise () from /lib64/libc.so.6
+#2  0x00007ffff7428833 in abort () from /lib64/libc.so.6
+#3  0x00007ffff7429172 in __libc_message.cold () from /lib64/libc.so.6
+#4  0x00007ffff7495f87 in malloc_printerr () from /lib64/libc.so.6
+#5  0x00007ffff7497c70 in _int_free () from /lib64/libc.so.6
+#6  0x00007ffff749a2c5 in free () from /lib64/libc.so.6
+#7  0x00007ffff74412dd in __run_exit_handlers () from /lib64/libc.so.6
+#8  0x00007ffff7441430 in exit () from /lib64/libc.so.6
+#9  0x00007ffff74295d7 in __libc_start_call_main () from /lib64/libc.so.6
+#10 0x00007ffff7429680 in __libc_start_main_impl () from /lib64/libc.so.6
+#11 0x0000000000401075 in _start ()
+(gdb) 
+quit
+A debugging session is active.
+
+	Inferior 1 [process 4183841] will be killed.
+
+Quit anyway? (y or n) y
+Tue Mar 31 08:45:17 PM CST 2026
+                   BASH_SOURCE : /home/blyth/oj/doublemuon/doublemuon.sh
+                           PWD : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+            SLURM_BATCH_SCRIPT : 
+                  SLURM_PROCID : 
+                        defarg : info
+                           arg : dbg
+                        allarg : info_help_run_dbg
+                   ENVSET_NAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31
+                        ENVSET : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/envset.sh
+                          TEST : zerohitlite
+                    TESTSCRIPT : doublemuon/doublemuon.sh
+               TESTSCRIPT_NAME : oj_doublemuon_doublemuon
+                TESTSCRIPT_ARG : run
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                OPTICKS_PREFIX : /data1/blyth/local/opticks_Debug
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-1619/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                           MSG : OPTICKS RUNNING
+                       LOGNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.log
+                       ENVNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.env
+                            d0 : Tue Mar 31 04:19:17 PM CST 2026
+                            d1 : Tue Mar 31 08:45:17 PM CST 2026
+                            dt : 15960
+~/oj/doublemuon
+
+
+
+
+GEMINI::
+
+    The crash happens in exit() (#8) and __run_exit_handlers (#7). This is the
+    stage where static and global objects are being destroyed.
+
+    The Issue: If you have a singleton or a global object (like a Service in Sniper
+    or a Geant4 manager) that is being managed by a "Smart Pointer" or a manual
+    delete call in the code, and also exists as a static object, the system may try
+    to delete it twice.
+
+    Specifically: Look at Delete G4SvcRunManager. If G4SvcRunManager is being
+    deleted manually, but something else (like a Python-wrapped pointer) also
+    thinks it owns that memory, you get this crash.
+
+
+
+
+
+    Since this is a JUNOApplication.py script, you are likely using Pybind11 or Boost.Python.
+
+    The Issue: Python's Garbage Collector (GC) and C++'s manual memory
+    management often disagree on who is responsible for deleting an object.
+
+    The Clue: The log shows juno_application.run finished and the Python
+    process is exiting. If a C++ object was wrapped in Python and the Python
+    wrapper is destroyed after the C++ framework has already deleted the underlying
+    object, the GC will attempt to free() an invalid address.
+
+
+
+
+    3. The HepEvt2HepMC / G4SvcRunManager Sequence
+
+    The logs show:
+
+        HepEvt2HepMC Dtor called end
+
+        Delete G4SvcRunManager
+
+        CRASH
+
+
+
+
+
+
+
+
+A[blyth@localhost oj]$ which tut_detsim.py
+~/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py
+A[blyth@localhost oj]$ vi 
+
+
+
+Change the tail of the script for debugging the cleanup crash::
+
+    A[blyth@localhost oj]$ tail ~/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py
+        log.info("after juno_application.register(detsim_module) ")
+
+    juno_application.set_default_output("sample_detsim.root")
+    juno_application.set_default_user_output("sample_detsim_user.root")
+    log.info("[juno_application.run")
+    juno_application.run()
+    log.info("]juno_application.run")
+
+    print("Reaching the end of script... forcing hard exit.")
+    os._exit(0)
+    A[blyth@localhost oj]$ 
+
+
+
+
+
+A[blyth@localhost oj]$ ojt dbg
+Setup Official junosw (CMake version)
+=== opticks-setup-        add     append                 PATH /usr/local/cuda-12.4/bin
+=== opticks-setup-        add     append                 PATH /data1/blyth/local/opticks_Debug/bin
+=== opticks-setup-        add     append                 PATH /data1/blyth/local/opticks_Debug/lib
+=== opticks-setup-        add     append           PYTHONPATH /data1/blyth/local/opticks_Debug/py
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /data1/blyth/local/opticks_Debug
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /data1/blyth/local/opticks_Debug/externals
+=== opticks-setup-        add     append    CMAKE_PREFIX_PATH /cvmfs/opticks.ihep.ac.cn/external/OptiX_800
+=== opticks-setup-      nodir     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/lib/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/lib64/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/externals/lib/pkgconfig
+=== opticks-setup-        add     append      PKG_CONFIG_PATH /data1/blyth/local/opticks_Debug/externals/lib64/pkgconfig
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/lib64
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/externals/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /data1/blyth/local/opticks_Debug/externals/lib64
+=== opticks-setup-      nodir     append      LD_LIBRARY_PATH /usr/local/cuda-12.4/lib
+=== opticks-setup-        add     append      LD_LIBRARY_PATH /usr/local/cuda-12.4/lib64
+/data1/blyth/local/opticks_Debug/bashrc - USE DETECTED GEANT4 ENVIRONMENT
+oj_geomsetup is a function
+oj_geomsetup () 
+...
+
+                  BASH_SOURCE : /home/blyth/oj/doublemuon/doublemuon.sh
+                           PWD : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+            SLURM_BATCH_SCRIPT : 
+                  SLURM_PROCID : 
+                        defarg : info
+                           arg : dbg
+                        allarg : info_help_run_dbg
+                   ENVSET_NAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31
+                        ENVSET : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/envset.sh
+                          TEST : zerohitlite
+                    TESTSCRIPT : doublemuon/doublemuon.sh
+               TESTSCRIPT_NAME : oj_doublemuon_doublemuon
+                TESTSCRIPT_ARG : run
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                OPTICKS_PREFIX : /data1/blyth/local/opticks_Debug
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                           MSG : OPTICKS RUNNING
+                       LOGNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.log
+                       ENVNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.env
+                            d0 : Tue Mar 31 09:07:45 PM CST 2026
+gdb -ex r --args /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/Python/3.11.10/bin/python /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py --opticks-mode 0 --evtmax 1 --seed 42 --no-gdml --pmt-hit-type 2 --pmtsd-merge-twindow 1 --replace-param Material.LS.scale.AbsorptionLenAfter:86.5,Material.Water.scale.abs_after:133.6*m --event-split --anamgr-muon --anamgr-tt --output output.root --user-output user_output.root hepevt --exe Muon --file /home/blyth/oj/doublemuon/j__zhenning_double_muon_seed_42_evtmax_1.txt
+Tue Mar 31 09:07:45 PM CST 2026
+GNU gdb (AlmaLinux) 14.2-4.1.el9_6
+Copyright (C) 2023 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+
+**************************************************
+Welcome to SNiPER v2.1.0
+Running @ localhost.localdomain on Tue Mar 31 21:07:47 2026
+**************************************************
+[2026-03-31 21:07:48,651] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:52} INFO - [__init__
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:107} INFO - end of init_yaml_conf
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:60} INFO - ]__init__
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:76} INFO - end of register
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:49} INFO - after juno_application.register(detsim_module) 
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:53} INFO - [juno_application.run
+[2026-03-31 21:07:48,721] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:159} INFO - [JUNOApplication.run
+[2026-03-31 21:07:48,748] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:152} INFO - [init
+[2026-03-31 21:07:48,748] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:969} INFO - [init_rootio_buffer
+[2026-03-31 21:07:48,766] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1029} INFO - == Buffer Memory Management ==
+[2026-03-31 21:07:48,766] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1032} INFO - ]init_rootio_buffer
+[2026-03-31 21:07:48,766] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1036} INFO - init_dbsvc
+[2026-03-31 21:07:48,766] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1083} INFO - init_random_service
+[2026-03-31 21:07:48,774] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1108} INFO - init_rootwriter
+[2026-03-31 21:07:48,774] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1118} INFO - init_global_time
+[2026-03-31 21:07:48,774] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNODetSimModule.py:1128} INFO - init_juno_timer
+
+
+unotoptask:DetSimAlg.Calib_GuideTube_Construction_V1_1.getLV  INFO:  getLV at counter 38
+junotoptask:DetSimAlg.Calib_GuideTube_Construction_V1_1.getLV  INFO:  getLV at counter 39
+junotoptask:DetSimAlg.DetSim1Construction.inject  WARN: Failed to get the next volume of guide tube. 
+Total Number of UnknownVolume in CD is 39
+LSExpDetectorConstruction::setupOpticks completed construction of physiWorld  m_opticksMode 0 WITH_G4CXOPTICKS  proceeding to setup Opticks 
+LSExpDetectorConstruction::setupOpticks ekey LSExpDetectorConstruction__setupOpticks_pmtscan no pmtscan 
+U::Resolve token [MultiFilmLUTMakerSvc_DIR] does not resolve 
+NP::save failed to U::Resolve path_ $MultiFilmLUTMakerSvc_DIR/multifilm.npy
+[New Thread 0x7fffbcfff640 (LWP 37088)]
+U4Tree::initRecorder FAIL no U4Recorder
+U4Tree::init U4Tree::desc
+ st Y
+ top Y
+ sid Y
+ level 0
+ lvidx 472
+ pvs 386569
+ materials 24
+ surfaces 240
+ solids 472
+ enable_osur YES
+ enable_isur YES
+
+[stree::postcreate
+stree::desc_sensor
+ sensor_id.size 46548
+ sensor_count 46548
+ sensor_name.size 6
+sensor_name[
+PMT_3inch_log_phys
+
+
+...
+
+
+======================================================================
+### Run : 0
+junotoptask.initialize          INFO: initialized
+junotoptask:detsimiotask.find   WARN: Cann't find Object InputSvc
+junotoptask:detsimiotask:OutputSvc.initialize  INFO: ... isReproducible: 0
+junotoptask:detsimiotask.initialize  INFO: initialized
+junotoptask:DetSimAlg.execute   INFO: DetSimAlg Simulate An Event (0) 
+2026-03-31 21:09:35.320 [junoSD_PMT_v2::Initialize eventID 0
+2026-03-31 21:09:35.322 ]junoSD_PMT_v2::Initialize eventID 0
+Begin of Event --> 0
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : Warning
+      issued by : G4Step::GetDeltaEnergy()
+This method is obsolete and will be removed soon
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+ decay 2 gammas 0.510999
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [77554405]@[PMT_3inch_inner2_phys] (11573.73341, -10990.92857, 11004.81185, 375.24448)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [88800492]@[PMT_3inch_inner2_phys] (-9446.28628, 4726.45660, -16272.16245, 306.87878)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [119408487]@[PMT_8inch_log_phys] (-17849.00259, -11182.82993, 20745.28046, 112.98856)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120138208]@[PMT_8inch_log_phys] (-21161.97388, -1803.64695, 16947.28613, 108.51175)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120285753]@[PMT_8inch_log_phys] (-2031.61933, -21183.71766, 16126.84492, 302.17973)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [120761722]@[PMT_8inch_log_phys] (18128.22005, 10963.40666, 16124.96608, 431.12950)  step number >= 1000
+ decay 2 gammas 0.510999
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [208465231]@[PMT_3inch_body_phys] (-9452.57845, 4722.87777, -16266.33517, 286.72005)  step number >= 1000
+junotoptask:DetSimAlg.NormalAnaMgr.UserSteppingAction  WARN: opticalphoton [216779368]@[PMT_3inch_body_phys] (-9398.21529, 4719.48639, -16289.57366, 260.04428)  step number >= 1000
+2026-03-31 23:16:24.230 [junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6452269 GPU NO
+2026-03-31 23:16:24.231 ]junoSD_PMT_v2::EndOfEvent eventID 0 opticksMode 0 hitCollection 0 hitCollectionAlt -1 hcMuon 6452269 GPU NO
+hitCollectionTT.size: 136	userhitCollectionTT.size: 68
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split begin. 2026-03-31 15:16:25.053346000Z
+junotoptask:DetSimAlg.DataModelWriterWithSplit.EndOfEventAction  INFO: writing events with split end. 2026-03-31 15:16:30.693360000Z
+end of event action 
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00000 / 30150.00000
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.check_init_same  WARN: Init Z are not consistent: 30150.00000 / 30150.00000
+junotoptask:DetSimAlg.GenEvtInfoAnaMgr.EndOfEventAction  WARN: Check Init Info Consitent failed.
+end of event action 
+junotoptask:detsimiotask.finalize  INFO: events processed 646
+junotoptask:DetSimAlg.finalize  INFO: DetSimAlg finalized successfully
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO: All the collected process names: 
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hBertiniCaptureAtRest
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] nCapture
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] neutronInelastic
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [x] Decay
+junotoptask:DetSimAlg.InteresingProcessAnaMgr.EndOfRunAction  INFO:  -  [ ] hadElastic
+
+
+...
+
+
+
+[2026-03-31 23:16:30,886] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/python/Tutorial/JUNOApplication.py:225} INFO - ]JUNOApplication.run
+[2026-03-31 23:16:30,887] p37051 {/home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py:55} INFO - ]juno_application.run
+[Thread 0x7fffcd5ff640 (LWP 37076) exited]
+[Thread 0x7ffff7ec8740 (LWP 37051) exited]
+[Thread 0x7fffbcfff640 (LWP 37088) exited]
+[New process 37051]
+[Inferior 1 (process 37051) exited normally]
+Missing separate debuginfos, use: dnf debuginfo-install bzip2-libs-1.0.8-10.el9_5.x86_64 cyrus-sasl-lib-2.1.27-21.el9.x86_64 expat-2.5.0-5.el9_6.x86_64 freetype-2.10.4-10.el9_5.x86_64 glib2-2.68.4-16.el9_6.2.x86_64 glibc-2.34-168.el9_6.23.x86_64 graphite2-1.3.14-9.el9.x86_64 harfbuzz-2.7.4-10.el9.x86_64 keyutils-libs-1.6.3-1.el9.x86_64 krb5-libs-1.21.1-8.el9_6.x86_64 libICE-1.0.10-8.el9.x86_64 libXau-1.0.9-8.el9.x86_64 libXext-1.3.4-8.el9.x86_64 libXmu-1.1.3-8.el9.x86_64 libXt-1.2.0-6.el9.x86_64 libbrotli-1.0.9-7.el9_5.x86_64 libcom_err-1.46.5-7.el9.x86_64 libcurl-7.76.1-31.el9_6.1.x86_64 libevent-2.1.12-8.el9_4.x86_64 libffi-3.4.2-8.el9.x86_64 libglvnd-1.3.4-1.el9.x86_64 libglvnd-glx-1.3.4-1.el9.x86_64 libicu-67.1-10.el9_6.x86_64 libidn2-2.3.0-7.el9.x86_64 libnghttp2-1.43.0-6.el9.x86_64 libnsl2-2.0.0-1.el9.x86_64 libpng-1.6.37-12.el9.x86_64 libselinux-3.6-3.el9.x86_64 libssh-0.10.4-13.el9.x86_64 libtirpc-1.3.3-9.el9.x86_64 libunistring-0.9.10-15.el9.x86_64 libuuid-2.37.4-21.el9.x86_64 libxcb-1.13.1-9.el9.x86_64 libxcrypt-4.4.18-3.el9.x86_64 libzstd-1.5.5-1.el9.x86_64 mesa-libGLU-9.0.1-6.el9.x86_64 ncurses-libs-6.2-10.20210508.el9_6.2.x86_64 nvidia-driver-cuda-libs-580.82.07-1.el9.x86_64 openldap-2.6.8-4.el9.x86_64 openssl-libs-3.5.1-7.el9_7.x86_64 pcre-8.44-4.el9.x86_64 readline-8.1-4.el9.x86_64 xz-libs-5.2.5-8.el9_0.x86_64
+(gdb) 
+
+
+(gdb) 
+quit
+Wed Apr  1 09:58:50 AM CST 2026
+                   BASH_SOURCE : /home/blyth/oj/doublemuon/doublemuon.sh
+                           PWD : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+            SLURM_BATCH_SCRIPT : 
+                  SLURM_PROCID : 
+                        defarg : info
+                           arg : dbg
+                        allarg : info_help_run_dbg
+                   ENVSET_NAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31
+                        ENVSET : /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/envset.sh
+                          TEST : zerohitlite
+                    TESTSCRIPT : doublemuon/doublemuon.sh
+               TESTSCRIPT_NAME : oj_doublemuon_doublemuon
+                TESTSCRIPT_ARG : run
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                OPTICKS_PREFIX : /data1/blyth/local/opticks_Debug
+                        LOGDIR : /data1/blyth/log/oj/doublemuon/doublemuon/2026-03-31-2107/OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1
+                           MSG : OPTICKS RUNNING
+                       LOGNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.log
+                       ENVNAME : OJ_LOCAL_blyth-geometry-config-needed-for-EMF-opticks-convert_2026Mar31_ok0_zerohitlite_seed42_evtmax1_dbg.env
+                            d0 : Tue Mar 31 09:07:45 PM CST 2026
+                            d1 : Wed Apr  1 09:58:50 AM CST 2026
+                            dt : 46265
+~/oj/doublemuon
+A[blyth@localhost oj]$ rc
+RC 0
+A[blyth@localhost oj]$ 
+
+
+
+Make the HARD_EXIT controllable::
+
+    A[blyth@localhost oj]$ vi /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py +55
+    A[blyth@localhost oj]$ tail  /home/blyth/junosw/InstallArea/blyth-geometry-config-needed-for-EMF-opticks-convert/bin/tut_detsim.py
+    juno_application.run()
+    log.info("]juno_application.run")
+
+    if "HARD_EXIT" in os.environ:
+        log.info("End of script - doing HARD_EXIT os._exit(0)")
+        os._exit(0)
+    else:
+        log.info("End of script - NOT doing HARD_EXIT")
+    pass
+
+    A[blyth@localhost oj]$ 
+
+
+
+

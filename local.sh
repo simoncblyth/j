@@ -26,8 +26,10 @@ summary of functions
 | ljbb0   | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 to disable geometry initialization                                                                      |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb0c  | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 OJ_BUILD_CLEAN=1 to disable geometry initialization and do clean build                                  |
+|         |                                    | [CLEAN BUILDS ARE NEEDED AFTER CHANGING EXTERNAL VERSIONS]                                                                             |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbbc   | local_oj_build,oj_build            | same as ljbb but with OJ_BUILD_CLEAN=1 to do clean build                                                                               |
+|         |                                    | [CLEAN BUILDS ARE NEEDED AFTER CHANGING EXTERNAL VERSIONS]                                                                             |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | loj     | local_oj                           | env to use local OJ                                                                                                                    |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
@@ -79,16 +81,44 @@ Initialize geomdir (equivalent of gitlab CI OJ test) : ljii
     oj_init
     ## alternatively use "ljii" to do both the above
 
+EOU
+}
+
+local_c4_branch_notes(){ cat << EON
+
+ABOUT C4 BRANCHES
+=================
+
+Caution c4 repo is in a delicate branch situation, see ~/j/custom4/review_status.rst
+
+v0.1.8
+   old branch that has been in use for years : and includes the mistake
+   of using templated track info that breaks interop opticksMode:0 (and 3)
+
+v0.1.8_transient
+    some fixes on top of the old v0.1.8 - mainly avoiding the templated track info mistake
+
+v0.1.9_release
+    2026 March attempt to combine v0.1.8_transient with cherry picked commits from main
+
+main
+    angular qe implementation changes not ready for release, 
+    as well as infrastructure updates that have been cherry-picked into v0.1.9_release
 
 
+EON
+}
+
+local_c4_build_notes(){ cat << EON
 BUILD ORDER WHEN CHANGING CUSTOM4 VERSION : C4, OK, OJ
 -------------------------------------------------------
-
 
 Check C4 branch::
 
     cd ~/customgeant4
     git status  # check are on the 0.1.8_transient branch
+
+
 
 NB do not want to make major changes in the transient branch, as may be
 problematic to get into main. But changing debug output is acceptable.
@@ -99,16 +129,44 @@ Actually, when using default v0.1.8 Custom4 prefix there is nothing to do
 Do each of the below setup and build in separate clean tabs:
 
 1. local_c4_build ; c4_build   ## does nothing when using default c4 v0.1.8
-2. local_ok_build ; ok_build   ##
 
-   * HMM: AFTER CHANGING C4 prefix an om-cleaninstall is needed
+   * NB whatever customgeant4 branch the repo is at is what gets built
+   * HMM: IT WOULD BE BETTER FOR THE BRANCH TO FEED INTO THE BUILD
+   * current_branch=$(git -C $HOME/customgeant4 branch --show-current)
+   * v0.1.9_release
+
+2. local_ok_build ; ok_build   
+
+Normally the above is sufficient to build. But after changing the C4 prefix
+an om-cleaninstall is needed::
+ 
+    o
+    om-cleaninstall    
+    opticks-t 
+
+* CAUTION : IN THIS STATE OF DEPENDING ON A LOCAL EXTERNAL CUSTOM4 CANNOT MAKE 
+  A VALID DISTRIBUTION : AS DISTRIBUTIONS NEED TO DEPEND ON EXTERNALS FROM CVMFS
+
+There is a check for this already::
+
+    (ok) A[blyth@localhost opticks]$ okdist--
+    NON-STANDARD: /data1/blyth/local/custom4_Debug/0.1.9
+    /home/blyth/opticks/bin/okdist.bash : ABORT AS om-cmake-prefix-path-check SHOWS THAT CMAKE_PREFIX_PATH CONTAINS NON-DISTRIBUTABLE PATHS
+
+
 
 3. local_oj_build ; NOINIT=1 OJ_BUILD_CLEAN=1 oj_build
 
-#4. local_oj_init  ; oj_init  ## THIS IS NOW PART OF oj_build THAT IS OFTEN DISABLED WITH NOINIT
+Function for that clean build without init is (initially NOINIT as the build may fail)::
+
+    ljbb0c
+
+Once build succeeds do init too with::
+
+    ljbb
 
 
-EOU
+EON
 }
 
 
@@ -154,15 +212,28 @@ local_none()
 local_c4_prefix_default()
 {
     : default path from cvmfs
-    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
+    #echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
+    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/custom4/0.1.8
 }
 local_c4_prefix()
 {
     : function that enables switching to a non default c4 to check
     : SEE NOTES AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
 
-    echo $(local_c4_prefix_default)
+    #echo $(local_c4_prefix_default)
     #echo /data1/blyth/local/custom4_Debug/0.1.8
+    echo /data1/blyth/local/custom4_Debug/0.1.9
+}
+
+
+local_c4_build_notes(){ cat << EON
+
+* sources c4 dependencies (Xercesc, CLHEP, Geant4) from cvmfs - assumed to be same versions as those used by JUNOSW and Opticks
+* if local_c4_prefix is the default 0.1.8 from cvmfs then c4_build is a no-build placeholder
+* if local_c4_prefix is not the default then c4_build uses that prefix with ~/customgeant4/build_Debug.sh
+
+
+EON
 }
 
 
@@ -189,8 +260,6 @@ local_c4_build()
        c4_build()
        {
           : ~/j/local.sh
-          : NB returned v0.1.8 in transient branch with
-          :      git checkout -b v0.1.8_transient v0.1.8
 
           echo $BASH_SOURCE $FUNCNAME - BUILD NEEDED AS PREFIX IS NOT DEFAULT
           local ff="local_c4_prefix local_c4_prefix_default"
@@ -200,8 +269,9 @@ local_c4_build()
           export CUSTOM4_PREFIX=$(local_c4_prefix)
           ./build_Debug.sh
 
-          source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
-          JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
+          # source ~/j/JUNOTOP/JUNOTOP_generate_custom4_bashrc.sh
+          # JUNOTOP_generate_custom4_bashrc > ${CUSTOM4_PREFIX}/bashrc
+          # FROM 0.1.9 THIS IS DONE BY THE custom4 build.sh
        }
    fi
    type c4_build
@@ -233,7 +303,7 @@ local_JUNOTOP_override()
    : in order to use different prefix of an external
 
    source ~/j/JUNOTOP/JUNOTOP_change_paths.sh
-   JUNOTOP_change_paths custom4 $(local_c4_prefix)
+   JUNOTOP_change_paths custom4 $(local_c4_prefix) $(local_c4_prefix_default)
 
    : HMM when building JUNOSW against different Custom4 will need to
    : also build Opticks against that same Custom4 FIRST
@@ -360,6 +430,17 @@ oj_log()
 
 local_srcdir(){ echo $HOME/junosw ; }
 local_branch(){ git -C $(local_srcdir) branch --show-current ; }
+local_seconds_between() {
+    : ~/j/local.sh
+    : convert d1 d2 string arguments into seconds from the epoch
+    : then subtract to give seconds between those
+    local d1="$1"
+    local d2="$2"
+    local ts1=$(date -d "$d1" +%s) || return 1
+    local ts2=$(date -d "$d2" +%s) || return 1
+    echo $(( ts2 - ts1 ))
+}
+
 
 local_oj_build()
 {
@@ -394,7 +475,7 @@ local_oj_build()
 
    # prior to https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-add-optional-branch-name-after-InstallArea-and-build-dirs-plus-ci-JUNOTOP-to-JLatest
 
-   KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW=1
+   KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW=1   # TODO: REMOVE THIS KLUDGE
    if [ "$JUNO_OFFLINE_BUILD_BRANCH" == "1" -a -n "$KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW" ]; then
        SOURCE_DIR=$HOME/junosw
        BRANCH=$(git -C $SOURCE_DIR branch --show-current)
@@ -480,14 +561,29 @@ local_oj_build()
    oj_build(){
        : ~/j/local.sh
 
+       local vv=""
+       local d0=$(date)
+       vv="$vv d0"
+
        [ -n "$OJ_BUILD_CLEAN" ] && oj_build_clean
        oj_build_info
        oj_build_pre
        oj_build_
        [ $? -ne 0 ] && echo $FUNCNAME ERROR DURING BUILD - EXITING && return 1
 
+       local d1=$(date)
+       local s1=$(local_seconds_between "$d0" "$d1")
+       vv="$vv d1 s1"
+       for v in $vv ; do printf "%30s : %s \n" "$v" "${!v}" ; done
+
        oj_build_post
        [ -z "$NOINIT" ] && oj_build_initialize
+
+       local d2=$(date)
+       local s2=$(local_seconds_between "$d1" "$d2")
+       vv="$vv d2 s2"
+       for v in $vv ; do printf "%30s : %s \n" "$v" "${!v}" ; done
+
        return 0
    }
 
