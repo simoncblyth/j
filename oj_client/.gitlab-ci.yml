@@ -1,0 +1,67 @@
+
+
+.opticks_build_job_template:
+  extends: .job_template
+  stage: build
+  image: simoncblyth/cuda:12.4.1-runtimeplus-rockylinux9
+  # These are defaults that can be overridden
+  variables:
+    JUNO_CLANG_PREFIX: ""
+    EXTRA_BUILD_FLAGS: "JUNO_CMAKE_BUILD_TYPE=Debug"
+  script:
+    - printf "[ ================ BUILD PHASE: $JUNO_OPTICKS_CONFIG =================\n"
+    - for repo in juno.ihep.ac.cn opticks.ihep.ac.cn; do if [ ! -d /cvmfs/$repo ]; then sudo mkdir /cvmfs/$repo; fi; sudo mount -t cvmfs $repo /cvmfs/$repo; done
+    - source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
+    - mkdir InstallConfig
+    - source .gitlab-ci/oj_helper.sh EMIT_ENV      > InstallConfig/ENV.bash
+    - source .gitlab-ci/oj_helper.sh EMIT_ENVSET  > InstallConfig/envset.sh
+    - export JUNO_OFFLINE_OFF=1
+    - export OPTICKS_SETUP_VERBOSE=1
+    - source $JUNOTOP/setup.sh
+    - if [ -n "$JUNO_CLANG_PREFIX" ]; then source $JUNO_CLANG_PREFIX/bashrc; fi
+    # Use the variable set by the specific flavor
+    - if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
+    - env $EXTRA_BUILD_FLAGS ./build.sh
+    - cp InstallConfig/ENV.bash  InstallArea/ENV.bash
+    - cp InstallConfig/envset.sh InstallArea/envset.sh
+    - unset JUNO_OFFLINE_OFF 
+    - env $EXTRA_BUILD_FLAGS ./oj_initialize.sh
+
+
+
+.opticks_flavor_standard:
+  extends: .opticks_build_job_template
+  variables:
+    JUNO_OPTICKS_CONFIG: "Debug"
+    JUNO_OPTICKS_PREFIX: "/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest"
+
+.opticks_flavor_client:
+  extends: .opticks_build_job_template
+  variables:
+    JUNO_OPTICKS_CONFIG: "Client"
+    JUNO_OPTICKS_PREFIX: "/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vClient"
+
+
+# Standard Build
+opticks:build-job:gcc11:el9:
+  extends: 
+    - .opticks_flavor_standard
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - .gitlab-ci.yml
+        - Simulation/**/*
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+
+# Client Build
+opticks-client:build-job:gcc11:el9:
+  extends: 
+    - .opticks_flavor_client
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    # Maybe only run Client on specific triggers to save CI minutes?
+
+
+

@@ -4,10 +4,26 @@ local_usage(){ cat << EOU
 .bash_profile > .bashrc > local.sh : local_usage
 ==================================================
 
-local.sh is the environment control script developed on Ada workstation (A).
+local.sh provides env + build + test bash functions developed on "A" (Ada GPU workstation).
+Only minimal test/debug functions like "ljrt" are here.
+Most test functions have been moved to the OJ repository, see ~/oj/oj.bash
 
-summary of functions
-----------------------
+
+Motivation for these OJ bash functions
+---------------------------------------
+
+The ~/j/local.sh local_oj bash functions follow the general approach
+of ~/junosw/.gitlab-ci.yml and uses some of the same machinery
+like ~/junosw/.gitlab-ci/oj_helper.sh to come close to replicating
+the ci build locally.
+
+The point of this is to allow developing the OJ machinery locally
+with a faster development cycle than making lots of test MR
+to the junosw gitlab instance.
+
+
+OK : Opticks building functions
+----------------------------------
 
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | cmd     | primary functions                  |  notes                                                                                                                                 |
@@ -18,6 +34,14 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 |         | local_ok_local                     | env to use local Opticks release, little used as typically need to keep rebuilding which requires "lob" or "lo"                        |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
+
+OJ : JUNOSW+Opticks building functions
+---------------------------------------
+
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| cmd     | primary functions                  |  notes                                                                                                                                 |
++=========+====================================+========================================================================================================================================+
 | ljb     | local_oj_build                     | defines oj_build which locally mimics the Opticks+JUNOSW gitlab-ci build                                                               |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb    | local_oj_build,oj_build            | defines oj_build and runs it : update builds JUNOSW with ~/opticks                                                                     |
@@ -41,10 +65,41 @@ summary of functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lco     | local_conda_ok,conda_ok,activate   | local_conda_ok defines conda_ok, running that which sets up conda, then the ok conda env is activated                                  |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| oje     | oj_envset                          | sources ~/.opticks/GEOM/ENVSET.sh (very quickly it just sets ENVSET and ENVSET_NAME) and then sources $ENVSET more slowly              |
-+---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
-Testing functions are moved to ~/oj/oj.bash
+
+ljclient function : builds OJ against an OpticksClient installation
+---------------------------------------------------------------------
+
+Usage examples::
+
+    ljclient ljbbc    # clean build, with geom init   -- FULL ENCHILADA
+    ljclient ljbb0c   # clean build, no geom init
+    ljclient ljbb     # update build, with geom init
+    ljclient ljbb0    # update build, no geom init    -- QUICKEST
+
+
+    JUNO_OPTICKS_CONFIG=Client ljbb  ## equivalent to the ljbb line above
+
+
+
+NB when changing the version of an external, a clean build is required
+
+ljclient invokes the function whose name is passed in the argument after setting::
+
+   export JUNO_OPTICKS_CONFIG=Client
+
+
+Q: How/where does JUNO_OPTICKS_CONFIG change things ?
+
+A: In JUNOSW/oj_initialize.sh when JUNO_OFFLINE_BUILD_BRANCH is defined the JUNO_OPTICKS_CONFIG
+   setting causes the reldir picking the envset.sh to be prefixed with the config string eg "Client_"
+   prior to the branch name.
+
+   JUNO_OPTICKS_CONFIG is thus fundamental, it controls which installations to use,
+   by picking the envset.sh which sets the prefixes of OJ and Opticks.
+
+
+
 
 
 Updating local OK build
@@ -102,7 +157,7 @@ v0.1.9_release
     2026 March attempt to combine v0.1.8_transient with cherry picked commits from main
 
 main
-    angular qe implementation changes not ready for release, 
+    angular qe implementation changes not ready for release,
     as well as infrastructure updates that have been cherry-picked into v0.1.9_release
 
 
@@ -135,16 +190,16 @@ Do each of the below setup and build in separate clean tabs:
    * current_branch=$(git -C $HOME/customgeant4 branch --show-current)
    * v0.1.9_release
 
-2. local_ok_build ; ok_build   
+2. local_ok_build ; ok_build
 
 Normally the above is sufficient to build. But after changing the C4 prefix
 an om-cleaninstall is needed::
- 
-    o
-    om-cleaninstall    
-    opticks-t 
 
-* CAUTION : IN THIS STATE OF DEPENDING ON A LOCAL EXTERNAL CUSTOM4 CANNOT MAKE 
+    o
+    om-cleaninstall
+    opticks-t
+
+* CAUTION : IN THIS STATE OF DEPENDING ON A LOCAL EXTERNAL CUSTOM4 CANNOT MAKE
   A VALID DISTRIBUTION : AS DISTRIBUTIONS NEED TO DEPEND ON EXTERNALS FROM CVMFS
 
 There is a check for this already::
@@ -277,6 +332,18 @@ local_c4_build()
    type c4_build
 }
 
+
+local_ok_externals_notes(){ cat << EON
+
+local_ok_externals is invoked by::
+
+    lob < local_ok_build
+    lo  < local_ok_build
+
+
+EON
+}
+
 local_ok_externals()
 {
    : ~/j/local.sh
@@ -285,14 +352,15 @@ local_ok_externals()
 
    local_unset
 
-   local_c4_build  # setup c4 externals
-   source $(local_c4_prefix)/bashrc
-
    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Python/3.11.10/bashrc
    source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/python-numpy/1.26.4/bashrc
 
+   local_c4_build  # setup c4 externals : Xercesc + CLHEP + Geant4
+   source $(local_c4_prefix)/bashrc
+
    export VIP_MODE=ok_externals
    export VIP_DESC="Opticks JUNOSW externals in common manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
+   PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
 }
 
 
@@ -323,9 +391,15 @@ local_cuda()
 local_ok_build()
 {
    : ~/j/local.sh
-   local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
+   : ~/.opticks_config which sets OPTICKS_CONFIG was formerly sourced after local_ok_externals
+   : BUT now with the Client config which changes the required externals
+   : the ordering is switched
 
    source ~/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
+
+   local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
+
+
    om-
    export VIP_MODE=ok_build
    export VIP_DESC="env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
@@ -346,25 +420,38 @@ lob()
 {
    : ~/j/local.sh
    local_ok_build
+   export OPTICKS_ENVNOTE=$BASH_SOURCE:$FUNCNAME
+   PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
 }
 
 lo()
 {
    : ~/j/local.sh  env for Opticks build test and analysis
    local_ok_build
-   lco
+   #lco   ## THIS BRINGS IN CONDA : WHICH IS NOW CURL COMPLICATED
 
-   export GEOMBASE=$(local_srcdir)/InstallArea/$(local_branch)/.opticks/GEOM
-   ## liteweight for GEOM bash function navigation eg "GEOM cf"
+   export GEOMBASE=$(local_srcdir)/InstallArea/$(local_reldir)/.opticks/GEOM   ## liteweight for GEOM bash function navigation eg "GEOM cf"
+   export OPTICKS_ENVNOTE=$BASH_SOURCE:$FUNCNAME
+   PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
 }
 
+lo_client ()
+{
+   export OPTICKS_CONFIG=Client
+   export OPTICKS_MODE_CLIENT=1  # controls type of simulator created by G4CXOpticks::CreateSimulator
+
+   lo   #  local_ok_build/local_ok_externals
+   export OPTICKS_ENVNOTE=$BASH_SOURCE:$FUNCNAME
+   PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
+}
 
 
 local_ok_local()
 {
    : ~/j/local.sh
    local_ok_externals    # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
-   source /data1/blyth/local/opticks_Debug/bashrc
+
+   source /data1/blyth/local/opticks_Debug/bashrc   ## HMM: FIXED OPTICKS_PREFIX assumption
 
    export VIP_MODE=ok_local
    export VIP_DESC="pure Opticks usage from OPTICKS_PREFIX $OPTICKS_PREFIX"
@@ -389,6 +476,23 @@ ljbb()
    [ -z "$CMD" ] && export CMD=$FUNCNAME  ## capture top level command for logging
    local_oj_build
    oj_build
+}
+
+
+ljclient()
+{
+   : see notes above
+   local fn=${1:-ljbb}
+
+   if [[ "$fn" =~ ljbb|ljbb0|ljbb0c|ljbbc ]]; then
+       export JUNO_OPTICKS_CONFIG=Client
+       echo $BASH_SOURCE $FUNCNAME running fn $fn with JUNO_OPTICKS_CONFIG $JUNO_OPTICKS_CONFIG
+       $fn
+   else
+       echo $BASH_SOURCE $FUNCNAME running fn $fn - NOT SUPPORTED
+       return 1
+   fi
+
 }
 
 ljbb0()
@@ -430,6 +534,21 @@ oj_log()
 
 local_srcdir(){ echo $HOME/junosw ; }
 local_branch(){ git -C $(local_srcdir) branch --show-current ; }
+local_reldir()
+{
+    : ~/j/local.sh
+    : local_reldir generalizes local_branch to distinguish building against different JUNO_OPTICKS_CONFIG like Client
+    local branch=$(local_branch)
+    local reldir
+    if [ -n "$JUNO_OPTICKS_CONFIG" -a "$JUNO_OPTICKS_CONFIG" != "Debug" ]; then
+        reldir=${JUNO_OPTICKS_CONFIG}_$branch
+    else
+        reldir=$branch
+    fi
+    echo $reldir
+}
+
+
 local_seconds_between() {
     : ~/j/local.sh
     : convert d1 d2 string arguments into seconds from the epoch
@@ -439,6 +558,19 @@ local_seconds_between() {
     local ts1=$(date -d "$d1" +%s) || return 1
     local ts2=$(date -d "$d2" +%s) || return 1
     echo $(( ts2 - ts1 ))
+}
+
+local_client_setup_no_longer_needed()
+{
+    : now does nothing following NP_CURL.h additions to work with libcurl 7.76.1
+    : see ~/opticks/externals/openssl.bash
+    : see ~/opticks/externals/libcurl.bash
+    : used from local_oj_release and local_ok_externals
+
+    #source /usr/local/ExternalLibs/openssl/openssl-3.2.0/bashrc
+    #source /usr/local/ExternalLibs/libcurl/curl-8.12.1/bashrc
+
+    echo -n
 }
 
 
@@ -460,11 +592,39 @@ local_oj_build()
    #export JUNOTOP=/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0
    source $JUNOTOP/setup.sh
 
-   local_JUNOTOP_override
+   : sourcing of JUNOTOP/setup.sh leads to sourcing of JUNOTOP/bashrc.sh
+   : which results in the sourcing of around 40 bashrc like ExternalLibs/name/name-version/bashrc
+
+   local_JUNOTOP_override  ## potentially changing paths to build against different custom4
+
+   local BASE=/data1/blyth/local
+
+   local juno_opticks_config=Debug
+   export JUNO_OPTICKS_CONFIG=${JUNO_OPTICKS_CONFIG:-$juno_opticks_config}
+
+   : JUNO_OPTICKS_CONFIG is input which controls which JUNO_OPTICKS_PREFIX to build against
+   unset JUNO_OPTICKS_PREFIX
+   case $JUNO_OPTICKS_CONFIG in
+     vLatest) export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest ;;
+       Debug) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+      Client) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+     Release) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+   esac
+   : NB JUNO_OPTICKS_PREFIX is only used in this function and in the .gitlab-ci.yml and associated helper scripts
 
 
-   #export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest
-   export JUNO_OPTICKS_PREFIX=/data1/blyth/local/opticks_Debug
+   if [ -z "$JUNO_OPTICKS_PREFIX" ]; then
+       echo $BASH_SOURCE $FUNCNAME - FATAL - UNDEF JUNO_OPTICKS_PREFIX $JUNO_OPTICKS_PREFIX - JUNO_OPTICKS_CONFIG $JUNO_OPTICKS_CONFIG
+       return 1
+   fi
+
+   if [ ! -d "$JUNO_OPTICKS_PREFIX" ]; then
+       echo $BASH_SOURCE $FUNCNAME - FATAL - NON EXISTING JUNO_OPTICKS_PREFIX $JUNO_OPTICKS_PREFIX BASE $BASE
+       return 1
+   fi
+
+
+
    : WIP: want to build agaist here built ok external rather than the cvmfs release
    : HMM : despite the prefix change still building against the cvmfs release of opticks
    : try ./build_Debug.sh after nuclear removal of build InstallConfig and InstallArea
@@ -475,24 +635,45 @@ local_oj_build()
 
    # prior to https://code.ihep.ac.cn/JUNO/offline/junosw/-/tree/blyth-add-optional-branch-name-after-InstallArea-and-build-dirs-plus-ci-JUNOTOP-to-JLatest
 
-   KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW=1   # TODO: REMOVE THIS KLUDGE
-   if [ "$JUNO_OFFLINE_BUILD_BRANCH" == "1" -a -n "$KLUDGE_MAKING_OLD_BRANCH_LAYOUT_MATCH_NEW" ]; then
+
+   PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG=1
+   if [ "$JUNO_OFFLINE_BUILD_BRANCH" == "1" -a -n "$PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG" ]; then
        SOURCE_DIR=$HOME/junosw
+
+       ## HMM: duplication with local_reldir ???
        BRANCH=$(git -C $SOURCE_DIR branch --show-current)
-       export JUNO_OFFLINE_BLDDIR=$SOURCE_DIR/build/$BRANCH
-       export JUNO_OFFLINE_INSTALLDIR=$SOURCE_DIR/InstallArea/$BRANCH
+       if [ "$JUNO_OPTICKS_CONFIG" == "Debug" ]; then
+           RELDIR=$BRANCH
+       else
+           RELDIR=${JUNO_OPTICKS_CONFIG}_${BRANCH}
+       fi
+
+       export JUNO_OFFLINE_RELDIR=$RELDIR   # SCB invention
+       export JUNO_OFFLINE_BLDDIR=$SOURCE_DIR/build/$JUNO_OFFLINE_RELDIR
+       export JUNO_OFFLINE_INSTALLDIR=$SOURCE_DIR/InstallArea/$JUNO_OFFLINE_RELDIR
        mkdir -p $JUNO_OFFLINE_BLDDIR
        mkdir -p $JUNO_OFFLINE_INSTALLDIR
+
+       echo $BASH_SOURCE : PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG $PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG
+       echo $BASH_SOURCE : JUNO_OPTICKS_CONFIG                    $JUNO_OPTICKS_CONFIG
+       echo $BASH_SOURCE : JUNO_OFFLINE_RELDIR                    $JUNO_OFFLINE_RELDIR
+       echo $BASH_SOURCE : JUNO_OFFLINE_BLDDIR                    $JUNO_OFFLINE_BLDDIR
+       echo $BASH_SOURCE : JUNO_OFFLINE_INSTALLDIR                $JUNO_OFFLINE_INSTALLDIR
+
    fi
+
 
    export SPMT__init_pmtNum_FAKE_WHEN_MISSING=1  # transient backward compat for junosw branches without pmtNum
 
 
-   if [ -n "$JUNO_OPTICKS_PREFIX" ]; then source $JUNO_OPTICKS_PREFIX/bashrc; fi
+   if [ -n "$JUNO_OPTICKS_PREFIX" ]; then
+       source $JUNO_OPTICKS_PREFIX/bashrc
+       : here OPTICKS_PREFIX OPTICKS_CONFIG are defined and paths are appended
+   fi
 
    oj_build_info(){
        : ~/j/local.sh
-       local vv="JUNOTOP JUNO_OPTICKS_PREFIX JUNO_OFFLINE_OFF OPTICKS_SETUP_VERBOSE"
+       local vv="JUNOTOP JUNO_OPTICKS_PREFIX JUNO_OFFLINE_OFF OPTICKS_SETUP_VERBOSE OPTICKS_PREFIX OPTICKS_CONFIG"
        for v in $vv ; do printf "%20s : %s\n" "$v" "${!v}" ; done
    }
 
@@ -501,28 +682,30 @@ local_oj_build()
       : when changing externals need nuclear rebuild
 
       cd $(local_srcdir)
-      local branch=$(local_branch)
+      local reldir=$(local_reldir)
 
       if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
-          rm -rf InstallArea/$branch build/$branch
+          rm -rf InstallArea/$reldir
+          rm -rf build/$reldir
       else
-          rm -rf InstallArea build
+          rm -rf InstallArea
+          rm -rf build
       fi
       rm -rf InstallConfig
-
    }
 
    oj_build_pre(){
-       : ~/j/local.sh
+       : ~/j/local.sh this is invoked by oj_build
        cd $(local_srcdir)
        source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
        mkdir -p InstallConfig
        source .gitlab-ci/oj_helper.sh EMIT_ENV    > InstallConfig/ENV.bash
        source .gitlab-ci/oj_helper.sh EMIT_ENVSET > InstallConfig/envset.sh
+       ## HMM: should InstallConfig use reldir too ?
    }
 
    oj_build_(){
-       : ~/j/local.sh
+       : ~/j/local.sh this is invoked by oj_build
        cd $(local_srcdir)
 
        ##rm -f $FUNCNAME.log  ## retaining log to follow progression of build time is useful
@@ -537,13 +720,13 @@ local_oj_build()
    }
 
    oj_build_post(){
-       : ~/j/local.sh
+       : ~/j/local.sh this is invoked by oj_build
        cd $(local_srcdir)
-       local branch=$(local_branch)
+       local reldir=$(local_reldir)
 
       if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
-           cp InstallConfig/ENV.bash  InstallArea/$branch/ENV.bash
-           cp InstallConfig/envset.sh InstallArea/$branch/envset.sh
+           cp InstallConfig/ENV.bash  InstallArea/$reldir/ENV.bash
+           cp InstallConfig/envset.sh InstallArea/$reldir/envset.sh
       else
            cp InstallConfig/ENV.bash  InstallArea/ENV.bash
            cp InstallConfig/envset.sh InstallArea/envset.sh
@@ -591,17 +774,28 @@ local_oj_build()
 }
 
 
+
+local_oj_info(){ cat << EOI
+
+    local_srcdir   : $(local_srcdir)
+    local_reldir   : $(local_reldir)
+    envset         : $(local_srcdir)/InstallArea/$(local_reldir)/envset.sh
+
+EOI
+
+: JUNO_OPTICKS_CONFIG=Client local_oj_info
+
+}
+
 local_oj()
 {
-    source $(local_srcdir)/InstallArea/$(local_branch)/envset.sh
+    source $(local_srcdir)/InstallArea/$(local_reldir)/envset.sh
 }
 loj(){
    : ~/j/local.sh
    : setup environment of OJ running
    local_oj
 }
-
-
 
 lji()
 {
@@ -641,23 +835,6 @@ local_oj_init()
 }
 
 
-ljr()
-{
-   : ~/j/local.sh
-   : setup environment to check a release
-   local_oj_release
-   oj_release
-}
-
-ljrt()
-{
-   : ~/j/local.sh
-   : setup environment to check a release
-   local_oj_release
-   oj_release
-   oj_release_test
-}
-
 
 
 oj_envset_notes(){ cat << EON
@@ -692,13 +869,6 @@ oj_envset()
    return 0
 }
 
-oje()
-{
-   : ~/j/local.sh
-   oj_envset
-}
-
-
 
 
 seconds_between() {
@@ -708,193 +878,6 @@ seconds_between() {
     local ts2=$(date -d "$d2" +%s) || return 1
     echo $(( ts2 - ts1 ))
 }
-
-
-
-old_oj_test()
-{
-   : ~/j/local.sh
-   : invoke oj_envset that sources the envset.sh picked via opticks ENVSET bash function
-   : then runs a single event simulation under gdb debugger
-   : 
-   : TESTGROUP string used to encapsulate at a high level what is done eg "gun" "doublemuon"
-   : TEST string used to encapsulate options used varying how tests are run eg "hitlitemerged"
-   :
-   : HMM - LACKS IDENTITY MACHINERY OF ~/j/blyth-OJ-pmt-hit-type-2-for-muon-hits/detsim.sh
-   : HMM - NEEDS TO USE SProf.sh profile/logparse machinery
-
-
-   local defarg=""
-   local arg=${1-$defarg}
-
-   source ~/.opticks/TEST/TEST.sh
-   [ -z "$TESTGROUP" ] && echo $FUNCNAME - ERROR TESTGROUP NOT DEFINED && return 1
-   [ -z "$TEST"      ] && echo $FUNCNAME - ERROR TEST NOT DEFINED      && return 2
-
-   local IDENTITY=$FUNCNAME
-
-   #local logbase=/tmp/$USER/opticks
-   local logbase=/data2/blyth/local
-   local LOGBASE=$logbase
-   local LOGFOLD=$LOGBASE/$FUNCNAME
-   local LOGSTAMP=$(date +%Y%m%d)
-   local LOGDIR=$LOGFOLD/$LOGSTAMP/$TEST
-   local LOGNAME=$IDENTITY.log
-
-   local vv="BASH_SOURCE FUNCNAME test TEST TMP GEOM LOGBASE LOGFOLD LOGSTAMP LOGDIR LOGNAME PWD SProf__WRITE"
-   vvp(){ for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done ; }
-
-   if [ "${arg/info}" != "$arg" ]; then
-      vvp
-      return 0
-   fi
-
-
-   oj_envset
-   [ $? -ne 0 ] && echo $FUNCNAME - ERROR WITH oj_envset && return 1
-
-   source dbg__.sh
-
-
-   mkdir -p $LOGDIR
-   pushd $LOGDIR
-   rm -f $LOGNAME
-   vvp > $LOGNAME
-
-
-   ## THIS NOT USING TEST IN THE MODERN SENSE
-   if [ "$TEST" == "default" ]; then
-
-       vvp
-       dbg__ \
-          $(which python) \
-          $(which tut_detsim.py) \
-          --evtmax 1 \
-          gun
-
-
-   elif [[ "$TEST" =~ ^hit(merged|lite|litemerged)?$ ]]; then
-
-       export SProf__WRITE=1    # enable profile writing see SProf::Write
-
-       if [ -n "$LOG" ]; then
-           # general loglevel of the class/struct
-           export junoSD_PMT_v2_Opticks=INFO
-           export QSim=INFO
-           export SEvt=INFO
-
-           export SEvt__SAVE=1       # extra logging re what is saved
-           export SEvt__DIRECTORY=1  # extra logging re where arrays are saved
-       fi
-       vv="$vv LOG"
-
-
-       # configure SEvt arrays to save
-       export OPTICKS_MAX_SLOT=M10
-       export OPTICKS_EVENT_MODE=HitPhotonSeq  ## try some SEvt saving with OJ
-       export OPTICKS_MODE_SAVE=1  # 0:absolute, 1:relative to invoking dir
-
-
-
-       local evtmax=1
-       local pmt_hit_type=1
-       local pmtsd_merge_twindow=1
-       local opticks_mode_merge_override=1
-
-       : NB use of "--pmtsd-merge-twindow 1" means that hit merging is enabled
-       : BUT to check performance of GPU vs CPU merging the OPTICKS_MODE_MERGE_OVERRIDE
-       : envvar is used control whether CPU/GPU merging happens
-
-       case $TEST in
-          hit)           pmt_hit_type=1 ; opticks_mode_merge_override=0 ;;
-          hitmerged)     pmt_hit_type=1 ; opticks_mode_merge_override=1 ;;
-          hitlite)       pmt_hit_type=2 ; opticks_mode_merge_override=0 ;;
-          hitlitemerged) pmt_hit_type=2 ; opticks_mode_merge_override=1 ;;
-       esac
-
-       #local topcmd=dbg__
-       local topcmd=time
-       vv="$vv TEST topcmd evtmax pmt_hit_type pmtsd_merge_twindow opticks_mode_merge_override"
-
-       export OPTICKS_MODE_MERGE_OVERRIDE=$opticks_mode_merge_override
-
-       vvp >> $LOGNAME
-
-       if [ "$TESTGROUP" == "gun" ]; then
-
-           $topcmd \
-              $(which python) \
-              $(which tut_detsim.py) \
-              --evtmax ${evtmax} \
-              --pmt-hit-type ${pmt_hit_type} \
-              --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
-              gun \
-              2>&1 | tee -a $LOGNAME
-
-
-       elif [ "$TESTGROUP" == "doublemuon" ]; then
-
-           $topcmd \
-              $(which python) \
-              $(which tut_detsim.py) \
-              --evtmax ${evtmax} \
-              --pmt-hit-type ${pmt_hit_type} \
-              --pmtsd-merge-twindow ${pmtsd_merge_twindow} \
-              gun \
-              2>&1 | tee -a $LOGNAME
-
-       fi
-
-
-       unset SProf__WRITE
-
-   else
-       printf "$FUNCNAME - ERROR TEST[$TEST] UNHANDLED \n"
-   fi
-
-   vvp
-   popd
-
-   return 0
-}
-
-
-
-
-old_ojtt()
-{
-   : ~/j/local.sh
-   : NB this uses brackets creating subshell foreach TEST invokation
-
-   local defarg=""
-   local arg=${1-$defarg}
-
-   local tests="hit hitmerged hitlite hitlitemerged"
-   local tt=${TESTS:-$tests}
-
-   
-   local vv="BASH_SOURCE FUNCNAME tests TESTS tt defarg arg"
-
-   if [ "${arg/info}" != "$arg" ]; then
-      for v in $vv ; do printf "%30s : %s\n" "$v" "${!v}" ; done
-      return 0
-   fi
-
-
-   local t
-   for t in $tt ; do
-   (
-      printf "$FUNCNAME t[$t]\n"
-      TEST=$t ojt $*
-      [ $? -ne 0 ] && printf "$FUNCNAME ERROR FROM [TEST=$t ojt]\n"
-   )
-   done
-}
-
-
-
-
-
 
 
 local_oj_release()
@@ -923,16 +906,37 @@ local_oj_release()
    {
        : ~/local.sh
        source dbg__.sh
+
+       local evtmax=1
+       local EVTMAX=${EVTMAX:-$evtmax}
+       echo $BASH_SOURCE $FUNCNAME EVTMAX $EVTMAX evtmax $evtmax
        dbg__ \
           $(which python) \
           $(which tut_detsim.py) \
-          --evtmax 1 \
+          --evtmax $EVTMAX \
           gun
    }
-
-
-
 }
+
+ljr()
+{
+   : ~/j/local.sh
+   : setup environment to check a release
+   local_oj_release
+   oj_release
+}
+
+ljrt()
+{
+   : ~/j/local.sh
+   : setup environment to check a release
+   local_oj_release
+   oj_release
+   oj_release_test
+}
+
+
+
 
 
 local_conda_base()
