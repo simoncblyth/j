@@ -395,7 +395,7 @@ local_ok_build()
    : BUT now with the Client config which changes the required externals
    : the ordering is switched
 
-   source ~/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
+   source ~/j/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
 
    local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
 
