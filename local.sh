@@ -391,11 +391,11 @@ local_cuda()
 local_ok_build()
 {
    : ~/j/local.sh
-   : ~/.opticks_config which sets OPTICKS_CONFIG was formerly sourced after local_ok_externals
+   : ~/j/opticks_config.sh which sets OPTICKS_CONFIG was formerly sourced after local_ok_externals
    : BUT now with the Client config which changes the required externals
    : the ordering is switched
 
-   source ~/j/.opticks_config  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
+   source ~/j/opticks_config.sh  # CUDA OptiX COMPUTE_CAPABILITY ARCHITECTURES
 
    local_ok_externals  # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
 

@@ -16,10 +16,6 @@ EOU
 
 
 ### TOP CONFIG RELEVANT TO BOTH BUILD AND USAGE ###
-case $TAG in 
-  A) export LOCAL_BASE=/data1/blyth ;;
-  L) export LOCAL_BASE=/hpcfs/juno/junogpu/blyth ;;
-esac
 
 export OPTICKS_HOME=$HOME/opticks
 
@@ -33,13 +29,16 @@ case $OPTICKS_CONFIG in
    Client)   buildtype=Debug  ;;
 esac
 
+[   -z "$VIP_LOCAL_BASE" ] && echo $BASH_SOURCE - FATAL MISSING VIP_LOCAL_BASE $VIP_LOCAL_BASE && return 1
+[ ! -d "$VIP_LOCAL_BASE" ] && echo $BASH_SOURCE - FATAL NON-EXISTING VIP_LOCAL_BASE $VIP_LOCAL_BASE && return 1
+
 export OPTICKS_BUILDTYPE=$buildtype
-#export OPTICKS_PREFIX=$LOCAL_BASE/local/opticks_${OPTICKS_BUILDTYPE}
-export OPTICKS_PREFIX=$LOCAL_BASE/local/opticks_${OPTICKS_CONFIG}    # Apr23 2026 : Generalize to OPTICKS_CONFIG
+#export OPTICKS_PREFIX=$VIP_LOCAL_BASE/local/opticks_${OPTICKS_BUILDTYPE}
+export OPTICKS_PREFIX=$VIP_LOCAL_BASE/local/opticks_${OPTICKS_CONFIG}    # Apr23 2026 : Generalize to OPTICKS_CONFIG
 
 
 
-export TMP=$LOCAL_BASE/tmp   # override default TMP of /tmp/$USER/opticks
+export TMP=$VIP_LOCAL_BASE/tmp   # override default TMP of /tmp/$USER/opticks
 mkdir -p $TMP                 # whether override or not, need to create
 
 export CUDA_VISIBLE_DEVICES=0
