@@ -1,8 +1,11 @@
-lxlogin_oj_not_building_against_expected_custom4
-==================================================
+FIXED : lxlogin_oj_not_building_against_expected_custom4
+===========================================================
 
 
 HMM: this is todo with the fragile path rewriting..
+
+Fixed by updating stale local_c4_prefix_default - also added 
+staleness check to catch it sooner next time.
 
 
 ::

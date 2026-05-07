@@ -48,6 +48,7 @@ OJ : JUNOSW+Opticks building functions
 |         |                                    | [NORMALLY WOULD REBUILD OPTICKS BEFORE DOING THIS]                                                                                     |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb0   | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 to disable geometry initialization                                                                      |
+|         |                                    | [debug compilation fail with no apparent error with "NJOBS=1 ljbb0c"                                                                   |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | ljbb0c  | local_oj_build,oj_build            | same as ljbb but with NOINIT=1 OJ_BUILD_CLEAN=1 to disable geometry initialization and do clean build                                  |
 |         |                                    | [CLEAN BUILDS ARE NEEDED AFTER CHANGING EXTERNAL VERSIONS]                                                                             |
@@ -620,6 +621,7 @@ local_client_setup_no_longer_needed()
 local_oj_build()
 {
    : ~/j/local.sh
+
    export VIP_MODE=oj_build
    export VIP_DESC="local OJ build adapting .gitlab-ci.yml Opticks+JUNOSW build, see oj_build func"
 
