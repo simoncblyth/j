@@ -185,10 +185,17 @@ Do each of the below setup and build in separate clean tabs:
 
    * NB whatever customgeant4 branch the repo is at is what gets built
    * HMM: IT WOULD BE BETTER FOR THE BRANCH TO FEED INTO THE BUILD
+   * the prefix reldir captures version, but not branch eg "custom4_Debug/0.1.9"
    * current_branch=$(git -C $HOME/customgeant4 branch --show-current)
    * v0.1.9_release
 
 2. local_ok_build ; ok_build
+
+
+local_ok_build fails when done on new node with::
+
+    NO setup at /hpcfs/juno/junogpu/blyth/local/opticks_Debug/bin/opticks-setup.sh - maybe you need to opticks-full
+
 
 Normally the above is sufficient to build. But after changing the C4 prefix
 an om-cleaninstall is needed::
@@ -399,6 +406,10 @@ local_ok_build()
 
 
    om-
+   [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME - ENV SETUP FAIL NEW NODES OR BUILD CONFIGS REQUIRE opticks-full ONCE && return 1
+   : REQUIREMENT TO opticks-full FOR EVERY CONFIG IS BECAUSE CONFIG STRING IS PART OF THE PREFIX AND MANAGED EXTERNALS ARE WITHIN THE PREFIX DIR
+
+
    export VIP_MODE=ok_build
    export VIP_DESC="env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy"
 
@@ -424,11 +435,18 @@ lob()
 
 lo()
 {
-   : ~/j/local.sh  env for Opticks build test and analysis
+   : ~/j/local.sh setup for Opticks build
    local_ok_build
-   #lco   ## THIS BRINGS IN CONDA : WHICH IS NOW CURL COMPLICATED
+   [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME local_ok_build FAIL && return 1
 
-   export GEOMBASE=$(local_srcdir)/InstallArea/$(local_reldir)/.opticks/GEOM   ## liteweight for GEOM bash function navigation eg "GEOM cf"
+   #lco   ## FORMERLY BROUGHT IN CONDA PYTHON VIRTUAL ENV HERE - BUT THAT IS NOW CURL COMPLICATED - SO KEEP THINGS SEPARATE
+
+
+   ## HMM: LO IS OPTICKS SPECIFIC BUT BELOW LINE NEEDS JUNOSW PATHS - WHERE TO RELOCATE SETTING OF GEOMBASE ?
+   ## GEOMBASE is used by the opticks.bash convenience GEOM bash function
+   export GEOMBASE=$(local_junosw_geombase)
+
+
    export OPTICKS_ENVNOTE=$BASH_SOURCE:$FUNCNAME
    PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
 }
@@ -530,13 +548,24 @@ oj_log()
     printf "$stamp $*\n" >> $logstem.log
 }
 
-local_srcdir(){ echo $HOME/junosw ; }
-local_branch(){ git -C $(local_srcdir) branch --show-current ; }
-local_reldir()
+local_junosw_srcdir(){ echo $HOME/junosw ; }
+local_junosw_branch(){ git -C $(local_junosw_srcdir) branch --show-current ; }
+local_junosw_geombase(){ echo $(local_junosw_srcdir)/InstallArea/$(local_junosw_reldir)/.opticks/GEOM ; } ## liteweight for GEOM bash function navigation eg "GEOM cf"
+local_junosw_info(){ cat << EOI
+
+    local_junosw_srcdir   : $(local_junosw_srcdir)
+    local_junosw_branch   : $(local_junosw_branch)
+    local_junosw_geombase : $(local_junosw_geombase)
+    local_junosw_reldir   : $(local_junosw_reldir)
+
+EOI
+}
+
+local_junosw_reldir()
 {
     : ~/j/local.sh
-    : local_reldir generalizes local_branch to distinguish building against different JUNO_OPTICKS_CONFIG like Client
-    local branch=$(local_branch)
+    : local_junosw_reldir generalizes local_junosw_branch to distinguish building against different JUNO_OPTICKS_CONFIG like Client
+    local branch=$(local_junosw_branch)
     local reldir
     if [ -n "$JUNO_OPTICKS_CONFIG" -a "$JUNO_OPTICKS_CONFIG" != "Debug" ]; then
         reldir=${JUNO_OPTICKS_CONFIG}_$branch
@@ -638,9 +667,10 @@ local_oj_build()
 
    PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG=1
    if [ "$JUNO_OFFLINE_BUILD_BRANCH" == "1" -a -n "$PREFIX_RELDIR_WITH_JUNO_OPTICKS_CONFIG" ]; then
+
        SOURCE_DIR=$HOME/junosw
 
-       ## HMM: duplication with local_reldir ???
+       ## HMM: duplication with local_junosw_reldir ???
        BRANCH=$(git -C $SOURCE_DIR branch --show-current)
        if [ "$JUNO_OPTICKS_CONFIG" == "Debug" ]; then
            RELDIR=$BRANCH
@@ -648,9 +678,9 @@ local_oj_build()
            RELDIR=${JUNO_OPTICKS_CONFIG}_${BRANCH}
        fi
 
-       export JUNO_OFFLINE_RELDIR=$RELDIR   # SCB invention
-       export JUNO_OFFLINE_BLDDIR=$SOURCE_DIR/build/$JUNO_OFFLINE_RELDIR
-       export JUNO_OFFLINE_INSTALLDIR=$SOURCE_DIR/InstallArea/$JUNO_OFFLINE_RELDIR
+       export JUNO_OFFLINE_RELDIR=$(local_junosw_reldir)   # SCB invention
+       export JUNO_OFFLINE_BLDDIR=$(local_junosw_srcdir)/build/$JUNO_OFFLINE_RELDIR
+       export JUNO_OFFLINE_INSTALLDIR=$(local_junosw_srcdir)/InstallArea/$JUNO_OFFLINE_RELDIR
        mkdir -p $JUNO_OFFLINE_BLDDIR
        mkdir -p $JUNO_OFFLINE_INSTALLDIR
 
@@ -681,8 +711,8 @@ local_oj_build()
    {
       : when changing externals need nuclear rebuild
 
-      cd $(local_srcdir)
-      local reldir=$(local_reldir)
+      cd $(local_junosw_srcdir)
+      local reldir=$(local_junosw_reldir)
 
       if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
           rm -rf InstallArea/$reldir
@@ -696,7 +726,7 @@ local_oj_build()
 
    oj_build_pre(){
        : ~/j/local.sh this is invoked by oj_build
-       cd $(local_srcdir)
+       cd $(local_junosw_srcdir)
        source .gitlab-ci/oj_helper.sh EMIT_ENV_CHECK
        mkdir -p InstallConfig
        source .gitlab-ci/oj_helper.sh EMIT_ENV    > InstallConfig/ENV.bash
@@ -706,7 +736,7 @@ local_oj_build()
 
    oj_build_(){
        : ~/j/local.sh this is invoked by oj_build
-       cd $(local_srcdir)
+       cd $(local_junosw_srcdir)
 
        ##rm -f $FUNCNAME.log  ## retaining log to follow progression of build time is useful
        oj_log $FUNCNAME START $CMD
@@ -721,8 +751,8 @@ local_oj_build()
 
    oj_build_post(){
        : ~/j/local.sh this is invoked by oj_build
-       cd $(local_srcdir)
-       local reldir=$(local_reldir)
+       cd $(local_junosw_srcdir)
+       local reldir=$(local_junosw_reldir)
 
       if [ -n "$JUNO_OFFLINE_BUILD_BRANCH" ]; then
            cp InstallConfig/ENV.bash  InstallArea/$reldir/ENV.bash
@@ -737,7 +767,7 @@ local_oj_build()
        : ~/j/local.sh
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
-       cd $(local_srcdir)
+       cd $(local_junosw_srcdir)
        ./oj_initialize.sh
    }
 
@@ -777,9 +807,9 @@ local_oj_build()
 
 local_oj_info(){ cat << EOI
 
-    local_srcdir   : $(local_srcdir)
-    local_reldir   : $(local_reldir)
-    envset         : $(local_srcdir)/InstallArea/$(local_reldir)/envset.sh
+    local_junosw_srcdir   : $(local_junosw_srcdir)
+    local_junosw_reldir   : $(local_junosw_reldir)
+    envset                : $(local_junosw_srcdir)/InstallArea/$(local_junosw_reldir)/envset.sh
 
 EOI
 
@@ -789,7 +819,7 @@ EOI
 
 local_oj()
 {
-    source $(local_srcdir)/InstallArea/$(local_reldir)/envset.sh
+    source $(local_junosw_srcdir)/InstallArea/$(local_junosw_reldir)/envset.sh
 }
 loj(){
    : ~/j/local.sh
@@ -828,7 +858,7 @@ local_oj_init()
        : follow .gitlab-ci.yml
        : needs to be run once only to prepare the geometry inputs configuring tesselation solids and framespec
 
-       cd $(local_srcdir)
+       cd $(local_junosw_srcdir)
        ./oj_initialize.sh
    }
    type oj_init
