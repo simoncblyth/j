@@ -172,3 +172,126 @@ CMAKE_PREFIX_PATH path changing did not work somehow on lxlogin::
 
 
 
+HUH, get same issue on workstation. Recent change must have broken the fragile path changing::
+
+
+    -- PACKAGE_FIND_VERSION_MAX       :        
+    -- PACKAGE_FIND_VERSION_MAX_MAJOR :  
+    -- PACKAGE_FIND_VERSION_MAX_MAXOR :  
+    -- PACKAGE_FIND_VERSION_MAX_PATCH :  
+    -- PACKAGE_FIND_VERSION_MAX_TWEAK :  
+    -- PACKAGE_FIND_VERSION_MAX_COUNT :  
+    -- PACKAGE_FIND_VERSION_COMPLETE  :   
+    -- CMAKE_CURRENT_LIST_FILE     : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64/Custom4-0.1.8/Custom4ConfigVersion.cmake    
+    -- PACKAGE_VERSION             : 0.1.8            
+    -- PACKAGE_VERSION_EXACT       :       
+    -- PACKAGE_VERSION_COMPATIBLE  : TRUE 
+    -- PACKAGE_VERSION_UNSUITABLE  :  
+    -- Custom4_VERBOSE       : ON 
+    -- Custom4_FOUND         : YES 
+    -- Custom4_VERSION       : 0.1.8 
+    -- Custom4_PREFIX        : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8 
+    -- Custom4_INCLUDE_DIR   : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/include/Custom4 
+    -- Custom4_INCLUDE_DIRS  : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/include/Custom4 
+    -- Custom4_CFLAGS        : -I/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/include/Custom4 
+    -- Custom4_DEFINITIONS   : -DWITH_CUSTOM4 
+    -- Custom4_LIBRARY_DIR   : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64 
+    -- Custom4_LIBRARY_PATH  : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64/libCustom4.so 
+    -- Custom4_LIBRARIES     : -L/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64 -lCustom4 
+    -- Custom4_CMAKE_PATH    : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64/Custom4-0.1.8/Custom4Config.cmake 
+    -- Custom4_CMAKE_DIR     : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64/Custom4-0.1.8 
+    -- CUSTOM4_LIBRARIES   : -L/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64 -lCustom4
+    -- CUSTOM4_DEFINITIONS : -DWITH_CUSTOM4
+    -- CUSTOM4_CFLAGS      : -I/cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/include/Custom4
+    -- Found SQLite3: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/sqlite3/3.38.5/include (found version "3.38.5")
+    -- Found Python: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Python/3.11.10/bin/python (found suitable version "3.11.10", minimum required is "3.11.10") found components: Interpreter
+    -- Found SNiPER: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/sniper/InstallArea/lib64/cmake/SNiPER/SNiPERConfig.cmake
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : Opticks_VERBOSE     : YES 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : ENV(OPTICKS_PREFIX) : /data1/blyth/local/opticks_Client 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : OPTICKS_PREFIX      : /data1/blyth/local/opticks_Client 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_MODULE_PATH _dir : /home/blyth/junosw/cmake/legacy/Modules/ 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_MODULE_PATH _dir : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/cmake/modules 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_MODULE_PATH _dir : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/ROOT/6.30.08/cmake/modules 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_MODULE_PATH _dir : /data1/blyth/local/opticks_Client/cmake/Modules 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/junosw/InstallArea 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/mt.sniper/InstallArea 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/sniper/InstallArea 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/healpix/3.83 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/libonnxruntime/1.17.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/libmore/0.8.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/gemini/juno_master_20260408 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/gibuu/r2023_02_juno 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/talys/1.95 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/nuwro/21.09.2 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/genie/3.04.02 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Geant4/10.04.p02.juno 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/HepMC/2.06.11 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/ROOT/6.30.08 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/ROOT/6.30.08 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/xrootd/5.7.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/CLHEP/2.4.7.1 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/tbb/2020.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/pythia6/6.4.28 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/LHAPDF/6.3.0 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/libxml2/2.9.12 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/log4cpp/1.1.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/HDF5/1.14.3 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/frontier/2.10.2 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/pacparser/1.4.2 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/mysql-connector-cpp/1.1.12 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/mysql-connector-c/6.1.9 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/sqlite3/3.38.5 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/eigen/3.4.0 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/fftw3/3.3.10 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/gsl/2.7 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Xercesc/3.2.4 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Boost/1.85.0 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/libyaml/0.2.4 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/python-numpy/1.26.4 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/python-cython/3.0.8 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/python-pip/23.3.1 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/python-setuptools/69.5.1 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Python/3.11.10 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Cmake/3.30.5 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/git-lfs/3.4.1 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Git/2.46.2 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /data1/blyth/local/opticks_Client 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /data1/blyth/local/opticks_Client/externals 
+    -- /data1/blyth/local/opticks_Client/cmake/Modules/FindOpticks.cmake : CMAKE_PREFIX_PATH _prefix : /cvmfs/opticks.ihep.ac.cn/external/OptiX_800 
+    -- cmake/Modules/OpticksCUDAFlags.cmake : using default OPTICKS_CUDA_NVCC_DIALECT variable c++17
+    -- CMAKE_CURRENT_LIST_FILE        : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8/lib64/Custom4-0.1.8/Custom4ConfigVersion.cmake        
+    -- PACKAGE_FIND_NAME              : Custom4              
+    -- PACKAGE_FIND_VERSION           :            
+    -- PACKAGE_FIND_VERSION_MAJOR     : 0     
+    -- PACKAGE_FIND_VERSION_MINOR     : 0     
+    -- PACKAGE_FIND_VERSION_PATCH     : 0     
+    -- PACKAGE_FIND_VERSION_TWEAK     : 0     
+    -- PACKAGE_FIND_VERSION_COUNT     : 0     
+    -- PACKAGE_FIND_VERSION_RANGE     :      
+    -- PACKAGE_FIND_VERSION_RANGE_MIN :  
+    -- PACKAGE_FIND_VERSION_RANGE_MAX :  
+    -- PACKAGE_FIND_VERSION_MIN       :        
+    -- PACKAGE_FIND_VERSION_MIN_MAJOR :  
+    -- PACKAGE_FIND_VERSION_MIN_MINOR :  
+    -- PACKAGE_FIND_VERSION_MIN_PATCH :  
+    -- PACKAGE_FIND_VERSION_MIN_TWEAK :  
+    -- PACKAGE_FIND_VERSION_MIN_COUNT :  
+    -- PACKAGE_FIND_VERSION_MAX       :        
+
+
+
+Probably the default has changed causing fail to change::
+
+    A[blyth@localhost j]$ local_c4_prefix
+    /data1/blyth/local/custom4_Debug/0.1.9
+
+    A[blyth@localhost j]$ local_c4_prefix_default
+    /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/custom4/0.1.8
+
+
+YEP: default now looks to be::
+
+    /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8
+
+

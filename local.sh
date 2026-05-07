@@ -268,12 +268,17 @@ local_none()
    export VIP_DESC="empty env"
 }
 
-
+local_c4_prefix_default_expected()
+{
+    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/$(local_junosw_Jlatest)/ExternalLibs/custom4/0.1.8
+}
 local_c4_prefix_default()
 {
     : default path from cvmfs
+    : HMM WHEN THIS DEFAULT GOES STALE DYNAMIC PATH-SWITCHING STOPS WORKING - CAUSING BUILD AGAINST DEFAULT C4 AND LIKELY CAUSING OJ RUNTIME FAILURE
     #echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/custom4/0.1.8
-    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/custom4/0.1.8
+    #echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.7.2/ExternalLibs/custom4/0.1.8
+    echo /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/custom4/0.1.8
 }
 local_c4_prefix()
 {
@@ -303,17 +308,25 @@ local_c4_build()
    : setup externals needed to c4_build
    : using J25.4.0 standard versions of externals copied from JUNOTOP/bashrc.sh
    : /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/bashrc.sh
+   : 2026/05/07 update from J25.4.0 to J26.1.1
 
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Xercesc/3.2.4/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/CLHEP/2.4.7.1/bashrc
-   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J25.4.0/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Xercesc/3.2.4/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/CLHEP/2.4.7.1/bashrc
+   source /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/J26.1.1/ExternalLibs/Geant4/10.04.p02.juno/bashrc
+
+   if [ "$(local_c4_prefix_default)" != "$(local_c4_prefix_default_expected)" ]; then
+      echo $BASH_SOURCE $FUNCNAME - ERROR - SUSPECT local_c4_prefix_default IS STALE
+      local ff="local_c4_prefix local_c4_prefix_default local_c4_prefix_default_expected"
+      for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
+      return 1
+   fi
 
    if [ "$(local_c4_prefix)" == "$(local_c4_prefix_default)" ]; then
        c4_build()
        {
           : ~/j/local.sh
           echo $BASH_SOURCE $FUNCNAME - NO BUILD NEEDED AS PREFIX IS DEFAULT
-          local ff="local_c4_prefix local_c4_prefix_default"
+          local ff="local_c4_prefix local_c4_prefix_default local_c4_prefix_default_expected"
           for f in $ff ; do printf "%30s : %s\n" "$f" $(eval $f) ; done
        }
    else
@@ -548,11 +561,13 @@ oj_log()
     printf "$stamp $*\n" >> $logstem.log
 }
 
+local_junosw_Jlatest(){ readlink /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest ; } # currently J26.1.1
 local_junosw_srcdir(){ echo $HOME/junosw ; }
 local_junosw_branch(){ git -C $(local_junosw_srcdir) branch --show-current ; }
 local_junosw_geombase(){ echo $(local_junosw_srcdir)/InstallArea/$(local_junosw_reldir)/.opticks/GEOM ; } ## liteweight for GEOM bash function navigation eg "GEOM cf"
 local_junosw_info(){ cat << EOI
 
+    local_junosw_Jlatest  : $(local_junosw_Jlatest)
     local_junosw_srcdir   : $(local_junosw_srcdir)
     local_junosw_branch   : $(local_junosw_branch)
     local_junosw_geombase : $(local_junosw_geombase)
@@ -599,6 +614,7 @@ local_client_setup_no_longer_needed()
 
     echo -n
 }
+
 
 
 local_oj_build()
