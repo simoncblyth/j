@@ -170,20 +170,18 @@ BUILD ORDER WHEN CHANGING CUSTOM4 VERSION : C4, OK, OJ
 
 Check C4 branch::
 
-    cd ~/customgeant4
-    git status  # check are on the 0.1.8_transient branch
-
+    cd ~/customgeant4   # OR "c4"
+    git status          # check are on "v0.1.9_release" branch (formerly "0.1.8_transient")
 
 
 NB do not want to make major changes in the transient branch, as may be
 problematic to get into main. But changing debug output is acceptable.
-
 Actually, when using default v0.1.8 Custom4 prefix there is nothing to do
 
 
 Do each of the below setup and build in separate clean tabs:
 
-1. local_c4_build ; c4_build   ## does nothing when using default c4 v0.1.8
+1. local_c4_build ; c4_build   ## does nothing when using default cvmfs c4 v0.1.8
 
    * NB whatever customgeant4 branch the repo is at is what gets built
    * HMM: IT WOULD BE BETTER FOR THE BRANCH TO FEED INTO THE BUILD
@@ -273,11 +271,11 @@ local_c4_prefix_default()
 local_c4_prefix()
 {
     : function that enables switching to a non default c4 to check
-    : SEE NOTES AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
+    : SEE NOTES IN local_c4 functions AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
 
     #echo $(local_c4_prefix_default)
-    #echo /data1/blyth/local/custom4_Debug/0.1.8
-    echo /data1/blyth/local/custom4_Debug/0.1.9
+    #echo $VIP_LOCAL_BASE/local/custom4_Debug/0.1.8
+    echo $VIP_LOCAL_BASE/local/custom4_Debug/0.1.9
 }
 
 
@@ -451,7 +449,7 @@ local_ok_local()
    : ~/j/local.sh
    local_ok_externals    # Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy
 
-   source /data1/blyth/local/opticks_Debug/bashrc   ## HMM: FIXED OPTICKS_PREFIX assumption
+   source $VIP_LOCAL_BASE/local/opticks_Debug/bashrc   ## HMM: FIXED OPTICKS_PREFIX assumption
 
    export VIP_MODE=ok_local
    export VIP_DESC="pure Opticks usage from OPTICKS_PREFIX $OPTICKS_PREFIX"
@@ -597,7 +595,9 @@ local_oj_build()
 
    local_JUNOTOP_override  ## potentially changing paths to build against different custom4
 
-   local BASE=/data1/blyth/local
+   [ -z "$VIP_LOCAL_BASE" ] && echo $BASH_SOURCE $FUNCNAME - ERROR VIP_LOCAL_BASE $VIP_LOCAL_BASE  && return 1
+   [ ! -d "$VIP_LOCAL_BASE" ] && echo $BASH_SOURCE $FUNCNAME - ERROR VIP_LOCAL_BASE $VIP_LOCAL_BASE && return 1
+
 
    local juno_opticks_config=Debug
    export JUNO_OPTICKS_CONFIG=${JUNO_OPTICKS_CONFIG:-$juno_opticks_config}
@@ -606,9 +606,9 @@ local_oj_build()
    unset JUNO_OPTICKS_PREFIX
    case $JUNO_OPTICKS_CONFIG in
      vLatest) export JUNO_OPTICKS_PREFIX=/cvmfs/opticks.ihep.ac.cn/ok/releases/el9_amd64_gcc11/Opticks-vLatest ;;
-       Debug) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
-      Client) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
-     Release) export JUNO_OPTICKS_PREFIX=$BASE/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+       Debug) export JUNO_OPTICKS_PREFIX=$VIP_LOCAL_BASE/local/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+      Client) export JUNO_OPTICKS_PREFIX=$VIP_LOCAL_BASE/local/opticks_${JUNO_OPTICKS_CONFIG}  ;;
+     Release) export JUNO_OPTICKS_PREFIX=$VIP_LOCAL_BASE/local/opticks_${JUNO_OPTICKS_CONFIG}  ;;
    esac
    : NB JUNO_OPTICKS_PREFIX is only used in this function and in the .gitlab-ci.yml and associated helper scripts
 
