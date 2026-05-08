@@ -81,6 +81,11 @@ Usage examples::
 
     JUNO_OPTICKS_CONFIG=Client ljbb  ## equivalent to the ljbb line above
 
+To debug an apparent compilation fail lacking a compilation error::
+
+    export NJOBS=1 ; ljclient ljbb0c
+
+
 
 
 NB when changing the version of an external, a clean build is required
@@ -982,6 +987,10 @@ ljrt()
    oj_release
    oj_release_test
 }
+
+ljrt100(){  EVTMAX=100  ljrt ; }
+ljrt1000(){ EVTMAX=1000 ljrt ; }
+
 
 
 
