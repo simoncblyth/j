@@ -962,12 +962,27 @@ local_oj_release()
 
        local evtmax=1
        local EVTMAX=${EVTMAX:-$evtmax}
-       echo $BASH_SOURCE $FUNCNAME EVTMAX $EVTMAX evtmax $evtmax
+
+       if [ -n "$SAVE" ]; then
+             ## SAVING IS APPROPRIATE ONLY DURING DEBUG/VALIDATION
+             echo $BASH_SOURCE $FUNCNAME - SAVE - CONFIG SEVT SAVING
+             export OPTICKS_MODE_SAVE=SMS_RELATIVE
+             export OPTICKS_EVENT_MODE=Hit
+       fi
+
+       local LOGDIR=$TMP/$FUNCNAME
+       mkdir -p $LOGDIR
+       cd $LOGDIR
+
+       echo $BASH_SOURCE $FUNCNAME EVTMAX $EVTMAX evtmax $evtmax LOGDIR $LOGDIR
        dbg__ \
           $(which python) \
           $(which tut_detsim.py) \
           --evtmax $EVTMAX \
           gun
+
+       [ $? -ne 0 ] && echo $BASH_SOURCE $FUNCNAME - ERROR && return 1
+       pwd
    }
 }
 
