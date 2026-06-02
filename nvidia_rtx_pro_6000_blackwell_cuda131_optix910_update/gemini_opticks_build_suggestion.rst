@@ -1,28 +1,73 @@
+gemini_opticks_build_suggestion.rst
+========================================
 
 
+
+compare versions on server and workstation
+--------------------------------------------
 
 ::
 
     L[blyth@lxlogin001 ~]$ srun --partition=junogpu --qos=junoatmgpu --gres=gpu:pro6000:1 --cpus-per-task=16 --mem=64G --pty bash
     srun: job 3420397 queued and waiting for resources
     srun: job 3420397 has been allocated resources
+
+
     L[blyth@junogpu001 ~]$ export PATH=/usr/local/cuda/bin:$PATH
     L[blyth@junogpu001 ~]$ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
     L[blyth@junogpu001 ~]$ nvcc --version
     nvcc: NVIDIA (R) Cuda compiler driver
     Copyright (c) 2005-2025 NVIDIA Corporation
     Built on Tue_Dec_16_07:23:41_PM_PST_2025
     Cuda compilation tools, release 13.1, V13.1.115
     Build cuda_13.1.r13.1/compiler.37061995_0
+
+
+    L[blyth@junogpu001 ~]$ cat /etc/almalinux-release
+    AlmaLinux release 9.7 (Moss Jungle Cat)
+
+
+    L[blyth@junogpu001 ~]$ which gcc
+    /usr/lib64/ccache/gcc
+
+    L[blyth@junogpu001 ~]$ gcc --version
+    gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-11)
+    Copyright (C) 2021 Free Software Foundation, Inc.
+    This is free software; see the source for copying conditions.  There is NO
+    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    L[blyth@junogpu001 ~]$ echo $PATH | tr ":" "\n"
+    /usr/share/Modules/bin
+    /usr/lib64/ccache
+    /usr/local/bin
+    /usr/bin
+    /usr/local/sbin
+    /usr/sbin
+    /cvmfs/common.ihep.ac.cn/software/cctools
+    /opt/puppetlabs/bin
     L[blyth@junogpu001 ~]$ 
 
 
-    L[blyth@junogpu001 oj]$ /usr/local/cuda/bin/nvcc --version
-    nvcc: NVIDIA (R) Cuda compiler driver
-    Copyright (c) 2005-2025 NVIDIA Corporation
-    Built on Tue_Dec_16_07:23:41_PM_PST_2025
-    Cuda compilation tools, release 13.1, V13.1.115
-    Build cuda_13.1.r13.1/compiler.37061995_0
+
+Same as system gcc on workstation::
+
+    A[blyth@localhost j]$ which gcc
+    /usr/bin/gcc
+    A[blyth@localhost j]$ gcc --version
+    gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-5)
+    Copyright (C) 2021 Free Software Foundation, Inc.
+    This is free software; see the source for copying conditions.  There is NO
+    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Almalinux on workstation 9.6 vs 9.7 on server::
+
+    A[blyth@localhost j]$ cat /etc/almalinux-release 
+    AlmaLinux release 9.6 (Sage Margay)
+
+
+CUDA 13.1 on server::
+
     L[blyth@junogpu001 oj]$ ls -alst /usr/local/
     total 12
     0 drwxr-xr-x.  3 root  root    78 May 22 16:29 bin
@@ -52,14 +97,15 @@
 
 
 
-
+cvmfs installation targetting CUDA 13.1 ?
+--------------------------------------------
 
 For Opticks releases I commonly build on workstation and install to
 /cvmfs/opticks.ihep.ac.cn  for general usage.  Would installing a CUDA 13
 version on the Workstation allow me to build there ?
 
 
-::
+Current Workstation driver version tops out at 13.0 - not new enough for CUDA 13.1::
 
     A[blyth@localhost ~]$ /usr/local/cuda/bin/nvcc --version
     nvcc: NVIDIA (R) Cuda compiler driver
@@ -94,16 +140,16 @@ version on the Workstation allow me to build there ?
     |    0   N/A  N/A         3401174      G   /usr/lib64/firefox/firefox              270MiB |
     +-----------------------------------------------------------------------------------------+
     A[blyth@localhost ~]$ 
-     
 
 
 
 
-
+Want single Opticks release that works on all relevant GPUs and CUDA versions
+-------------------------------------------------------------------------------
 
 Using CVMFS changes things completely. Since your goal is to maintain a single,
 centrally deployed Opticks installation that works cleanly across both your
-local workstation and the new `junogpu` cluster nodes, cross-compiling from
+local workstation and the new junogpu cluster nodes, cross-compiling from
 your workstation is highly efficient.
 
 Yes, **installing CUDA 13.1 on your workstation will absolutely allow you to
@@ -146,6 +192,9 @@ $\rightarrow$ Compute Capability **`sm_89`**)
 $\rightarrow$ Compute Capability **`sm_90`** or **`sm_100`** depending on the
 specific chip variant).
 
+SCB : THIS IS WRONG LATER DETERMINE IT IS sm_120 OR aka compute capability 12.0
+
+
 If your CMake setup for Opticks is configured to automatically detect the local
 GPU architecture during compilation (e.g., using `native`), it will build an
 optimized binary *only* for `sm_89`. When you attempt to run that CVMFS build
@@ -171,32 +220,32 @@ matching the host machine's physical GPU.
 
 
 
+PyTorch has easy way to check CC, but not installed::
 
 
-L[blyth@junogpu001 oj]$ python3 -c "import torch; print(torch.cuda.get_device_capability(0))"
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-ModuleNotFoundError: No module named 'torch'
-L[blyth@junogpu001 oj]$ 
+    L[blyth@junogpu001 oj]$ python3 -c "import torch; print(torch.cuda.get_device_capability(0))"
+    Traceback (most recent call last):
+      File "<string>", line 1, in <module>
+    ModuleNotFoundError: No module named 'torch'
+    L[blyth@junogpu001 oj]$ 
 
 
 
 
 
-
+Updating Workstation to CUDA 13.1 and corresponding NVIDIA Driver : USE OFFICIAL NVIDIA RHEL9 DNF REPO
+--------------------------------------------------------------------------------------------------------
 
 
 For the Workstation update of the NVIDIA Driver for CUDA 13.1 are there any
-Linux kernel version compatibility issues ? 
+Linux kernel version compatibility issues ?::
 
-A[blyth@localhost ~]$ cat /etc/almalinux-release 
-AlmaLinux release 9.6 (Sage Margay)
-A[blyth@localhost ~]$ 
-A[blyth@localhost ~]$ uname -a
-Linux localhost.localdomain 5.14.0-570.37.1.el9_6.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Aug 26 10:33:12 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
-A[blyth@localhost ~]$ 
-
-
+    A[blyth@localhost ~]$ cat /etc/almalinux-release 
+    AlmaLinux release 9.6 (Sage Margay)
+    A[blyth@localhost ~]$ 
+    A[blyth@localhost ~]$ uname -a
+    Linux localhost.localdomain 5.14.0-570.37.1.el9_6.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Aug 26 10:33:12 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+    A[blyth@localhost ~]$ 
 
 
 
@@ -278,13 +327,21 @@ the transition should be smooth!
 
 
 
+nvidia-driver:latest-dkms OR open-dkms ?  GOING WITH open-dkms - WHICH ARE ON ALREADY
+---------------------------------------------------------------------------------------
 
 
-sudo dnf module enable nvidia-driver:latest-dkms -y
+::
+
+   sudo dnf module enable nvidia-driver:latest-dkms -y
 
 
 
 What are implications of open-dkms vs latest-dkms ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+::
 
     A[blyth@localhost ~]$ sudo dnf module enable nvidia-driver:latest-dkms -y
     Last metadata expiration check: 0:01:32 ago on Mon 01 Jun 2026 05:47:03 PM CST.
@@ -371,10 +428,9 @@ Either path will get you to your goal of compiling Opticks against CUDA 13.1!
 
 
 
+Toolkit install::
 
-sudo dnf install nvidia-driver-cuda cuda-toolkit-13-1 -y
-
-
+    sudo dnf install nvidia-driver-cuda cuda-toolkit-13-1 -y
 
 
 
@@ -465,5 +521,65 @@ current driver requirements?
 
 
 
+
+
+
+From OptiX 9.1 release notes::
+
+    Version 9.1.0 October 2025
+    Welcome to the 9.1.0 release of the NVIDIA OptiX SDK. Highlights of this release include:
+    ● Module creation can now be cancelled midway
+    ● New API enables customizable application-side compile caching
+    ● Warning, support for OptiX 6 based applications has been removed from the driver
+    Upgrading to OptiX 9.1.0 may require source code changes, though they should be minimal.
+    Applications compiled with the 9.1.0 SDK headers will require driver version 590 or later. Applications
+    compiled with earlier SDK headers will continue to work, but recompiling with 9.1.0 will expose new
+    features and may also improve performance.
+    System Requirements (for running binaries referencing NVIDIA OptiX)
+    Hardware:
+    ● All NVIDIA GPUs of Compute Capability 7.5 (Turing) or higher are supported. Support for Maxwell,
+    Pascal, and Volta GPUs has been removed from R590+ drivers, and CUDA Toolkit 13.
+    Software:
+    ● NVIDIA OptiX 9.1.0 requires that you install an R590+ driver
+    ● Windows 10/11 64-bit; Linux RHEL 4.8+ or Ubuntu 10.10+ 64-bit
+    ● It is not required to have any CUDA toolkit installed to run NVIDIA OptiX-based applications
+    Development Environment Requirements (for compiling with NVIDIA OptiX)
+    ● CUDA Toolkit 12+
+    This release has been tested with OptiX IR and PTX generated from CUDA Toolkit 12.0 and 12.9. Other
+    toolkit versions should also work, but 12.9 is recommended.
+    ● C/C++ Compiler
+    A compiler compatible with the used CUDA Toolkit is required. Please see the CUDA Toolkit
+    documentation for more information on supported compilers
+
+
+From OptiX 9.0 release notes::
+
+    Version 9.0.0 January 2025
+    Welcome to the 9.0.0 release of the NVIDIA OptiX SDK. This release includes support for Blackwell, the
+    newest generation of NVIDIA GPUs. Support for three major new features has been added:
+    ● Clusters - API for dramatically accelerating BVH builds of massive dynamic triangle meshes
+    ● Cooperative Vectors - API for executing small AI networks within OptiX shader programs,
+    accelerated by NVIDIA Tensor Cores
+    ● Hardware-accelerated linear curves on Blackwell GPUs, plus a new, faster software curve
+    intersector called Rocaps.
+    Upgrading to OptiX 9.0.0 may require source code changes, though they should be minimal.
+    Applications compiled with the 9.0.0 SDK headers will require driver version 570 or later. Applications
+    compiled with earlier SDK headers will continue to work, but recompiling with 9.0.0 will expose new
+    features and may also improve performance.
+    System Requirements (for running binaries referencing NVIDIA OptiX)
+    Graphics Hardware:
+    ● All NVIDIA GPUs of Compute Capability 5.0 (Maxwell) or higher are supported
+    Graphics Driver:
+    ● NVIDIA OptiX 9.0.0 requires that you install an R570+ driver
+    ● Windows 8.1/10/11 64-bit; Linux RHEL 4.8+ or Ubuntu 10.10+ 64-bit
+    CUDA Toolkit
+    ● It is not required to have any CUDA toolkit installed to run NVIDIA OptiX-based applications
+    Development Environment Requirements (for compiling with NVIDIA OptiX)
+    ● CUDA Toolkit 12
+    This release has been tested with OptiX IR and PTX generated from CUDA Toolkit 12.0, 12.7 and 12.8.
+    Older toolkit versions should also work, but 12 is recommended.
+    ● C/C++ Compiler
+    A compiler compatible with the used CUDA Toolkit is required. Please see the CUDA Toolkit
+    documentation for more information on supported compiler
 
 
