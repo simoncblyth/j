@@ -28,6 +28,8 @@ OK : Opticks building functions
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | cmd     | primary functions                  |  notes                                                                                                                                 |
 +=========+====================================+========================================================================================================================================+
+| lu      | local_ok_usage                     | source runtime envset.sh from local_ok_prefix                                                                                          |
++---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lob     | local_ok_build                     | env to build Opticks against JUNOSW externals manually setup from cvmfs : Xercesc + CLHEP + Geant4 + custom4 + Python + python-numpy   |
 +---------+------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | lo      | local_ok_build,lco                 | env to build Opticks (see lob) + python test and analysis using conda                                                                  |
@@ -409,6 +411,26 @@ local_cuda()
     vip-path append PATH            $cuda_prefix/bin  # for nvcc
     vip-path append LD_LIBRARY_PATH $cuda_prefix/lib64
 }
+
+
+local_ok_prefix()
+{
+   : ~/j/local.sh
+   echo $VIP_LOCAL_BASE/local/opticks_Debug
+}
+local_ok_usage()
+{
+   : ~/j/local.sh
+   source $(local_ok_prefix)/envset.sh
+}
+lu()
+{
+   : ~/j/local.sh
+   local_ok_usage
+   export OPTICKS_ENVNOTE=$BASH_SOURCE:$FUNCNAME
+   PS1_LABEL=$FUNCNAME  # do last to override other funcs that set the label
+}
+
 
 
 
