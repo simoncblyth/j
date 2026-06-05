@@ -42,7 +42,12 @@ export TMP=$VIP_LOCAL_BASE/tmp   # override default TMP of /tmp/$USER/opticks
 mkdir -p $TMP                 # whether override or not, need to create
 
 export CUDA_VISIBLE_DEVICES=0
-export PYTHONPATH=$(dirname $OPTICKS_HOME)     ## HMM FIX: SOURCE TREE?, STOMPING,  TUCK AWAY
+
+## PUTTING HOME INTO PYTHONPATH MIXES SOURCE AND INSTALL TREES
+## BREAKING ISOLATION BETWEEN THE TWO TREES - DO NOT DO THIS
+## export PYTHONPATH=$(dirname $OPTICKS_HOME)
+
+
 #export IPYTHON=/home/blyth/local/env/tools/conda/miniconda3/bin/ipython
 
 opticks-(){  [ -r $OPTICKS_HOME/opticks.bash ] && . $OPTICKS_HOME/opticks.bash && opticks-env $* ; }
@@ -58,19 +63,22 @@ if [ "${ctrl/build}" != "$ctrl" ]; then
 
     # config system level pre-requisites
     #export OPTICKS_CUDA_PREFIX=/usr/local/cuda-11.7
-    export OPTICKS_CUDA_PREFIX=/usr/local/cuda-12.4
+    #export OPTICKS_CUDA_PREFIX=/usr/local/cuda-12.4    ## USED UNTIL JUN 2026
+    export OPTICKS_CUDA_PREFIX=/usr/local/cuda-13.1     ## TEST FROM JUN 2026
 
     #export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_750
     #export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_760
     #export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_770
-    export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_800
+    #export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_800    ## USED UNTIL JUN 2026
+    export OPTICKS_OPTIX_PREFIX=/cvmfs/opticks.ihep.ac.cn/external/OptiX_910     ## TEST FROM JUN 2026
 
     ## should set to lowest CC that wish to support, not the highest
-    export OPTICKS_COMPUTE_CAPABILITY=70
-    #export OPTICKS_COMPUTE_CAPABILITY=89
+    ##export OPTICKS_COMPUTE_CAPABILITY=70   ## CUDA 13.1 DROPS SUPPORT FOR VOLTA
+    export OPTICKS_COMPUTE_CAPABILITY=89
 
-    ## comma delimited list of the CC of GPUs that wish to build fo
-    export OPTICKS_COMPUTE_ARCHITECTURES=70,89
+    ## comma delimited list of the CC of GPUs that wish to build for
+    #export OPTICKS_COMPUTE_ARCHITECTURES=70,89
+    export OPTICKS_COMPUTE_ARCHITECTURES=89,120   ## 120 FOR RTX PRO 6000 BLACKWELL
 
     # config opticks build : wheres the source, where to install etc..
     export OPTICKS_DOWNLOAD_CACHE=/cvmfs/opticks.ihep.ac.cn/opticks_download_cache

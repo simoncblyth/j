@@ -583,3 +583,47 @@ From OptiX 9.0 release notes::
     documentation for more information on supported compiler
 
 
+
+Workstation Lookaround after update
+------------------------------------
+
+
+::
+
+    A[blyth@localhost ~]$ nvidia-smi
+    Tue Jun  2 10:23:27 2026       
+    +-----------------------------------------------------------------------------------------+
+    | NVIDIA-SMI 610.43.02              KMD Version: 610.43.02     CUDA UMD Version: 13.3     |
+    +-----------------------------------------+------------------------+----------------------+
+    | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+    | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+    |                                         |                        |               MIG M. |
+    |=========================================+========================+======================|
+    |   0  NVIDIA RTX 5000 Ada Gene...    Off |   00000000:AC:00.0  On |                  Off |
+    | 30%   42C    P8              9W /  250W |     196MiB /  32760MiB |      4%      Default |
+    |                                         |                        |                  N/A |
+    +-----------------------------------------+------------------------+----------------------+
+
+    +-----------------------------------------------------------------------------------------+
+    | Processes:                                                                              |
+    |  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+    |        ID   ID                                                               Usage      |
+    |=========================================================================================|
+    |    0   N/A  N/A            3994      G   /usr/bin/gnome-shell                    168MiB |
+    +-----------------------------------------------------------------------------------------+
+
+
+
+::
+
+    A[blyth@localhost ~]$ /usr/local/cuda/bin/nvcc --version
+    nvcc: NVIDIA (R) Cuda compiler driver
+    Copyright (c) 2005-2025 NVIDIA Corporation
+    Built on Tue_Dec_16_07:23:41_PM_PST_2025
+    Cuda compilation tools, release 13.1, V13.1.115
+    Build cuda_13.1.r13.1/compiler.37061995_0
+    A[blyth@localhost ~]$ 
+
+
+
+

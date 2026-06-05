@@ -291,9 +291,9 @@ local_c4_prefix()
     : function that enables switching to a non default c4 to check
     : SEE NOTES IN local_c4 functions AT HEAD ABOUT THE ORDER OF BUILD OPERATIONS WHEN CHANGING C4 PREFIX
 
-    #echo $(local_c4_prefix_default)
+    echo $(local_c4_prefix_default)
     #echo $VIP_LOCAL_BASE/local/custom4_Debug/0.1.8
-    echo $VIP_LOCAL_BASE/local/custom4_Debug/0.1.9
+    #echo $VIP_LOCAL_BASE/local/custom4_Debug/0.1.9    ## HAVE BEEN USING THIS RECENTLY UNTIL JUN 2 2026
 }
 
 
