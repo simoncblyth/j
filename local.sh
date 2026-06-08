@@ -418,10 +418,18 @@ local_ok_prefix()
    : ~/j/local.sh
    echo $VIP_LOCAL_BASE/local/opticks_Debug
 }
+
+local_ok_tmp()
+{
+   : ~/j/local.sh
+   echo $VIP_LOCAL_BASE/tmp
+}
+
 local_ok_usage()
 {
    : ~/j/local.sh
    source $(local_ok_prefix)/envset.sh
+   export TMP=$(local_ok_tmp)
 }
 lu()
 {

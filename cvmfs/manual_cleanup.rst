@@ -264,3 +264,8 @@ check processes
     A[blyth@localhost junosw]$ 
 
 
+
+    sudo killall -r cvmfs
+
+
+
