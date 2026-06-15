@@ -20,6 +20,15 @@ built and run.
 
 ::
 
+
+    .build_job_template:
+      stage: build
+      image: junosw/base:el9
+      variables:
+        JUNOTOP: /cvmfs/juno.ihep.ac.cn/el9_amd64_gcc11/Release/Jlatest
+        JUNO_CLANG_PREFIX:
+        EXTRA_BUILD_FLAGS:
+
     .opticks_build_job_template:
       extends: .job_template
       stage: build
@@ -31,6 +40,9 @@ built and run.
       script:
 
 
+
+Pros-and-cons of FROM-ing junosw/base:el9 and adding in Opticks externals : CUDA/OptiX/..
+--------------------------------------------------------------------------------------------
 
 
 
