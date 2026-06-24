@@ -52,12 +52,21 @@ What is needed for long term Opticks monitoring:
 
    * code to ingest the job summary folders into sqlite3 tables (NPFold.h is C++ so makes sense to use C/C++ API to sqlite3 for this)
    * DB should be recreatable from input folders - for ease of transition to different tech
+   * do not want to handle schema migrations - keep DB transient so can change schema whenever need to
+   * straightforward use of C API once JobSummary stabilizes
 
 3. using the sqlite3 database from analysis/monitoring tools
 
    * probably rather standard
 
 
+Options for JobSummary.h [nlohmann/json + NPFold.h composite] 
+--------------------------------------------------------------
 
+* https://github.com/nlohmann/json#examples
 
+* extend sreport to add creation of JobSummary.h 
+* persist JobSummary.h into normal persisted NPFold with json inside the folder
+* HMM NPFold.h is recursive [it can contain other NPFold.h and so on]
+* should JobSummary.h be recursive too ?
 
