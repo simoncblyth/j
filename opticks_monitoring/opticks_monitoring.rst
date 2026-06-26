@@ -7,6 +7,25 @@ npy files. I am considering how to standardize this reporting to make it more
 useful for long term monitoring as the code and the detector geometry is
 changed.
 
+related
+---------
+
+~/env/tools/grafana/grafana.bash OR::
+
+   env-
+   grafana-
+   grafana-vi
+
+
+sqlite usage
+-------------
+
+::
+
+    ~/np/NSQLite.h
+    ~/np/tests/NSQLite_test.sh
+
+
 
 cxs_min.sh creates  a reduced sreport directory, but too much for long term persisting
 ----------------------------------------------------------------------------------------
