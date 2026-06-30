@@ -22,7 +22,9 @@ Ideas for opticks monitoring info
 -----------------------------------
 
 run level
-~~~~~~~~~
+~~~~~~~~~~
+
+* currently this info mostly contained in run_meta.txt
 
 Strings:
 
@@ -60,6 +62,14 @@ Modes (HMM: in principal could be varied by evt - but so far have not done that)
 simulated evt level (only ~10 ints per evt would be good)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* TODO: gather the below summary info from ranges array
+  (which comes from SProf.txt) and directly from SProf.txt annotations
+
+  * NB this processing must be done from SProf as cannot assume SEvt saving in production
+
+* TODO: review the processing that derives ranges from SProf.txt
+
+
 Delta Times (differences between epoch microsecond stamps):
 
 * start   : everything before upload
@@ -79,6 +89,8 @@ Counts:
 HMM: MAYBE sevrec.h to solidify these ? CAN sevrec.h be populated from sreport/ranges ?
 
 
+SProf.hh + ranges review
+--------------------------
 
 
 

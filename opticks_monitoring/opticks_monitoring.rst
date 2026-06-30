@@ -79,18 +79,18 @@ What is needed for long term Opticks monitoring:
    * probably rather standard
 
 
-Options for srun.h intermediary [nlohmann/json + NPFold.h composite] 
+Options for srun.h intermediary [nlohmann/json + NPFold.h composite]
 ------------------------------------------------------------------------
 
 * https://github.com/nlohmann/json#examples
 
 * extend sreport to add creation of srun.h
- 
+
   * turn that around - srun.h should be created entirely from loaded sreport.h
-  * sreport.h currently rather duplicitous - but srun.h can just summarize whats relevant from sreport.h 
+  * sreport.h currently rather duplicitous - but srun.h can just summarize whats relevant from sreport.h
     (not depending on sreport, only NPFold, NP, json)
 
-  * srundb.h (adding sqlite3.h dependency can then load the srun.h and create sqlite3 database) 
+  * srundb.h (adding sqlite3.h dependency can then load the srun.h and create sqlite3 database)
 
 * persist srun.h into normal persisted NPFold with json inside the folder
 * NPFold.h is recursive [it can contain other NPFold.h and so on]
@@ -100,7 +100,7 @@ Is json needed ?
 ~~~~~~~~~~~~~~~~~~
 
 * ~/opticks/notes/NLJSON_review.rs
-* add json summary to sreport ? 
+* add json summary to sreport ?
 
   * actually json not adding much - NPFold meta and run meta have everything already ?
 
@@ -108,12 +108,12 @@ Is json needed ?
 Alternative to adding srun.h intermediate layer - go direct from sreport to sreportdb ?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* create sreportdb that aggregates reports into sqlite db ? 
+* create sreportdb that aggregates reports into sqlite db ?
 * sliming down sreport.h is difficult to do though
-* it comes down to the sqlite tables - what level of detail to capture  
+* it comes down to the sqlite tables - what level of detail to capture
 
 
-Thinking about handling of large numbers of sreport 
+Thinking about handling of large numbers of sreport
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * gather the 8 sreport.h members : into one "report" NPFold ?
@@ -123,13 +123,13 @@ Thinking about handling of large numbers of sreport
     028     NP*       run ;       // dummy array that exists just to hold metadata
      29     NP*       runprof ;   // "prof" would be a better name now : but awkward to change
      30     NP*       ranges ;    // detailed range timing extracted from SProf.txt
-     31 
+     31
      32     NPFold*   substamp ;
      33     NPFold*   subprofile ;
      34     NPFold*   submeta ;   // folder of arrays of metadata values extracted from folder metadata - NOW ONLY RELEVANT FOR NON-PROFILE INFO
      35     NPFold*   submeta_NumPhotonCollected ; // RE-USE of submeta machinery with a single column - HMM THIS NEEDS TO BE REPLACED WITH SProf ANNOTATIONS
      36     NPFold*   subcount ;
-     37 
+     37
 
     073 inline NPFold* sreport::serialize() const
      74 {
@@ -176,15 +176,15 @@ Actually no point persisting saves all into one folder anyhow::
     4 drwxr-xr-x. 8 blyth blyth 4096 Jun 18 17:31 ..
     4 drwxr-xr-x. 3 blyth blyth 4096 Jun 18 17:31 subprofile
     4 drwxr-xr-x. 3 blyth blyth 4096 Jun 18 17:31 substamp
-    [lo] A[blyth@localhost ALL1_Debug_Philox_medium_scan_first_sreport]$ 
+    [lo] A[blyth@localhost ALL1_Debug_Philox_medium_scan_first_sreport]$
 
 
-Collecting sreport can be achieved by adopting a naming convention with incrementing zero padded 
+Collecting sreport can be achieved by adopting a naming convention with incrementing zero padded
 report index for the folder name "sreport_0000000"
 
 * see ~/o/sysrap/tests/sfilesystem_test.sh
 
- 
+
 
 Grafana
 ----------
@@ -218,14 +218,14 @@ important to allow metric presentation thats aware of GPU types used and
 software versions.  Opticks currently has custom reporting in C++ that analyses
 persisted profile metadata and saved Opticks events - summarizing these into
 NPFold.h  folders of NP.hh NumPy format persisted arrays.  What potential tools
-should I investigate to setup a monitoring pipeline ? 
+should I investigate to setup a monitoring pipeline ?
 
 
 The kind of data I want to monitor is coming from nightly gitlab-ci runs over a
 suite of simulation integration test runs that will perhaps grow to 20 types of
 tests with order 10 things to monitor for each run. So the scale is small
 enough for sqlite.  My concern is over flexibility of querying and
-presentation. 
+presentation.
 
 Does Grafana give full flexibility of data access eg for comparing metrics
 between different GPUs ?
@@ -272,7 +272,7 @@ The test_name is doing lots of work here, could that be a primary key from a tes
     );
 
 
-    SELECT 
+    SELECT
         t.geometry_type,
         AVG(CAST(json_extract(tr.metrics, '$.upload_geometry_time') AS REAL)) AS avg_upload_time
     FROM test_runs tr
@@ -290,7 +290,7 @@ sqlite json_extract
 ::
 
     -- Example query extracting nested photon source positions and kernel times
-    SELECT 
+    SELECT
         gpu_type,
         opticks_version,
         CAST(json_extract(metrics, '$.photon_counts.total') AS INT) AS total_photons,
@@ -305,6 +305,14 @@ sqlite json_extract
 OK. I can see its use for time series data.  But how can this work for nightly
 test suite runs which yield a bunch of data across a few hours of running tests
 each night ?
+
+
+
+
+
+
+
+
 
 
 
