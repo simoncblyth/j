@@ -1,6 +1,49 @@
 review "new" optical (LS) model
 ================================
 
+
+
+Overview
+--------
+
+The "three species LS model" is not yet merged into JUNOSW,
+but nevertheless need to prepare Opticks - such that the delay
+between merging and making the new model default and Opticks
+supporting it is not too long.
+
+
+
+Questions
+----------
+
+1. how to modify qsim.h to flexibly support triplicate model
+2. how to retain the LS species state, sysrap/sphoton.h set_species/get_species
+3. how to create the layered texture
+
+
+ 
+
+Opticks Preparations for "Three Species LS Model"
+---------------------------------------------------
+
+Added::
+
+     qudarap/QTexLayered.h
+     qudarap/QScintThree.h
+     qudarap/tests/QScintThree_test.sh
+
+
+Refs
+-----
+
+* https://code.ihep.ac.cn/JUNO/offline/junosw/-/merge_requests/1292
+
+
+
+Old Look at initial iteration
+------------------------------
+
+
 ::
 
     A[blyth@localhost junosw]$ jgr DsG4OpAbsReemit
